@@ -18,3 +18,14 @@ export const createPrivateSSRHelper = cache(async () => {
     },
   });
 });
+
+export const createPublicSSRHelper = cache(async () => {
+  const session = await auth();
+
+  return createServerSideHelpers({
+    router: appRouter,
+    ctx: {
+      user: session?.user ?? null,
+    },
+  });
+});

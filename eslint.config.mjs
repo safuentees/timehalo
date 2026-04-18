@@ -10,6 +10,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "design_handoff_brutalist_writing/**",
+    "design_handoff_halftone_lab/**",
+    "src/generated/**",
   ]),
 ]);
 
