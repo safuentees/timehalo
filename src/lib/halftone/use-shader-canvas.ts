@@ -1,5 +1,7 @@
 "use client";
 
+import createREGL from "regl";
+import type REGL from "regl";
 import { useEffect, type RefObject } from "react";
 import { useLatestRef } from "@/hooks/use-latest-ref";
 import { SHARED_SNOISE, SHARED_VERT } from "./shaders";
@@ -17,112 +19,79 @@ export type UseShaderCanvasOpts = {
   onPixels?: (pixels: Uint8Array, w: number, h: number, frameIdx: number) => void;
 };
 
-type Compiled = {
-  gl: WebGLRenderingContext;
-  program: WebGLProgram;
-  uniformLocs: Map<string, WebGLUniformLocation | null>;
+type UniformProps = Record<string, UniformValue>;
+
+type FragState = {
+  draw: REGL.DrawCommand<REGL.DefaultContext, UniformProps>;
+  pixels: Uint8Array | null;
   lastW: number;
   lastH: number;
-  pixels: Uint8Array | null;
-  frag: string;
 };
 
-const compiledByCanvas: WeakMap<HTMLCanvasElement, Compiled> = new WeakMap();
+type CanvasState = {
+  regl: REGL.Regl;
+  byFrag: Map<string, FragState>;
+};
 
-function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader | null {
-  const sh = gl.createShader(type);
-  if (!sh) return null;
-  gl.shaderSource(sh, src);
-  gl.compileShader(sh);
-  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-    console.error("[shader-canvas] compile:", gl.getShaderInfoLog(sh));
-    console.error(src);
-    return null;
+const cache: WeakMap<HTMLCanvasElement, CanvasState> = new WeakMap();
+
+function getOrCreateState(canvas: HTMLCanvasElement, frag: string): { regl: REGL.Regl; fragState: FragState } | null {
+  let canvasState = cache.get(canvas);
+  if (!canvasState) {
+    let regl: REGL.Regl;
+    try {
+      regl = createREGL({
+        canvas,
+        attributes: {
+          antialias: false,
+          premultipliedAlpha: false,
+          alpha: true,
+          preserveDrawingBuffer: true,
+        },
+        extensions: ["OES_standard_derivatives"],
+      });
+    } catch (err) {
+      console.error("[shader-canvas] regl init failed:", err);
+      return null;
+    }
+    canvasState = { regl, byFrag: new Map() };
+    cache.set(canvas, canvasState);
   }
-  return sh;
+
+  let fragState = canvasState.byFrag.get(frag);
+  if (!fragState) {
+    fragState = {
+      draw: null as unknown as FragState["draw"], // built lazily after first getUniforms() call
+      pixels: null,
+      lastW: 0,
+      lastH: 0,
+    };
+    canvasState.byFrag.set(frag, fragState);
+  }
+
+  return { regl: canvasState.regl, fragState };
 }
 
-function init(canvas: HTMLCanvasElement, frag: string): Compiled | null {
-  const cached = compiledByCanvas.get(canvas);
-  if (cached && cached.frag === frag && !cached.gl.isContextLost()) {
-    return cached;
+function buildDraw(regl: REGL.Regl, frag: string, uniformNames: readonly string[]): FragState["draw"] {
+  const uniforms: Record<string, REGL.DynamicVariable<UniformValue>> = {};
+  for (const name of uniformNames) {
+    uniforms[name] = regl.prop<UniformProps, string>(name);
   }
-
-  const gl =
-    (canvas.getContext("webgl", {
-      antialias: false,
-      premultipliedAlpha: false,
-      alpha: true,
-      preserveDrawingBuffer: false,
-    }) as WebGLRenderingContext | null) ||
-    (canvas.getContext("experimental-webgl") as WebGLRenderingContext | null);
-  if (!gl || gl.isContextLost()) return null;
-  gl.getExtension("OES_standard_derivatives");
-
-  const vs = compile(gl, gl.VERTEX_SHADER, SHARED_VERT);
-  const fs = compile(gl, gl.FRAGMENT_SHADER, SHARED_SNOISE + frag);
-  if (!vs || !fs) return null;
-
-  const program = gl.createProgram();
-  if (!program) return null;
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error("[shader-canvas] link:", gl.getProgramInfoLog(program));
-    return null;
-  }
-  gl.useProgram(program);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-    gl.STATIC_DRAW,
-  );
-  const aPos = gl.getAttribLocation(program, "aPos");
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-  const compiled: Compiled = {
-    gl,
-    program,
-    uniformLocs: new Map(),
-    lastW: 0,
-    lastH: 0,
-    pixels: null,
-    frag,
-  };
-  compiledByCanvas.set(canvas, compiled);
-  return compiled;
-}
-
-function getUniformLoc(c: Compiled, name: string): WebGLUniformLocation | null {
-  const cached = c.uniformLocs.get(name);
-  if (cached !== undefined) return cached;
-  const loc = c.gl.getUniformLocation(c.program, name);
-  c.uniformLocs.set(name, loc);
-  return loc;
-}
-
-function setUniform(
-  c: Compiled,
-  name: string,
-  value: UniformValue,
-  asInt: boolean,
-) {
-  const loc = getUniformLoc(c, name);
-  if (loc === null) return;
-  const { gl } = c;
-  if (typeof value === "number") {
-    if (asInt) gl.uniform1i(loc, value | 0);
-    else gl.uniform1f(loc, value);
-  } else if (value.length === 2) {
-    gl.uniform2f(loc, value[0], value[1]);
-  } else if (value.length === 3) {
-    gl.uniform3f(loc, value[0], value[1], value[2]);
-  }
+  return regl({
+    frag: SHARED_SNOISE + frag,
+    vert: SHARED_VERT,
+    attributes: {
+      aPos: regl.buffer([
+        [-1, -1],
+        [1, -1],
+        [-1, 1],
+        [1, 1],
+      ]),
+    },
+    uniforms,
+    count: 4,
+    primitive: "triangle strip",
+  });
 }
 
 export function useShaderCanvas(
@@ -130,17 +99,15 @@ export function useShaderCanvas(
   opts: UseShaderCanvasOpts,
 ): void {
   const optsRef = useLatestRef(opts);
-  const { frag, intUniforms, dprCap = 2 } = opts;
+  const { frag, dprCap = 2 } = opts;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const compiled = init(canvas, frag);
-    if (!compiled) return;
-
-    const intSet = new Set(intUniforms ?? []);
-    const { gl } = compiled;
+    const state = getOrCreateState(canvas, frag);
+    if (!state) return;
+    const { regl, fragState } = state;
 
     const resize = () => {
       const o = optsRef.current;
@@ -159,11 +126,10 @@ export function useShaderCanvas(
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
-        gl.viewport(0, 0, w, h);
-        compiled.lastW = w;
-        compiled.lastH = h;
+        fragState.lastW = w;
+        fragState.lastH = h;
         if (o.onPixels) {
-          compiled.pixels = new Uint8Array(w * h * 4);
+          fragState.pixels = new Uint8Array(w * h * 4);
         }
       }
     };
@@ -183,28 +149,29 @@ export function useShaderCanvas(
       if (o.paused?.()) return;
 
       const uniforms = o.getUniforms();
-      for (const name in uniforms) {
-        setUniform(compiled, name, uniforms[name], intSet.has(name));
+
+      if (!fragState.draw) {
+        fragState.draw = buildDraw(regl, frag, Object.keys(uniforms));
       }
 
+      regl.poll();
+
       const t0 = performance.now();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      fragState.draw(uniforms);
 
       let gpuMs: number;
-      if (o.onPixels && compiled.pixels) {
-        gl.readPixels(
-          0,
-          0,
-          compiled.lastW,
-          compiled.lastH,
-          gl.RGBA,
-          gl.UNSIGNED_BYTE,
-          compiled.pixels,
-        );
+      if (o.onPixels && fragState.pixels) {
+        regl.read({
+          x: 0,
+          y: 0,
+          width: fragState.lastW,
+          height: fragState.lastH,
+          data: fragState.pixels,
+        });
         gpuMs = performance.now() - t0;
-        o.onPixels(compiled.pixels, compiled.lastW, compiled.lastH, frames);
+        o.onPixels(fragState.pixels, fragState.lastW, fragState.lastH, frames);
       } else {
-        gl.finish();
+        regl._gl.finish();
         gpuMs = performance.now() - t0;
       }
 
@@ -223,6 +190,5 @@ export function useShaderCanvas(
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frag]);
+  }, [frag, canvasRef, dprCap, optsRef]);
 }
