@@ -57,13 +57,20 @@ export function BrutalistShell() {
     }
   }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tweaks));
-    } catch {
-      // ignore
-    }
-  }, [tweaks]);
+  // Persist tweaks on user action — not reactively via effect — so writes
+  // flow through the same code path that updated state, and we don't churn
+  // localStorage on unrelated re-renders.
+  const handleTweaksChange = (patch: Partial<HalftoneTweaks>) => {
+    setTweaks((prev) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   const rootClass = ["bru-root", motion ? "bru-motion" : ""]
     .filter(Boolean)
@@ -97,9 +104,7 @@ export function BrutalistShell() {
           motion={motion}
           setMotion={setMotion}
           tweaks={tweaks}
-          onTweaksChange={(patch) =>
-            setTweaks((prev) => ({ ...prev, ...patch }))
-          }
+          onTweaksChange={handleTweaksChange}
         />
       </Suspense>
     </div>
