@@ -2,10 +2,11 @@
 
 import { useRef } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { HALFTONE_DEFAULTS, type HalftoneTweaks } from "@/lib/halftone-defaults";
 import { FRAG_C } from "@/lib/halftone/shaders";
 import { useShaderCanvas } from "@/lib/halftone/use-shader-canvas";
 import { useDotRaster } from "@/lib/halftone/use-dot-raster";
+import { useHalftoneTweaks } from "./tweaks-context";
+import { useBrutalistPrefs } from "./prefs-context";
 
 const STEP = 14;
 const INT_UNIFORMS = ["uLayers", "uShowVignette"] as const;
@@ -17,16 +18,13 @@ function mapLayers(n: number): number {
 }
 
 export type HalftoneHeroProps = {
-  motion?: boolean;
   color?: string;
-  tweaks?: Partial<HalftoneTweaks>;
 };
 
-export default function HalftoneHero({
-  motion = true,
-  color,
-  tweaks,
-}: HalftoneHeroProps) {
+export default function HalftoneHero({ color }: HalftoneHeroProps) {
+  const { tweaks } = useHalftoneTweaks();
+  const { motion } = useBrutalistPrefs();
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const dotCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -36,7 +34,6 @@ export default function HalftoneHero({
   const lastNowRef = useRef<number | null>(null);
 
   const reduced = useReducedMotion();
-  const tk: HalftoneTweaks = { ...HALFTONE_DEFAULTS, ...(tweaks ?? {}) };
 
   useShaderCanvas(glCanvasRef, {
     frag: FRAG_C,
@@ -64,21 +61,21 @@ export default function HalftoneHero({
         cont && cont.clientHeight > 0
           ? cont.clientWidth / cont.clientHeight
           : 1;
-      const layers = mapLayers(tk.orbitCount);
-      const round = Math.min(1, Math.max(0, tk.orbitRadius / 0.6));
+      const layers = mapLayers(tweaks.orbitCount);
+      const round = Math.min(1, Math.max(0, tweaks.orbitRadius / 0.6));
 
       return {
         uTime: timeRef.current,
         uAspect: aspect,
         uMouse: [0.5, 0.5] as const,
         uMouseWarp: 0,
-        uRippleMix: tk.rippleMix,
-        uBaseMix: tk.baseMix,
-        uRippleSpeed: tk.rippleSpeed,
-        uRippleFreq: tk.rippleFreq,
-        uSwirl: tk.swirl,
+        uRippleMix: tweaks.rippleMix,
+        uBaseMix: tweaks.baseMix,
+        uRippleSpeed: tweaks.rippleSpeed,
+        uRippleFreq: tweaks.rippleFreq,
+        uSwirl: tweaks.swirl,
         uLayers: layers,
-        uDrift: tk.orbitSpeed,
+        uDrift: tweaks.orbitSpeed,
         uRound: round,
         uShowVignette: 0,
       };
@@ -91,7 +88,7 @@ export default function HalftoneHero({
   useDotRaster(containerRef, dotCanvasRef, {
     getPixels: () => pixelsRef.current,
     getGrid: () => gridRef.current,
-    getContrast: () => tk.contrast,
+    getContrast: () => tweaks.contrast,
     getDotColor: color ? () => color : undefined,
   });
 
