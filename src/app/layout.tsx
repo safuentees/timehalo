@@ -47,30 +47,6 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {session?.user && (
-            <nav
-              className="fixed top-0 right-0 left-0 z-50 h-24"
-              style={{
-                background: "linear-gradient(to bottom in oklch, var(--background) 0%, var(--background) 40%, transparent 100%)",
-              }}
-            >
-              <div className="mx-auto w-full max-w-2xl px-8 h-10 flex items-center justify-end">
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut({ redirectTo: "/login" });
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="font-mono text-xs tracking-wide text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                  >
-                    Sign out
-                  </button>
-                </form>
-              </div>
-            </nav>
-          )}
           <TRPCProvider>{children}</TRPCProvider>
         </ThemeProvider>
       </body>
