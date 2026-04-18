@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Waves,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import {
@@ -35,6 +36,10 @@ const primaryNav = [
 const secondaryNav = [
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
+];
+
+const labNav = [
+  { label: "Halftone Lab", href: "/lab/halftone", icon: Waves },
 ];
 
 const menuButtonClasses =
@@ -78,6 +83,31 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {secondaryNav.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                    className={menuButtonClasses}
+                    render={
+                      <Link href={item.href}>
+                        <item.icon className="size-3.5 stroke-[1.5]" />
+                        <span>{item.label}</span>
+                      </Link>
+                    }
+                  />
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Lab
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0">
+              {labNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     isActive={pathname === item.href}

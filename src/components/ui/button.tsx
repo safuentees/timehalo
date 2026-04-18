@@ -18,6 +18,10 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        brutalist:
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-[var(--bru-ink)] bg-[var(--bru-ink)] text-[var(--bru-paper)] transition-colors duration-75 [transition-timing-function:steps(1)] hover:bg-[var(--bru-paper)] hover:text-[var(--bru-ink)] focus-visible:ring-0 focus-visible:border-[var(--bru-ink)] disabled:opacity-35",
+        brutalistGhost:
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-[var(--bru-ink)] bg-[var(--bru-paper)] text-[var(--bru-ink)] transition-colors duration-75 [transition-timing-function:steps(1)] hover:bg-[var(--bru-ink)] hover:text-[var(--bru-paper)] focus-visible:ring-0 focus-visible:border-[var(--bru-ink)] disabled:opacity-35",
       },
       size: {
         default:
@@ -31,6 +35,8 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7",
         "icon-lg": "size-9",
+        brutalist:
+          "h-auto py-[9px] px-[14px] text-[11px] gap-1.5",
       },
     },
     defaultVariants: {
