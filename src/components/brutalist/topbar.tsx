@@ -2,15 +2,14 @@
 
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBrutalistPrefs } from "./prefs-context";
 
 type Props = {
   onNewPost: () => void;
-  theme: string | undefined;
-  onThemeToggle: () => void;
 };
 
-export function BrutalistTopbar({ onNewPost, theme, onThemeToggle }: Props) {
-  const isDark = theme === "dark";
+export function BrutalistTopbar({ onNewPost }: Props) {
+  const { theme, isDark, toggleTheme } = useBrutalistPrefs();
 
   return (
     <div className="bru-topbar bru-reveal" style={{ ["--d" as string]: "0ms" }}>
@@ -22,7 +21,7 @@ export function BrutalistTopbar({ onNewPost, theme, onThemeToggle }: Props) {
         <Button
           variant="brutalistGhost"
           size="brutalist"
-          onClick={onThemeToggle}
+          onClick={toggleTheme}
           aria-label="Toggle theme"
           suppressHydrationWarning
         >

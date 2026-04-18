@@ -5,7 +5,6 @@ import { BrutalistTicker } from "./ticker";
 import { BrutalistHero } from "./hero";
 import { BrutalistPostRow } from "./post-row";
 import { BrutalistEndRule } from "./end-rule";
-import type { HalftoneTweaks } from "@/lib/halftone-defaults";
 
 type Post = {
   id: number;
@@ -20,32 +19,16 @@ type Props = {
   posts: Post[] | undefined;
   onNewPost: () => void;
   onDelete: (id: number) => void;
-  tweaks: HalftoneTweaks;
-  motion: boolean;
-  theme: string | undefined;
-  onThemeToggle: () => void;
 };
 
-export function BrutalistMain({
-  posts,
-  onNewPost,
-  onDelete,
-  tweaks,
-  motion,
-  theme,
-  onThemeToggle,
-}: Props) {
+export function BrutalistMain({ posts, onNewPost, onDelete }: Props) {
   const list = posts ?? [];
 
   return (
     <main className="bru-main" id="top">
-      <BrutalistTopbar
-        onNewPost={onNewPost}
-        theme={theme}
-        onThemeToggle={onThemeToggle}
-      />
+      <BrutalistTopbar onNewPost={onNewPost} />
       <BrutalistTicker />
-      <BrutalistHero tweaks={tweaks} motion={motion} />
+      <BrutalistHero />
 
       <div className="bru-posts">
         {posts === undefined ? (
