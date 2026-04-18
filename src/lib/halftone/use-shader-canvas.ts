@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type RefObject } from "react";
+import { useLatestRef } from "@/hooks/use-latest-ref";
 import { SHARED_SNOISE, SHARED_VERT } from "./shaders";
 
 export type UniformValue = number | readonly [number, number] | readonly [number, number, number];
@@ -128,16 +129,8 @@ export function useShaderCanvas(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   opts: UseShaderCanvasOpts,
 ): void {
-  const {
-    frag,
-    getUniforms,
-    intUniforms,
-    onFrame,
-    dprCap = 2,
-    gridRes,
-    paused,
-    onPixels,
-  } = opts;
+  const optsRef = useLatestRef(opts);
+  const { frag, intUniforms, dprCap = 2 } = opts;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,10 +143,11 @@ export function useShaderCanvas(
     const { gl } = compiled;
 
     const resize = () => {
+      const o = optsRef.current;
       let w: number;
       let h: number;
-      if (gridRes) {
-        const r = gridRes();
+      if (o.gridRes) {
+        const r = o.gridRes();
         w = Math.max(1, r.cols);
         h = Math.max(1, r.rows);
       } else {
@@ -168,7 +162,7 @@ export function useShaderCanvas(
         gl.viewport(0, 0, w, h);
         compiled.lastW = w;
         compiled.lastH = h;
-        if (onPixels) {
+        if (o.onPixels) {
           compiled.pixels = new Uint8Array(w * h * 4);
         }
       }
@@ -176,7 +170,7 @@ export function useShaderCanvas(
     resize();
 
     const ro = new ResizeObserver(resize);
-    if (!gridRes) ro.observe(canvas);
+    if (!optsRef.current.gridRes) ro.observe(canvas);
 
     let raf = 0;
     let frames = 0;
@@ -184,10 +178,11 @@ export function useShaderCanvas(
 
     const loop = () => {
       raf = requestAnimationFrame(loop);
-      if (gridRes) resize();
-      if (paused && paused()) return;
+      const o = optsRef.current;
+      if (o.gridRes) resize();
+      if (o.paused?.()) return;
 
-      const uniforms = getUniforms();
+      const uniforms = o.getUniforms();
       for (const name in uniforms) {
         setUniform(compiled, name, uniforms[name], intSet.has(name));
       }
@@ -196,7 +191,7 @@ export function useShaderCanvas(
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       let gpuMs: number;
-      if (onPixels && compiled.pixels) {
+      if (o.onPixels && compiled.pixels) {
         gl.readPixels(
           0,
           0,
@@ -207,7 +202,7 @@ export function useShaderCanvas(
           compiled.pixels,
         );
         gpuMs = performance.now() - t0;
-        onPixels(compiled.pixels, compiled.lastW, compiled.lastH, frames);
+        o.onPixels(compiled.pixels, compiled.lastW, compiled.lastH, frames);
       } else {
         gl.finish();
         gpuMs = performance.now() - t0;
@@ -219,7 +214,7 @@ export function useShaderCanvas(
         const fps = (frames * 1000) / (now - lastFpsMark);
         frames = 0;
         lastFpsMark = now;
-        onFrame?.(fps, gpuMs);
+        o.onFrame?.(fps, gpuMs);
       }
     };
     raf = requestAnimationFrame(loop);

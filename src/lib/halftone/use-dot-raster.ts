@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
+import { useLatestRef } from "@/hooks/use-latest-ref";
 
 const DEFAULT_STEP = 14;
 
@@ -18,8 +19,7 @@ export function useDotRaster(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   opts: UseDotRasterOpts,
 ): void {
-  const optsRef = useRef(opts);
-  optsRef.current = opts;
+  const optsRef = useLatestRef(opts);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -106,5 +106,5 @@ export function useDotRaster(
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [canvasRef, containerRef]);
+  }, [canvasRef, containerRef, optsRef]);
 }
