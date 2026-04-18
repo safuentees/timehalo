@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Trash2 } from "lucide-react";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr + "T00:00:00");
@@ -59,6 +59,8 @@ function NewPostForm({
       onSuccess?.();
     },
   });
+  
+  const delPost = trpc.posts.delete.useMutation()
 
   return (
     <form
@@ -238,7 +240,7 @@ export default function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="font-mono text-xs tracking-wide shrink-0 border-foreground/20 transition-colors duration-200 hover:bg-foreground hover:text-background hover:border-foreground"
+              className="font-mono text-xs tracking-wide shrink-0 border-foreground/20 transition-colors duration-200 hover:bg-foreground/[0.06] hover:border-foreground/40"
               onClick={() => setShowNewPost(true)}
             >
               New post
@@ -251,9 +253,6 @@ export default function Dashboard() {
         {!posts
           ? Array.from({ length: 5 }).map((_, i) => (
               <Fragment key={i}>
-                {i > 0 && (
-                  <div className="mx-8 h-px bg-linear-to-r from-transparent via-border to-transparent" />
-                )}
                 <div className="px-8 pt-6 pb-10 animate-pulse">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="h-3 w-24 rounded bg-muted" />
@@ -270,14 +269,8 @@ export default function Dashboard() {
             ))
           : posts.map((post, i) => (
               <Fragment key={post.id}>
-                {i > 0 && (
-                  <div className="mx-8 h-px bg-linear-to-r from-transparent via-border to-transparent" />
-                )}
-                <article>
-                  <a
-                    href="#"
-                    className="group block px-8 pt-6 pb-10 transition-colors duration-200 hover:bg-foreground/[0.03]"
-                  >
+                <article className="group relative transition-colors duration-200 hover:bg-foreground/[0.03]">
+                  <a href="#" className="block px-8 pt-6 pb-10">
                     <div className="flex items-center gap-3 mb-3">
                       <span className="font-mono text-xs text-muted-foreground tracking-wide">
                         {formatDate(post.date)}
@@ -303,6 +296,13 @@ export default function Dashboard() {
                       {post.excerpt}
                     </p>
                   </a>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${post.title}`}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 inline-flex size-7 items-center justify-center rounded-none text-muted-foreground transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-destructive hover:bg-destructive/[0.08] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive/40"
+                  >
+                    <Trash2 className="size-3.5 stroke-[1.5]" />
+                  </button>
                 </article>
               </Fragment>
             ))}
