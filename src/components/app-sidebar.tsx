@@ -23,6 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 
 const primaryNav = [
@@ -38,7 +39,7 @@ const secondaryNav = [
 ];
 
 const menuButtonClasses =
-  "relative rounded-none font-sans text-sm data-[active=true]:bg-foreground/[0.04] data-[active=true]:font-medium data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:top-1.5 data-[active=true]:before:bottom-1.5 data-[active=true]:before:w-px data-[active=true]:before:bg-foreground hover:bg-foreground/[0.03]";
+  "relative rounded-none font-sans text-sm data-[active=true]:bg-foreground/[0.04] data-[active=true]:font-medium data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:inset-y-1.5 data-[active=true]:before:w-px data-[active=true]:before:bg-foreground data-[active=true]:group-data-[collapsible=icon]:before:inset-y-2 hover:bg-foreground/[0.03]";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -46,11 +47,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="border-b border-border">
-        <div className="px-2 pt-4 pb-3">
-          <h1 className="font-heading text-xl italic font-normal tracking-tight text-foreground leading-none group-data-[collapsible=icon]:hidden">
+        <div className="px-2 pt-4 pb-3 overflow-hidden transition-[max-height,padding] duration-200 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] max-h-24 group-data-[collapsible=icon]:max-h-0 group-data-[collapsible=icon]:py-0">
+          <h1 className="font-heading text-xl italic font-normal tracking-tight text-foreground leading-none whitespace-nowrap transition-opacity duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-data-[collapsible=icon]:opacity-0">
             Writing
           </h1>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground group-data-[collapsible=icon]:hidden">
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground whitespace-nowrap transition-opacity duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-data-[collapsible=icon]:opacity-0">
             by santiago
           </p>
         </div>
@@ -82,7 +83,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mx-3 my-2 h-px bg-linear-to-r from-transparent via-border to-transparent" />
+        <div className="mx-3 my-2 h-px bg-linear-to-r from-transparent via-border to-transparent group-data-[collapsible=icon]:mx-2" />
 
         <SidebarGroup>
           <SidebarGroupLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -116,7 +117,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               tooltip="Sign out"
               onClick={() => signOut({ redirectTo: "/login" })}
-              className="rounded-none font-sans text-sm text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
+              className="rounded-none font-sans text-sm text-muted-foreground transition-colors duration-200 hover:bg-destructive/[0.06] hover:text-destructive"
             >
               <LogOut className="size-3.5 stroke-[1.5]" />
               <span>Sign out</span>
@@ -124,6 +125,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
