@@ -39,7 +39,7 @@ export default function LoginPage() {
               type="submit"
               variant="outline"
               size="sm"
-              className="w-full font-mono text-xs tracking-wide border-foreground/20 transition-colors duration-200 hover:bg-foreground hover:text-background hover:border-foreground"
+              className="w-full font-mono text-xs tracking-wide border-foreground/20 transition-colors duration-200 hover:bg-foreground/[0.06] hover:border-foreground/40"
             >
               <img
                 src="/icons/github.svg"

@@ -19,7 +19,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -39,31 +38,20 @@ const secondaryNav = [
 ];
 
 const menuButtonClasses =
-  "relative rounded-none font-sans text-sm data-[active=true]:bg-foreground/[0.04] data-[active=true]:font-medium data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:inset-y-1.5 data-[active=true]:before:w-px data-[active=true]:before:bg-foreground data-[active=true]:group-data-[collapsible=icon]:before:inset-y-2 hover:bg-foreground/[0.03]";
+  "relative rounded-none font-sans text-sm transition-colors duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-foreground/[0.03] data-[active=true]:bg-foreground/[0.06] data-[active=true]:hover:bg-foreground/[0.06] data-[active=true]:font-medium data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:inset-y-1.5 data-[active=true]:before:w-px data-[active=true]:before:bg-foreground data-[active=true]:group-data-[collapsible=icon]:before:inset-y-2";
 
 export function AppSidebar() {
   const pathname = usePathname();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="border-b border-border">
-        <div className="px-2 pt-4 pb-3 overflow-hidden transition-[max-height,padding] duration-200 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] max-h-24 group-data-[collapsible=icon]:max-h-0 group-data-[collapsible=icon]:py-0">
-          <h1 className="font-heading text-xl italic font-normal tracking-tight text-foreground leading-none whitespace-nowrap transition-opacity duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-data-[collapsible=icon]:opacity-0">
-            Writing
-          </h1>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground whitespace-nowrap transition-opacity duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-data-[collapsible=icon]:opacity-0">
-            by santiago
-          </p>
-        </div>
-      </SidebarHeader>
-
-      <SidebarContent className="gap-0">
+      <SidebarContent className="gap-0 pt-4">
         <SidebarGroup>
           <SidebarGroupLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Library
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-0">
               {primaryNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
@@ -83,14 +71,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mx-3 my-2 h-px bg-linear-to-r from-transparent via-border to-transparent group-data-[collapsible=icon]:mx-2" />
-
         <SidebarGroup>
           <SidebarGroupLabel className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Workspace
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-0">
               {secondaryNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton

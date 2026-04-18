@@ -49,6 +49,21 @@ const posts = router({
     }),
   onNewPost: publicProcedure.subscription(async function* () {
   }),
+  del: privateProcedure
+    .input(z.object({ id: z.int() }))
+    .mutation(async ({ input, ctx }) => {
+      const post = await prisma.post.findUnique({
+        where: { id: input.id, userId: ctx.user.id },
+      });
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found or you don't have permission to delete it",
+        });
+      }
+      await prisma.post.delete({ where: { id: input.id } });
+      return { id: input.id };
+    }),
 });
 
 export const appRouter = router({ posts });
