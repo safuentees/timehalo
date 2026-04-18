@@ -1,15 +1,15 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { createPrivateSSRHelper } from "@/trpc/server-helpers";
-import Dashboard from "@/components/dashboard";
+import { createPublicSSRHelper } from "@/trpc/server-helpers";
+import { BrutalistShell } from "@/components/brutalist/brutalist-shell";
 
 export default async function Page() {
-  const trpc = await createPrivateSSRHelper();
+  const trpc = await createPublicSSRHelper();
 
   await trpc.posts.list.prefetch();
 
   return (
     <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-      <Dashboard />
+      <BrutalistShell />
     </HydrationBoundary>
   );
 }
