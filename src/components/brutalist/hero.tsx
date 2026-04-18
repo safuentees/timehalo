@@ -1,17 +1,11 @@
 "use client";
 
 import HalftoneHero from "./halftone-hero";
-import type { HalftoneTweaks } from "@/lib/halftone-defaults";
 
-type Props = {
-  tweaks: HalftoneTweaks;
-  motion: boolean;
-};
-
-export function BrutalistHero({ tweaks, motion }: Props) {
+export function BrutalistHero() {
   return (
     <section className="bru-hero bru-inverted bru-hero-dotted">
-      <HalftoneHero tweaks={tweaks} motion={motion} />
+      <HalftoneHero />
       <div className="bru-hero-inner">
         <h1
           className="bru-headline bru-reveal"

@@ -2,36 +2,26 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { HalftoneTweaks } from "@/lib/halftone-defaults";
+import { useHalftoneTweaks } from "./tweaks-context";
+import {
+  useBrutalistPrefs,
+  type Typeface,
+  type Density,
+} from "./prefs-context";
 
-type Typeface = "grotesk" | "serif" | "mono";
-type Density = "airy" | "dense";
+export function TweaksPanel() {
+  const { tweaks, updateTweaks } = useHalftoneTweaks();
+  const {
+    theme,
+    setTheme,
+    typeface,
+    setTypeface,
+    density,
+    setDensity,
+    motion,
+    setMotion,
+  } = useBrutalistPrefs();
 
-type Props = {
-  theme: string | undefined;
-  setTheme: (v: string) => void;
-  typeface: Typeface;
-  setTypeface: (v: Typeface) => void;
-  density: Density;
-  setDensity: (v: Density) => void;
-  motion: boolean;
-  setMotion: (v: boolean) => void;
-  tweaks: HalftoneTweaks;
-  onTweaksChange: (patch: Partial<HalftoneTweaks>) => void;
-};
-
-export function TweaksPanel({
-  theme,
-  setTheme,
-  typeface,
-  setTypeface,
-  density,
-  setDensity,
-  motion,
-  setMotion,
-  tweaks,
-  onTweaksChange,
-}: Props) {
   const params = useSearchParams();
   const enabled =
     process.env.NODE_ENV === "development" || params.get("tune") === "1";
@@ -103,7 +93,7 @@ export function TweaksPanel({
         min={0}
         max={1}
         step={0.01}
-        onChange={(v) => onTweaksChange({ rippleMix: v })}
+        onChange={(v) => updateTweaks({ rippleMix: v })}
       />
       <TweakSlider
         label="BASE NOISE"
@@ -111,7 +101,7 @@ export function TweaksPanel({
         min={0}
         max={1}
         step={0.01}
-        onChange={(v) => onTweaksChange({ baseMix: v })}
+        onChange={(v) => updateTweaks({ baseMix: v })}
       />
       <TweakSlider
         label="PULSE RATE"
@@ -119,7 +109,7 @@ export function TweaksPanel({
         min={0.1}
         max={2.5}
         step={0.01}
-        onChange={(v) => onTweaksChange({ rippleSpeed: v })}
+        onChange={(v) => updateTweaks({ rippleSpeed: v })}
       />
       <TweakSlider
         label="RING DENS."
@@ -127,7 +117,7 @@ export function TweaksPanel({
         min={3}
         max={30}
         step={0.5}
-        onChange={(v) => onTweaksChange({ rippleFreq: v })}
+        onChange={(v) => updateTweaks({ rippleFreq: v })}
       />
       <TweakSlider
         label="SWIRL"
@@ -135,7 +125,7 @@ export function TweaksPanel({
         min={0}
         max={0.8}
         step={0.01}
-        onChange={(v) => onTweaksChange({ swirl: v })}
+        onChange={(v) => updateTweaks({ swirl: v })}
       />
       <TweakSlider
         label="ORBITS"
@@ -143,7 +133,7 @@ export function TweaksPanel({
         min={1}
         max={10}
         step={1}
-        onChange={(v) => onTweaksChange({ orbitCount: v })}
+        onChange={(v) => updateTweaks({ orbitCount: v })}
       />
       <TweakSlider
         label="ORBIT SPD"
@@ -151,7 +141,7 @@ export function TweaksPanel({
         min={0}
         max={1.5}
         step={0.01}
-        onChange={(v) => onTweaksChange({ orbitSpeed: v })}
+        onChange={(v) => updateTweaks({ orbitSpeed: v })}
       />
       <TweakSlider
         label="ORBIT RAD."
@@ -159,7 +149,7 @@ export function TweaksPanel({
         min={0}
         max={0.6}
         step={0.01}
-        onChange={(v) => onTweaksChange({ orbitRadius: v })}
+        onChange={(v) => updateTweaks({ orbitRadius: v })}
       />
       <TweakSlider
         label="CONTRAST"
@@ -167,7 +157,7 @@ export function TweaksPanel({
         min={0.05}
         max={0.5}
         step={0.01}
-        onChange={(v) => onTweaksChange({ contrast: v })}
+        onChange={(v) => updateTweaks({ contrast: v })}
       />
     </div>
   );
