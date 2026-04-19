@@ -91,6 +91,9 @@ function buildDraw(regl: REGL.Regl, frag: string, uniformNames: readonly string[
     uniforms,
     count: 4,
     primitive: "triangle strip",
+    depth: { enable: false, mask: false },
+    cull: { enable: false },
+    blend: { enable: false },
   });
 }
 
@@ -108,6 +111,7 @@ export function useShaderCanvas(
     const state = getOrCreateState(canvas, frag);
     if (!state) return;
     const { regl, fragState } = state;
+    const gl = regl._gl;
 
     const resize = () => {
       const o = optsRef.current;
@@ -126,6 +130,7 @@ export function useShaderCanvas(
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
+        gl.viewport(0, 0, w, h);
         fragState.lastW = w;
         fragState.lastH = h;
         if (o.onPixels) {
@@ -138,12 +143,10 @@ export function useShaderCanvas(
     const ro = new ResizeObserver(resize);
     if (!optsRef.current.gridRes) ro.observe(canvas);
 
-    let raf = 0;
     let frames = 0;
     let lastFpsMark = performance.now();
 
-    const loop = () => {
-      raf = requestAnimationFrame(loop);
+    const tick = regl.frame(() => {
       const o = optsRef.current;
       if (o.gridRes) resize();
       if (o.paused?.()) return;
@@ -154,24 +157,24 @@ export function useShaderCanvas(
         fragState.draw = buildDraw(regl, frag, Object.keys(uniforms));
       }
 
-      regl.poll();
-
       const t0 = performance.now();
       fragState.draw(uniforms);
 
       let gpuMs: number;
       if (o.onPixels && fragState.pixels) {
-        regl.read({
-          x: 0,
-          y: 0,
-          width: fragState.lastW,
-          height: fragState.lastH,
-          data: fragState.pixels,
-        });
+        gl.readPixels(
+          0,
+          0,
+          fragState.lastW,
+          fragState.lastH,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          fragState.pixels,
+        );
         gpuMs = performance.now() - t0;
         o.onPixels(fragState.pixels, fragState.lastW, fragState.lastH, frames);
       } else {
-        regl._gl.finish();
+        gl.finish();
         gpuMs = performance.now() - t0;
       }
 
@@ -183,11 +186,10 @@ export function useShaderCanvas(
         lastFpsMark = now;
         o.onFrame?.(fps, gpuMs);
       }
-    };
-    raf = requestAnimationFrame(loop);
+    });
 
     return () => {
-      cancelAnimationFrame(raf);
+      tick.cancel();
       ro.disconnect();
     };
   }, [frag, canvasRef, dprCap, optsRef]);
