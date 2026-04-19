@@ -34,11 +34,11 @@ type CanvasState = {
   byFrag: Map<string, FragState>;
 };
 
-// Next's router cache can keep canvas DOM elements alive across navigations.
-// Cache the regl instance per canvas (and the compiled draw command per frag)
-// so a re-mounted effect reuses what already exists instead of trying to
-// initialize on top of a live context. Browser GC reclaims when the canvas
-// is actually detached from the document.
+// Next's router cache + React Strict Mode can keep canvas DOM elements alive
+// across navigations and effect re-runs. Cache the regl instance per canvas
+// (and the compiled draw command per frag) so a re-mounted effect reuses what
+// already exists instead of trying to initialize on top of a live context.
+// Browser GC reclaims when the canvas is actually detached.
 const cache: WeakMap<HTMLCanvasElement, CanvasState> = new WeakMap();
 
 function getOrCreateState(canvas: HTMLCanvasElement, frag: string): { regl: REGL.Regl; fragState: FragState } | null {
@@ -52,9 +52,8 @@ function getOrCreateState(canvas: HTMLCanvasElement, frag: string): { regl: REGL
           antialias: false,
           premultipliedAlpha: false,
           alpha: true,
-          // regl.read() from the default framebuffer requires this to be true
-          // (raw WebGL is lenient about same-frame readback; regl is strict).
-          // Cost is negligible for our small offscreen canvases.
+          // Required for raw gl.readPixels (used below for the readback path)
+          // to see the just-drawn back buffer same-frame.
           preserveDrawingBuffer: true,
         },
         extensions: ["OES_standard_derivatives"],
@@ -100,20 +99,33 @@ function buildDraw(regl: REGL.Regl, frag: string, uniformNames: readonly string[
     uniforms,
     count: 4,
     primitive: "triangle strip",
+    // Disable depth/cull/blend — fullscreen-quad fragment shaders don't
+    // need any of these. Critically, regl enables depth test (func 'less')
+    // by default; without an explicit depth clear each frame, the second
+    // frame's quad at z=0 fails the test (0 < 0 is false) and nothing
+    // renders → looks frozen on the first frame. See regl issue #444.
+    depth: { enable: false, mask: false },
+    cull: { enable: false },
+    blend: { enable: false },
   });
 }
 
 /**
- * Thin wrapper driving a full-screen fragment shader on `canvasRef` via regl.
+ * Thin wrapper driving a fullscreen-quad fragment shader on `canvasRef` via regl.
  *
- * Public API is unchanged from the previous raw-WebGL implementation. All
- * callbacks (`getUniforms`, `onFrame`, `paused`, `onPixels`, `gridRes`) are
- * read fresh each frame via a latest-ref internal so callers can pass inline
- * arrow functions without `useCallback`.
+ * Critical design point: draws are scheduled inside `regl.frame(callback)`,
+ * NOT a hand-rolled `requestAnimationFrame` loop. regl batches GPU commands
+ * into internal buffers that are only flushed (via `gl.flush`) by its own
+ * frame scheduler. Driving draws from an external rAF leaves the commands
+ * queued in regl's batch — the shader appears to render only the first frame
+ * and then freezes, and `gl.readPixels` returns the stale initial buffer
+ * forever after. This was a real, reproducible regression — see commit
+ * 48a2bd6 for the full debugging trail.
  *
- * Re-init is gated on `frag` changes (recompile path). The regl instance and
- * draw command are cached per canvas so client-side navigation that reuses
- * the canvas DOM does not invalidate the GL context.
+ * Public API unchanged from the raw-WebGL version. All callbacks
+ * (`getUniforms`, `onFrame`, `paused`, `onPixels`, `gridRes`) are read fresh
+ * each frame via a latest-ref internal so callers can pass inline arrow
+ * functions without `useCallback`.
  */
 export function useShaderCanvas(
   canvasRef: RefObject<HTMLCanvasElement | null>,
@@ -129,6 +141,7 @@ export function useShaderCanvas(
     const state = getOrCreateState(canvas, frag);
     if (!state) return;
     const { regl, fragState } = state;
+    const gl = regl._gl;
 
     const resize = () => {
       const o = optsRef.current;
@@ -147,6 +160,7 @@ export function useShaderCanvas(
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
+        gl.viewport(0, 0, w, h);
         fragState.lastW = w;
         fragState.lastH = h;
         if (o.onPixels) {
@@ -159,12 +173,10 @@ export function useShaderCanvas(
     const ro = new ResizeObserver(resize);
     if (!optsRef.current.gridRes) ro.observe(canvas);
 
-    let raf = 0;
     let frames = 0;
     let lastFpsMark = performance.now();
 
-    const loop = () => {
-      raf = requestAnimationFrame(loop);
+    const tick = regl.frame(() => {
       const o = optsRef.current;
       if (o.gridRes) resize();
       if (o.paused?.()) return;
@@ -178,25 +190,26 @@ export function useShaderCanvas(
         fragState.draw = buildDraw(regl, frag, Object.keys(uniforms));
       }
 
-      regl.poll();
-
       const t0 = performance.now();
       fragState.draw(uniforms);
 
       let gpuMs: number;
       if (o.onPixels && fragState.pixels) {
-        regl.read({
-          x: 0,
-          y: 0,
-          width: fragState.lastW,
-          height: fragState.lastH,
-          data: fragState.pixels,
-        });
+        // Raw gl.readPixels rather than regl.read — direct, predictable,
+        // and synchronous (forces the GPU pipeline to flush).
+        gl.readPixels(
+          0,
+          0,
+          fragState.lastW,
+          fragState.lastH,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          fragState.pixels,
+        );
         gpuMs = performance.now() - t0;
         o.onPixels(fragState.pixels, fragState.lastW, fragState.lastH, frames);
       } else {
-        // _gl is regl's documented escape hatch for advanced cases.
-        regl._gl.finish();
+        gl.finish();
         gpuMs = performance.now() - t0;
       }
 
@@ -208,15 +221,15 @@ export function useShaderCanvas(
         lastFpsMark = now;
         o.onFrame?.(fps, gpuMs);
       }
-    };
-    raf = requestAnimationFrame(loop);
+    });
 
     return () => {
-      cancelAnimationFrame(raf);
+      tick.cancel();
       ro.disconnect();
       // Intentionally do NOT call regl.destroy() — Next's router-cache can
       // reuse this canvas DOM across navigations, and a forced destroy
-      // would leave a dead WebGL context behind for the next mount.
+      // would leave a dead WebGL context for the next mount. The cached
+      // regl instance lives in the WeakMap until the canvas is GC'd.
     };
   }, [frag, canvasRef, dprCap, optsRef]);
 }
