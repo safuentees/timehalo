@@ -1,21 +1,15 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import type { ReactNode } from "react";
+import { BrutalistProviders } from "@/components/brutalist/providers";
+import { BrutalistDashboardLayout } from "@/components/brutalist/brutalist-dashboard-layout";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
-    <TooltipProvider delay={200}>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="relative">
-          <SidebarTrigger className="md:hidden absolute left-3 top-3 z-40 rounded-none size-9 text-muted-foreground hover:bg-foreground/4 hover:text-foreground" />
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <BrutalistProviders>
+      <BrutalistDashboardLayout>{children}</BrutalistDashboardLayout>
+    </BrutalistProviders>
   );
 }
