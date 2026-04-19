@@ -1,24 +1,25 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { trpc } from "@/trpc/hooks";
+import { Suspense, useEffect, type ReactNode } from "react";
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
-import { BrutalistMain } from "./main";
+import { BrutalistTopbar } from "./topbar";
 import { NewPostModal } from "./new-post-modal";
 import { TweaksPanel } from "./tweaks-panel";
 import { useBrutalistPrefs } from "./prefs-context";
+import { useNewPost } from "./new-post-context";
 
-export function BrutalistShell() {
-  const [newOpen, setNewOpen] = useState(false);
+export function BrutalistDashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const { typeface, density, motion } = useBrutalistPrefs();
-
-  const postsQ = trpc.posts.list.useQuery();
-  const delPost = trpc.posts.del.useMutation();
+  const { open: modalOpen, closeNewPost } = useNewPost();
 
   useEffect(() => {
     const id = requestAnimationFrame(() =>
@@ -30,7 +31,7 @@ export function BrutalistShell() {
     };
   }, []);
 
-  const rootClass = ["bru-root", motion ? "bru-motion" : ""]
+  const insetClass = ["bru-root", motion ? "bru-motion" : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -42,14 +43,11 @@ export function BrutalistShell() {
         data-density={density}
       >
         <BrutalistAppSidebar />
-        <SidebarInset className={rootClass}>
-          <BrutalistMain
-            posts={postsQ.data}
-            onNewPost={() => setNewOpen(true)}
-            onDelete={(id) => delPost.mutate({ id })}
-          />
+        <SidebarInset className={insetClass}>
+          <BrutalistTopbar />
+          {children}
         </SidebarInset>
-        <NewPostModal open={newOpen} onClose={() => setNewOpen(false)} />
+        <NewPostModal open={modalOpen} onClose={closeNewPost} />
         <Suspense fallback={null}>
           <TweaksPanel />
         </Suspense>
