@@ -11,7 +11,7 @@ export function PanelGrid() {
   return (
     <section
       aria-label="Shader panels"
-      className="grid grid-cols-1 gap-3 md:grid-cols-2 [&>figure]:min-h-[320px]"
+      className="grid grid-cols-1 gap-3 @lg:grid-cols-2 [&>figure]:min-h-[320px]"
     >
       <ShaderPanel panelKey="A" footContent={<LayerScrubberFoot />} />
       <ShaderPanel panelKey="B" footContent={<PanelBFoot />} />
