@@ -1,9 +1,10 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { BrutalistPlaceholder } from "@/components/brutalist/brutalist-placeholder";
 
 export default function SettingsPage() {
   return (
-    <PlaceholderPage
-      title="Settings"
+    <BrutalistPlaceholder
+      eyebrow="WORKSPACE / 05"
+      title="SETTINGS"
       subtitle="Account, preferences, and the quiet switches that shape the defaults."
     />
   );
