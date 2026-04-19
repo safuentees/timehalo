@@ -204,29 +204,70 @@ void main() {
 }`;
 
 /**
- * Halftone post-processing shader: samples a low-res grayscale field texture
- * and draws anti-aliased dots at each grid cell.
+ * Halftone dot pass — instanced quads.
  *
- * Replaces the CPU-driven Canvas2D arc() loop (~3000 draw calls per frame)
- * with a single fullscreen-quad draw call. Per-pixel work is cheap — nearest
- * cell lookup, one texture sample, one distance test.
+ * One instance per grid cell (~cols*rows). Each instance draws a tiny
+ * quad centered on the cell, sized to fit the max dot radius + AA margin.
+ * Fragment shader only runs inside those small quads, skipping the huge
+ * background area entirely.
  *
- * Uniform contract:
- *   uField        sampler2D  low-res grayscale field (from FRAG_C rendered to FBO)
+ * Fragment count vs the old fullscreen FRAG_DOTS:
+ *   fullscreen: canvas.w * canvas.h          (≈2.2M at 1205x458, dpr=2)
+ *   instanced:  cells * (2*quadRadius)^2     (≈200K at 88x34, quadRadius=8px)
+ * → ~11× fewer shaded fragments, no overdraw, no per-pixel cell lookup.
+ *
+ * Per-vertex attr:
+ *   aCorner  vec2  unit quad corner in [-1,-1]..[1,1], triangle strip.
+ * Per-instance attr:
+ *   aCell    vec2  integer cell index (col, row).
+ *
+ * Uniform contract (same names as the old FRAG_DOTS for a drop-in swap):
+ *   uField        sampler2D  low-res grayscale field (from FRAG_C in FBO)
  *   uCanvasSize   vec2       visible canvas size in pixels
- *   uGridSize     vec2       (cols, rows) of uField — matches field texture dims
- *   uStep         float      dot spacing in canvas pixels (typically 14)
- *   uContrast     float      brightness threshold below which a dot is skipped
+ *   uGridSize     vec2       (cols, rows) of uField
+ *   uStep         float      dot spacing in canvas pixels
+ *   uContrast     float      brightness threshold
  *   uDotColor     vec3       dot color in linear 0..1
- *   uEdgeMargin   float      no-dot margin at canvas edges (= max dot radius)
+ *   uEdgeMargin   float      no-dot margin at canvas edges
+ *   uQuadRadius   float      half-size of each instance quad in pixels
+ *                            (= DOT_MAX_RADIUS*dpr + AA margin)
  *
- * Uses the same dot geometry as the previous Canvas2D path:
+ * Dot geometry matches the previous path:
  *   radius = 0.35 + k01 * 2.3
  *   alpha  = 0.12 + k01 * 0.6
  * where k01 = (brightness - contrast) / (1 - contrast), clamped to [0, 1].
  */
-export const FRAG_DOTS = `precision highp float;
-varying vec2 vUv;
+export const VERT_DOTS_INSTANCED = `precision highp float;
+attribute vec2 aCorner;
+attribute vec2 aCell;
+
+uniform vec2  uCanvasSize;
+uniform vec2  uGridSize;
+uniform float uStep;
+uniform float uQuadRadius;
+
+varying vec2  vLocal;     // pixel offset from cell center
+varying vec2  vCellUv;    // field-texture UV for this cell
+
+void main() {
+  vec2 xyOff = (uCanvasSize - (uGridSize - 1.0) * uStep) * 0.5;
+  vec2 cellCenter = aCell * uStep + xyOff;
+
+  vec2 offset = aCorner * uQuadRadius;
+  vec2 vertexPx = cellCenter + offset;
+
+  // Pixel -> NDC. Canvas Y grows downward; flip.
+  vec2 ndc = (vertexPx / uCanvasSize) * 2.0 - 1.0;
+  ndc.y = -ndc.y;
+  gl_Position = vec4(ndc, 0.0, 1.0);
+
+  vLocal = offset;
+  vCellUv = (aCell + 0.5) / uGridSize;
+}`;
+
+export const FRAG_DOTS_INSTANCED = `precision highp float;
+varying vec2  vLocal;
+varying vec2  vCellUv;
 
 uniform sampler2D uField;
 uniform vec2  uCanvasSize;
@@ -237,39 +278,23 @@ uniform vec3  uDotColor;
 uniform float uEdgeMargin;
 
 void main() {
-  vec2 pixel = vUv * uCanvasSize;
-
-  // Centered grid: leftover space split evenly at both edges.
+  // Edge trim — cells whose center is too close to canvas edge produce
+  // half-circles; drop them. Recomputed here to avoid a varying.
   vec2 xyOff = (uCanvasSize - (uGridSize - 1.0) * uStep) * 0.5;
-
-  // Nearest grid cell to this pixel.
-  vec2 cellCoordF = (pixel - xyOff) / uStep;
-  vec2 cellCoord = clamp(floor(cellCoordF + 0.5), vec2(0.0), uGridSize - 1.0);
-  vec2 cellCenter = cellCoord * uStep + xyOff;
-
-  // Edge margin — cell centers too close to the canvas border render as
-  // half-circles when clipped; skip them to keep only whole dots.
+  vec2 cellCenter = floor(vCellUv * uGridSize) * uStep + xyOff;
   if (cellCenter.x < uEdgeMargin || cellCenter.x > uCanvasSize.x - uEdgeMargin ||
       cellCenter.y < uEdgeMargin || cellCenter.y > uCanvasSize.y - uEdgeMargin) {
-    gl_FragColor = vec4(0.0);
-    return;
+    discard;
   }
 
-  // Sample field brightness at the cell's texel center.
-  vec2 fieldUv = (cellCoord + 0.5) / uGridSize;
-  float brightness = texture2D(uField, fieldUv).r;
-
-  if (brightness < uContrast) {
-    gl_FragColor = vec4(0.0);
-    return;
-  }
+  float brightness = texture2D(uField, vCellUv).r;
+  if (brightness < uContrast) discard;
 
   float k01 = clamp((brightness - uContrast) / max(1.0 - uContrast, 1e-4), 0.0, 1.0);
   float radius = 0.35 + k01 * 2.3;
   float alpha  = 0.12 + k01 * 0.6;
 
-  float dist = distance(pixel, cellCenter);
-  // Anti-aliased disk: 1.0 inside radius, fades to 0 over a 1px border.
+  float dist = length(vLocal);
   float aa = smoothstep(radius + 0.5, radius - 0.5, dist);
 
   gl_FragColor = vec4(uDotColor, aa * alpha);
@@ -279,3 +304,5 @@ void main() {
 export const DOT_STEP = 14;
 /** Max dot radius; matches the 0.35 + k01 * 2.3 radius formula at k01 = 1. */
 export const DOT_MAX_RADIUS = 2.65;
+/** Extra pixel padding around each instanced quad for the AA smoothstep. */
+export const DOT_QUAD_AA_PAD = 1.0;
