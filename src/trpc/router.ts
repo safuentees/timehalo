@@ -45,8 +45,10 @@ const posts = router({
         tag: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
-      await prisma.post.create({ data: input });
+    .mutation(async ({ input, ctx }) => {
+      await prisma.post.create({
+        data: { ...input, userId: ctx.user.id },
+      });
       return input;
     }),
   onNewPost: publicProcedure.subscription(async function* () {
