@@ -2,11 +2,11 @@
 
 import { useCallback, useRef, type ReactNode } from "react";
 import { PANEL_FRAG } from "../_lib/shaders";
-import { DOT_STEP, PANEL_META } from "../_lib/constants";
-import { buildUniforms, INT_UNIFORMS } from "../_lib/build-uniforms";
+import { PANEL_META } from "../_lib/constants";
+import { buildUniforms } from "../_lib/build-uniforms";
 import { useHalftoneLab } from "../_lib/use-halftone-state";
-import { useShaderCanvas } from "@/lib/halftone/use-shader-canvas";
-import { useDotRaster } from "@/lib/halftone/use-dot-raster";
+import { useHalftoneCanvas } from "@/lib/halftone/use-halftone-canvas";
+import { DOT_STEP } from "@/lib/halftone/shaders";
 import {
   useFpsEntry,
   publishFps,
@@ -22,11 +22,7 @@ export function DotPanel({ footContent }: Props) {
   const panelKey = "D" as const;
   const { stateRef, mouseRef, dispatch, state } = useHalftoneLab();
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const dotCanvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const pixelsRef = useRef<Uint8Array | null>(null);
-  const gridRef = useRef({ cols: 1, rows: 1 });
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const timeRef = useRef(0);
   const lastNowRef = useRef<number | null>(null);
@@ -39,7 +35,6 @@ export function DotPanel({ footContent }: Props) {
     const r = body.getBoundingClientRect();
     const cols = Math.max(1, Math.ceil(r.width / DOT_STEP) + 1);
     const rows = Math.max(1, Math.ceil(r.height / DOT_STEP) + 1);
-    gridRef.current = { cols, rows };
     return { cols, rows };
   }, []);
 
@@ -61,23 +56,13 @@ export function DotPanel({ footContent }: Props) {
     );
   }, [mouseRef, stateRef]);
 
-  const onPixels = useCallback((pixels: Uint8Array) => {
-    pixelsRef.current = pixels;
-  }, []);
-
-  useShaderCanvas(glCanvasRef, {
+  useHalftoneCanvas(canvasRef, {
     frag: PANEL_FRAG[panelKey],
     getUniforms,
-    intUniforms: INT_UNIFORMS,
     gridRes,
-    onFrame: (fps, gpuMs) => publishFps(panelKey, fps, gpuMs),
-    onPixels,
-  });
-
-  useDotRaster(bodyRef, dotCanvasRef, {
-    getPixels: () => pixelsRef.current,
-    getGrid: () => gridRef.current,
+    step: DOT_STEP,
     getContrast: () => stateRef.current.tweaks.contrast,
+    onFrame: (fps, gpuMs) => publishFps(panelKey, fps, gpuMs),
     onHistogram: (hist) => publishHistogram(hist),
   });
 
@@ -136,12 +121,7 @@ export function DotPanel({ footContent }: Props) {
         onPointerLeave={onPointerLeave}
       >
         <canvas
-          ref={glCanvasRef}
-          className="hidden"
-          aria-hidden="true"
-        />
-        <canvas
-          ref={dotCanvasRef}
+          ref={canvasRef}
           className="absolute inset-0 block h-full w-full"
         />
         {state.overlays.enabled ? (

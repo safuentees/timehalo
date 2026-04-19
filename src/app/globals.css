@@ -324,7 +324,6 @@
 .bru-hero {
   position: relative;
   padding: 64px 44px 56px;
-  border-bottom: 2px solid var(--bru-ink);
   overflow: hidden;
   min-height: 460px;
 }
