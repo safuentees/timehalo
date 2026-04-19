@@ -2,7 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { trpc } from "@/trpc/hooks";
-import { BrutalistSidebar } from "./sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
 import { BrutalistMain } from "./main";
 import { NewPostModal } from "./new-post-modal";
 import { TweaksPanel } from "./tweaks-panel";
@@ -30,17 +35,25 @@ export function BrutalistShell() {
     .join(" ");
 
   return (
-    <div className={rootClass} data-typeface={typeface} data-density={density}>
-      <BrutalistSidebar />
-      <BrutalistMain
-        posts={postsQ.data}
-        onNewPost={() => setNewOpen(true)}
-        onDelete={(id) => delPost.mutate({ id })}
-      />
-      <NewPostModal open={newOpen} onClose={() => setNewOpen(false)} />
-      <Suspense fallback={null}>
-        <TweaksPanel />
-      </Suspense>
-    </div>
+    <TooltipProvider delay={200}>
+      <SidebarProvider
+        className="bru-app"
+        data-typeface={typeface}
+        data-density={density}
+      >
+        <BrutalistAppSidebar />
+        <SidebarInset className={rootClass}>
+          <BrutalistMain
+            posts={postsQ.data}
+            onNewPost={() => setNewOpen(true)}
+            onDelete={(id) => delPost.mutate({ id })}
+          />
+        </SidebarInset>
+        <NewPostModal open={newOpen} onClose={() => setNewOpen(false)} />
+        <Suspense fallback={null}>
+          <TweaksPanel />
+        </Suspense>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
