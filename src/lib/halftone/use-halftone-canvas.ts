@@ -7,9 +7,11 @@ import { useLatestRef } from "@/hooks/use-latest-ref";
 import {
   SHARED_SNOISE,
   SHARED_VERT,
-  FRAG_DOTS,
+  VERT_DOTS_INSTANCED,
+  FRAG_DOTS_INSTANCED,
   DOT_STEP,
   DOT_MAX_RADIUS,
+  DOT_QUAD_AA_PAD,
 } from "./shaders";
 
 export type UniformValue =
@@ -39,6 +41,8 @@ type DotUniformProps = {
   uContrast: number;
   uDotColor: readonly [number, number, number];
   uEdgeMargin: number;
+  uQuadRadius: number;
+  instances: number;
 };
 
 type HalftoneState = {
@@ -46,6 +50,7 @@ type HalftoneState = {
   field: REGL.DrawCommand<REGL.DefaultContext, FieldUniformProps>;
   dots: REGL.DrawCommand<REGL.DefaultContext, DotUniformProps>;
   fbo: REGL.Framebuffer2D;
+  cellBuffer: REGL.Buffer;
   pixels: Uint8Array;
   lastGridCols: number;
   lastGridRows: number;
@@ -107,7 +112,7 @@ function getOrCreateState(
         alpha: true,
         preserveDrawingBuffer: false,
       },
-      extensions: ["OES_standard_derivatives"],
+      extensions: ["OES_standard_derivatives", "ANGLE_instanced_arrays"],
     });
   } catch (err) {
     console.error("[halftone-canvas] regl init failed:", err);
@@ -130,6 +135,12 @@ function getOrCreateState(
     [1, 1],
   ]);
 
+  const cellBuffer = regl.buffer({
+    usage: "dynamic",
+    type: "float32",
+    length: 8, // placeholder; resized on first frame
+  });
+
   let fieldCommand: HalftoneState["field"] | null = null;
   const buildField = (uniformNames: readonly string[]): HalftoneState["field"] => {
     const uniforms: Record<string, REGL.DynamicVariable<UniformValue>> = {};
@@ -151,9 +162,12 @@ function getOrCreateState(
   };
 
   const dots = regl<object, object, DotUniformProps>({
-    frag: FRAG_DOTS,
-    vert: SHARED_VERT,
-    attributes: { aPos: quad },
+    frag: FRAG_DOTS_INSTANCED,
+    vert: VERT_DOTS_INSTANCED,
+    attributes: {
+      aCorner: quad,
+      aCell: { buffer: cellBuffer, divisor: 1 },
+    },
     uniforms: {
       uField: regl.prop<DotUniformProps, "uField">("uField"),
       uCanvasSize: regl.prop<DotUniformProps, "uCanvasSize">("uCanvasSize"),
@@ -162,8 +176,10 @@ function getOrCreateState(
       uContrast: regl.prop<DotUniformProps, "uContrast">("uContrast"),
       uDotColor: regl.prop<DotUniformProps, "uDotColor">("uDotColor"),
       uEdgeMargin: regl.prop<DotUniformProps, "uEdgeMargin">("uEdgeMargin"),
+      uQuadRadius: regl.prop<DotUniformProps, "uQuadRadius">("uQuadRadius"),
     },
     count: 4,
+    instances: regl.prop<DotUniformProps, "instances">("instances"),
     primitive: "triangle strip",
     depth: { enable: false, mask: false },
     cull: { enable: false },
@@ -183,6 +199,7 @@ function getOrCreateState(
     field: null as unknown as HalftoneState["field"],
     dots,
     fbo,
+    cellBuffer,
     pixels: new Uint8Array(4),
     lastGridCols: 0,
     lastGridRows: 0,
@@ -258,6 +275,15 @@ export function useHalftoneCanvas(
         if (o.onHistogram) {
           state.pixels = new Uint8Array(gCols * gRows * 4);
         }
+        const count = gCols * gRows;
+        const cells = new Float32Array(count * 2);
+        for (let r = 0, i = 0; r < gRows; r++) {
+          for (let c = 0; c < gCols; c++, i += 2) {
+            cells[i] = c;
+            cells[i + 1] = r;
+          }
+        }
+        state.cellBuffer({ data: cells, type: "float32", usage: "dynamic" });
       }
 
       const fieldUniforms = o.getUniforms();
@@ -282,6 +308,9 @@ export function useHalftoneCanvas(
       const H = state.lastCanvasH;
       const dpr = W / Math.max(1, canvas.getBoundingClientRect().width);
       const step = (o.step ?? DOT_STEP) * dpr;
+      const quadRadius = DOT_MAX_RADIUS * dpr + DOT_QUAD_AA_PAD;
+
+      regl.clear({ color: [0, 0, 0, 0], depth: 1 });
 
       dots({
         uField: fbo,
@@ -291,6 +320,8 @@ export function useHalftoneCanvas(
         uContrast: o.getContrast(),
         uDotColor: rgb,
         uEdgeMargin: DOT_MAX_RADIUS * dpr,
+        uQuadRadius: quadRadius,
+        instances: gCols * gRows,
       });
 
       if (o.onHistogram && (frames & 3) === 0 && state.pixels.length === gCols * gRows * 4) {

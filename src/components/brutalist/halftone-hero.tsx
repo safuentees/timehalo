@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { FRAG_C, DOT_STEP } from "@/lib/halftone/shaders";
 import { useHalftoneCanvas } from "@/lib/halftone/use-halftone-canvas";
@@ -29,11 +29,26 @@ export default function HalftoneHero({ color }: HalftoneHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const timeRef = useRef(FROZEN_T);
   const lastNowRef = useRef<number | null>(null);
+  const visibleRef = useRef(true);
 
   const reduced = useReducedMotion();
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) visibleRef.current = e.isIntersecting;
+      },
+      { rootMargin: "200px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useHalftoneCanvas(canvasRef, {
     frag: FRAG_C,
+    paused: () => !visibleRef.current,
     gridRes: () => {
       const cont = containerRef.current;
       if (!cont) return { cols: 1, rows: 1 };
