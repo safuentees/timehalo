@@ -2,14 +2,14 @@
 
 import { useRef } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { FRAG_C } from "@/lib/halftone/shaders";
-import { useShaderCanvas } from "@/lib/halftone/use-shader-canvas";
-import { useDotRaster } from "@/lib/halftone/use-dot-raster";
+import { FRAG_C, DOT_STEP } from "@/lib/halftone/shaders";
+import { useHalftoneCanvas } from "@/lib/halftone/use-halftone-canvas";
 import { useHalftoneTweaks } from "./tweaks-context";
 import { useBrutalistPrefs } from "./prefs-context";
+import type { HalftoneTweaks } from "@/lib/halftone-defaults";
 
-const STEP = 14;
 const INT_UNIFORMS = ["uLayers", "uShowVignette"] as const;
+void INT_UNIFORMS;
 const FROZEN_T = 4.2;
 
 function mapLayers(n: number): number {
@@ -26,27 +26,25 @@ export default function HalftoneHero({ color }: HalftoneHeroProps) {
   const { motion } = useBrutalistPrefs();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const dotCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pixelsRef = useRef<Uint8Array | null>(null);
-  const gridRef = useRef({ cols: 1, rows: 1 });
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const timeRef = useRef(FROZEN_T);
   const lastNowRef = useRef<number | null>(null);
 
   const reduced = useReducedMotion();
 
-  useShaderCanvas(glCanvasRef, {
+  useHalftoneCanvas(canvasRef, {
     frag: FRAG_C,
-    intUniforms: INT_UNIFORMS,
     gridRes: () => {
       const cont = containerRef.current;
       if (!cont) return { cols: 1, rows: 1 };
       const r = cont.getBoundingClientRect();
-      const cols = Math.max(1, Math.ceil(r.width / STEP) + 1);
-      const rows = Math.max(1, Math.ceil(r.height / STEP) + 1);
-      gridRef.current = { cols, rows };
+      const cols = Math.max(1, Math.ceil(r.width / DOT_STEP) + 1);
+      const rows = Math.max(1, Math.ceil(r.height / DOT_STEP) + 1);
       return { cols, rows };
     },
+    step: DOT_STEP,
+    getContrast: () => tweaks.contrast,
+    getDotColor: color ? () => color : undefined,
     getUniforms: () => {
       const cont = containerRef.current;
       const now = performance.now();
@@ -61,35 +59,26 @@ export default function HalftoneHero({ color }: HalftoneHeroProps) {
         cont && cont.clientHeight > 0
           ? cont.clientWidth / cont.clientHeight
           : 1;
-      const layers = mapLayers(tweaks.orbitCount);
-      const round = Math.min(1, Math.max(0, tweaks.orbitRadius / 0.6));
+      const tk: HalftoneTweaks = tweaks;
+      const layers = mapLayers(tk.orbitCount);
+      const round = Math.min(1, Math.max(0, tk.orbitRadius / 0.6));
 
       return {
         uTime: timeRef.current,
         uAspect: aspect,
         uMouse: [0.5, 0.5] as const,
         uMouseWarp: 0,
-        uRippleMix: tweaks.rippleMix,
-        uBaseMix: tweaks.baseMix,
-        uRippleSpeed: tweaks.rippleSpeed,
-        uRippleFreq: tweaks.rippleFreq,
-        uSwirl: tweaks.swirl,
+        uRippleMix: tk.rippleMix,
+        uBaseMix: tk.baseMix,
+        uRippleSpeed: tk.rippleSpeed,
+        uRippleFreq: tk.rippleFreq,
+        uSwirl: tk.swirl,
         uLayers: layers,
-        uDrift: tweaks.orbitSpeed,
+        uDrift: tk.orbitSpeed,
         uRound: round,
         uShowVignette: 0,
       };
     },
-    onPixels: (pixels) => {
-      pixelsRef.current = pixels;
-    },
-  });
-
-  useDotRaster(containerRef, dotCanvasRef, {
-    getPixels: () => pixelsRef.current,
-    getGrid: () => gridRef.current,
-    getContrast: () => tweaks.contrast,
-    getDotColor: color ? () => color : undefined,
   });
 
   return (
@@ -98,9 +87,8 @@ export default function HalftoneHero({ color }: HalftoneHeroProps) {
       className="bru-halftone-canvas"
       aria-hidden="true"
     >
-      <canvas ref={glCanvasRef} className="hidden" aria-hidden="true" />
       <canvas
-        ref={dotCanvasRef}
+        ref={canvasRef}
         style={{
           position: "absolute",
           inset: 0,

@@ -184,3 +184,50 @@ void main() {
 
   gl_FragColor = vec4(vec3(clamp(field, 0.0, 1.0)), 1.0);
 }`;
+
+export const FRAG_DOTS = `precision highp float;
+varying vec2 vUv;
+
+uniform sampler2D uField;
+uniform vec2  uCanvasSize;
+uniform vec2  uGridSize;
+uniform float uStep;
+uniform float uContrast;
+uniform vec3  uDotColor;
+uniform float uEdgeMargin;
+
+void main() {
+  vec2 pixel = vUv * uCanvasSize;
+
+  vec2 xyOff = (uCanvasSize - (uGridSize - 1.0) * uStep) * 0.5;
+
+  vec2 cellCoordF = (pixel - xyOff) / uStep;
+  vec2 cellCoord = clamp(floor(cellCoordF + 0.5), vec2(0.0), uGridSize - 1.0);
+  vec2 cellCenter = cellCoord * uStep + xyOff;
+
+  if (cellCenter.x < uEdgeMargin || cellCenter.x > uCanvasSize.x - uEdgeMargin ||
+      cellCenter.y < uEdgeMargin || cellCenter.y > uCanvasSize.y - uEdgeMargin) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+
+  vec2 fieldUv = (cellCoord + 0.5) / uGridSize;
+  float brightness = texture2D(uField, fieldUv).r;
+
+  if (brightness < uContrast) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+
+  float k01 = clamp((brightness - uContrast) / max(1.0 - uContrast, 1e-4), 0.0, 1.0);
+  float radius = 0.35 + k01 * 2.3;
+  float alpha  = 0.12 + k01 * 0.6;
+
+  float dist = distance(pixel, cellCenter);
+  float aa = smoothstep(radius + 0.5, radius - 0.5, dist);
+
+  gl_FragColor = vec4(uDotColor, aa * alpha);
+}`;
+
+export const DOT_STEP = 14;
+export const DOT_MAX_RADIUS = 2.65;
