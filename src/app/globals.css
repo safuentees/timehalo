@@ -188,6 +188,10 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
+  /* Name the container so children adapt to the inset width (what actually
+     changes when the sidebar collapses), not the viewport. */
+  container-type: inline-size;
+  container-name: bru-root;
 }
 .bru-app[data-typeface="serif"] { font-family: "Times New Roman", Times, serif; }
 .bru-app[data-typeface="mono"] { font-family: var(--bru-mono); }
@@ -323,16 +327,21 @@
 
 .bru-headline {
   margin: 0;
-  font-size: clamp(120px, 18vw, 260px);
+  /* Scale with container inline size so the headline never overflows a narrow
+     inset when the sidebar is open. Floor is small enough for mobile. */
+  font-size: clamp(48px, 18cqi, 260px);
   font-weight: 900;
   line-height: 0.82;
   letter-spacing: -0.05em;
   text-transform: uppercase;
   white-space: nowrap;
+  /* Safety net: if a future word is longer than the container, allow breaking
+     on arbitrary chars rather than overflowing. */
+  overflow-wrap: anywhere;
 }
 .bru-app[data-typeface="serif"] .bru-headline { letter-spacing: -0.04em; }
 .bru-app[data-typeface="mono"] .bru-headline {
-  font-size: clamp(80px, 12vw, 180px);
+  font-size: clamp(32px, 12cqi, 180px);
   letter-spacing: -0.04em;
 }
 
@@ -672,8 +681,10 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-ticker-track { animation: none !important; }
 }
 
-/* responsive — tighter padding on small screens (sidebar handled by shadcn) */
-@media (max-width: 720px) {
+/* Container-based responsive — adapts to the SidebarInset width, not viewport.
+   Fires whenever .bru-root is narrow, including when the sidebar is open and
+   eating horizontal space. */
+@container bru-root (max-width: 720px) {
   .bru-hero { padding: 48px 24px 40px; min-height: 360px; }
   .bru-topbar { padding: 14px 20px; }
   .bru-post {
@@ -683,6 +694,21 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   }
   .bru-post-aside { flex-direction: row; align-items: center; gap: 16px; }
   .bru-endrule { padding: 24px 20px; font-size: 9px; letter-spacing: 2px; }
+}
+
+/* Extra-narrow tier — phone-sized insets. Tighten post numbering, topbar. */
+@container bru-root (max-width: 480px) {
+  .bru-topbar {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .bru-topbar-right { width: 100%; justify-content: flex-start; }
+  .bru-num-big { font-size: 56px; }
+  .bru-post { padding: 20px 16px; }
+  .bru-endrule { padding: 20px 16px; }
+  .bru-hero { padding: 36px 18px 28px; min-height: 280px; }
 }
 
 /* ============================================================

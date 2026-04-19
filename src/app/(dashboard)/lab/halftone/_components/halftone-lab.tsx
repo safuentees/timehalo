@@ -11,10 +11,10 @@ export function HalftoneLab() {
     <HalftoneLabProvider>
       <div
         data-halftone-lab
-        className="flex w-full min-h-[calc(100vh-1px)]"
+        className="@container flex w-full min-h-[calc(100vh-1px)] flex-col @md:flex-row"
       >
         <TweakRail />
-        <main className="flex min-w-0 flex-1 flex-col gap-4 px-6 py-5">
+        <main className="flex min-w-0 flex-1 flex-col gap-4 px-4 py-5 @md:px-6">
           <TopBar />
           <PanelGrid />
           <AuxRow />
