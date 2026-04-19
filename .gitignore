@@ -53,3 +53,9 @@ next-env.d.ts
 !.claude/settings.json
 .claude/settings.local.json
 .idea/
+.nvim.lua
+
+# local notes and design handoffs
+TRPC-REACT-QUERY-FLOW.md
+/design_handoff_brutalist_writing/
+/design_handoff_halftone_lab/
