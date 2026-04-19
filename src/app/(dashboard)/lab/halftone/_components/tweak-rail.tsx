@@ -19,7 +19,7 @@ export function TweakRail() {
   return (
     <aside
       aria-label="shared parameters"
-      className="sticky top-0 flex h-[calc(100vh-1px)] w-72 shrink-0 flex-col overflow-y-auto border-r border-border bg-card/40"
+      className="flex h-auto w-full shrink-0 flex-col overflow-y-auto border-b border-border bg-card/40 @md:sticky @md:top-0 @md:h-[calc(100vh-1px)] @md:w-72 @md:border-b-0 @md:border-r"
     >
       <div className="flex items-baseline justify-between px-5 py-4">
         <div>
