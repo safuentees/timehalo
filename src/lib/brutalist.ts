@@ -5,6 +5,7 @@ import {
   Tag,
   BarChart3,
   Settings,
+  Waves,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,10 @@ export const PRIMARY_NAV: NavItem[] = [
 export const SECONDARY_NAV: NavItem[] = [
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
+];
+
+export const LAB_NAV: NavItem[] = [
+  { label: "Halftone", href: "/lab/halftone", icon: Waves },
 ];
 
 export const TICKER_ITEMS: string[] = [

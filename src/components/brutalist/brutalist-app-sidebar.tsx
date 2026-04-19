@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
+import { LAB_NAV, PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
 // Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
@@ -106,6 +106,34 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {SECONDARY_NAV.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <SidebarMenuItem key={item.href} className="group/item">
+                    <SidebarMenuButton
+                      isActive={active}
+                      tooltip={item.label}
+                      className={menuButtonClass}
+                      render={
+                        <Link href={item.href}>
+                          <NavBullet active={active} />
+                          <span>{item.label}</span>
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className={groupLabelClass}>
+            LAB
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0">
+              {LAB_NAV.map((item) => {
                 const active = pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
