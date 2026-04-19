@@ -202,3 +202,80 @@ void main() {
 
   gl_FragColor = vec4(vec3(clamp(field, 0.0, 1.0)), 1.0);
 }`;
+
+/**
+ * Halftone post-processing shader: samples a low-res grayscale field texture
+ * and draws anti-aliased dots at each grid cell.
+ *
+ * Replaces the CPU-driven Canvas2D arc() loop (~3000 draw calls per frame)
+ * with a single fullscreen-quad draw call. Per-pixel work is cheap — nearest
+ * cell lookup, one texture sample, one distance test.
+ *
+ * Uniform contract:
+ *   uField        sampler2D  low-res grayscale field (from FRAG_C rendered to FBO)
+ *   uCanvasSize   vec2       visible canvas size in pixels
+ *   uGridSize     vec2       (cols, rows) of uField — matches field texture dims
+ *   uStep         float      dot spacing in canvas pixels (typically 14)
+ *   uContrast     float      brightness threshold below which a dot is skipped
+ *   uDotColor     vec3       dot color in linear 0..1
+ *   uEdgeMargin   float      no-dot margin at canvas edges (= max dot radius)
+ *
+ * Uses the same dot geometry as the previous Canvas2D path:
+ *   radius = 0.35 + k01 * 2.3
+ *   alpha  = 0.12 + k01 * 0.6
+ * where k01 = (brightness - contrast) / (1 - contrast), clamped to [0, 1].
+ */
+export const FRAG_DOTS = `precision highp float;
+varying vec2 vUv;
+
+uniform sampler2D uField;
+uniform vec2  uCanvasSize;
+uniform vec2  uGridSize;
+uniform float uStep;
+uniform float uContrast;
+uniform vec3  uDotColor;
+uniform float uEdgeMargin;
+
+void main() {
+  vec2 pixel = vUv * uCanvasSize;
+
+  // Centered grid: leftover space split evenly at both edges.
+  vec2 xyOff = (uCanvasSize - (uGridSize - 1.0) * uStep) * 0.5;
+
+  // Nearest grid cell to this pixel.
+  vec2 cellCoordF = (pixel - xyOff) / uStep;
+  vec2 cellCoord = clamp(floor(cellCoordF + 0.5), vec2(0.0), uGridSize - 1.0);
+  vec2 cellCenter = cellCoord * uStep + xyOff;
+
+  // Edge margin — cell centers too close to the canvas border render as
+  // half-circles when clipped; skip them to keep only whole dots.
+  if (cellCenter.x < uEdgeMargin || cellCenter.x > uCanvasSize.x - uEdgeMargin ||
+      cellCenter.y < uEdgeMargin || cellCenter.y > uCanvasSize.y - uEdgeMargin) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+
+  // Sample field brightness at the cell's texel center.
+  vec2 fieldUv = (cellCoord + 0.5) / uGridSize;
+  float brightness = texture2D(uField, fieldUv).r;
+
+  if (brightness < uContrast) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+
+  float k01 = clamp((brightness - uContrast) / max(1.0 - uContrast, 1e-4), 0.0, 1.0);
+  float radius = 0.35 + k01 * 2.3;
+  float alpha  = 0.12 + k01 * 0.6;
+
+  float dist = distance(pixel, cellCenter);
+  // Anti-aliased disk: 1.0 inside radius, fades to 0 over a 1px border.
+  float aa = smoothstep(radius + 0.5, radius - 0.5, dist);
+
+  gl_FragColor = vec4(uDotColor, aa * alpha);
+}`;
+
+/** Default dot-step in CSS pixels. */
+export const DOT_STEP = 14;
+/** Max dot radius; matches the 0.35 + k01 * 2.3 radius formula at k01 = 1. */
+export const DOT_MAX_RADIUS = 2.65;
