@@ -1,9 +1,10 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { BrutalistPlaceholder } from "@/components/brutalist/brutalist-placeholder";
 
 export default function TagsPage() {
   return (
-    <PlaceholderPage
-      title="Tags"
+    <BrutalistPlaceholder
+      eyebrow="LIBRARY / 03"
+      title="TAGS"
       subtitle="Browse by topic. Architecture, opinion, infrastructure, everything else."
     />
   );

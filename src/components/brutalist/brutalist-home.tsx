@@ -1,37 +1,23 @@
 "use client";
 
-import { BrutalistTopbar } from "./topbar";
+import { trpc } from "@/trpc/hooks";
 import { BrutalistTicker } from "./ticker";
 import { BrutalistHero } from "./hero";
 import { BrutalistPostRow } from "./post-row";
 import { BrutalistEndRule } from "./end-rule";
 
-type Post = {
-  id: number;
-  date: string;
-  title: string;
-  excerpt: string;
-  tag: string;
-  readTime: string;
-};
-
-type Props = {
-  posts: Post[] | undefined;
-  onNewPost: () => void;
-  onDelete: (id: number) => void;
-};
-
-export function BrutalistMain({ posts, onNewPost, onDelete }: Props) {
-  const list = posts ?? [];
+export function BrutalistHome() {
+  const postsQ = trpc.posts.list.useQuery();
+  const delPost = trpc.posts.del.useMutation();
+  const list = postsQ.data ?? [];
 
   return (
     <main className="bru-main" id="top">
-      <BrutalistTopbar onNewPost={onNewPost} />
       <BrutalistTicker />
       <BrutalistHero />
 
       <div className="bru-posts">
-        {posts === undefined ? (
+        {postsQ.data === undefined ? (
           <PostSkeleton count={5} />
         ) : list.length === 0 ? (
           <EmptyState />
@@ -41,7 +27,7 @@ export function BrutalistMain({ posts, onNewPost, onDelete }: Props) {
               key={post.id}
               post={post}
               index={i}
-              onDelete={onDelete}
+              onDelete={(id) => delPost.mutate({ id })}
             />
           ))
         )}
@@ -110,7 +96,7 @@ function EmptyState() {
       style={{
         padding: "80px 44px",
         textAlign: "center",
-        fontFamily: "var(--font-jetbrains), monospace",
+        fontFamily: "var(--bru-mono)",
         fontSize: 12,
         letterSpacing: 2,
         opacity: 0.6,

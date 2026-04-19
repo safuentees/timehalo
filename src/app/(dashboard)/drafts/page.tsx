@@ -1,9 +1,10 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { BrutalistPlaceholder } from "@/components/brutalist/brutalist-placeholder";
 
 export default function DraftsPage() {
   return (
-    <PlaceholderPage
-      title="Drafts"
+    <BrutalistPlaceholder
+      eyebrow="LIBRARY / 01"
+      title="DRAFTS"
       subtitle="Half-written thoughts, unfinished sentences, ideas waiting their turn."
     />
   );
