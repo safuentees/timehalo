@@ -35,8 +35,8 @@ export default function HandleForm() {
         control={form.control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <div className="flex items-stretch border-[1.5px] border-[var(--bru-ink)] bg-[var(--bru-paper)] focus-within:shadow-[3px_3px_0_var(--bru-ink)] transition-shadow duration-75 [transition-timing-function:steps(1)]">
-              <span className="flex items-center px-2.5 bg-[var(--bru-ink)] text-[var(--bru-paper)] font-[family:var(--bru-mono)] text-[10px] font-extrabold uppercase tracking-[1.5px]">
+            <div className="flex items-stretch border-[1.5px] border-(--bru-ink) bg-(--bru-paper) transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]">
+              <span className="flex items-center bg-(--bru-ink) px-2.5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] text-(color:--bru-paper) uppercase">
                 /h/
               </span>
               <input
@@ -48,12 +48,12 @@ export default function HandleForm() {
                 autoCorrect="off"
                 spellCheck={false}
                 aria-invalid={fieldState.invalid}
-                className="flex-1 min-w-0 bg-transparent px-3 py-2.5 text-[15px] text-[var(--bru-ink)] outline-none placeholder:text-[var(--bru-placeholder)]"
+                className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-(color:--bru-ink) outline-none placeholder:text-(color:--bru-placeholder)"
               />
             </div>
             <FieldError
               errors={fieldState.error ? [fieldState.error] : undefined}
-              className="font-[family:var(--bru-mono)] text-[9.5px] font-bold uppercase tracking-[2.5px]"
+              className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
             />
           </Field>
         )}
