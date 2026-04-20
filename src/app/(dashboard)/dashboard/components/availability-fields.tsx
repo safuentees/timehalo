@@ -4,21 +4,13 @@ import { Clock2Icon, PlusIcon, XIcon } from "lucide-react";
 import {
   Controller,
   useFieldArray,
-  useForm,
   useWatch,
   type Control,
+  type FieldPath,
 } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import {
   BrutalistInputGroup,
@@ -37,7 +29,6 @@ const DAYS = [
 ] as const;
 
 type DayKey = (typeof DAYS)[number]["key"];
-type TimeFieldName = `${DayKey}.ranges.${number}.${"from" | "to"}`;
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -56,7 +47,7 @@ const daySchema = z.object({
   ranges: z.array(rangeSchema),
 });
 
-const schema = z.object({
+export const availabilitySchema = z.object({
   mon: daySchema,
   tue: daySchema,
   wed: daySchema,
@@ -66,11 +57,11 @@ const schema = z.object({
   sun: daySchema,
 });
 
-type FormValues = z.infer<typeof schema>;
+export type AvailabilityValues = z.infer<typeof availabilitySchema>;
 
 const DEFAULT_RANGE = { from: "09:00", to: "17:00" };
 
-const defaultValues: FormValues = {
+export const defaultAvailability: AvailabilityValues = {
   mon: { enabled: true, ranges: [DEFAULT_RANGE] },
   tue: { enabled: true, ranges: [DEFAULT_RANGE] },
   wed: { enabled: true, ranges: [DEFAULT_RANGE] },
@@ -80,75 +71,52 @@ const defaultValues: FormValues = {
   sun: { enabled: false, ranges: [] },
 };
 
-export default function AvailabilityForm() {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues,
-    mode: "onBlur",
-  });
+type AvailabilityPrefix = "availability";
+type TimeFieldName = `${AvailabilityPrefix}.${DayKey}.ranges.${number}.${"from" | "to"}`;
+type EnabledName = `${AvailabilityPrefix}.${DayKey}.enabled`;
+type RangesName = `${AvailabilityPrefix}.${DayKey}.ranges`;
 
-  function onSubmit(values: FormValues) {
-    alert(JSON.stringify(values, null, 2));
-  }
-
+export function AvailabilityFields<
+  TFieldValues extends { availability: AvailabilityValues },
+>({ control }: { control: Control<TFieldValues> }) {
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
-        <FieldSet>
-          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-            Availability
-          </FieldLegend>
-          <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-            Weekly windows visitors can book from.
-          </FieldDescription>
-          <FieldGroup>
-            {DAYS.map((day) => (
-              <DayRow key={day.key} day={day} control={form.control} />
-            ))}
-          </FieldGroup>
-        </FieldSet>
-
-        <Field orientation="horizontal" className="justify-end">
-          <Button
-            type="submit"
-            variant="brutalist"
-            size="brutalist"
-            className="w-full sm:w-auto"
-          >
-            Save schedule
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
+    <>
+      {DAYS.map((day) => (
+        <DayRow key={day.key} day={day} control={control} />
+      ))}
+    </>
   );
 }
 
-function DayRow({
+function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
   day,
   control,
 }: {
   day: (typeof DAYS)[number];
-  control: Control<FormValues>;
+  control: Control<TFieldValues>;
 }) {
+  const rangesName = `availability.${day.key}.ranges` as RangesName as FieldPath<TFieldValues>;
+  const enabledName = `availability.${day.key}.enabled` as EnabledName as FieldPath<TFieldValues>;
+
   const { fields, append, remove } = useFieldArray({
     control,
-    name: `${day.key}.ranges` as const,
+    name: rangesName as never,
   });
-  const enabled = useWatch({ control, name: `${day.key}.enabled` });
+  const enabled = useWatch({ control, name: enabledName }) as boolean;
 
   return (
     <Field className="flex-col gap-3 sm:flex-row sm:items-start">
       <Controller
         control={control}
-        name={`${day.key}.enabled`}
+        name={enabledName}
         render={({ field }) => (
           <div className="flex items-center gap-3 sm:w-32 sm:shrink-0 sm:pt-1.5">
             <Switch
               id={`enabled-${day.key}`}
-              checked={field.value}
+              checked={field.value as boolean}
               onCheckedChange={(v) => {
                 field.onChange(v);
-                if (v && fields.length === 0) append(DEFAULT_RANGE);
+                if (v && fields.length === 0) append(DEFAULT_RANGE as never);
               }}
               aria-label={day.label}
             />
@@ -173,13 +141,13 @@ function DayRow({
               <div key={f.id} className="flex items-center gap-2">
                 <TimeField
                   control={control}
-                  name={`${day.key}.ranges.${i}.from`}
+                  name={`availability.${day.key}.ranges.${i}.from` as TimeFieldName as FieldPath<TFieldValues>}
                   ariaLabel={`${day.label} start time`}
                 />
                 <span className="shrink-0 opacity-50">—</span>
                 <TimeField
                   control={control}
-                  name={`${day.key}.ranges.${i}.to`}
+                  name={`availability.${day.key}.ranges.${i}.to` as TimeFieldName as FieldPath<TFieldValues>}
                   ariaLabel={`${day.label} end time`}
                 />
                 <Button
@@ -198,7 +166,7 @@ function DayRow({
               type="button"
               variant="ghost"
               size="xs"
-              onClick={() => append(DEFAULT_RANGE)}
+              onClick={() => append(DEFAULT_RANGE as never)}
               className="self-start font-[family-name:var(--bru-mono)] text-[10px] tracking-[1.5px] uppercase"
             >
               <PlusIcon /> Add range
@@ -210,13 +178,13 @@ function DayRow({
   );
 }
 
-function TimeField({
+function TimeField<TFieldValues extends { availability: AvailabilityValues }>({
   control,
   name,
   ariaLabel,
 }: {
-  control: Control<FormValues>;
-  name: TimeFieldName;
+  control: Control<TFieldValues>;
+  name: FieldPath<TFieldValues>;
   ariaLabel: string;
 }) {
   return (
@@ -227,6 +195,7 @@ function TimeField({
         <BrutalistInputGroup className="flex-1">
           <BrutalistInputGroupInput
             {...field}
+            value={(field.value as string) ?? ""}
             type="time"
             step={900}
             aria-label={ariaLabel}
