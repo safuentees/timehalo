@@ -57,5 +57,10 @@ next-env.d.ts
 
 # local notes and design handoffs
 TRPC-REACT-QUERY-FLOW.md
+CAL-LAB-ROADMAP.md
+OFFICEHOURS-PROJECT-GUIDE.md
 /design_handoff_brutalist_writing/
 /design_handoff_halftone_lab/
+
+# stray scratch at repo root (real config lives in src/)
+/auth.ts
