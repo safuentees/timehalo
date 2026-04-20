@@ -2,18 +2,25 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 
 function BrutalistInputGroup({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<typeof InputGroup>) {
   return (
-    <div
+    <InputGroup
       data-slot="brutalist-input-group"
       className={cn(
-        "flex items-stretch border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
-        "transition-shadow duration-75 [transition-timing-function:steps(1)]",
-        "focus-within:shadow-[3px_3px_0_var(--bru-ink)]",
+        "h-auto items-stretch rounded-none border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
+        "transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]",
+        "has-[[data-slot=input-group-control]:focus-visible]:border-(--bru-ink) has-[[data-slot=input-group-control]:focus-visible]:ring-0",
+        "has-[[data-slot][aria-invalid=true]]:border-(--bru-ink) has-[[data-slot][aria-invalid=true]]:ring-0",
         className,
       )}
       {...props}
@@ -21,17 +28,31 @@ function BrutalistInputGroup({
   );
 }
 
-function BrutalistInputGroupPrefix({
+function BrutalistInputGroupAddon({
   className,
   ...props
-}: React.ComponentProps<"span">) {
+}: React.ComponentProps<typeof InputGroupAddon>) {
   return (
-    <span
-      data-slot="brutalist-input-group-prefix"
+    <InputGroupAddon
+      data-slot="brutalist-input-group-addon"
       className={cn(
-        "flex items-center bg-(--bru-ink) px-2.5",
-        "font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase",
-        "text-(color:--bru-paper)",
+        "rounded-none bg-(--bru-ink) px-2.5 py-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function BrutalistInputGroupText({
+  className,
+  ...props
+}: React.ComponentProps<typeof InputGroupText>) {
+  return (
+    <InputGroupText
+      data-slot="brutalist-input-group-text"
+      className={cn(
+        "font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] text-(color:--bru-paper) uppercase",
         className,
       )}
       {...props}
@@ -42,15 +63,12 @@ function BrutalistInputGroupPrefix({
 function BrutalistInputGroupInput({
   className,
   ...props
-}: React.ComponentProps<"input">) {
+}: React.ComponentProps<typeof InputGroupInput>) {
   return (
-    <input
+    <InputGroupInput
       data-slot="brutalist-input-group-input"
-      type={props.type ?? "text"}
       className={cn(
-        "min-w-0 flex-1 bg-transparent px-3 py-2.5",
-        "text-[15px] text-(color:--bru-ink) outline-none",
-        "placeholder:text-(color:--bru-placeholder)",
+        "px-3 py-2.5 text-[15px] text-(color:--bru-ink) placeholder:text-(color:--bru-placeholder)",
         className,
       )}
       {...props}
@@ -60,6 +78,7 @@ function BrutalistInputGroupInput({
 
 export {
   BrutalistInputGroup,
-  BrutalistInputGroupPrefix,
+  BrutalistInputGroupAddon,
+  BrutalistInputGroupText,
   BrutalistInputGroupInput,
 };
