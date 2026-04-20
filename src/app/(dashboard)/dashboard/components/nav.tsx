@@ -38,17 +38,13 @@ export default function HandleForm() {
         if (!canSubmit) return;
         alert(`Would save handle: ${handle}`);
       }}
-      className="bru-form"
+      className="flex flex-col gap-5"
     >
-      <div className="bru-field">
-        <label htmlFor="handle" className="bru-field-label">
-          HANDLE
-        </label>
-
-        {/* brutalist input group — solid ink prefix block + paper input + ink status tag */}
-        <div className="flex items-stretch border-[1.5px] border-[var(--bru-ink)] bg-[var(--bru-paper)] transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)] focus-within:-translate-x-px focus-within:-translate-y-px">
-          <span className="flex items-center px-3 bg-[var(--bru-ink)] text-[var(--bru-paper)] font-[family:var(--bru-mono)] text-[10.5px] font-extrabold uppercase tracking-[2px] whitespace-nowrap">
-            officehours.app/h/
+      <div className="flex flex-col gap-2">
+        {/* brutalist input group — ink prefix block + paper input + ink status tag */}
+        <div className="flex items-stretch border-[1.5px] border-[var(--bru-ink)] bg-[var(--bru-paper)] focus-within:shadow-[3px_3px_0_var(--bru-ink)] transition-shadow duration-75 [transition-timing-function:steps(1)]">
+          <span className="flex items-center px-2.5 bg-[var(--bru-ink)] text-[var(--bru-paper)] font-[family:var(--bru-mono)] text-[10px] font-extrabold uppercase tracking-[1.5px] whitespace-nowrap">
+            /h/
           </span>
           <input
             id="handle"
@@ -72,16 +68,15 @@ export default function HandleForm() {
         <HandleHelp state={availability} />
       </div>
 
-      <div className="flex justify-end pt-2">
-        <Button
-          type="submit"
-          variant="brutalist"
-          size="brutalist"
-          disabled={!canSubmit}
-        >
-          Save handle
-        </Button>
-      </div>
+      <Button
+        type="submit"
+        variant="brutalist"
+        size="brutalist"
+        disabled={!canSubmit}
+        className="w-full sm:w-auto sm:self-end"
+      >
+        Save
+      </Button>
     </form>
   );
 }
