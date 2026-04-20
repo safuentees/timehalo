@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,35 +24,27 @@ import {
 } from "./availability-fields";
 
 /**
- * Canonical multi-section form following the shadcn convention:
+ * One form, one useForm. Wrapped in FormProvider so child sections
+ * (HandleFields, AvailabilityFields) read the form instance from context
+ * instead of receiving `control` as a prop.
  *
- *   <form>
- *     <FieldGroup>                    ← outer form body
- *       <FieldSet>                    ← "Handle" section
- *         <FieldLegend />
- *         <FieldGroup>                ← inner spacing for this section's fields
- *           <HandleFields control />
- *         </FieldGroup>
- *       </FieldSet>
+ * Tree follows the shadcn convention:
  *
- *       <FieldSeparator />
- *
- *       <FieldSet>                    ← "Availability" section
- *         <FieldLegend />
- *         <FieldDescription />
- *         <FieldGroup>
- *           <AvailabilityFields control />
- *         </FieldGroup>
- *       </FieldSet>
- *
- *       <Field orientation="horizontal">  ← submit row
- *         <Button type="submit">Save</Button>
- *       </Field>
- *     </FieldGroup>
- *   </form>
- *
- * One `useForm`, one submit. Section components are presentational — they
- * receive `control` as a prop and render their own Controllers against it.
+ *   FormProvider
+ *     <form>
+ *       FieldGroup                    ← outer form body
+ *         FieldSet                    ← Handle section
+ *           FieldLegend
+ *           FieldGroup                ← inner spacing
+ *             HandleFields
+ *         FieldSeparator
+ *         FieldSet                    ← Availability section
+ *           FieldLegend
+ *           FieldDescription
+ *           FieldGroup
+ *             AvailabilityFields
+ *         Field orientation="horizontal"   ← submit row
+ *           Button type="submit"
  */
 
 const schema = z.object({
@@ -79,42 +71,44 @@ export default function SettingsForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
-        <FieldSet>
-          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-            Handle
-          </FieldLegend>
-          <FieldGroup>
-            <HandleFields<FormValues> control={form.control} />
-          </FieldGroup>
-        </FieldSet>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup>
+          <FieldSet>
+            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+              Handle
+            </FieldLegend>
+            <FieldGroup>
+              <HandleFields />
+            </FieldGroup>
+          </FieldSet>
 
-        <FieldSeparator />
+          <FieldSeparator />
 
-        <FieldSet>
-          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-            Availability
-          </FieldLegend>
-          <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-            Weekly windows visitors can book from.
-          </FieldDescription>
-          <FieldGroup>
-            <AvailabilityFields<FormValues> control={form.control} />
-          </FieldGroup>
-        </FieldSet>
+          <FieldSet>
+            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+              Availability
+            </FieldLegend>
+            <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+              Weekly windows visitors can book from.
+            </FieldDescription>
+            <FieldGroup>
+              <AvailabilityFields />
+            </FieldGroup>
+          </FieldSet>
 
-        <Field orientation="horizontal" className="justify-end">
-          <Button
-            type="submit"
-            variant="brutalist"
-            size="brutalist"
-            className="w-full sm:w-auto"
-          >
-            Save
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
+          <Field orientation="horizontal" className="justify-end">
+            <Button
+              type="submit"
+              variant="brutalist"
+              size="brutalist"
+              className="w-full sm:w-auto"
+            >
+              Save
+            </Button>
+          </Field>
+        </FieldGroup>
+      </form>
+    </FormProvider>
   );
 }
