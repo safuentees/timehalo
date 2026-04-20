@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
 import {
   BrutalistInputGroup,
+  BrutalistInputGroupAddon,
   BrutalistInputGroupInput,
-  BrutalistInputGroupPrefix,
+  BrutalistInputGroupText,
 } from "@/components/brutalist/brutalist-input-group";
 
 const schema = z.object({
@@ -41,7 +42,6 @@ export default function HandleForm() {
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <BrutalistInputGroup>
-              <BrutalistInputGroupPrefix>/h/</BrutalistInputGroupPrefix>
               <BrutalistInputGroupInput
                 {...field}
                 id={field.name}
@@ -51,6 +51,9 @@ export default function HandleForm() {
                 spellCheck={false}
                 aria-invalid={fieldState.invalid}
               />
+              <BrutalistInputGroupAddon align="inline-start">
+                <BrutalistInputGroupText>/h/</BrutalistInputGroupText>
+              </BrutalistInputGroupAddon>
             </BrutalistInputGroup>
             <FieldError
               errors={fieldState.error ? [fieldState.error] : undefined}
