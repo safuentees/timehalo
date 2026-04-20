@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, type Control, type FieldPath } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { Field, FieldError } from "@/components/ui/field";
 import {
@@ -19,28 +19,24 @@ export const handleFieldSchema = z
 
 export const defaultHandle = "";
 
+// Local typing so Controller's name/field.value are strongly typed
+// without this file having to know the full SettingsValues shape.
+type FormShape = { handle: string };
+
 /**
- * Renders only the handle input wired to the parent form via `control`.
- * No <form>, no useForm, no submit button. The parent owns the form.
+ * Presentational section rendered inside a parent FormProvider.
+ * `Controller` auto-reads `control` from FormProvider context — no prop.
  */
-export function HandleFields<TFieldValues extends { handle: string }>({
-  control,
-  name = "handle" as FieldPath<TFieldValues>,
-}: {
-  control: Control<TFieldValues>;
-  name?: FieldPath<TFieldValues>;
-}) {
+export function HandleFields() {
   return (
-    <Controller
-      control={control}
-      name={name}
+    <Controller<FormShape>
+      name="handle"
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
           <BrutalistInputGroup>
             <BrutalistInputGroupInput
               {...field}
-              value={(field.value as string) ?? ""}
-              id={String(field.name)}
+              id={field.name}
               placeholder="alex"
               autoCapitalize="none"
               autoCorrect="off"
