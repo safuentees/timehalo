@@ -92,32 +92,33 @@ export default function AvailabilityForm() {
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="flex flex-col gap-5"
-    >
-      <FieldSet>
-        <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-          Availability
-        </FieldLegend>
-        <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-          Weekly windows visitors can book from.
-        </FieldDescription>
-        <FieldGroup>
-          {DAYS.map((day) => (
-            <DayRow key={day.key} day={day} control={form.control} />
-          ))}
-        </FieldGroup>
-      </FieldSet>
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <FieldSet>
+          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+            Availability
+          </FieldLegend>
+          <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+            Weekly windows visitors can book from.
+          </FieldDescription>
+          <FieldGroup>
+            {DAYS.map((day) => (
+              <DayRow key={day.key} day={day} control={form.control} />
+            ))}
+          </FieldGroup>
+        </FieldSet>
 
-      <Button
-        type="submit"
-        variant="brutalist"
-        size="brutalist"
-        className="w-full sm:w-auto sm:self-end"
-      >
-        Save schedule
-      </Button>
+        <Field orientation="horizontal" className="justify-end">
+          <Button
+            type="submit"
+            variant="brutalist"
+            size="brutalist"
+            className="w-full sm:w-auto"
+          >
+            Save schedule
+          </Button>
+        </Field>
+      </FieldGroup>
     </form>
   );
 }

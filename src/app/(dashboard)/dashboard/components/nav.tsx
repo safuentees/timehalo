@@ -4,7 +4,13 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import {
   BrutalistInputGroup,
   BrutalistInputGroupAddon,
@@ -17,7 +23,6 @@ const schema = z.object({
     .string()
     .min(3, "3+ characters")
     .regex(/^[a-z0-9-]+$/, "Lowercase, numbers, hyphens"),
-  window: z.object({ time: z.int() }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -25,7 +30,7 @@ type FormValues = z.infer<typeof schema>;
 export default function HandleForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { handle: "", window: { time: 0 } },
+    defaultValues: { handle: "" },
   });
 
   function onSubmit(values: FormValues) {
@@ -33,58 +38,52 @@ export default function HandleForm() {
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="flex flex-col gap-4"
-    >
+    <form onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <Controller
-          name="handle"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <BrutalistInputGroup>
-                <BrutalistInputGroupInput
-                  {...field}
-                  id={field.name}
-                  placeholder="alex"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  aria-invalid={fieldState.invalid}
-                />
-                <BrutalistInputGroupAddon align="inline-start">
-                  <BrutalistInputGroupText>/h/</BrutalistInputGroupText>
-                </BrutalistInputGroupAddon>
-              </BrutalistInputGroup>
-              <FieldError
-                errors={fieldState.error ? [fieldState.error] : undefined}
-                className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
-              />
-            </Field>
-          )}
-        />
-        <Controller
-          name="window"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldError
-                errors={fieldState.error ? [fieldState.error] : undefined}
-                className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
-              />
-            </Field>
-          )}
-        />
+        <FieldSet>
+          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+            Handle
+          </FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="handle"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <BrutalistInputGroup>
+                    <BrutalistInputGroupInput
+                      {...field}
+                      id={field.name}
+                      placeholder="alex"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    <BrutalistInputGroupAddon align="inline-start">
+                      <BrutalistInputGroupText>/h/</BrutalistInputGroupText>
+                    </BrutalistInputGroupAddon>
+                  </BrutalistInputGroup>
+                  <FieldError
+                    errors={fieldState.error ? [fieldState.error] : undefined}
+                    className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
+                  />
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
 
-        <Button
-          type="submit"
-          variant="brutalist"
-          size="brutalist"
-          className="w-full sm:w-auto sm:self-end"
-        >
-          Save
-        </Button>
+        <Field orientation="horizontal" className="justify-end">
+          <Button
+            type="submit"
+            variant="brutalist"
+            size="brutalist"
+            className="w-full sm:w-auto"
+          >
+            Save
+          </Button>
+        </Field>
       </FieldGroup>
     </form>
   );
