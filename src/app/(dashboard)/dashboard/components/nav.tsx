@@ -5,6 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
+import {
+  BrutalistInputGroup,
+  BrutalistInputGroupInput,
+  BrutalistInputGroupPrefix,
+} from "@/components/brutalist/brutalist-input-group";
 
 const schema = z.object({
   handle: z
@@ -35,22 +40,18 @@ export default function HandleForm() {
         control={form.control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <div className="flex items-stretch border-[1.5px] border-(--bru-ink) bg-(--bru-paper) transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]">
-              <span className="flex items-center bg-(--bru-ink) px-2.5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] text-(color:--bru-paper) uppercase">
-                /h/
-              </span>
-              <input
+            <BrutalistInputGroup>
+              <BrutalistInputGroupPrefix>/h/</BrutalistInputGroupPrefix>
+              <BrutalistInputGroupInput
                 {...field}
                 id={field.name}
-                type="text"
                 placeholder="alex"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
                 aria-invalid={fieldState.invalid}
-                className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[15px] text-(color:--bru-ink) outline-none placeholder:text-(color:--bru-placeholder)"
               />
-            </div>
+            </BrutalistInputGroup>
             <FieldError
               errors={fieldState.error ? [fieldState.error] : undefined}
               className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
