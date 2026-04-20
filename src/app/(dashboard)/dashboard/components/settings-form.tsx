@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -47,42 +47,44 @@ export default function SettingsForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
-        <FieldSet>
-          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-            Handle
-          </FieldLegend>
-          <FieldGroup>
-            <HandleFields<FormValues> control={form.control} />
-          </FieldGroup>
-        </FieldSet>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup>
+          <FieldSet>
+            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+              Handle
+            </FieldLegend>
+            <FieldGroup>
+              <HandleFields />
+            </FieldGroup>
+          </FieldSet>
 
-        <FieldSeparator />
+          <FieldSeparator />
 
-        <FieldSet>
-          <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-            Availability
-          </FieldLegend>
-          <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-            Weekly windows visitors can book from.
-          </FieldDescription>
-          <FieldGroup>
-            <AvailabilityFields<FormValues> control={form.control} />
-          </FieldGroup>
-        </FieldSet>
+          <FieldSet>
+            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+              Availability
+            </FieldLegend>
+            <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+              Weekly windows visitors can book from.
+            </FieldDescription>
+            <FieldGroup>
+              <AvailabilityFields />
+            </FieldGroup>
+          </FieldSet>
 
-        <Field orientation="horizontal" className="justify-end">
-          <Button
-            type="submit"
-            variant="brutalist"
-            size="brutalist"
-            className="w-full sm:w-auto"
-          >
-            Save
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
+          <Field orientation="horizontal" className="justify-end">
+            <Button
+              type="submit"
+              variant="brutalist"
+              size="brutalist"
+              className="w-full sm:w-auto"
+            >
+              Save
+            </Button>
+          </Field>
+        </FieldGroup>
+      </form>
+    </FormProvider>
   );
 }

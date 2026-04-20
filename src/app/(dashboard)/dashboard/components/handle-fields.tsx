@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, type Control, type FieldPath } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { Field, FieldError } from "@/components/ui/field";
 import {
@@ -17,24 +17,18 @@ export const handleFieldSchema = z
 
 export const defaultHandle = "";
 
-export function HandleFields<TFieldValues extends { handle: string }>({
-  control,
-  name = "handle" as FieldPath<TFieldValues>,
-}: {
-  control: Control<TFieldValues>;
-  name?: FieldPath<TFieldValues>;
-}) {
+type FormShape = { handle: string };
+
+export function HandleFields() {
   return (
-    <Controller
-      control={control}
-      name={name}
+    <Controller<FormShape>
+      name="handle"
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
           <BrutalistInputGroup>
             <BrutalistInputGroupInput
               {...field}
-              value={(field.value as string) ?? ""}
-              id={String(field.name)}
+              id={field.name}
               placeholder="alex"
               autoCapitalize="none"
               autoCorrect="off"

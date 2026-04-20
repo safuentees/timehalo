@@ -5,8 +5,6 @@ import {
   Controller,
   useFieldArray,
   useWatch,
-  type Control,
-  type FieldPath,
 } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -71,44 +69,30 @@ export const defaultAvailability: AvailabilityValues = {
   sun: { enabled: false, ranges: [] },
 };
 
-type AvailabilityPrefix = "availability";
-type TimeFieldName = `${AvailabilityPrefix}.${DayKey}.ranges.${number}.${"from" | "to"}`;
-type EnabledName = `${AvailabilityPrefix}.${DayKey}.enabled`;
-type RangesName = `${AvailabilityPrefix}.${DayKey}.ranges`;
+type FormShape = { availability: AvailabilityValues };
 
-export function AvailabilityFields<
-  TFieldValues extends { availability: AvailabilityValues },
->({ control }: { control: Control<TFieldValues> }) {
+export function AvailabilityFields() {
   return (
     <>
       {DAYS.map((day) => (
-        <DayRow key={day.key} day={day} control={control} />
+        <DayRow key={day.key} day={day} />
       ))}
     </>
   );
 }
 
-function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
-  day,
-  control,
-}: {
-  day: (typeof DAYS)[number];
-  control: Control<TFieldValues>;
-}) {
-  const rangesName = `availability.${day.key}.ranges` as RangesName as FieldPath<TFieldValues>;
-  const enabledName = `availability.${day.key}.enabled` as EnabledName as FieldPath<TFieldValues>;
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: rangesName as never,
+function DayRow({ day }: { day: (typeof DAYS)[number] }) {
+  const { fields, append, remove } = useFieldArray<FormShape>({
+    name: `availability.${day.key}.ranges`,
   });
-  const enabled = useWatch({ control, name: enabledName }) as boolean;
+  const enabled = useWatch<FormShape>({
+    name: `availability.${day.key}.enabled`,
+  });
 
   return (
     <Field className="flex-col gap-3 sm:flex-row sm:items-start">
-      <Controller
-        control={control}
-        name={enabledName}
+      <Controller<FormShape>
+        name={`availability.${day.key}.enabled`}
         render={({ field }) => (
           <div className="flex items-center gap-3 sm:w-32 sm:shrink-0 sm:pt-1.5">
             <Switch
@@ -116,7 +100,7 @@ function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
               checked={field.value as boolean}
               onCheckedChange={(v) => {
                 field.onChange(v);
-                if (v && fields.length === 0) append(DEFAULT_RANGE as never);
+                if (v && fields.length === 0) append(DEFAULT_RANGE);
               }}
               aria-label={day.label}
             />
@@ -140,14 +124,16 @@ function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
             {fields.map((f, i) => (
               <div key={f.id} className="flex items-center gap-2">
                 <TimeField
-                  control={control}
-                  name={`availability.${day.key}.ranges.${i}.from` as TimeFieldName as FieldPath<TFieldValues>}
+                  dayKey={day.key}
+                  index={i}
+                  bound="from"
                   ariaLabel={`${day.label} start time`}
                 />
                 <span className="shrink-0 opacity-50">—</span>
                 <TimeField
-                  control={control}
-                  name={`availability.${day.key}.ranges.${i}.to` as TimeFieldName as FieldPath<TFieldValues>}
+                  dayKey={day.key}
+                  index={i}
+                  bound="to"
                   ariaLabel={`${day.label} end time`}
                 />
                 <Button
@@ -166,7 +152,7 @@ function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
               type="button"
               variant="ghost"
               size="xs"
-              onClick={() => append(DEFAULT_RANGE as never)}
+              onClick={() => append(DEFAULT_RANGE)}
               className="self-start font-[family-name:var(--bru-mono)] text-[10px] tracking-[1.5px] uppercase"
             >
               <PlusIcon /> Add range
@@ -178,19 +164,20 @@ function DayRow<TFieldValues extends { availability: AvailabilityValues }>({
   );
 }
 
-function TimeField<TFieldValues extends { availability: AvailabilityValues }>({
-  control,
-  name,
+function TimeField({
+  dayKey,
+  index,
+  bound,
   ariaLabel,
 }: {
-  control: Control<TFieldValues>;
-  name: FieldPath<TFieldValues>;
+  dayKey: DayKey;
+  index: number;
+  bound: "from" | "to";
   ariaLabel: string;
 }) {
   return (
-    <Controller
-      control={control}
-      name={name}
+    <Controller<FormShape>
+      name={`availability.${dayKey}.ranges.${index}.${bound}`}
       render={({ field, fieldState }) => (
         <BrutalistInputGroup className="flex-1">
           <BrutalistInputGroupInput
