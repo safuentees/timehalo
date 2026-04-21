@@ -8,19 +8,21 @@ datasource db {
 }
 
 model User {
-  id                   String          @id @default(cuid())
+  id                   String              @id @default(cuid())
   name                 String?
-  email                String          @unique
+  email                String              @unique
   emailVerified        DateTime?
   image                String?
   passwordHash         String?
-  invalidLoginAttempts Int             @default(0)
+  invalidLoginAttempts Int                 @default(0)
+  handle               String?             @unique
+  availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
   posts                Post[]
   Authenticator        Authenticator[]
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 model Account {
@@ -74,12 +76,38 @@ model Authenticator {
 }
 
 model Post {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   title    String
   excerpt  String
   date     String
   readTime String
   tag      String
-  user     User?  @relation(fields: [userId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id])
   userId   String?
+}
+
+// A single time window on a specific day of the week. A user can have many
+// ranges per day (e.g. 09:00–12:00 and 14:00–17:00). Days with no ranges
+// are implicitly "off" — the form's `enabled: false` maps to "no rows for
+// that day". Times are stored as "HH:MM" (24-hour) to match the form's
+// native `<input type="time">` output.
+model AvailabilityRange {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  dayOfWeek DayOfWeek
+  startTime String
+  endTime   String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dayOfWeek])
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
