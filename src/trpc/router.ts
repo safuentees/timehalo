@@ -1,13 +1,41 @@
 import { prisma } from "@/lib/prisma";
-import {
-  defaultSchedule,
-  formValuesToRows,
-  rowsToFormValues,
-  scheduleSchema,
-} from "@/lib/schedule";
+import { DayOfWeek } from "@/generated/prisma/enums";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
+
+// Form keys like "mon" map to the Prisma enum values.
+const DAY_KEY_TO_ENUM = {
+  mon: DayOfWeek.MONDAY,
+  tue: DayOfWeek.TUESDAY,
+  wed: DayOfWeek.WEDNESDAY,
+  thu: DayOfWeek.THURSDAY,
+  fri: DayOfWeek.FRIDAY,
+  sat: DayOfWeek.SATURDAY,
+  sun: DayOfWeek.SUNDAY,
+} as const;
+type DayKey = keyof typeof DAY_KEY_TO_ENUM;
+
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+const rangeSchema = z
+  .object({
+    from: z.string().regex(timeRegex, "HH:MM"),
+    to: z.string().regex(timeRegex, "HH:MM"),
+  })
+  .refine((r) => r.from < r.to, { message: "End must be after start", path: ["to"] });
+const daySchema = z.object({
+  enabled: z.boolean(),
+  ranges: z.array(rangeSchema),
+});
+const scheduleInputSchema = z.object({
+  mon: daySchema,
+  tue: daySchema,
+  wed: daySchema,
+  thu: daySchema,
+  fri: daySchema,
+  sat: daySchema,
+  sun: daySchema,
+});
 
 const t = initTRPC.context<Context>().create();
 
@@ -85,30 +113,31 @@ const posts = router({
 });
   
 const schedule = router({
-  // Returns the weekly schedule already shaped for the form.
-  // If the user has no rows, returns the app's defaultSchedule so the form
-  // renders with Mon–Fri 9–17 + weekends off (Path A: backend fills defaults
-  // on empty, no signup-time seeding).
+  // Returns all AvailabilityRange rows for the logged-in user, sorted
+  // by day then start time. Client groups them into the weekly form shape.
   get: privateProcedure.query(async ({ ctx }) => {
-    const rows = await prisma.availabilityRange.findMany({
+    return await prisma.availabilityRange.findMany({
       where: { userId: ctx.user.id },
-      select: { dayOfWeek: true, startTime: true, endTime: true },
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     });
-    if (rows.length === 0) return defaultSchedule;
-    return rowsToFormValues(rows);
   }),
 
   // Replaces the user's whole schedule in one transaction:
   // delete all existing rows, insert the new set built from the form payload.
   // Days with enabled=false or empty ranges produce zero rows (implicitly off).
   save: privateProcedure
-    .input(scheduleSchema)
+    .input(scheduleInputSchema)
     .mutation(async ({ input, ctx }) => {
-      const rows = formValuesToRows(input).map((r) => ({
-        ...r,
-        userId: ctx.user.id,
-      }));
+      const rows = (Object.entries(input) as [DayKey, typeof input.mon][])
+        .filter(([, day]) => day.enabled && day.ranges.length > 0)
+        .flatMap(([key, day]) =>
+          day.ranges.map((r) => ({
+            userId: ctx.user.id,
+            dayOfWeek: DAY_KEY_TO_ENUM[key],
+            startTime: r.from,
+            endTime: r.to,
+          })),
+        );
 
       await prisma.$transaction([
         prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
