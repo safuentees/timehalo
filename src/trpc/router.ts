@@ -124,10 +124,18 @@ const schedule = router({
           })),
         );
 
-      await prisma.$transaction([
-        prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
-        prisma.availabilityRange.createMany({ data: rows }),
-      ]);
+      try {
+        await prisma.$transaction([
+          prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
+          prisma.availabilityRange.createMany({ data: rows }),
+        ]);
+      } catch (cause) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not save your schedule. Try again.",
+          cause,
+        });
+      }
 
       return { count: rows.length };
     }),
