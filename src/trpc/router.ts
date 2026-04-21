@@ -139,10 +139,21 @@ const schedule = router({
           })),
         );
 
-      await prisma.$transaction([
-        prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
-        prisma.availabilityRange.createMany({ data: rows }),
-      ]);
+      try {
+        await prisma.$transaction([
+          prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
+          prisma.availabilityRange.createMany({ data: rows }),
+        ]);
+      } catch (cause) {
+        // Expected failures reach here (DB offline, constraint violation, etc.).
+        // Throw a TRPCError so the client sees a clean message while the
+        // original error is still available for server-side logs via `cause`.
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not save your schedule. Try again.",
+          cause,
+        });
+      }
 
       return { count: rows.length };
     }),
