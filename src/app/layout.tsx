@@ -3,6 +3,7 @@ import { Space_Grotesk, JetBrains_Mono, Instrument_Serif } from "next/font/googl
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -47,6 +48,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <TRPCProvider>{children}</TRPCProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
