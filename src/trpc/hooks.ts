@@ -1,4 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
+import type { inferReactQueryProcedureOptions } from "@trpc/react-query";
 
 import type { AppRouter } from "@/trpc/router";
 
@@ -13,3 +14,7 @@ export const trpc = createTRPCReact<AppRouter>({
     },
   },
 });
+
+// Typed options for any procedure — enables typed custom mutation hooks:
+//   type MyOpts = ReactQueryOptions["schedule"]["save"];
+export type ReactQueryOptions = inferReactQueryProcedureOptions<AppRouter>;
