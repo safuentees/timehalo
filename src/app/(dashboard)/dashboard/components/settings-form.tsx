@@ -3,10 +3,10 @@
 import { useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
+import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -39,24 +39,8 @@ import {
  *   - Pass the result to useForm's `values` prop so the form stays
  *     in sync when the query revalidates. `keepDirtyValues: true`
  *     preserves unsaved edits if a background refetch happens.
- *
- * Tree follows the shadcn convention:
- *
- *   FormProvider
- *     <form>
- *       FieldGroup                    ← outer form body
- *         FieldSet                    ← Handle section
- *           FieldLegend
- *           FieldGroup                ← inner spacing
- *             HandleFields
- *         FieldSeparator
- *         FieldSet                    ← Availability section
- *           FieldLegend
- *           FieldDescription
- *           FieldGroup
- *             AvailabilityFields
- *         Field orientation="horizontal"   ← submit row
- *           Button type="submit"
+ *   - Save goes through `useScheduleSave`, a custom hook that bakes in
+ *     the toast side effect. The component only calls `.mutate(...)`.
  */
 
 const schema = z.object({
@@ -67,15 +51,11 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function SettingsForm() {
-  const utils = trpc.useUtils();
   const { data: rows } = trpc.schedule.get.useQuery();
 
   const values = useMemo<FormValues>(
     () => ({
       handle: defaultHandle,
-      // Server returns raw AvailabilityRange rows; convert to the
-      // day-grouped shape the form expects. Fall back to defaults when
-      // the user has no rows yet.
       availability:
         rows && rows.length > 0 ? rowsToFormValues(rows) : defaultAvailability,
     }),
@@ -89,19 +69,7 @@ export default function SettingsForm() {
     mode: "onBlur",
   });
 
-  const save = trpc.schedule.save.useMutation({
-    onSuccess: async (result) => {
-      toast.success(
-        result.count === 0
-          ? "Schedule cleared."
-          : `Saved ${result.count} window${result.count === 1 ? "" : "s"}.`,
-      );
-      await utils.schedule.get.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const save = useScheduleSave();
 
   function onSubmit(v: FormValues) {
     save.mutate(v.availability);
