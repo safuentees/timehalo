@@ -1,12 +1,7 @@
 "use client";
 
 import { Clock2Icon, PlusIcon, XIcon } from "lucide-react";
-import {
-  Controller,
-  useFieldArray,
-  useWatch,
-} from "react-hook-form";
-import { z } from "zod";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
@@ -15,8 +10,15 @@ import {
   BrutalistInputGroupAddon,
   BrutalistInputGroupInput,
 } from "@/components/brutalist/brutalist-input-group";
+import type { DayKey, ScheduleValues } from "@/lib/schedule";
 
-const DAYS = [
+export {
+  scheduleSchema as availabilitySchema,
+  defaultSchedule as defaultAvailability,
+} from "@/lib/schedule";
+export type { ScheduleValues as AvailabilityValues } from "@/lib/schedule";
+
+const DAYS: ReadonlyArray<{ key: DayKey; label: string; short: string }> = [
   { key: "mon", label: "Monday", short: "Mon" },
   { key: "tue", label: "Tuesday", short: "Tue" },
   { key: "wed", label: "Wednesday", short: "Wed" },
@@ -26,50 +28,9 @@ const DAYS = [
   { key: "sun", label: "Sunday", short: "Sun" },
 ] as const;
 
-type DayKey = (typeof DAYS)[number]["key"];
-
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-const rangeSchema = z
-  .object({
-    from: z.string().regex(timeRegex, "HH:MM"),
-    to: z.string().regex(timeRegex, "HH:MM"),
-  })
-  .refine((r) => r.from < r.to, {
-    message: "End must be after start",
-    path: ["to"],
-  });
-
-const daySchema = z.object({
-  enabled: z.boolean(),
-  ranges: z.array(rangeSchema),
-});
-
-export const availabilitySchema = z.object({
-  mon: daySchema,
-  tue: daySchema,
-  wed: daySchema,
-  thu: daySchema,
-  fri: daySchema,
-  sat: daySchema,
-  sun: daySchema,
-});
-
-export type AvailabilityValues = z.infer<typeof availabilitySchema>;
-
 const DEFAULT_RANGE = { from: "09:00", to: "17:00" };
 
-export const defaultAvailability: AvailabilityValues = {
-  mon: { enabled: true, ranges: [DEFAULT_RANGE] },
-  tue: { enabled: true, ranges: [DEFAULT_RANGE] },
-  wed: { enabled: true, ranges: [DEFAULT_RANGE] },
-  thu: { enabled: true, ranges: [DEFAULT_RANGE] },
-  fri: { enabled: true, ranges: [DEFAULT_RANGE] },
-  sat: { enabled: false, ranges: [] },
-  sun: { enabled: false, ranges: [] },
-};
-
-type FormShape = { availability: AvailabilityValues };
+type FormShape = { availability: ScheduleValues };
 
 export function AvailabilityFields() {
   return (
