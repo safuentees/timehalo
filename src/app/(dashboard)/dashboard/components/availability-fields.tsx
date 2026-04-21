@@ -1,7 +1,12 @@
 "use client";
 
 import { Clock2Icon, PlusIcon, XIcon } from "lucide-react";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
@@ -43,12 +48,22 @@ export function AvailabilityFields() {
 }
 
 function DayRow({ day }: { day: (typeof DAYS)[number] }) {
+  const { setValue } = useFormContext<FormShape>();
   const { fields, append, remove } = useFieldArray<FormShape>({
     name: `availability.${day.key}.ranges`,
   });
   const enabled = useWatch<FormShape>({
     name: `availability.${day.key}.enabled`,
   });
+
+  function removeRange(index: number) {
+    remove(index);
+    if (fields.length === 1) {
+      setValue(`availability.${day.key}.enabled`, false, {
+        shouldDirty: true,
+      });
+    }
+  }
 
   return (
     <Field className="flex-col gap-3 sm:flex-row sm:items-start">
@@ -74,7 +89,6 @@ function DayRow({ day }: { day: (typeof DAYS)[number] }) {
           </div>
         )}
       />
-
       <div className="flex flex-1 flex-col gap-2">
         {!enabled ? (
           <span className="py-2 font-[family-name:var(--bru-mono)] text-[10px] font-bold tracking-[2px] uppercase opacity-40">
@@ -101,7 +115,7 @@ function DayRow({ day }: { day: (typeof DAYS)[number] }) {
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  onClick={() => remove(i)}
+                  onClick={() => removeRange(i)}
                   aria-label="Remove range"
                   className="shrink-0"
                 >
