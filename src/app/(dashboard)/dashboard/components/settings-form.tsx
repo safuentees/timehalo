@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
@@ -54,8 +55,16 @@ export default function SettingsForm() {
   });
 
   const save = trpc.schedule.save.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      toast.success(
+        result.count === 0
+          ? "Schedule cleared."
+          : `Saved ${result.count} window${result.count === 1 ? "" : "s"}.`,
+      );
       await utils.schedule.get.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
@@ -90,19 +99,7 @@ export default function SettingsForm() {
             </FieldGroup>
           </FieldSet>
 
-          <Field orientation="horizontal" className="items-center justify-between">
-            <span
-              aria-live="polite"
-              className="font-[family-name:var(--bru-mono)] text-[10px] font-bold tracking-[2px] uppercase"
-            >
-              {save.error ? (
-                <span className="text-destructive">
-                  {save.error.message ?? "save failed"}
-                </span>
-              ) : save.isSuccess ? (
-                <span className="opacity-65">saved</span>
-              ) : null}
-            </span>
+          <Field orientation="horizontal" className="justify-end">
             <Button
               type="submit"
               variant="brutalist"
