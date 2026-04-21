@@ -3,10 +3,10 @@
 import { useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
+import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -35,7 +35,6 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function SettingsForm() {
-  const utils = trpc.useUtils();
   const { data: rows } = trpc.schedule.get.useQuery();
 
   const values = useMemo<FormValues>(
@@ -54,19 +53,7 @@ export default function SettingsForm() {
     mode: "onBlur",
   });
 
-  const save = trpc.schedule.save.useMutation({
-    onSuccess: async (result) => {
-      toast.success(
-        result.count === 0
-          ? "Schedule cleared."
-          : `Saved ${result.count} window${result.count === 1 ? "" : "s"}.`,
-      );
-      await utils.schedule.get.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const save = useScheduleSave();
 
   function onSubmit(v: FormValues) {
     save.mutate(v.availability);
