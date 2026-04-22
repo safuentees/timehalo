@@ -23,6 +23,7 @@ type Props = {
 };
 
 const SNAP_POINTS: (number | string)[] = [0.6, 1];
+const WEEKDAY_LABELS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"] as const;
 
 /**
  * Two-phase bottom drawer:
@@ -158,19 +159,30 @@ export function AvailabilityDrawer({
               tabIndex={-1}
               aria-live="polite"
               aria-atomic="true"
-              className="bru-drawer-title"
+              className={
+                phase === "date" ? "sr-only" : "bru-drawer-title"
+              }
             >
               {phase === "date"
-                ? "PICK A DATE"
+                ? "Pick a date"
                 : selectedDate
                   ? `${fmtHeadDate(selectedDate)} · ${slotCountLabel(dayOfSlots.length)}`
                   : "PICK A TIME"}
             </Drawer.Title>
-            <Drawer.Description className="bru-drawer-sub">
+            <Drawer.Description className="sr-only">
               {phase === "date"
                 ? "Scroll months · tap a day"
                 : "Tap a time · 15 min"}
             </Drawer.Description>
+            {phase === "date" ? (
+              <div className="bru-drawer-weekdays" aria-hidden="true">
+                {WEEKDAY_LABELS.map((d) => (
+                  <span key={d} className="bru-drawer-weekdays-cell">
+                    {d}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div ref={bodyRef} className="bru-drawer-body" data-phase={phase}>
             <div key={phase} className="bru-drawer-phase">

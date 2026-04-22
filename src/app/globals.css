@@ -1011,8 +1011,28 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-drawer-head {
   position: relative;
-  padding: 14px 24px 10px;
+  padding: 14px 20px 10px;
   border-bottom: 1px dashed var(--bru-line-dashed);
+}
+/* Weekday row that sits in place of the drawer title during the date
+   phase. Uses the same 20px horizontal padding as the drawer body so
+   the seven cells line up with the day grid columns below. */
+.bru-drawer-weekdays {
+  display: flex;
+  width: 100%;
+  padding-top: 2px;
+}
+.bru-drawer-weekdays-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  opacity: 0.55;
+  text-transform: uppercase;
+  color: var(--bru-ink);
 }
 .bru-drawer-back {
   all: unset;
@@ -1103,10 +1123,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   --cell-size: 44px;
   padding: 16px 0 !important;
   background: transparent !important;
-  border-top: 1.5px solid var(--bru-ink);
-}
-.bru-month:first-child {
-  border-top: 0;
 }
 .bru-month-root {
   width: 100%;
@@ -1117,6 +1133,16 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-month-col {
   width: 100%;
   gap: 10px !important;
+}
+/* react-day-picker v9 renders a <table class="rdp-month_grid"> for the
+   grid. Shadcn's default `table` className key no longer maps to it, so
+   the table falls back to its intrinsic 7*cell-size width and sits left-
+   aligned inside the month column. Force 100% so weekdays + weeks span
+   the full width evenly. */
+.bru-month table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 /* Caption */
@@ -1133,14 +1159,11 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   text-transform: uppercase;
 }
 
-/* Weekday labels — `classNames` prop replaces shadcn's `flex w-full`
-   defaults, so we restore both flex + full width here. */
+/* Weekday labels — per-month RDP row is hidden; the weekday header
+   lives in the drawer head (see .bru-drawer-weekdays) and acts as the
+   title during the date phase. */
 .bru-weekdays {
-  display: flex !important;
-  width: 100%;
-  border-bottom: 1px solid var(--bru-line-dashed);
-  padding-bottom: 6px;
-  margin-bottom: 4px;
+  display: none !important;
 }
 .bru-weekday {
   flex: 1 1 0 !important;
