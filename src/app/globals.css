@@ -734,6 +734,13 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 
 .bru-profile-shell {
   min-height: 100vh;
+  scroll-behavior: smooth;
+}
+/* One knob: drives sticky offsets for day headers. Declared on .bru-main
+   (a descendant of the named container) so @container queries can retune
+   it — container queries can't style the container itself. */
+.bru-profile-shell .bru-main {
+  --bru-week-strip-h: 0px;
 }
 .bru-profile-shell .bru-topbar {
   padding: 18px 44px;
@@ -827,10 +834,24 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 5px 10px !important;
 }
 
-/* Section header + day groupings */
+/* Layout — mobile stacks, desktop splits into sticky rail + days. */
 .bru-profile-section {
   padding: 40px 44px 28px;
 }
+.bru-profile-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.bru-profile-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bru-profile-main {
+  min-width: 0;
+}
+
 .bru-profile-section-head {
   display: flex;
   justify-content: space-between;
@@ -850,17 +871,179 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.5;
 }
 
-.bru-profile-days {
+/* Next-available pill — in-your-face CTA above the week strip. */
+.bru-next-available {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "kicker kicker"
+    "body   body"
+    "cta    cta";
+  gap: 10px 16px;
+  padding: 18px 20px;
+  border: 2px solid var(--bru-ink);
+  background: var(--bru-paper);
+  position: relative;
+  overflow: hidden;
+}
+.bru-next-available::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(currentColor 0.8px, transparent 1px);
+  background-size: 9px 9px;
+  opacity: 0.08;
+  pointer-events: none;
+}
+.bru-next-available > * {
+  position: relative;
+  z-index: 1;
+}
+.bru-next-available-kicker {
+  grid-area: kicker;
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  font-weight: 800;
+  opacity: 0.6;
+}
+.bru-next-available-body {
+  grid-area: body;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 2px;
+  min-width: 0;
 }
-.bru-profile-day-head {
+.bru-next-available-time {
+  font-size: clamp(1.5rem, 1rem + 3vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+.bru-next-available-meta {
+  font-family: var(--bru-mono);
+  font-size: 10.5px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+.bru-next-available-cta {
+  grid-area: cta;
+  width: 100%;
+  justify-content: space-between;
+}
+.bru-next-available-cta svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Week strip — sticky density nav. Sits above the day blocks and stays
+   pinned at top-of-viewport while the user scrolls through days. */
+.bru-week-strip {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: 24px;
+  background: var(--bru-paper);
+  border: 1.5px solid var(--bru-ink);
+}
+.bru-week-strip-kicker {
+  font-family: var(--bru-mono);
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  font-weight: 800;
+  opacity: 0.55;
+}
+.bru-week-strip-cells {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.bru-week-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 4px 6px;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+  text-decoration: none;
+  transition: background var(--bru-t-fast), color var(--bru-t-fast);
+}
+.bru-week-cell:hover,
+.bru-week-cell[data-active] {
+  background: var(--bru-ink);
+  color: var(--bru-paper);
+}
+.bru-week-cell-label {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  font-family: var(--bru-mono);
+  font-weight: 800;
+}
+.bru-week-cell-letter {
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.bru-week-cell-count {
+  font-size: 9px;
+  opacity: 0.6;
+  letter-spacing: 1px;
+}
+.bru-week-cell-density {
+  position: relative;
+  height: 14px;
+  border: 1px solid currentColor;
+  overflow: hidden;
+}
+.bru-week-cell-density::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: currentColor;
+  height: 0;
+}
+.bru-week-cell-density[data-density="1"]::after {
+  height: 33%;
+}
+.bru-week-cell-density[data-density="2"]::after {
+  height: 66%;
+}
+.bru-week-cell-density[data-density="3"]::after {
+  height: 100%;
+}
+
+/* Day blocks */
+.bru-profile-days {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.bru-profile-day {
+  scroll-margin-top: calc(var(--bru-week-strip-h) + 16px);
+}
+.bru-profile-day-head {
+  position: sticky;
+  top: var(--bru-week-strip-h);
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+  padding: 8px 0 10px;
+  background: var(--bru-paper);
   border-bottom: 1.5px solid var(--bru-ink);
 }
 .bru-profile-day-label {
@@ -877,45 +1060,76 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.55;
 }
 
-/* Slot rows — override shadcn Item defaults with brutalist borders. */
-.bru-profile-slots {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px !important;
+/* Empty-day ghost row. */
+.bru-profile-day-empty {
+  opacity: 0.42;
 }
-.bru-slot-item {
-  border: 1.5px solid var(--bru-ink) !important;
-  border-radius: 0 !important;
+.bru-empty-row {
+  display: block;
+  padding: 4px 0 8px;
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Time bands — MORNING / AFTERNOON / EVENING */
+.bru-time-bands {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.bru-time-band {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bru-time-band-kicker {
+  display: inline-block;
+}
+
+/* Chip slots */
+.bru-slot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bru-slot-chip {
+  appearance: none;
+  padding: 10px 14px;
+  border: 1.5px solid var(--bru-ink);
   background: var(--bru-paper);
-  padding: 16px 18px !important;
+  color: var(--bru-ink);
+  font-family: var(--bru-mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
   transition: background var(--bru-t-fast), color var(--bru-t-fast);
+  border-radius: 0;
 }
-.bru-slot-item:hover {
+.bru-slot-chip:hover {
   background: var(--bru-ink);
   color: var(--bru-paper);
 }
-.bru-slot-item:hover .bru-slot-desc {
-  color: var(--bru-paper);
-  opacity: 0.7;
+.bru-slot-chip:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--bru-ink);
+  transform: translate(-1px, -1px);
 }
-.bru-slot-media {
-  width: auto !important;
-  padding-right: 8px;
-  opacity: 0.55;
+.bru-slot-chip-more {
+  font-size: 10.5px;
+  letter-spacing: 2px;
+  padding: 10px 12px;
+  opacity: 0.78;
+  border-style: dashed;
 }
-.bru-slot-time {
-  font-size: 16px !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-}
-.bru-slot-desc {
-  font-family: var(--bru-mono);
-  font-size: 10px !important;
-  letter-spacing: 1.5px;
-  font-weight: 700;
-  opacity: 0.6;
-  text-transform: uppercase;
+.bru-slot-chip-more:hover {
+  opacity: 1;
 }
 
 /* Empty state — strip shadcn's default bg/radius, keep dashed brutalist box. */
@@ -934,8 +1148,49 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   border-top: 1px solid var(--bru-line-strong);
 }
 
-/* Narrow container — hero stacks, slot grid collapses to single column. */
+/* Desktop — promote the section to a 2-col grid, pin the rail. */
+@container bru-root (min-width: 900px) {
+  .bru-profile-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-areas:
+      "rail  main"
+      "strip main";
+    grid-template-rows: auto 1fr;
+    gap: 20px 36px;
+    align-items: start;
+  }
+  .bru-profile-rail {
+    grid-area: rail;
+    position: sticky;
+    top: 20px;
+  }
+  .bru-week-strip {
+    grid-area: strip;
+    position: sticky;
+    top: 220px;
+    margin-bottom: 0;
+  }
+  .bru-profile-main {
+    grid-area: main;
+  }
+  .bru-next-available {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "kicker"
+      "body"
+      "cta";
+  }
+  .bru-next-available-cta {
+    width: 100%;
+  }
+}
+
+/* Mobile — hero compresses, next-available stacks full-width CTA. */
 @container bru-root (max-width: 720px) {
+  .bru-profile-shell .bru-main {
+    --bru-week-strip-h: 74px;
+  }
   .bru-profile-shell .bru-topbar {
     padding: 14px 20px;
   }
@@ -952,9 +1207,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-profile-section {
     padding: 28px 20px 16px;
   }
-  .bru-profile-slots {
-    grid-template-columns: 1fr;
-  }
 }
 @container bru-root (max-width: 480px) {
   .bru-profile-hero-inner {
@@ -962,5 +1214,15 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   }
   .bru-profile-name {
     font-size: clamp(32px, 14cqi, 56px);
+  }
+  .bru-next-available {
+    padding: 14px 16px;
+  }
+  .bru-week-strip {
+    padding: 10px 10px;
+  }
+  .bru-slot-chip {
+    padding: 9px 12px;
+    font-size: 11.5px;
   }
 }
