@@ -6,7 +6,7 @@ import type { Slot } from "@/lib/availability";
 type Props = {
   date: Date;
   slots: Slot[];
-  onPick?: (slot: Slot) => void;
+  onPick: (slot: Slot) => void;
 };
 
 type BandId = "morning" | "afternoon" | "evening";
@@ -22,19 +22,10 @@ export function DaySlots({ date, slots, onPick }: Props) {
   const bands = useMemo(() => bucketByTimeOfDay(slots), [slots]);
 
   return (
-    <section className="bru-day-slots" aria-label={`Slots on ${date.toDateString()}`}>
-      <header className="bru-day-slots-head">
-        <span className="bru-kicker">PICK A TIME</span>
-        <span className="bru-day-slots-date">
-          {date
-            .toLocaleDateString(undefined, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })
-            .toUpperCase()}
-        </span>
-      </header>
+    <section
+      className="bru-day-slots"
+      aria-label={`Slots on ${date.toDateString()}`}
+    >
       {slots.length === 0 ? (
         <p className="bru-day-slots-empty">closed ·</p>
       ) : (
@@ -50,7 +41,7 @@ export function DaySlots({ date, slots, onPick }: Props) {
   );
 }
 
-function TimeBand({ band, onPick }: { band: Band; onPick?: (slot: Slot) => void }) {
+function TimeBand({ band, onPick }: { band: Band; onPick: (slot: Slot) => void }) {
   const [expanded, setExpanded] = useState(false);
   const collapseAt = 5;
   const collapsed = !expanded && band.slots.length > collapseAt;
@@ -78,13 +69,13 @@ function TimeBand({ band, onPick }: { band: Band; onPick?: (slot: Slot) => void 
   );
 }
 
-function SlotChip({ slot, onPick }: { slot: Slot; onPick?: (slot: Slot) => void }) {
+function SlotChip({ slot, onPick }: { slot: Slot; onPick: (slot: Slot) => void }) {
   const start = new Date(slot.start);
   return (
     <button
       type="button"
       className="bru-slot-chip"
-      onClick={() => (onPick ? onPick(slot) : console.log("slot", slot))}
+      onClick={() => onPick(slot)}
       aria-label={`Book ${start.toLocaleTimeString()}`}
     >
       {start.toLocaleTimeString(undefined, {

@@ -32,7 +32,6 @@ export function AvailabilityDay({
       {...buttonProps}
       type="button"
       className={`bru-day-button ${className ?? ""}`}
-      data-level={level}
       disabled={disabled || level === 0}
       aria-label={
         level === 0
@@ -41,11 +40,6 @@ export function AvailabilityDay({
       }
     >
       <span className={numClass}>{day.date.getDate()}</span>
-      <span className="bru-day-dots" aria-hidden>
-        {level >= 1 && <i />}
-        {level >= 2 && <i />}
-        {level >= 3 && <i />}
-      </span>
     </button>
   );
 }
