@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { CalendarIcon, Clock3Icon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRightIcon, CalendarIcon, Clock3Icon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,17 +13,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
 
 type Props = { handle: string };
+
+type Slot = { start: string; end: string };
 
 export default function HostProfile({ handle }: Props) {
   const { data: user } = trpc.users.getByHandle.useQuery({ handle });
@@ -31,7 +24,12 @@ export default function HostProfile({ handle }: Props) {
     handle,
   });
 
-  const grouped = useMemo(() => groupByDay(slots), [slots]);
+  const weekDays = useMemo(() => buildWeekDays(slots), [slots]);
+  const dayIds = useMemo(() => weekDays.map((d) => `day-${d.key}`), [weekDays]);
+  const activeDayId = useScrollSpy(dayIds);
+  const nextSlot = slots[0] as Slot | undefined;
+  const visitorTz = useVisitorTz();
+  useReadyClass();
 
   if (!user) return null;
 
@@ -54,7 +52,7 @@ export default function HostProfile({ handle }: Props) {
         </div>
       </div>
 
-      <section className="bru-profile-hero">
+      <section className="bru-profile-hero bru-reveal">
         <div className="bru-profile-hero-inner">
           <Avatar size="lg" className="bru-profile-avatar">
             <AvatarImage
@@ -76,35 +74,48 @@ export default function HostProfile({ handle }: Props) {
             <div className="bru-profile-badges">
               <Badge variant="outline" className="bru-profile-badge">
                 <Clock3Icon data-icon="inline-start" />
-                15 min
+                15 MIN
               </Badge>
               <Badge variant="outline" className="bru-profile-badge">
-                {slots.length} SLOTS · 7 DAYS
+                {slots.length.toString().padStart(2, "0")} SLOTS · 7 DAYS
+              </Badge>
+              <Badge variant="outline" className="bru-profile-badge">
+                {visitorTz} · [TZ TBD]
               </Badge>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bru-profile-section">
-        <div className="bru-profile-section-head">
-          <span className="bru-profile-section-kicker">
-            UPCOMING · NEXT 7 DAYS
-          </span>
-          <span className="bru-profile-section-count">
-            {slots.length.toString().padStart(2, "0")} SLOTS
-          </span>
-        </div>
+      <section className="bru-profile-section bru-profile-layout">
+        {nextSlot ? (
+          <aside className="bru-profile-rail">
+            <NextAvailable slot={nextSlot} />
+          </aside>
+        ) : null}
 
-        {slots.length === 0 ? (
-          <HostEmpty displayName={displayName} />
-        ) : (
-          <div className="bru-profile-days">
-            {grouped.map((group) => (
-              <DayBlock key={group.key} group={group} />
-            ))}
+        <WeekStrip days={weekDays} activeId={activeDayId} />
+
+        <div className="bru-profile-main">
+          <div className="bru-profile-section-head">
+            <span className="bru-profile-section-kicker">
+              UPCOMING · NEXT 7 DAYS
+            </span>
+            <span className="bru-profile-section-count">
+              {slots.length.toString().padStart(2, "0")} SLOTS
+            </span>
           </div>
-        )}
+
+          {slots.length === 0 ? (
+            <HostEmpty displayName={displayName} />
+          ) : (
+            <div className="bru-profile-days">
+              {weekDays.map((day) => (
+                <DayBlock key={day.key} day={day} />
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       <div className="bru-endrule">
@@ -133,69 +144,216 @@ function HostEmpty({ displayName }: { displayName: string }) {
   );
 }
 
-function DayBlock({ group }: { group: DayGroup }) {
+function NextAvailable({ slot }: { slot: Slot }) {
+  const startDate = new Date(slot.start);
   return (
-    <div className="bru-profile-day">
-      <div className="bru-profile-day-head">
-        <span className="bru-profile-day-label">{group.label}</span>
-        <span className="bru-profile-day-count">
-          {group.slots.length} SLOTS
+    <section className="bru-next-available bru-reveal" aria-label="Next available slot">
+      <span className="bru-next-available-kicker">NEXT AVAILABLE</span>
+      <div className="bru-next-available-body">
+        <span className="bru-next-available-time">{fmtTime(startDate)}</span>
+        <span className="bru-next-available-meta">
+          {fmtDayLabelShort(startDate)} · {fmtRelative(startDate)}
         </span>
       </div>
-      <ItemGroup className="bru-profile-slots">
-        {group.slots.map((s) => (
-          <SlotRow key={s.start} start={s.start} end={s.end} />
-        ))}
-      </ItemGroup>
+      <Button
+        type="button"
+        variant="brutalist"
+        size="brutalist"
+        className="bru-next-available-cta"
+        onClick={() => scrollToDay(makeDayKey(startDate))}
+      >
+        BOOK NOW
+        <ArrowRightIcon />
+      </Button>
+    </section>
+  );
+}
+
+function WeekStrip({
+  days,
+  activeId,
+}: {
+  days: WeekDay[];
+  activeId: string | null;
+}) {
+  return (
+    <nav className="bru-week-strip" aria-label="Week overview">
+      <span className="bru-week-strip-kicker">WEEK</span>
+      <ol className="bru-week-strip-cells">
+        {days.map((d) => {
+          const id = `day-${d.key}`;
+          const active = id === activeId;
+          return (
+            <li key={d.key}>
+              <a
+                href={`#${id}`}
+                className="bru-week-cell"
+                data-active={active ? "" : undefined}
+                aria-label={`${d.weekdayLong} ${d.slots.length} slots`}
+              >
+                <span className="bru-week-cell-label">
+                  <span className="bru-week-cell-letter">
+                    {d.weekdayLetter}
+                  </span>
+                  <span className="bru-week-cell-count">
+                    {d.slots.length.toString().padStart(2, "0")}
+                  </span>
+                </span>
+                <span
+                  className="bru-week-cell-density"
+                  data-density={densityLevel(d.slots.length)}
+                />
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+function DayBlock({ day }: { day: WeekDay }) {
+  const empty = day.slots.length === 0;
+  const bands = useMemo(() => bucketByTimeOfDay(day.slots), [day.slots]);
+  return (
+    <div
+      id={`day-${day.key}`}
+      className={`bru-profile-day${empty ? " bru-profile-day-empty" : ""}`}
+    >
+      <div className="bru-profile-day-head">
+        <span className="bru-profile-day-label">{day.label}</span>
+        <span className="bru-profile-day-count">
+          {empty ? "CLOSED" : `${day.slots.length} SLOTS`}
+        </span>
+      </div>
+      {empty ? (
+        <span className="bru-empty-row">closed ·</span>
+      ) : (
+        <div className="bru-time-bands">
+          {bands.map((band) =>
+            band.slots.length > 0 ? (
+              <TimeBand key={band.id} band={band} />
+            ) : null,
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function SlotRow({ start, end }: { start: string; end: string }) {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const time = `${fmtTime(startDate)} — ${fmtTime(endDate)}`;
-  const relative = fmtRelative(startDate);
+function TimeBand({ band }: { band: Band }) {
+  const [expanded, setExpanded] = useState(false);
+  const collapseAt = 5;
+  const collapsed = !expanded && band.slots.length > collapseAt;
+  const visible = collapsed ? band.slots.slice(0, 4) : band.slots;
+  const hidden = collapsed ? band.slots.length - visible.length : 0;
 
   return (
-    <Item variant="outline" className="bru-slot-item">
-      <ItemMedia className="bru-slot-media">
-        <Clock3Icon />
-      </ItemMedia>
-      <ItemContent>
-        <ItemTitle className="bru-slot-time">{time}</ItemTitle>
-        <ItemDescription className="bru-slot-desc">
-          15-min conversation · {relative}
-        </ItemDescription>
-      </ItemContent>
-      <ItemActions>
-        <Button variant="brutalist" size="brutalist">
-          BOOK →
-        </Button>
-      </ItemActions>
-    </Item>
+    <div className="bru-time-band">
+      <span className="bru-kicker bru-time-band-kicker">{band.label}</span>
+      <div className="bru-slot-chips">
+        {visible.map((s) => (
+          <SlotChip key={s.start} slot={s} />
+        ))}
+        {collapsed ? (
+          <button
+            type="button"
+            className="bru-slot-chip bru-slot-chip-more"
+            onClick={() => setExpanded(true)}
+          >
+            + {hidden} more
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
-type DayGroup = {
+function SlotChip({ slot }: { slot: Slot }) {
+  const start = new Date(slot.start);
+  return (
+    <button
+      type="button"
+      className="bru-slot-chip"
+      onClick={() => console.log("slot", slot)}
+      aria-label={`Book ${fmtTime(start)}`}
+    >
+      {fmtTime(start)}
+    </button>
+  );
+}
+
+type WeekDay = {
   key: string;
   label: string;
-  slots: { start: string; end: string }[];
+  weekdayLong: string;
+  weekdayLetter: string;
+  slots: Slot[];
 };
 
-function groupByDay(slots: { start: string; end: string }[]): DayGroup[] {
-  const map = new Map<string, DayGroup>();
-  for (const slot of slots) {
-    const d = new Date(slot.start);
-    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    const existing = map.get(key);
-    if (existing) {
-      existing.slots.push(slot);
-    } else {
-      map.set(key, { key, label: fmtDayLabel(d), slots: [slot] });
-    }
+type Band = { id: "morning" | "afternoon" | "evening"; label: string; slots: Slot[] };
+
+const BAND_LABELS: Record<Band["id"], string> = {
+  morning: "MORNING",
+  afternoon: "AFTERNOON",
+  evening: "EVENING",
+};
+
+function buildWeekDays(slots: Slot[]): WeekDay[] {
+  const byKey = new Map<string, Slot[]>();
+  for (const s of slots) {
+    const key = makeDayKey(new Date(s.start));
+    const bucket = byKey.get(key) ?? [];
+    bucket.push(s);
+    byKey.set(key, bucket);
   }
-  return Array.from(map.values());
+
+  const out: WeekDay[] = [];
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+    const key = makeDayKey(d);
+    out.push({
+      key,
+      label: fmtDayLabel(d),
+      weekdayLong: d.toLocaleDateString(undefined, { weekday: "long" }),
+      weekdayLetter: d
+        .toLocaleDateString(undefined, { weekday: "narrow" })
+        .toUpperCase(),
+      slots: byKey.get(key) ?? [],
+    });
+  }
+  return out;
+}
+
+function bucketByTimeOfDay(slots: Slot[]): Band[] {
+  const bands: Band[] = (
+    ["morning", "afternoon", "evening"] as const
+  ).map((id) => ({ id, label: BAND_LABELS[id], slots: [] }));
+  for (const s of slots) {
+    const h = new Date(s.start).getHours();
+    const idx = h < 12 ? 0 : h < 17 ? 1 : 2;
+    bands[idx].slots.push(s);
+  }
+  return bands;
+}
+
+function densityLevel(count: number): "0" | "1" | "2" | "3" {
+  if (count === 0) return "0";
+  if (count <= 3) return "1";
+  if (count <= 6) return "2";
+  return "3";
+}
+
+function makeDayKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function scrollToDay(key: string) {
+  const el = document.getElementById(`day-${key}`);
+  if (el) el.scrollIntoView({ block: "start" });
 }
 
 function fmtDayLabel(d: Date): string {
@@ -205,8 +363,14 @@ function fmtDayLabel(d: Date): string {
   const month = d
     .toLocaleDateString(undefined, { month: "short" })
     .toUpperCase();
-  const day = d.getDate();
-  return `${weekday} · ${month} ${day}`;
+  return `${weekday} · ${month} ${d.getDate()}`;
+}
+
+function fmtDayLabelShort(d: Date): string {
+  const weekday = d
+    .toLocaleDateString(undefined, { weekday: "short" })
+    .toUpperCase();
+  return `${weekday} ${d.getDate()}`;
 }
 
 function fmtTime(d: Date): string {
@@ -227,9 +391,9 @@ function fmtRelative(d: Date): string {
   const diffDays = Math.round(
     (target.getTime() - startOfToday.getTime()) / 86_400_000,
   );
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "tomorrow";
-  return `in ${diffDays} days`;
+  if (diffDays === 0) return "TODAY";
+  if (diffDays === 1) return "TOMORROW";
+  return `IN ${diffDays} DAYS`;
 }
 
 function toInitials(name: string): string {
@@ -240,4 +404,58 @@ function toInitials(name: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function useVisitorTz(): string {
+  const [tz, setTz] = useState("—");
+  useEffect(() => {
+    try {
+      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+      const tail = zone.split("/").pop() ?? zone;
+      setTz(tail.replace(/_/g, " ").toUpperCase() || "—");
+    } catch {
+      setTz("—");
+    }
+  }, []);
+  return tz;
+}
+
+function useReadyClass() {
+  useEffect(() => {
+    const id = requestAnimationFrame(() =>
+      document.body.classList.add("bru-ready"),
+    );
+    return () => {
+      cancelAnimationFrame(id);
+      document.body.classList.remove("bru-ready");
+    };
+  }, []);
+}
+
+function useScrollSpy(ids: string[]): string | null {
+  const [active, setActive] = useState<string | null>(ids[0] ?? null);
+  const latestIds = useRef(ids);
+  latestIds.current = ids;
+
+  useEffect(() => {
+    if (ids.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          );
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-40% 0px -50% 0px", threshold: 0 },
+    );
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [ids.join("|")]);
+
+  return active;
 }
