@@ -734,13 +734,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 
 .bru-profile-shell {
   min-height: 100vh;
-  scroll-behavior: smooth;
-}
-/* One knob: drives sticky offsets for day headers. Declared on .bru-main
-   (a descendant of the named container) so @container queries can retune
-   it — container queries can't style the container itself. */
-.bru-profile-shell .bru-main {
-  --bru-week-strip-h: 0px;
 }
 .bru-profile-shell .bru-topbar {
   padding: 18px 44px;
@@ -834,52 +827,19 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 5px 10px !important;
 }
 
-/* Layout — mobile stacks, desktop splits into sticky rail + days. */
-.bru-profile-section {
-  padding: 40px 44px 28px;
-}
-.bru-profile-layout {
+/* CTA section — NextAvailable info pill + PICK A DATE drawer trigger. */
+.bru-profile-cta {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-}
-.bru-profile-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.bru-profile-main {
-  min-width: 0;
+  gap: 20px;
+  padding: 40px 44px 40px;
+  max-width: 640px;
 }
 
-.bru-profile-section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding-bottom: 18px;
-  border-bottom: 1px dashed var(--bru-line-dashed);
-  margin-bottom: 28px;
-  font-family: var(--bru-mono);
-  font-size: 10.5px;
-  letter-spacing: 2.5px;
-  font-weight: 800;
-}
-.bru-profile-section-kicker {
-  opacity: 0.75;
-}
-.bru-profile-section-count {
-  opacity: 0.5;
-}
-
-/* Next-available pill — in-your-face CTA above the week strip. */
+/* Next-available pill (info-only). */
 .bru-next-available {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "kicker kicker"
-    "body   body"
-    "cta    cta";
-  gap: 10px 16px;
+  gap: 10px;
   padding: 18px 20px;
   border: 2px solid var(--bru-ink);
   background: var(--bru-paper);
@@ -900,7 +860,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   z-index: 1;
 }
 .bru-next-available-kicker {
-  grid-area: kicker;
   font-family: var(--bru-mono);
   font-size: 10px;
   letter-spacing: 2.5px;
@@ -908,7 +867,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.6;
 }
 .bru-next-available-body {
-  grid-area: body;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -930,157 +888,301 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.6;
   text-transform: uppercase;
 }
-.bru-next-available-cta {
-  grid-area: cta;
+
+/* PICK A DATE — primary CTA. */
+.bru-pick-date {
   width: 100%;
   justify-content: space-between;
+  padding: 18px 22px;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  gap: 12px;
 }
-.bru-next-available-cta svg {
-  width: 14px;
-  height: 14px;
+.bru-pick-date svg {
+  width: 16px;
+  height: 16px;
 }
 
-/* Week strip — sticky density nav. Sits above the day blocks and stays
-   pinned at top-of-viewport while the user scrolls through days. */
-.bru-week-strip {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  margin-bottom: 24px;
-  background: var(--bru-paper);
-  border: 1.5px solid var(--bru-ink);
+/* Empty state — strip shadcn's default bg/radius, keep dashed brutalist box. */
+.bru-profile-empty {
+  padding: 8px 0 32px;
 }
-.bru-week-strip-kicker {
-  font-family: var(--bru-mono);
-  font-size: 9.5px;
-  letter-spacing: 2.5px;
-  font-weight: 800;
-  opacity: 0.55;
+.bru-profile-empty [data-slot="empty"] {
+  background: transparent;
+  border: 2px dashed var(--bru-line-dashed);
+  border-radius: 0;
+  padding: 56px 24px;
 }
-.bru-week-strip-cells {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
+
+/* End rule */
+.bru-profile-shell .bru-endrule {
+  border-top: 1px solid var(--bru-line-strong);
 }
-.bru-week-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 6px 4px 6px;
-  border: 1.5px solid var(--bru-ink);
-  background: var(--bru-paper);
-  text-decoration: none;
-  transition: background var(--bru-t-fast), color var(--bru-t-fast);
+
+/* ============================================================
+   AVAILABILITY DRAWER (Vaul) — bottom sheet with vertical months
+   ============================================================ */
+
+.bru-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
 }
-.bru-week-cell:hover,
-.bru-week-cell[data-active] {
-  background: var(--bru-ink);
-  color: var(--bru-paper);
-}
-.bru-week-cell-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-family: var(--bru-mono);
-  font-weight: 800;
-}
-.bru-week-cell-letter {
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-.bru-week-cell-count {
-  font-size: 9px;
-  opacity: 0.6;
-  letter-spacing: 1px;
-}
-.bru-week-cell-density {
-  position: relative;
-  height: 14px;
-  border: 1px solid currentColor;
-  overflow: hidden;
-}
-.bru-week-cell-density::after {
-  content: "";
-  position: absolute;
+.bru-drawer-content {
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  background: currentColor;
-  height: 0;
-}
-.bru-week-cell-density[data-density="1"]::after {
-  height: 33%;
-}
-.bru-week-cell-density[data-density="2"]::after {
-  height: 66%;
-}
-.bru-week-cell-density[data-density="3"]::after {
-  height: 100%;
-}
-
-/* Day blocks */
-.bru-profile-days {
+  z-index: 51;
   display: flex;
   flex-direction: column;
-  gap: 36px;
-}
-.bru-profile-day {
-  scroll-margin-top: calc(var(--bru-week-strip-h) + 16px);
-}
-.bru-profile-day-head {
-  position: sticky;
-  top: var(--bru-week-strip-h);
-  z-index: 5;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 16px;
-  padding: 8px 0 10px;
+  height: 100%;
+  max-height: 97%;
   background: var(--bru-paper);
-  border-bottom: 1.5px solid var(--bru-ink);
+  color: var(--bru-ink);
+  border-top: 2.5px solid var(--bru-ink);
+  border-radius: 0;
+  outline: none;
 }
-.bru-profile-day-label {
-  font-size: 20px;
+.bru-drawer-handle {
+  width: 72px;
+  height: 4px;
+  margin: 10px auto 0;
+  background: var(--bru-ink);
+  opacity: 0.5;
+  border-radius: 0;
+}
+.bru-drawer-head {
+  padding: 14px 24px 10px;
+  border-bottom: 1px dashed var(--bru-line-dashed);
+}
+.bru-drawer-title {
+  font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  margin: 0;
 }
-.bru-profile-day-count {
+.bru-drawer-sub {
   font-family: var(--bru-mono);
   font-size: 10px;
   letter-spacing: 2px;
-  font-weight: 800;
+  font-weight: 700;
   opacity: 0.55;
+  text-transform: uppercase;
+  margin: 4px 0 0;
+}
+.bru-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 20px 32px;
+  overscroll-behavior: contain;
+}
+.bru-drawer-hint {
+  margin: 24px 0 0;
+  text-align: center;
+  font-family: var(--bru-mono);
+  font-size: 10.5px;
+  letter-spacing: 2.5px;
+  font-weight: 700;
+  opacity: 0.45;
 }
 
-/* Empty-day ghost row. */
-.bru-profile-day-empty {
-  opacity: 0.42;
+/* Month stack: N separate <Calendar/> instances stacked vertically. */
+.bru-month-stack {
+  display: flex;
+  flex-direction: column;
 }
-.bru-empty-row {
+.bru-month {
+  --cell-size: 44px;
+  padding: 16px 0 !important;
+  background: transparent !important;
+  border-top: 1.5px solid var(--bru-ink);
+}
+.bru-month:first-child {
+  border-top: 0;
+}
+.bru-month-root {
+  width: 100%;
+}
+.bru-month-months {
+  width: 100%;
+}
+.bru-month-col {
+  width: 100%;
+  gap: 10px !important;
+}
+
+/* Caption */
+.bru-month-caption {
+  justify-content: flex-start !important;
+  padding: 4px 0 12px !important;
+  height: auto !important;
+}
+.bru-month-caption-label {
+  font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
+  font-size: 14px !important;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Weekday labels */
+.bru-weekdays {
+  display: flex !important;
+  border-bottom: 1px solid var(--bru-line-dashed);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+.bru-weekday {
+  flex: 1 !important;
+  font-family: var(--bru-mono) !important;
+  font-size: 9.5px !important;
+  letter-spacing: 2px !important;
+  font-weight: 800 !important;
+  opacity: 0.5 !important;
+  text-transform: uppercase;
+  color: var(--bru-ink) !important;
+}
+
+/* Week rows + cells */
+.bru-week {
+  margin-top: 4px !important;
+}
+.bru-day {
+  padding: 2px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+/* DayButton — our custom component */
+.bru-day-button {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1.5px solid transparent;
+  background: var(--bru-paper);
+  color: var(--bru-ink);
+  cursor: pointer;
+  font-family: var(--bru-mono);
+  font-variant-numeric: tabular-nums;
+  transition: background var(--bru-t-fast), color var(--bru-t-fast),
+    border-color var(--bru-t-fast);
+}
+.bru-day-button:disabled {
+  cursor: not-allowed;
+}
+.bru-day-num,
+.bru-day-num--past,
+.bru-day-num--closed {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.bru-day-num--past {
+  opacity: 0.3;
+}
+.bru-day-num--closed {
+  opacity: 0.35;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.bru-day-dots {
+  display: flex;
+  gap: 2px;
+  height: 4px;
+  align-items: center;
+}
+.bru-day-dots i {
   display: block;
-  padding: 4px 0 8px;
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+}
+
+/* Modifiers — available days invert on hover; today has a 2px inset border. */
+.bru-day-available {
+  cursor: pointer;
+}
+.bru-day-available .bru-day-button {
+  border-color: var(--bru-ink);
+}
+.bru-day-available .bru-day-button:hover,
+.bru-day-available .bru-day-button:focus-visible {
+  background: var(--bru-ink);
+  color: var(--bru-paper);
+  outline: none;
+}
+.bru-day-today .bru-day-button {
+  border-color: var(--bru-ink);
+  border-width: 2px;
+}
+.bru-day-selected .bru-day-button,
+.bru-day-button[data-selected-single="true"] {
+  background: var(--bru-ink) !important;
+  color: var(--bru-paper) !important;
+}
+.bru-day-closed .bru-day-button {
+  cursor: default;
+  background: transparent;
+}
+.bru-day-disabled {
+  opacity: 0.5;
+}
+.bru-day-outside {
+  visibility: hidden;
+}
+.bru-day-hidden {
+  visibility: hidden;
+}
+
+/* Day slots below calendar */
+.bru-day-slots {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1.5px solid var(--bru-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bru-day-slots-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.bru-day-slots-date {
   font-family: var(--bru-mono);
   font-size: 11px;
   letter-spacing: 2px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 800;
   opacity: 0.7;
 }
-
-/* Time bands — MORNING / AFTERNOON / EVENING */
-.bru-time-bands {
+.bru-day-slots-bands {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
+.bru-day-slots-empty {
+  margin: 0;
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+/* Time bands + chips (shared with day-slots + drawer) */
 .bru-time-band {
   display: flex;
   flex-direction: column;
@@ -1089,8 +1191,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-time-band-kicker {
   display: inline-block;
 }
-
-/* Chip slots */
 .bru-slot-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1132,65 +1232,25 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 1;
 }
 
-/* Empty state — strip shadcn's default bg/radius, keep dashed brutalist box. */
-.bru-profile-empty {
-  padding: 8px 0 32px;
+/* Tablet+ — bound drawer width so it's not a stretched wall on iPads. */
+@container bru-root (min-width: 720px) {
+  .bru-profile-cta {
+    padding: 48px 44px 56px;
+  }
 }
-.bru-profile-empty [data-slot="empty"] {
-  background: transparent;
-  border: 2px dashed var(--bru-line-dashed);
-  border-radius: 0;
-  padding: 56px 24px;
-}
-
-/* End rule */
-.bru-profile-shell .bru-endrule {
-  border-top: 1px solid var(--bru-line-strong);
-}
-
-/* Desktop — promote the section to a 2-col grid, pin the rail. */
-@container bru-root (min-width: 900px) {
-  .bru-profile-layout {
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    grid-template-areas:
-      "rail  main"
-      "strip main";
-    grid-template-rows: auto 1fr;
-    gap: 20px 36px;
-    align-items: start;
-  }
-  .bru-profile-rail {
-    grid-area: rail;
-    position: sticky;
-    top: 20px;
-  }
-  .bru-week-strip {
-    grid-area: strip;
-    position: sticky;
-    top: 220px;
-    margin-bottom: 0;
-  }
-  .bru-profile-main {
-    grid-area: main;
-  }
-  .bru-next-available {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "kicker"
-      "body"
-      "cta";
-  }
-  .bru-next-available-cta {
-    width: 100%;
+@media (min-width: 720px) {
+  .bru-drawer-content {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    width: min(520px, 92vw);
+    border-left: 2.5px solid var(--bru-ink);
+    border-right: 2.5px solid var(--bru-ink);
   }
 }
 
-/* Mobile — hero compresses, next-available stacks full-width CTA. */
+/* Mobile */
 @container bru-root (max-width: 720px) {
-  .bru-profile-shell .bru-main {
-    --bru-week-strip-h: 74px;
-  }
   .bru-profile-shell .bru-topbar {
     padding: 14px 20px;
   }
@@ -1204,8 +1264,8 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
     width: 72px !important;
     height: 72px !important;
   }
-  .bru-profile-section {
-    padding: 28px 20px 16px;
+  .bru-profile-cta {
+    padding: 28px 20px 32px;
   }
 }
 @container bru-root (max-width: 480px) {
@@ -1218,11 +1278,11 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-next-available {
     padding: 14px 16px;
   }
-  .bru-week-strip {
-    padding: 10px 10px;
-  }
   .bru-slot-chip {
     padding: 9px 12px;
     font-size: 11.5px;
+  }
+  .bru-month {
+    --cell-size: 40px;
   }
 }
