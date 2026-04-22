@@ -1112,15 +1112,19 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   text-transform: uppercase;
 }
 
-/* Weekday labels */
+/* Weekday labels — `classNames` prop replaces shadcn's `flex w-full`
+   defaults, so we restore both flex + full width here. */
 .bru-weekdays {
   display: flex !important;
+  width: 100%;
   border-bottom: 1px solid var(--bru-line-dashed);
   padding-bottom: 6px;
   margin-bottom: 4px;
 }
 .bru-weekday {
-  flex: 1 !important;
+  flex: 1 1 0 !important;
+  min-width: 0;
+  text-align: center;
   font-family: var(--bru-mono) !important;
   font-size: 9.5px !important;
   letter-spacing: 2px !important;
@@ -1130,11 +1134,16 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   color: var(--bru-ink) !important;
 }
 
-/* Week rows + cells */
+/* Week rows + cells — override the browser <tr>/<td> table layout with
+   flex so cells distribute evenly across 7 columns. */
 .bru-week {
+  display: flex !important;
+  width: 100%;
   margin-top: 4px !important;
 }
 .bru-day {
+  flex: 1 1 0 !important;
+  min-width: 0;
   padding: 2px !important;
   border-radius: 0 !important;
   background: transparent !important;
