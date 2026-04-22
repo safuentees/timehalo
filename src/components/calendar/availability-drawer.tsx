@@ -20,7 +20,7 @@ type Props = {
   months?: number;
 };
 
-const SNAP_POINTS: (number | string)[] = [0.6, 1];
+const WEEKDAY_LABELS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"] as const;
 
 export function AvailabilityDrawer({
   slots,
@@ -32,14 +32,12 @@ export function AvailabilityDrawer({
   months = 3,
 }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>("strip");
-  const [snap, setSnap] = useState<number | string | null>(SNAP_POINTS[0]);
   const densityMap = useMemo(() => computeDensityMap(slots), [slots]);
 
   useEffect(() => {
     if (!open) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewMode("strip");
-    setSnap(SNAP_POINTS[0]);
   }, [open]);
 
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
@@ -59,13 +57,7 @@ export function AvailabilityDrawer({
   }
 
   return (
-    <Drawer.Root
-      open={open}
-      onOpenChange={onOpenChange}
-      snapPoints={SNAP_POINTS}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-    >
+    <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="bru-drawer-overlay" />
         <Drawer.Content className="bru-drawer-content">
@@ -95,6 +87,16 @@ export function AvailabilityDrawer({
               <CalendarIcon />
             </button>
           </div>
+
+          {viewMode === "month" ? (
+            <div className="bru-drawer-weekdays" aria-hidden="true">
+              {WEEKDAY_LABELS.map((d) => (
+                <span key={d} className="bru-drawer-weekdays-cell">
+                  {d}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
           <div className="bru-drawer-body" data-view={viewMode}>
             {viewMode === "strip" ? (

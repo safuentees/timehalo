@@ -956,7 +956,24 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-drawer-head {
   position: relative;
-  padding: 14px 24px 10px;
+  padding: 14px 20px 10px;
+}
+.bru-drawer-weekdays {
+  display: flex;
+  width: 100%;
+  padding: 4px 20px 6px;
+}
+.bru-drawer-weekdays-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  opacity: 0.55;
+  text-transform: uppercase;
+  color: var(--bru-ink);
 }
 .bru-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
@@ -1039,13 +1056,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   --cell-size: 44px;
   padding: 16px 0 !important;
   background: transparent !important;
-  border-top: 1.5px solid var(--bru-ink);
-}
-.bru-month:first-child {
-  border-top: 0;
 }
 .bru-month-root {
   width: 100%;
+}
+.bru-month table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 .bru-month-months {
   width: 100%;
@@ -1069,7 +1087,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 
 .bru-weekdays {
-  display: flex !important;
+  display: none !important;
   width: 100%;
   border-bottom: 1px solid var(--bru-line-dashed);
   padding-bottom: 6px;
