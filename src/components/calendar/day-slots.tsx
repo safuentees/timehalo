@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import type { Slot } from "@/lib/availability";
 
 type Props = {
@@ -26,6 +27,12 @@ export function DaySlots({ date, slots, onPick }: Props) {
       className="bru-day-slots"
       aria-label={`Slots on ${date.toDateString()}`}
     >
+      <header className="bru-day-slots-head">
+        <span className="bru-kicker">PICK A TIME</span>
+        <span className="bru-day-slots-date">
+          {fmtSlotHeader(date, slots.length)}
+        </span>
+      </header>
       {slots.length === 0 ? (
         <p className="bru-day-slots-empty">closed ·</p>
       ) : (
@@ -41,35 +48,41 @@ export function DaySlots({ date, slots, onPick }: Props) {
   );
 }
 
-function TimeBand({ band, onPick }: { band: Band; onPick: (slot: Slot) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const collapseAt = 5;
-  const collapsed = !expanded && band.slots.length > collapseAt;
-  const visible = collapsed ? band.slots.slice(0, 4) : band.slots;
-  const hidden = collapsed ? band.slots.length - visible.length : 0;
+function TimeBand({
+  band,
+  onPick,
+}: {
+  band: Band;
+  onPick: (slot: Slot) => void;
+}) {
+  const [emblaRef] = useEmblaCarousel({
+    align: () => 20,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    skipSnaps: true,
+  });
 
   return (
     <div className="bru-time-band">
       <span className="bru-kicker bru-time-band-kicker">{band.label}</span>
-      <div className="bru-slot-chips">
-        {visible.map((s) => (
-          <SlotChip key={s.start} slot={s} onPick={onPick} />
-        ))}
-        {collapsed ? (
-          <button
-            type="button"
-            className="bru-slot-chip bru-slot-chip-more"
-            onClick={() => setExpanded(true)}
-          >
-            + {hidden} more
-          </button>
-        ) : null}
+      <div className="bru-time-band-chips" ref={emblaRef}>
+        <div className="bru-time-band-chips-track">
+          {band.slots.map((s) => (
+            <SlotChip key={s.start} slot={s} onPick={onPick} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-function SlotChip({ slot, onPick }: { slot: Slot; onPick: (slot: Slot) => void }) {
+function SlotChip({
+  slot,
+  onPick,
+}: {
+  slot: Slot;
+  onPick: (slot: Slot) => void;
+}) {
   const start = new Date(slot.start);
   return (
     <button
@@ -96,4 +109,17 @@ function bucketByTimeOfDay(slots: Slot[]): Band[] {
     bands[idx].slots.push(s);
   }
   return bands;
+}
+
+function fmtSlotHeader(date: Date, count: number): string {
+  const prefix = date
+    .toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
+    .toUpperCase();
+  if (count === 0) return `${prefix} · CLOSED`;
+  const suffix = `${count.toString().padStart(2, "0")} ${count === 1 ? "SLOT" : "SLOTS"}`;
+  return `${prefix} · ${suffix}`;
 }

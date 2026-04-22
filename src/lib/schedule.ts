@@ -151,7 +151,7 @@ export function generateUpcomingSlots({
 
   const stepMs = stepMinutes * 60_000;
   const nowMs = from.getTime();
-  const slots: UpcomingSlot[] = [];
+  const seen = new Map<number, UpcomingSlot>();
 
   for (let offset = 0; offset < days; offset++) {
     const day = new Date(from);
@@ -168,8 +168,8 @@ export function generateUpcomingSlots({
       rangeEnd.setHours(eh, em, 0, 0);
 
       for (let t = rangeStart.getTime(); t + stepMs <= rangeEnd.getTime(); t += stepMs) {
-        if (t > nowMs) {
-          slots.push({
+        if (t > nowMs && !seen.has(t)) {
+          seen.set(t, {
             start: new Date(t).toISOString(),
             end: new Date(t + stepMs).toISOString(),
           });
@@ -178,5 +178,7 @@ export function generateUpcomingSlots({
     }
   }
 
-  return slots;
+  return Array.from(seen.values()).sort((a, b) =>
+    a.start.localeCompare(b.start),
+  );
 }
