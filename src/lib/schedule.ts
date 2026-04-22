@@ -179,7 +179,11 @@ export function generateUpcomingSlots({
 
   const stepMs = stepMinutes * 60_000;
   const nowMs = from.getTime();
-  const slots: UpcomingSlot[] = [];
+  // Dedupe by slot-start timestamp. Overlapping availability ranges on
+  // the same day (e.g. 10:00–17:00 and 14:00–18:00) would otherwise emit
+  // duplicate slots in the overlap window, which breaks React keys and
+  // shows the same chip twice to the visitor.
+  const seen = new Map<number, UpcomingSlot>();
 
   for (let offset = 0; offset < days; offset++) {
     const day = new Date(from);
@@ -196,8 +200,8 @@ export function generateUpcomingSlots({
       rangeEnd.setHours(eh, em, 0, 0);
 
       for (let t = rangeStart.getTime(); t + stepMs <= rangeEnd.getTime(); t += stepMs) {
-        if (t > nowMs) {
-          slots.push({
+        if (t > nowMs && !seen.has(t)) {
+          seen.set(t, {
             start: new Date(t).toISOString(),
             end: new Date(t + stepMs).toISOString(),
           });
@@ -206,5 +210,7 @@ export function generateUpcomingSlots({
     }
   }
 
-  return slots;
+  return Array.from(seen.values()).sort((a, b) =>
+    a.start.localeCompare(b.start),
+  );
 }
