@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRightIcon, CalendarIcon, Clock3Icon } from "lucide-react";
+import { CalendarIcon, Clock3Icon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -13,7 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { AvailabilityDrawer } from "@/components/calendar";
+import { AvailabilityDrawer, TriggerCard } from "@/components/calendar";
 import type { Slot } from "@/lib/availability";
 
 type Props = { handle: string };
@@ -26,6 +25,10 @@ export default function HostProfile({ handle }: Props) {
   const nextSlot = slots[0] as Slot | undefined;
   const visitorTz = useVisitorTz();
   useReadyClass();
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
 
   if (!user) return null;
 
@@ -89,18 +92,31 @@ export default function HostProfile({ handle }: Props) {
         {slots.length === 0 ? (
           <HostEmpty displayName={displayName} />
         ) : (
-          <AvailabilityDrawer slots={slots}>
-            <Button
-              type="button"
-              variant="brutalist"
-              size="brutalist"
-              className="bru-pick-date"
-            >
-              <CalendarIcon />
-              PICK A DATE
-              <ArrowRightIcon />
-            </Button>
-          </AvailabilityDrawer>
+          <>
+            <TriggerCard
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              onClick={() => setDrawerOpen(true)}
+            />
+            <AvailabilityDrawer
+              slots={slots}
+              open={drawerOpen}
+              onOpenChange={setDrawerOpen}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              onPickSlot={(s) => {
+                setSelectedSlot(s);
+                setDrawerOpen(false);
+              }}
+              initialPhase={
+                selectedDate && !selectedSlot
+                  ? "time"
+                  : selectedDate && selectedSlot
+                    ? "time"
+                    : "date"
+              }
+            />
+          </>
         )}
       </section>
 
