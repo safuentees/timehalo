@@ -4,6 +4,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
+import { generateUpcomingSlots } from "@/lib/schedule";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -30,7 +31,10 @@ const rangeSchema = z
     from: z.string().regex(timeRegex, "HH:MM"),
     to: z.string().regex(timeRegex, "HH:MM"),
   })
-  .refine((r) => r.from < r.to, { message: "End must be after start", path: ["to"] });
+  .refine((r) => r.from < r.to, {
+    message: "End must be after start",
+    path: ["to"],
+  });
 const daySchema = z.object({
   enabled: z.boolean(),
   ranges: z.array(rangeSchema),
@@ -117,9 +121,8 @@ const posts = router({
       await prisma.post.delete({ where: { id: input.id } });
       return { id: input.id };
     }),
-
 });
-  
+
 const schedule = router({
   // Returns all AvailabilityRange rows for the logged-in user, sorted
   // by day then start time. Client groups them into the weekly form shape.
@@ -149,7 +152,9 @@ const schedule = router({
 
       try {
         await prisma.$transaction([
-          prisma.availabilityRange.deleteMany({ where: { userId: ctx.user.id } }),
+          prisma.availabilityRange.deleteMany({
+            where: { userId: ctx.user.id },
+          }),
           prisma.availabilityRange.createMany({ data: rows }),
         ]);
       } catch (cause) {
@@ -165,6 +170,37 @@ const schedule = router({
 
       return { count: rows.length };
     }),
+
+  // Public endpoint powering /h/[handle]. Look up the user by handle, read
+  // their availability ranges, and generate back-to-back fixed-length slots
+  // starting from "now" for the next N days. Past times on day 0 are skipped.
+  getUpcomingSlots: publicProcedure
+    .input(
+      z.object({
+        handle: z.string(),
+        days: z.number().int().min(1).max(14).default(7),
+      }),
+    )
+    .query(async ({ input }) => {
+      const user = await prisma.user.findUnique({
+        where: { handle: input.handle },
+        select: { id: true },
+      });
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const ranges = await prisma.availabilityRange.findMany({
+        where: { userId: user.id },
+        select: { dayOfWeek: true, startTime: true, endTime: true },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      });
+
+      return generateUpcomingSlots({
+        ranges,
+        from: new Date(),
+        days: input.days,
+        stepMinutes: 15,
+      });
+    }),
 });
 
 const users = router({
@@ -176,6 +212,17 @@ const users = router({
       select: { id: true, handle: true },
     });
   }),
+
+  getByHandle: publicProcedure
+    .input(z.object({ handle: z.string() }))
+    .query(async ({ input }) => {
+      const user = await prisma.user.findUnique({
+        where: { handle: input.handle },
+        select: { id: true, name: true, handle: true, image: true }, // no email/hash
+      });
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      return user;
+    }),
 
   // Atomic handle update with unique-constraint error mapping:
   // if another user already owns the handle, throw CONFLICT so the
