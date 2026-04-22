@@ -137,3 +137,74 @@ export function formValuesToRows(values: ScheduleValues): Array<{
     }));
   });
 }
+
+// ——— Slot generation ———
+
+// JS Date.getDay() returns 0=Sunday..6=Saturday; Prisma enum starts at MONDAY.
+const JS_DAY_TO_ENUM: Record<number, DayOfWeek> = {
+  0: DayOfWeek.SUNDAY,
+  1: DayOfWeek.MONDAY,
+  2: DayOfWeek.TUESDAY,
+  3: DayOfWeek.WEDNESDAY,
+  4: DayOfWeek.THURSDAY,
+  5: DayOfWeek.FRIDAY,
+  6: DayOfWeek.SATURDAY,
+};
+
+export type UpcomingSlot = { start: string; end: string };
+
+/**
+ * Walk the next `days` calendar days, and for each day's availability ranges
+ * emit back-to-back fixed-length slots. Only future slots are returned; past
+ * times on the first day are skipped. Returned dates are ISO strings so they
+ * survive JSON serialization to the client.
+ */
+export function generateUpcomingSlots({
+  ranges,
+  from,
+  days,
+  stepMinutes,
+}: {
+  ranges: DbRow[];
+  from: Date;
+  days: number;
+  stepMinutes: number;
+}): UpcomingSlot[] {
+  const byDay = new Map<DayOfWeek, DbRow[]>();
+  for (const r of ranges) {
+    const list = byDay.get(r.dayOfWeek) ?? [];
+    list.push(r);
+    byDay.set(r.dayOfWeek, list);
+  }
+
+  const stepMs = stepMinutes * 60_000;
+  const nowMs = from.getTime();
+  const slots: UpcomingSlot[] = [];
+
+  for (let offset = 0; offset < days; offset++) {
+    const day = new Date(from);
+    day.setDate(from.getDate() + offset);
+    const dayRanges = byDay.get(JS_DAY_TO_ENUM[day.getDay()]) ?? [];
+
+    for (const r of dayRanges) {
+      const [sh, sm] = r.startTime.split(":").map(Number);
+      const [eh, em] = r.endTime.split(":").map(Number);
+
+      const rangeStart = new Date(day);
+      rangeStart.setHours(sh, sm, 0, 0);
+      const rangeEnd = new Date(day);
+      rangeEnd.setHours(eh, em, 0, 0);
+
+      for (let t = rangeStart.getTime(); t + stepMs <= rangeEnd.getTime(); t += stepMs) {
+        if (t > nowMs) {
+          slots.push({
+            start: new Date(t).toISOString(),
+            end: new Date(t + stepMs).toISOString(),
+          });
+        }
+      }
+    }
+  }
+
+  return slots;
+}
