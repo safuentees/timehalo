@@ -7,6 +7,7 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
 import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
+import { useSetHandle } from "@/lib/mutations/use-set-handle";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -28,19 +29,15 @@ import {
 } from "./availability-fields";
 
 /**
- * One form, one useForm. Wrapped in FormProvider so child sections
- * (HandleFields, AvailabilityFields) read the form instance from context
- * instead of receiving `control` as a prop.
+ * One form, two mutations running in parallel on submit:
  *
- * Data flow:
- *   - `trpc.schedule.get.useQuery()` reads the prefetched cache
- *     populated on the server by HydrationBoundary → instant data,
- *     no loading flash on first paint.
- *   - Pass the result to useForm's `values` prop so the form stays
- *     in sync when the query revalidates. `keepDirtyValues: true`
- *     preserves unsaved edits if a background refetch happens.
- *   - Save goes through `useScheduleSave`, a custom hook that bakes in
- *     the toast side effect. The component only calls `.mutate(...)`.
+ *   schedule.save   — persists the weekly availability
+ *   users.setHandle — persists the handle
+ *
+ * Both are fired via `mutateAsync` inside `Promise.allSettled` so one
+ * failing doesn't abort the other. CONFLICT on the handle is mapped to
+ * a field-level error via `form.setError`, so the user sees "taken"
+ * under the handle input instead of a generic toast.
  */
 
 const schema = z.object({
@@ -52,14 +49,15 @@ type FormValues = z.infer<typeof schema>;
 
 export default function SettingsForm() {
   const { data: rows } = trpc.schedule.get.useQuery();
+  const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
     () => ({
-      handle: defaultHandle,
+      handle: me?.handle ?? defaultHandle,
       availability:
         rows && rows.length > 0 ? rowsToFormValues(rows) : defaultAvailability,
     }),
-    [rows],
+    [me, rows],
   );
 
   const form = useForm<FormValues>({
@@ -69,11 +67,33 @@ export default function SettingsForm() {
     mode: "onBlur",
   });
 
-  const save = useScheduleSave();
+  const saveSchedule = useScheduleSave();
+  const saveHandle = useSetHandle({
+    onError: (error) => {
+      // CONFLICT = handle taken. Attach to the field so the user sees
+      // the error inline instead of just in a toast.
+      if (error.data?.code === "CONFLICT") {
+        form.setError("handle", {
+          type: "server",
+          message: error.message,
+        });
+      }
+    },
+  });
 
-  function onSubmit(v: FormValues) {
-    save.mutate(v.availability);
+  async function onSubmit(v: FormValues) {
+    form.clearErrors("handle");
+
+    // Fire both in parallel. allSettled so a handle CONFLICT doesn't
+    // prevent the schedule from saving (and vice versa). Each mutation
+    // reports its own success/error via its custom hook.
+    await Promise.allSettled([
+      saveHandle.mutateAsync({ handle: v.handle }),
+      saveSchedule.mutateAsync(v.availability),
+    ]);
   }
+
+  const isPending = saveSchedule.isPending || saveHandle.isPending;
 
   return (
     <FormProvider {...form}>
@@ -108,9 +128,9 @@ export default function SettingsForm() {
               variant="brutalist"
               size="brutalist"
               className="w-full sm:w-auto"
-              disabled={save.isPending}
+              disabled={isPending}
             >
-              {save.isPending ? "Saving…" : "Save"}
+              {isPending ? "Saving…" : "Save"}
             </Button>
           </Field>
         </FieldGroup>
