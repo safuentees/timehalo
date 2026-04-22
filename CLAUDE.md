@@ -15,7 +15,7 @@ Learning goal: depth in tRPC, react-hook-form, Prisma, and server-first Next.js 
 
 # trpc-lab Development Guide for AI Agents
 
-You are a senior engineer on trpc-lab. Priorities in order: type safety, security, small focused diffs, UI consistency with shadcn + the brutalist aesthetic. You favor explicit wiring over magic, and you always confirm library APIs via Context7 before writing code.
+You are a senior engineer on trpc-lab. Priorities in order: type safety, security, small focused diffs, **mobile-first responsive layouts**, **brutalist aesthetic consistency** across every new page, UI consistency with shadcn primitives. You favor explicit wiring over magic, and you always confirm library APIs via Context7 before writing code.
 
 ## Do
 
@@ -39,7 +39,9 @@ You are a senior engineer on trpc-lab. Priorities in order: type safety, securit
 - **Shadcn Field family layout** — always `<FieldGroup>` as outer form body; `<FieldSet>` per named section with its own inner `<FieldGroup>` for field spacing; submit buttons in `<Field orientation="horizontal" className="justify-end">` inside the outer `FieldGroup`. See tree in the Shadcn section below.
 - **Shadcn Input Group layout** — place `<InputGroupInput>` (or `<InputGroupTextarea>`) **before** `<InputGroupAddon>` in the DOM; use `align="inline-start"` / `"inline-end"` for visual position. Shadcn's `onClick` on `InputGroupAddon` focuses the sibling input.
 - Use **brutalist wrapper components** in `src/components/brutalist/` to extend shadcn primitives with `cn("<brutalist overrides>", className)`. Never re-implement shadcn structure from scratch.
+- **Match the brutalist vibe on every new page** — paper/ink palette via `--bru-paper` / `--bru-ink`, mono kickers with 2px+ letter-spacing, sharp 1.5–2.5px borders (no rounded corners), uppercase display headings with tight `-0.02em` tracking, hover-invert on interactive blocks, `.bru-reveal` + container queries for motion/layout. Existing pages are **inspiration, not a template** — take `/dashboard` (form shell), `/h/[handle]` (public profile with Avatar/Item/Empty), and `/` (dotted hero + alternating rows) as reference, then be creative within the palette. New visual elements are encouraged as long as conventions and architecture stay consistent (client/server split, shadcn primitives underneath, `.bru-*` CSS classes for overrides, container queries for responsive). Never ship a page that looks like stock shadcn-default — if it could live unchanged in any other project, it's wrong for this one.
 - Use **Tailwind v4 CSS-variable shorthand** — `bg-(--bru-ink)`, `border-(--bru-ink)`, `text-(color:--bru-paper)`, `font-[family-name:var(--bru-mono)]`. Disambiguate `text-(color:--var)` when a `text-[12px]` utility is on the same element.
+- **Design mobile-first** — start every page at ~400px width, confirm it reads one-column without horizontal scroll, then expand up. Use `@container bru-root (max-width: 480px)` / `(max-width: 720px)` breakpoints for brutalist routes (not viewport media queries) so layouts also adapt when the dashboard sidebar is open. The mobile layout is the baseline, not a fallback — if it requires `!important` overrides or layout shifts at wide widths, rebuild it.
 - Use **container queries** (`@container` + `cqi`) for layout that adapts to the SidebarInset width, not viewport width. Example: `.bru-root` in `globals.css` is a named container `bru-root`.
 - Add `<Toaster />` once in the root layout. Call `toast.success()` / `toast.error()` inside custom mutation hooks — never directly in components.
 - Put permission checks in `page.tsx`, never in `layout.tsx`. Use `createPrivateSSRHelper` for authenticated SSR; it handles the `redirect("/login")`.
@@ -66,6 +68,8 @@ You are a senior engineer on trpc-lab. Priorities in order: type safety, securit
 - Never add a `FieldGroup` with only one child. The inner `FieldGroup` inside a `FieldSet` is always correct, but at the outer level a lone Field doesn't need wrapping.
 - Never put `useForm` in a server component. Wrap the client-only form in its own `"use client"` file and mount from the server page.
 - Never use `revalidatePath` on this project. Every page is `ƒ` (dynamic SSR) — there's no cached HTML to invalidate. `queryClient.invalidateQueries()` in the tRPC global override is the mechanism here.
+- Never ship a new page with **desktop-first** layout — build the mobile rendering first, verify at ~400px container width, then expand. No pages should require horizontal scroll on mobile or rely on `min-width` media queries as the baseline.
+- Never ship a new page that looks like **stock shadcn defaults** (rounded-xl cards, `bg-white shadow-lg p-6`, default Inter typography). Apply the brutalist palette + typography + sharp borders from `globals.css`; if it could drop unchanged into a generic Next.js starter, rework it before merging.
 - Never create a new untyped `ReactQueryOptions`. Use the exported type from `src/trpc/hooks.ts`: `ReactQueryOptions["router"]["procedure"]`.
 - Never commit generated files (`src/generated/prisma/*` is in `.gitignore` via the `/` prefix — keep it that way).
 - Never commit secrets or `.env` files.
@@ -100,6 +104,11 @@ src/
 │   │   ├── button.tsx           # Includes brutalist + brutalistGhost variants
 │   │   ├── field.tsx            # Field family (Field, FieldGroup, FieldSet, …)
 │   │   ├── input-group.tsx      # InputGroup family
+│   │   ├── avatar.tsx           # Avatar family (see Shadcn Component Trees)
+│   │   ├── item.tsx             # Item family (list rows)
+│   │   ├── empty.tsx            # Empty family (zero-state)
+│   │   ├── card.tsx             # Card family (contained modules)
+│   │   ├── badge.tsx            # Badge (variants + asChild)
 │   │   ├── sonner.tsx           # Toaster wrapper (theme-aware)
 │   │   └── …                    # Individual shadcn components
 │   └── brutalist/               # Brutalist-themed wrappers around shadcn
@@ -582,6 +591,123 @@ Key rules:
 - `<InputGroupButton>` is sized to fit the group height (`size="xs"` default).
 - For brutalist visuals: use `<BrutalistInputGroup>`, `<BrutalistInputGroupInput>`, etc. from `src/components/brutalist/brutalist-input-group.tsx` — they wrap shadcn primitives and apply class overrides.
 
+### Avatar family — user photo + fallback + group
+
+Use for any user identity surface (profile header, comment row, attendee stack). Always include a fallback — images 404 in production and render empty during SSR.
+
+```
+<Avatar size="default | sm | lg">        ← size controls overall dimension
+  <AvatarImage src="…" alt="…" />        ← loads user photo
+  <AvatarFallback>CN</AvatarFallback>    ← initials / shown during load + on error
+  <AvatarBadge>…</AvatarBadge>           ← optional status dot (online, verified, …)
+</Avatar>
+
+<AvatarGroup>                             ← horizontal cluster with overlap
+  <Avatar>…</Avatar>
+  <Avatar>…</Avatar>
+  <AvatarGroupCount>+3</AvatarGroupCount> ← "more users" pill at the end
+</AvatarGroup>
+```
+
+- `AvatarFallback` is not optional — it's the a11y fallback and the SSR paint.
+- `size="lg"` for hero/profile headers; default for row media; `sm` for dense lists.
+- Reach for `AvatarGroup` only for multi-user stacks (attendees, collaborators); single-user surfaces use `<Avatar>` directly.
+
+### Item family — list row with media + title + action
+
+Use when you need a vertical list of rows with structured slots (media left, title/description middle, actions right). Replaces hand-rolled `<div>` row layouts.
+
+```
+<ItemGroup>                              ← container (vertical stack)
+  <Item variant="default | outline | muted" size="default | sm | xs">
+    <ItemMedia variant="default | icon"> ← avatar, icon, or thumbnail
+      <Avatar>…</Avatar>
+    </ItemMedia>
+    <ItemContent>                        ← stacked title + description
+      <ItemTitle>…</ItemTitle>
+      <ItemDescription>…</ItemDescription>
+    </ItemContent>
+    <ItemActions>                        ← trailing buttons / controls
+      <Button>…</Button>
+    </ItemActions>
+  </Item>
+  <ItemSeparator />                      ← optional divider between rows
+  <Item>…</Item>
+</ItemGroup>
+```
+
+Key rules:
+- `ItemMedia variant="icon"` shrinks the media slot for icon-only rows; `default` fits an avatar or thumbnail.
+- `Item variant="outline"` gives each row its own border — good for slot pickers, selectable lists; `default` is borderless.
+- `ItemMedia` and `ItemActions` are optional slots — omit them when unused, don't render empty containers.
+- Prefer `ItemGroup` over raw `<ul>` when rows have structured content. For simple bullet text, plain lists are fine.
+
+### Empty family — zero-state placeholder
+
+Render when a query resolves to `[]` (not while loading — use a skeleton then).
+
+```
+<Empty>
+  <EmptyHeader>
+    <EmptyMedia variant="default | icon">  ← "icon" = small circular slot; "default" = large illustration
+      <CalendarIcon />
+    </EmptyMedia>
+    <EmptyTitle>…</EmptyTitle>
+    <EmptyDescription>…</EmptyDescription>
+  </EmptyHeader>
+  <EmptyContent>                           ← optional CTAs / helpful links
+    <Button>…</Button>
+    <Button variant="outline">…</Button>
+  </EmptyContent>
+</Empty>
+```
+
+- One sentence in `EmptyDescription` — never a paragraph.
+- Omit `EmptyContent` when there's nothing the user can do to change the state.
+- Don't render `<Empty />` during loading — render a skeleton row instead.
+
+### Card family — contained content block
+
+Use for self-contained modules (pricing tier, a single booking summary, a dashboard stat). For a flat list of rows, prefer `ItemGroup` — cards for lists create too much visual chrome.
+
+```
+<Card size="default | sm">
+  <CardHeader>                           ← title area
+    <CardTitle>…</CardTitle>
+    <CardDescription>…</CardDescription>
+    <CardAction>                         ← top-right slot (menu, badge, CTA)
+      <Button variant="ghost">…</Button>
+    </CardAction>
+  </CardHeader>
+  <CardContent>…</CardContent>           ← body
+  <CardFooter>…</CardFooter>             ← optional bottom row
+</Card>
+```
+
+- `CardAction` renders at the header's end via the header's `grid` layout — don't position it manually with absolute/flex.
+- `CardHeader` / `CardContent` / `CardFooter` are all optional individually — use what you need.
+
+### Badge — inline label with variants + icons
+
+```tsx
+<Badge variant="default | secondary | destructive | outline | ghost | link">
+  Label
+</Badge>
+
+<Badge variant="secondary">
+  <CheckIcon data-icon="inline-start" />
+  Verified
+</Badge>
+
+<Badge asChild>
+  <a href="…">Open <ArrowUpRightIcon data-icon="inline-end" /></a>
+</Badge>
+```
+
+- Icons: `data-icon="inline-start" | "inline-end"` on the icon — not gap on the Badge.
+- `asChild` when the badge is clickable (anchor, button) — preserves a11y semantics.
+- Reserve `destructive` for real warnings; `outline` / `secondary` for neutral metadata.
+
 ### Form (single-Field checkout) — alternative for one-off forms
 
 ```
@@ -637,6 +763,10 @@ Call `toast.success(...)` / `toast.error(...)` / `toast.promise(...)` from anywh
 | Day toggle + label | `<Field orientation="horizontal">` + `Switch` + `FieldLabel` | `availability-fields.tsx` `DayRow` |
 | Dynamic list row | `useFieldArray` → `fields.map((f, i) => <div key={f.id}>…</div>)` with `remove(i)` and `append(defaults)` buttons | `availability-fields.tsx` `DayRow` |
 | Submit + status | `<Field orientation="horizontal" className="justify-end">` + `<Button disabled={isPending}>` | `settings-form.tsx` |
+| User identity (name + photo) | `Avatar size="lg"` + `AvatarImage` + `AvatarFallback` | `h/[handle]/` host profile |
+| List of rows with action | `ItemGroup` + `Item variant="outline"` + `ItemMedia` + `ItemContent` (`ItemTitle` + `ItemDescription`) + `ItemActions` | `h/[handle]/` slot list |
+| Zero-state for empty list | `Empty` + `EmptyHeader` (`EmptyMedia variant="icon"` + `EmptyTitle` + `EmptyDescription`) + optional `EmptyContent` | `h/[handle]/` no-slots |
+| Inline metadata label | `Badge variant="secondary"` with `data-icon="inline-start"` on the icon | any |
 
 ## Error Handling
 
