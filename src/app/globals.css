@@ -1119,14 +1119,11 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   gap: 10px !important;
 }
 
-/* Caption — centered above the grid (shadcn default). */
+/* Caption */
 .bru-month-caption {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
+  justify-content: flex-start !important;
   padding: 4px 0 12px !important;
   height: auto !important;
-  width: 100%;
 }
 .bru-month-caption-label {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
