@@ -1012,32 +1012,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-drawer-head {
   position: relative;
   padding: 14px 24px 10px;
-  border-bottom: 1px dashed var(--bru-line-dashed);
-}
-.bru-drawer-back {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  margin-bottom: 8px;
-  font-family: var(--bru-mono);
-  font-size: 10.5px;
-  letter-spacing: 2px;
-  font-weight: 800;
-  text-transform: uppercase;
-  opacity: 0.65;
-  cursor: pointer;
-  transition: opacity var(--bru-t-fast);
-}
-.bru-drawer-back:hover,
-.bru-drawer-back:focus-visible {
-  opacity: 1;
-  outline: none;
-}
-.bru-drawer-back svg {
-  width: 14px;
-  height: 14px;
 }
 .bru-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
@@ -1059,30 +1033,50 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-drawer-body {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 8px 20px 32px;
   overscroll-behavior: contain;
 }
-/* Phase swap: subtle fade + translate on enter. Uses transform (not
-   layout props) so it stays cheap on GPU. Animation re-triggers
-   whenever React remounts via key={phase}. */
-.bru-drawer-phase {
-  animation: bru-phase-in 160ms ease-out;
+/* Month-year bar with view toggle. Sits between the drawer head and the
+   day strip / month stack. Mono uppercase on the left, toggle on the right. */
+.bru-drawer-monthbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 10px;
 }
-@keyframes bru-phase-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.bru-drawer-monthbar-label {
+  font-family: var(--bru-mono);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
-@media (prefers-reduced-motion: reduce) {
-  .bru-drawer-phase {
-    animation: none;
-  }
+.bru-view-toggle {
+  all: unset;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--bru-t-fast),
+    color var(--bru-t-fast);
+}
+.bru-view-toggle[aria-pressed="true"] {
+  background: var(--bru-ink);
+  color: var(--bru-paper);
+}
+.bru-view-toggle:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--bru-ink);
+}
+.bru-view-toggle svg {
+  width: 16px;
+  height: 16px;
 }
 .bru-drawer-hint {
   margin: 24px 0 0;
@@ -1245,6 +1239,82 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   visibility: hidden;
 }
 
+/* Horizontal day strip — Embla. Week-aligned (starts on Monday of current
+   week). Symmetric 20px edges so Mon and Sun have equal margins. Next
+   Monday peeks through the right padding as a scroll hint — this falls
+   out naturally from `overflow: hidden` clipping at the padding box. */
+.bru-day-strip {
+  --strip-edge: 20px;
+  --strip-gap: 6px;
+  --strip-visible: 7;
+
+  overflow: hidden;
+  padding: 4px var(--strip-edge) 14px;
+  margin: 0 calc(var(--strip-edge) * -1);
+}
+.bru-day-strip-track {
+  display: flex;
+  gap: var(--strip-gap);
+}
+.bru-day-strip-slide {
+  /* 7 slides + 6 gaps fill the padded inner area exactly. Monday's left
+     edge and Sunday's right edge both sit at --strip-edge from the
+     viewport sides. The 8th slide (next Monday) starts in the right
+     padding and is clipped by `overflow: hidden`, producing a peek.
+     `box-sizing: border-box` is critical — otherwise the 1.5px borders
+     (3px per slide × 7) push Sunday past the content edge. */
+  box-sizing: border-box;
+  flex: 0 0
+    calc(
+      (100% - (var(--strip-visible) - 1) * var(--strip-gap)) /
+        var(--strip-visible)
+    );
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+  color: var(--bru-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--bru-mono);
+  cursor: pointer;
+  transition: background-color var(--bru-t-fast),
+    color var(--bru-t-fast);
+  border-radius: 0;
+}
+.bru-day-strip-weekday {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  opacity: 0.6;
+}
+.bru-day-strip-date {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.bru-day-strip-slide[aria-pressed="true"] {
+  background: var(--bru-ink);
+  color: var(--bru-paper);
+}
+.bru-day-strip-slide[aria-pressed="true"] .bru-day-strip-weekday {
+  opacity: 0.8;
+}
+.bru-day-strip-slide[aria-disabled="true"] {
+  opacity: 0.32;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  cursor: not-allowed;
+}
+.bru-day-strip-slide:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--bru-ink);
+}
+
 /* Day slots below calendar */
 .bru-day-slots {
   margin-top: 24px;
@@ -1290,10 +1360,23 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-time-band-kicker {
   display: inline-block;
 }
-.bru-slot-chips {
+/* Time band chips — Embla horizontal carousel. Viewport bleeds to the
+   drawer edges via negative margin and clips overflow. The 20px snap
+   inset is handled by Embla's `align: () => 20` (custom function in
+   day-slots.tsx) — Embla ignores CSS padding for snap alignment, so
+   horizontal padding here would double up with the pixel offset. The
+   4px vertical padding keeps chip focus-shadows from clipping. */
+.bru-time-band-chips {
+  overflow: hidden;
+  padding: 4px 0;
+  margin: 0 -20px;
+}
+.bru-time-band-chips-track {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+}
+.bru-time-band-chips-track .bru-slot-chip {
+  flex: 0 0 auto;
 }
 .bru-slot-chip {
   appearance: none;
@@ -1320,17 +1403,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   box-shadow: 3px 3px 0 var(--bru-ink);
   transform: translate(-1px, -1px);
 }
-.bru-slot-chip-more {
-  font-size: 10.5px;
-  letter-spacing: 2px;
-  padding: 10px 12px;
-  opacity: 0.78;
-  border-style: dashed;
-}
-.bru-slot-chip-more:hover {
-  opacity: 1;
-}
-
 /* Tablet+ — bound drawer width so it's not a stretched wall on iPads. */
 @container bru-root (min-width: 720px) {
   .bru-profile-cta {
