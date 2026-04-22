@@ -108,13 +108,7 @@ export default function HostProfile({ handle }: Props) {
                 setSelectedSlot(s);
                 setDrawerOpen(false);
               }}
-              initialPhase={
-                selectedDate && !selectedSlot
-                  ? "time"
-                  : selectedDate && selectedSlot
-                    ? "time"
-                    : "date"
-              }
+              initialPhase={selectedDate ? "time" : "date"}
             />
           </>
         )}
