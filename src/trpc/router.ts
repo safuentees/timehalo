@@ -1,8 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { DayOfWeek } from "@/generated/prisma/enums";
+import { Prisma } from "@/generated/prisma/client";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
+
+const handleSchema = z
+  .string()
+  .min(3, "3+ characters")
+  .regex(/^[a-z0-9-]+$/, "Lowercase, numbers, hyphens");
 
 const DAY_KEY_TO_ENUM = {
   mon: DayOfWeek.MONDAY,
@@ -141,6 +147,43 @@ const schedule = router({
     }),
 });
 
-export const appRouter = router({ posts, schedule });
+const users = router({
+  me: privateProcedure.query(async ({ ctx }) => {
+    return await prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      select: { id: true, handle: true },
+    });
+  }),
+
+  setHandle: privateProcedure
+    .input(z.object({ handle: handleSchema }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        await prisma.user.update({
+          where: { id: ctx.user.id },
+          data: { handle: input.handle },
+        });
+      } catch (cause) {
+        if (
+          cause instanceof Prisma.PrismaClientKnownRequestError &&
+          cause.code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "That handle is taken. Pick another.",
+            cause,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not save your handle. Try again.",
+          cause,
+        });
+      }
+      return { handle: input.handle };
+    }),
+});
+
+export const appRouter = router({ posts, schedule, users });
 
 export type AppRouter = typeof appRouter;

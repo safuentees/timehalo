@@ -7,6 +7,7 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
 import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
+import { useSetHandle } from "@/lib/mutations/use-set-handle";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -36,14 +37,15 @@ type FormValues = z.infer<typeof schema>;
 
 export default function SettingsForm() {
   const { data: rows } = trpc.schedule.get.useQuery();
+  const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
     () => ({
-      handle: defaultHandle,
+      handle: me?.handle ?? defaultHandle,
       availability:
         rows && rows.length > 0 ? rowsToFormValues(rows) : defaultAvailability,
     }),
-    [rows],
+    [me, rows],
   );
 
   const form = useForm<FormValues>({
@@ -53,11 +55,28 @@ export default function SettingsForm() {
     mode: "onBlur",
   });
 
-  const save = useScheduleSave();
+  const saveSchedule = useScheduleSave();
+  const saveHandle = useSetHandle({
+    onError: (error) => {
+      if (error.data?.code === "CONFLICT") {
+        form.setError("handle", {
+          type: "server",
+          message: error.message,
+        });
+      }
+    },
+  });
 
-  function onSubmit(v: FormValues) {
-    save.mutate(v.availability);
+  async function onSubmit(v: FormValues) {
+    form.clearErrors("handle");
+
+    await Promise.allSettled([
+      saveHandle.mutateAsync({ handle: v.handle }),
+      saveSchedule.mutateAsync(v.availability),
+    ]);
   }
+
+  const isPending = saveSchedule.isPending || saveHandle.isPending;
 
   return (
     <FormProvider {...form}>
@@ -92,9 +111,9 @@ export default function SettingsForm() {
               variant="brutalist"
               size="brutalist"
               className="w-full sm:w-auto"
-              disabled={save.isPending}
+              disabled={isPending}
             >
-              {save.isPending ? "Saving…" : "Save"}
+              {isPending ? "Saving…" : "Save"}
             </Button>
           </Field>
         </FieldGroup>

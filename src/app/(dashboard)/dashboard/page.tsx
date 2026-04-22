@@ -5,7 +5,10 @@ import SettingsForm from "./components/settings-form";
 export default async function Page() {
   const trpc = await createPrivateSSRHelper();
 
-  await trpc.schedule.get.prefetch();
+  await Promise.all([
+    trpc.schedule.get.prefetch(),
+    trpc.users.me.prefetch(),
+  ]);
 
   return (
     <main className="bru-main">
