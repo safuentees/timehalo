@@ -1011,7 +1011,27 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-drawer-head {
   position: relative;
-  padding: 14px 24px 10px;
+  padding: 14px 20px 10px;
+}
+/* Weekday row that sits below the month-year bar when the month view is
+   active. Uses the same 20px horizontal padding as the drawer body so
+   the seven cells line up with the day grid columns below. */
+.bru-drawer-weekdays {
+  display: flex;
+  width: 100%;
+  padding: 4px 20px 6px;
+}
+.bru-drawer-weekdays-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  opacity: 0.55;
+  text-transform: uppercase;
+  color: var(--bru-ink);
 }
 .bru-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
@@ -1097,13 +1117,18 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   --cell-size: 44px;
   padding: 16px 0 !important;
   background: transparent !important;
-  border-top: 1.5px solid var(--bru-ink);
-}
-.bru-month:first-child {
-  border-top: 0;
 }
 .bru-month-root {
   width: 100%;
+}
+/* RDP v9 renders the grid as <table class="rdp-month_grid"> which
+   shadcn's default `w-full` on `table` no longer targets — without this,
+   the table falls back to intrinsic 7*cell-size width and sits left-
+   aligned inside the drawer. */
+.bru-month table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 .bru-month-months {
   width: 100%;
@@ -1129,8 +1154,11 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 
 /* Weekday labels — `classNames` prop replaces shadcn's `flex w-full`
    defaults, so we restore both flex + full width here. */
+/* Per-month weekday row is hidden — one shared weekday header lives
+   above the grid in `.bru-drawer-weekdays` so it doesn't repeat for
+   every month in the stack. */
 .bru-weekdays {
-  display: flex !important;
+  display: none !important;
   width: 100%;
   border-bottom: 1px solid var(--bru-line-dashed);
   padding-bottom: 6px;
