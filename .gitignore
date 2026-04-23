@@ -49,6 +49,7 @@ next-env.d.ts
 
 # editor / tooling
 .vscode/
+.playwright-cli/
 .claude/*
 !.claude/settings.json
 !.claude/rules/
