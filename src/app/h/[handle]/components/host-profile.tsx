@@ -51,18 +51,17 @@ export default function HostProfile({ handle }: Props) {
     });
   }
 
+  const hasSlots = slots.length > 0;
+  const hasOpenSlots = availableSlots.length > 0;
+
   return (
     <main className="bru-main" id="top">
       <div className="bru-topbar">
         <div className="flex items-center gap-3">
           <div className="bru-monogram">OH</div>
           <div>
-            <div className="bru-topbar-title">
-              OFFICE HOURS · /h/{user.handle}
-            </div>
-            <div className="bru-topbar-sub">
-              PUBLIC PROFILE · BOOK A 15-MIN SLOT
-            </div>
+            <div className="bru-topbar-title">/h/{user.handle}</div>
+            <div className="bru-topbar-sub">PUBLIC PROFILE</div>
           </div>
         </div>
       </div>
@@ -88,7 +87,6 @@ export default function HostProfile({ handle }: Props) {
           </div>
 
           <h1 className="bru-v1-name">{displayName}</h1>
-          <p className="bru-v1-tag">OFFICE HOURS · 15-MIN DROP-INS</p>
           <p className="bru-v1-bio">
             Book a short conversation — writing, software, or whatever&apos;s
             been rattling around your head lately.
@@ -133,46 +131,44 @@ export default function HostProfile({ handle }: Props) {
             <dd className="bru-v1-meta-value">{visitorTz}</dd>
           </div>
         </dl>
-
-        <div className="bru-v1-foot">
-          <span>OFFICEHOURS · @{user.handle}</span>
-        </div>
       </article>
 
       <section className="bru-profile-cta">
         {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
-
-        {slots.length === 0 ? (
+        {!hasSlots ? (
           <HostEmpty displayName={displayName} kind="closed" />
-        ) : availableSlots.length === 0 ? (
+        ) : !hasOpenSlots ? (
           <HostEmpty displayName={displayName} kind="booked" />
-        ) : (
-          <>
-            <TriggerCard
-              selectedDate={selectedDate}
-              selectedSlot={selectedSlot}
-              onClick={() => setDrawerOpen(true)}
-            />
-            <AvailabilityDrawer
-              handle={handle}
-              slots={slots}
-              open={drawerOpen}
-              onOpenChange={setDrawerOpen}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              selectedSlot={selectedSlot}
-              onPickSlot={(s) => {
-                setSelectedSlot(s);
-              }}
-            />
-          </>
-        )}
+        ) : null}
       </section>
 
-      <div className="bru-endrule">
-        <span>— END · PICK A DATE ABOVE —</span>
-        <span>/h/{user.handle}</span>
-      </div>
+      <div className="bru-v1-spacer" aria-hidden />
+
+      {hasOpenSlots ? (
+        <>
+          <div className="bru-v1-bar" role="region" aria-label="Pick a date">
+            <div className="bru-v1-bar-inner">
+              <TriggerCard
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                onClick={() => setDrawerOpen(true)}
+              />
+            </div>
+          </div>
+          <AvailabilityDrawer
+            handle={handle}
+            slots={slots}
+            open={drawerOpen}
+            onOpenChange={setDrawerOpen}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            selectedSlot={selectedSlot}
+            onPickSlot={(s) => {
+              setSelectedSlot(s);
+            }}
+          />
+        </>
+      ) : null}
     </main>
   );
 }
