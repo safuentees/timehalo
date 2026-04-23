@@ -734,6 +734,16 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 
 .bru-profile-shell {
   min-height: 100vh;
+  /* Bezel breathing room — adapted from Apple's iOS 26 ConcentricRectangle
+     concept (WWDC 2025) for the web. Brutalist sharp 90° corners look
+     wrong kissing the device's rounded screen bezel, so we pad the
+     bordered content inward via safe-area insets. The paper background
+     still bleeds full-edge (set on .bru-root); only bordered chrome
+     insets. min(12px) gives Android / non-notched devices the same
+     breathing room. Bottom is owned by the floating CTA bar. */
+  padding-top: max(0px, env(safe-area-inset-top));
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
 }
 .bru-profile-shell .bru-topbar {
   padding: 18px 44px;
@@ -961,11 +971,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   right: 0;
   bottom: 0;
   z-index: 30;
-  padding: 28px 16px max(16px, env(safe-area-inset-bottom));
+  padding: 28px max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
   /* Subtly ink-tinted shelf so the paper TriggerCard reads as a
      distinct island sitting ON the bar, not merging into the page.
      Top of the gradient stays transparent so in-flow content fades
-     gracefully behind the island. */
+     gracefully behind the island. Left/right safe-area insets keep
+     the island clear of landscape-mode rounded bezels. */
   background: linear-gradient(
     to top,
     color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 0%,
@@ -1959,7 +1972,9 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
     font-size: 14px;
   }
   .bru-v1-bar {
-    padding: 24px 14px max(14px, env(safe-area-inset-bottom));
+    padding: 24px max(14px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
   }
   .bru-next-available {
     padding: 14px 16px;
