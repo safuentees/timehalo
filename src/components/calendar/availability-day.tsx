@@ -15,20 +15,23 @@ type Props = DayButtonProps & {
  */
 export function AvailabilityDay({
   day,
-  modifiers: _modifiers,
+  modifiers,
   densityMap,
   className,
   disabled,
   ...buttonProps
 }: Props) {
+  void modifiers;
   const density = densityMap.get(toKey(day.date));
-  const level = density?.level ?? 0;
   const isPast = day.date < startOfToday();
-  const isClosed = !isPast && level === 0;
+  const isClosed = !isPast && !density;
+  const isFullyBooked = !isPast && !!density?.isFullyBooked;
 
   const numClass = isPast
     ? "bru-day-num--past"
-    : isClosed
+    : isFullyBooked
+      ? "bru-day-num--full"
+      : isClosed
       ? "bru-day-num--closed"
       : "bru-day-num";
 
@@ -37,11 +40,13 @@ export function AvailabilityDay({
       {...buttonProps}
       type="button"
       className={`bru-day-button ${className ?? ""}`}
-      disabled={disabled || level === 0}
+      disabled={disabled || !density}
       aria-label={
-        level === 0
+        !density
           ? `${day.date.toDateString()}, no slots`
-          : `${day.date.toDateString()}, ${density!.count} slots`
+          : density.isFullyBooked
+            ? `${day.date.toDateString()}, fully booked`
+            : `${day.date.toDateString()}, ${density.count} open slots`
       }
     >
       <span className={numClass}>{day.date.getDate()}</span>
