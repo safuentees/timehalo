@@ -10,6 +10,8 @@ import {
   type Slot,
 } from "@/lib/availability";
 
+const DAYS_PER_WEEK = 7;
+
 type Props = {
   slots: Slot[];
   selectedDate: Date | undefined;
@@ -35,7 +37,7 @@ export function DayStrip({
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
-    slidesToScroll: 7,
+    slidesToScroll: DAYS_PER_WEEK,
     dragFree: false,
     containScroll: "keepSnaps",
     skipSnaps: false,
@@ -44,8 +46,14 @@ export function DayStrip({
 
   useEffect(() => {
     if (!emblaApi || !selectedDate) return;
-    const idx = days.findIndex((d) => isSameDay(d, selectedDate));
-    if (idx >= 0) emblaApi.scrollTo(idx, false);
+    const slideIndex = days.findIndex((d) => isSameDay(d, selectedDate));
+    if (slideIndex < 0) return;
+
+    const snapIndex = Math.floor(slideIndex / DAYS_PER_WEEK);
+
+    if (emblaApi.selectedScrollSnap() !== snapIndex) {
+      emblaApi.scrollTo(snapIndex, false);
+    }
   }, [emblaApi, days, selectedDate]);
 
   return (
@@ -53,21 +61,25 @@ export function DayStrip({
       <div className="bru-day-strip-track">
         {days.map((d) => {
           const density = densityMap.get(toKey(d));
-          const available = !!density;
+          const hasSlots = !!density;
+          const isFullyBooked = !!density?.isFullyBooked;
           const selected = selectedDate ? isSameDay(d, selectedDate) : false;
           return (
             <button
               key={d.toISOString()}
               type="button"
               className="bru-day-strip-slide"
+              data-state={isFullyBooked ? "full" : hasSlots ? "open" : "closed"}
               aria-pressed={selected}
-              aria-disabled={!available}
+              aria-disabled={!hasSlots}
               aria-label={
-                available
-                  ? `${d.toDateString()}, ${density.count} slots`
-                  : `${d.toDateString()}, no slots`
+                !density
+                  ? `${d.toDateString()}, no slots`
+                  : density.isFullyBooked
+                    ? `${d.toDateString()}, fully booked`
+                    : `${d.toDateString()}, ${density.count} open slots`
               }
-              onClick={() => available && onSelectDate(d)}
+              onClick={() => hasSlots && onSelectDate(d)}
             >
               <span className="bru-day-strip-weekday">
                 {d

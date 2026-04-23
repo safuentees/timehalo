@@ -172,11 +172,45 @@ const schedule = router({
         orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
       });
 
-      return generateUpcomingSlots({
+      const slots = generateUpcomingSlots({
         ranges,
         from: new Date(),
         days: input.days,
         stepMinutes: 15,
+      });
+
+      if (slots.length === 0) {
+        return [];
+      }
+
+      const bookings = await prisma.booking.findMany({
+        where: {
+          hostId: user.id,
+          slotStart: {
+            gte: new Date(slots[0].start),
+            lte: new Date(slots[slots.length - 1].end),
+          },
+        },
+        select: {
+          slotStart: true,
+        },
+      });
+
+      const takenStarts = new Set(
+        bookings.map((booking) => booking.slotStart.getTime()),
+      );
+
+      return slots.map((slot) => {
+        const status: "open" | "taken" = takenStarts.has(
+          new Date(slot.start).getTime(),
+        )
+          ? "taken"
+          : "open";
+
+        return {
+          ...slot,
+          status,
+        };
       });
     }),
 });

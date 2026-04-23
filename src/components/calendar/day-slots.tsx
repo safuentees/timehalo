@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import type { Slot } from "@/lib/availability";
+import { isOpenSlot, isTakenSlot, type Slot } from "@/lib/availability";
 
 type Props = {
   date: Date;
@@ -21,6 +21,8 @@ const BAND_LABELS: Record<BandId, string> = {
 
 export function DaySlots({ date, slots, onPick }: Props) {
   const bands = useMemo(() => bucketByTimeOfDay(slots), [slots]);
+  const openCount = slots.filter(isOpenSlot).length;
+  const takenCount = slots.filter(isTakenSlot).length;
 
   return (
     <section
@@ -30,19 +32,26 @@ export function DaySlots({ date, slots, onPick }: Props) {
       <header className="bru-day-slots-head">
         <span className="bru-kicker">PICK A TIME</span>
         <span className="bru-day-slots-date">
-          {fmtSlotHeader(date, slots.length)}
+          {fmtSlotHeader(date, openCount, takenCount)}
         </span>
       </header>
       {slots.length === 0 ? (
         <p className="bru-day-slots-empty">closed ·</p>
       ) : (
-        <div className="bru-day-slots-bands">
-          {bands.map((band) =>
-            band.slots.length > 0 ? (
-              <TimeBand key={band.id} band={band} onPick={onPick} />
-            ) : null,
-          )}
-        </div>
+        <>
+          {openCount === 0 ? (
+            <p className="bru-day-slots-note">
+              No open times left on this day. These slots are already taken.
+            </p>
+          ) : null}
+          <div className="bru-day-slots-bands">
+            {bands.map((band) =>
+              band.slots.length > 0 ? (
+                <TimeBand key={band.id} band={band} onPick={onPick} />
+              ) : null,
+            )}
+          </div>
+        </>
       )}
     </section>
   );
@@ -58,7 +67,7 @@ function TimeBand({
   const [emblaRef] = useEmblaCarousel({
     align: "start",
     dragFree: false,
-    containScroll: false,
+    containScroll: "keepSnaps",
     skipSnaps: true,
   });
 
@@ -68,7 +77,9 @@ function TimeBand({
       <div className="bru-time-band-chips" ref={emblaRef}>
         <div className="bru-time-band-chips-track">
           {band.slots.map((s) => (
-            <SlotChip key={s.start} slot={s} onPick={onPick} />
+            <div key={s.start} className="bru-time-band-chip-slide">
+              <SlotChip slot={s} onPick={onPick} />
+            </div>
           ))}
         </div>
       </div>
@@ -84,17 +95,28 @@ function SlotChip({
   onPick: (slot: Slot) => void;
 }) {
   const start = new Date(slot.start);
+  const timeLabel = start.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  if (isTakenSlot(slot)) {
+    return (
+      <div className="bru-slot-chip bru-slot-chip--taken" aria-label={`${timeLabel}, taken`}>
+        <span>{timeLabel}</span>
+        <span className="bru-slot-chip-badge">TAKEN</span>
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"
       className="bru-slot-chip"
       onClick={() => onPick(slot)}
-      aria-label={`Book ${start.toLocaleTimeString()}`}
+      aria-label={`Book ${timeLabel}`}
     >
-      {start.toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-      })}
+      {timeLabel}
     </button>
   );
 }
@@ -111,7 +133,11 @@ function bucketByTimeOfDay(slots: Slot[]): Band[] {
   return bands;
 }
 
-function fmtSlotHeader(date: Date, count: number): string {
+function fmtSlotHeader(
+  date: Date,
+  openCount: number,
+  takenCount: number,
+): string {
   const prefix = date
     .toLocaleDateString(undefined, {
       weekday: "short",
@@ -119,7 +145,17 @@ function fmtSlotHeader(date: Date, count: number): string {
       day: "numeric",
     })
     .toUpperCase();
-  if (count === 0) return `${prefix} · CLOSED`;
-  const suffix = `${count.toString().padStart(2, "0")} ${count === 1 ? "SLOT" : "SLOTS"}`;
-  return `${prefix} · ${suffix}`;
+  if (openCount === 0 && takenCount === 0) return `${prefix} · CLOSED`;
+
+  const parts: string[] = [];
+
+  if (openCount > 0) {
+    parts.push(`${openCount.toString().padStart(2, "0")} OPEN`);
+  }
+
+  if (takenCount > 0) {
+    parts.push(`${takenCount.toString().padStart(2, "0")} TAKEN`);
+  }
+
+  return `${prefix} · ${parts.join(" · ")}`;
 }
