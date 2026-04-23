@@ -873,15 +873,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
-.bru-v1-tag {
-  margin: 0 0 4px;
-  font-family: var(--bru-mono);
-  font-size: 11px;
-  letter-spacing: 1.8px;
-  font-weight: 700;
-  text-transform: uppercase;
-  opacity: 0.7;
-}
 .bru-v1-bio {
   margin: 0;
   font-size: 15px;
@@ -960,16 +951,43 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   margin-left: 1px;
 }
 
-.bru-v1-foot {
-  display: flex;
-  justify-content: center;
-  padding: 18px 22px 24px;
-  font-family: var(--bru-mono);
-  font-size: 9.5px;
-  letter-spacing: 2.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  opacity: 0.45;
+/* Floating CTA — fixed island docked to the viewport bottom. Always
+   visible so the visitor can reach "PICK A DATE" from any scroll
+   position. Paper gradient mask above blends content into the bar.
+   Safe-area inset honors iOS home indicator (requires viewportFit:
+   "cover" in the root viewport meta). */
+.bru-v1-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding: 28px 16px max(16px, env(safe-area-inset-bottom));
+  background: linear-gradient(
+    to top,
+    var(--bru-paper) 0%,
+    var(--bru-paper) 55%,
+    color-mix(in srgb, var(--bru-paper) 70%, transparent) 85%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+.bru-v1-bar-inner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  box-shadow: 4px 4px 0 var(--bru-ink);
+}
+/* Spacer keeps the last in-flow content above the floating bar. Tuned
+   to match the bar's padding + the TriggerCard's intrinsic height. */
+.bru-v1-spacer {
+  height: 140px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bru-v1-bar {
+    transition: padding-bottom 200ms ease;
+  }
 }
 
 /* CTA section — NextAvailable info pill + PICK A DATE drawer trigger.
@@ -1931,15 +1949,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-v1-hero {
     padding: 20px 18px 18px;
   }
-  .bru-v1-foot {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
   .bru-v1-meta-cell {
     padding: 14px 4px;
   }
   .bru-v1-meta-value {
     font-size: 14px;
+  }
+  .bru-v1-bar {
+    padding: 24px 14px max(14px, env(safe-area-inset-bottom));
   }
   .bru-next-available {
     padding: 14px 16px;
