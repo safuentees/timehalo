@@ -739,32 +739,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 18px 44px;
 }
 
-/* Hero: avatar + name + bio + badges */
-.bru-profile-hero {
-  position: relative;
-  padding: 56px 44px 44px;
-  border-bottom: 1px solid var(--bru-line-firm);
-  overflow: hidden;
-}
-.bru-profile-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(currentColor 1px, transparent 1.2px);
-  background-size: 12px 12px;
-  opacity: 0.1;
-  pointer-events: none;
-}
-.bru-profile-hero-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 32px;
-  max-width: 1100px;
-}
-
-/* Override shadcn Avatar roundness + after-ring for brutalist look. */
+/* Avatar style retained — re-used by the booking-confirm host card. */
 .bru-profile-avatar {
   width: 96px !important;
   height: 96px !important;
@@ -781,10 +756,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   border-radius: 0 !important;
 }
 
-.bru-profile-meta {
-  flex: 1;
-  min-width: 0;
-}
+/* Kicker label retained — re-used by the booking-confirm sections. */
 .bru-profile-kicker {
   font-family: var(--bru-mono);
   font-size: 10.5px;
@@ -792,48 +764,202 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   font-weight: 800;
   opacity: 0.55;
 }
-.bru-profile-name {
-  margin: 10px 0 0;
-  font-size: clamp(40px, 10cqi, 88px);
-  font-weight: 900;
-  line-height: 0.92;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
+
+/* ——— v4 minimal: quiet paper profile ——— */
+.bru-v4 {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--bru-line-firm);
 }
-.bru-profile-bio {
-  margin: 18px 0 0;
-  font-size: 16px;
-  line-height: 1.5;
-  max-width: 560px;
-  opacity: 0.78;
+
+.bru-v4-hero {
+  padding: 36px 22px 18px;
 }
-.bru-profile-badges {
+.bru-v4-kicker {
   display: flex;
-  gap: 8px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 22px;
 }
-.bru-profile-badge {
+.bru-v4-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bru-v4-avatar {
+  width: 32px !important;
+  height: 32px !important;
   border-radius: 0 !important;
-  border: 1.5px solid var(--bru-ink) !important;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+  flex-shrink: 0;
+}
+.bru-v4-avatar > [data-slot="avatar-image"],
+.bru-v4-avatar > [data-slot="avatar-fallback"] {
+  border-radius: 0 !important;
+}
+.bru-v4-avatar-fallback {
   background: var(--bru-paper) !important;
   color: var(--bru-ink) !important;
   font-family: var(--bru-mono) !important;
   font-size: 10px !important;
-  letter-spacing: 2px !important;
   font-weight: 800 !important;
+  letter-spacing: 1px !important;
+}
+.bru-v4-handle {
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
-  padding: 5px 10px !important;
+  opacity: 0.78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bru-v4-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1.5px solid var(--bru-ink);
+  font-family: var(--bru-mono);
+  font-size: 9.5px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.bru-v4-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.bru-v4-status.is-open .bru-v4-status-dot {
+  background: var(--bru-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bru-ink) 22%, transparent);
+  animation: bru-v4-pulse 2.2s ease-in-out infinite;
+}
+.bru-v4-status.is-closed .bru-v4-status-dot {
+  background: transparent;
+  border: 1.5px solid var(--bru-ink);
+}
+@keyframes bru-v4-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--bru-ink) 28%, transparent); }
+  50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bru-ink) 8%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bru-v4-status.is-open .bru-v4-status-dot { animation: none; }
 }
 
-/* CTA section — NextAvailable info pill + PICK A DATE drawer trigger. */
+.bru-v4-name {
+  margin: 0 0 10px;
+  font-weight: 900;
+  font-size: clamp(42px, 12cqi, 72px);
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.bru-v4-tag {
+  margin: 0;
+  font-family: var(--bru-mono);
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.bru-v4-about {
+  padding: 4px 22px 22px;
+  border-top: 1px solid var(--bru-line-soft);
+  padding-top: 20px;
+}
+.bru-v4-about p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  opacity: 0.86;
+  max-width: 38ch;
+  text-wrap: pretty;
+}
+
+/* 4-cell horizontal metric strip — equal columns via minmax(0,1fr).
+   Vertical hairlines + centered tabular values keep the row symmetric
+   regardless of value width (digit pairs vs short TZ abbrev). */
+.bru-v4-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 22px;
+  border-top: 1px solid var(--bru-line-soft);
+  border-bottom: 1px solid var(--bru-line-soft);
+}
+.bru-v4-meta-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 6px;
+  min-width: 0;
+  border-right: 1px solid var(--bru-line-soft);
+}
+.bru-v4-meta-cell:last-child {
+  border-right: 0;
+}
+.bru-v4-meta-label {
+  margin: 0;
+  font-family: var(--bru-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.bru-v4-meta-value {
+  margin: 0;
+  font-family: var(--bru-mono);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.bru-v4-meta-value > span {
+  font-size: 0.65em;
+  opacity: 0.55;
+  margin-left: 1px;
+}
+
+.bru-v4-foot {
+  display: flex;
+  justify-content: center;
+  padding: 18px 22px 24px;
+  font-family: var(--bru-mono);
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+/* CTA section — NextAvailable info pill + PICK A DATE drawer trigger.
+   Centered under the v4-minimal hero so the column reads as one unit. */
 .bru-profile-cta {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 40px 44px 40px;
-  max-width: 640px;
+  padding: 28px 22px 40px;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 /* Primary "BOOK NOW" CTA below the trigger card. Disabled state is
@@ -1735,7 +1861,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 /* Tablet+ — bound drawer width so it's not a stretched wall on iPads. */
 @container bru-root (min-width: 720px) {
   .bru-profile-cta {
-    padding: 48px 44px 56px;
+    padding: 36px 22px 56px;
   }
   .bru-confirm-main {
     padding: 36px 44px 64px;
@@ -1769,12 +1895,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-profile-shell .bru-topbar {
     padding: 14px 20px;
   }
-  .bru-profile-hero {
-    padding: 40px 24px 32px;
-  }
-  .bru-profile-hero-inner {
-    gap: 22px;
-  }
   .bru-profile-avatar {
     width: 72px !important;
     height: 72px !important;
@@ -1787,11 +1907,22 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   }
 }
 @container bru-root (max-width: 480px) {
-  .bru-profile-hero-inner {
-    flex-direction: column;
+  .bru-v4-hero {
+    padding: 28px 18px 14px;
   }
-  .bru-profile-name {
-    font-size: clamp(32px, 14cqi, 56px);
+  .bru-v4-about,
+  .bru-v4-foot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .bru-v4-meta {
+    margin: 0 18px;
+  }
+  .bru-v4-meta-cell {
+    padding: 14px 4px;
+  }
+  .bru-v4-meta-value {
+    font-size: 14px;
   }
   .bru-next-available {
     padding: 14px 16px;
