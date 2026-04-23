@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { CalendarIcon, Clock3Icon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -29,6 +28,7 @@ export default function HostProfile({ handle }: Props) {
   const takenCount = slots.length - availableSlots.length;
   const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
+  const openToday = availableSlots.some((s) => isToday(new Date(s.start)));
   useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -67,41 +67,63 @@ export default function HostProfile({ handle }: Props) {
         </div>
       </div>
 
-      <section className="bru-profile-hero bru-reveal">
-        <div className="bru-profile-hero-inner">
-          <Avatar size="lg" className="bru-profile-avatar">
-            <AvatarImage
-              src={user.image ?? undefined}
-              alt={displayName}
-              className="rounded-none"
-            />
-            <AvatarFallback className="rounded-none bg-(--bru-paper) text-(color:--bru-ink) font-[family-name:var(--bru-mono)] text-[18px] font-extrabold tracking-[2px]">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="bru-profile-meta">
-            <div className="bru-profile-kicker">OFFICE HOURS</div>
-            <h1 className="bru-profile-name">{displayName}</h1>
-            <p className="bru-profile-bio">
-              Book a short conversation — writing, software, or whatever&apos;s
-              been rattling around your head lately.
-            </p>
-            <div className="bru-profile-badges">
-              <Badge variant="outline" className="bru-profile-badge">
-                <Clock3Icon data-icon="inline-start" />
-                15 MIN
-              </Badge>
-              <Badge variant="outline" className="bru-profile-badge">
-                {availableSlots.length.toString().padStart(2, "0")} OPEN ·{" "}
-                {takenCount.toString().padStart(2, "0")} TAKEN
-              </Badge>
-              <Badge variant="outline" className="bru-profile-badge">
-                {visitorTz} · [TZ TBD]
-              </Badge>
+      <article className="bru-v4">
+        <header className="bru-v4-hero bru-reveal">
+          <div className="bru-v4-kicker">
+            <div className="bru-v4-id">
+              <Avatar size="sm" className="bru-v4-avatar">
+                <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                <AvatarFallback className="bru-v4-avatar-fallback">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="bru-v4-handle">@{user.handle}</span>
             </div>
+            <span
+              className={`bru-v4-status ${openToday ? "is-open" : "is-closed"}`}
+            >
+              <span className="bru-v4-status-dot" aria-hidden />
+              {openToday ? "OPEN NOW" : "CLOSED TODAY"}
+            </span>
           </div>
+          <h1 className="bru-v4-name">{displayName}</h1>
+          <p className="bru-v4-tag">OFFICE HOURS · ASK ANYTHING</p>
+        </header>
+
+        <section className="bru-v4-about">
+          <p>
+            Book a short conversation — writing, software, or whatever&apos;s
+            been rattling around your head lately.
+          </p>
+        </section>
+
+        <dl className="bru-v4-meta">
+          <div className="bru-v4-meta-cell">
+            <dt className="bru-v4-meta-label">SESSION</dt>
+            <dd className="bru-v4-meta-value">15<span>M</span></dd>
+          </div>
+          <div className="bru-v4-meta-cell">
+            <dt className="bru-v4-meta-label">OPEN</dt>
+            <dd className="bru-v4-meta-value">
+              {availableSlots.length.toString().padStart(2, "0")}
+            </dd>
+          </div>
+          <div className="bru-v4-meta-cell">
+            <dt className="bru-v4-meta-label">TAKEN</dt>
+            <dd className="bru-v4-meta-value">
+              {takenCount.toString().padStart(2, "0")}
+            </dd>
+          </div>
+          <div className="bru-v4-meta-cell">
+            <dt className="bru-v4-meta-label">TZ</dt>
+            <dd className="bru-v4-meta-value">{visitorTz}</dd>
+          </div>
+        </dl>
+
+        <div className="bru-v4-foot">
+          <span>OH · EST 2026 · @{user.handle}</span>
         </div>
-      </section>
+      </article>
 
       <section className="bru-profile-cta">
         {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
@@ -215,14 +237,13 @@ function fmtRelative(d: Date): string {
   return `IN ${diffDays} DAYS`;
 }
 
-function toInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((s) => s[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+function isToday(d: Date): boolean {
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
 }
 
 function useVisitorTz(): string {
@@ -231,6 +252,16 @@ function useVisitorTz(): string {
     getVisitorTzLabel,
     () => "—",
   );
+}
+
+function toInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function useReadyClass() {
@@ -249,6 +280,11 @@ function isSameCalendarDay(left: Date, right: Date): boolean {
 
 function getVisitorTzLabel(): string {
   try {
+    const parts = new Intl.DateTimeFormat(undefined, {
+      timeZoneName: "short",
+    }).formatToParts(new Date());
+    const abbr = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    if (abbr && /^[A-Z]{2,5}$/i.test(abbr)) return abbr.toUpperCase();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     const tail = zone.split("/").pop() ?? zone;
     return tail.replace(/_/g, " ").toUpperCase() || "—";
