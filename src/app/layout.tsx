@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
@@ -27,6 +27,10 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Writing",
   description: "A learning journal — notes on building software, frontend craft, and the occasional opinion nobody asked for.",
+};
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
