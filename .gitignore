@@ -51,6 +51,9 @@ next-env.d.ts
 .vscode/
 .claude/*
 !.claude/settings.json
+!.claude/rules/
+!.claude/rules/**
+!.claude/skills
 .claude/settings.local.json
 .idea/
 .nvim.lua
