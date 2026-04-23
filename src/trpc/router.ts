@@ -230,6 +230,10 @@ const users = router({
 });
 
 const SLOT_MINUTES = 15;
+const bookingConfirmationInputSchema = z.object({
+  handle: z.string().min(1),
+  bookingUid: z.string().min(1),
+});
 
 const bookings = router({
   create: publicProcedure
@@ -293,6 +297,7 @@ const bookings = router({
           },
           select: {
             id: true,
+            publicUid: true,
             slotStart: true,
             slotEnd: true,
           },
@@ -315,6 +320,40 @@ const bookings = router({
           cause,
         });
       }
+    }),
+
+  getPublicConfirmation: publicProcedure
+    .input(bookingConfirmationInputSchema)
+    .query(async ({ input }) => {
+      const booking = await prisma.booking.findFirst({
+        where: {
+          publicUid: input.bookingUid,
+          host: {
+            handle: input.handle,
+          },
+        },
+        select: {
+          publicUid: true,
+          slotStart: true,
+          slotEnd: true,
+          host: {
+            select: {
+              name: true,
+              handle: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      if (!booking) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+
+      return booking;
     }),
 });
 

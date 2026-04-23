@@ -9,7 +9,6 @@ type Props = {
   slot: Slot | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onBooked: () => void;
 };
 
 export function BookingDrawer({
@@ -17,7 +16,6 @@ export function BookingDrawer({
   slot,
   open,
   onOpenChange,
-  onBooked,
 }: Props) {
   const startDate = slot ? new Date(slot.start) : null;
   const isOpen = open && !!slot;
@@ -48,7 +46,6 @@ export function BookingDrawer({
               <BookingForm
                 handle={handle}
                 slotStart={slot.start}
-                onBooked={onBooked}
               />
             ) : null}
           </div>

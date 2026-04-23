@@ -9,7 +9,6 @@ export function useBookingCreate(options?: Options) {
   return trpc.bookings.create.useMutation({
     ...options,
     onSuccess: async (...args) => {
-      toast.success("Booked. Check your email for the confirmation.");
       await options?.onSuccess?.(...args);
     },
     onError: (...args) => {
