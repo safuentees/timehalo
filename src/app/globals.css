@@ -1025,6 +1025,10 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   flex: 1 1 0;
   min-width: 0;
   text-align: center;
+  /* letter-spacing adds trailing space after the last glyph, pushing
+     centered text visibly leftward. Compensate with a matching left
+     indent so the optical center matches the geometric center. */
+  text-indent: 2px;
   font-family: var(--bru-mono);
   font-size: 10px;
   letter-spacing: 2px;
@@ -1388,15 +1392,16 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-time-band-kicker {
   display: inline-block;
 }
-/* Time band chips — Embla horizontal carousel. Viewport bleeds to the
-   drawer edges via negative margin and clips overflow. The 20px snap
-   inset is handled by Embla's `align: () => 20` (custom function in
-   day-slots.tsx) — Embla ignores CSS padding for snap alignment, so
-   horizontal padding here would double up with the pixel offset. The
-   4px vertical padding keeps chip focus-shadows from clipping. */
+/* Time band chips — Embla horizontal carousel. Mirrors the day strip
+   pattern exactly: negative margin bleeds the viewport to the drawer
+   edges (overflow then clips at the drawer wall, giving chips the
+   "spill toward the edge" affordance). 20px CSS padding gives the
+   first chip its left inset. Embla's `containScroll: false` (set in
+   day-slots.tsx) is required so Embla doesn't override the `align`
+   for the first slide to "cover" the leading 20px space. */
 .bru-time-band-chips {
   overflow: hidden;
-  padding: 4px 0;
+  padding: 4px 20px;
   margin: 0 -20px;
 }
 .bru-time-band-chips-track {
