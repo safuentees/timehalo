@@ -775,7 +775,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  border-bottom: 1px solid var(--bru-line-firm);
 }
 
 .bru-v1-hero {
