@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Mutation Hook"
+  short_description: "Create repo-style tRPC mutation hooks"
+  default_prompt: "Use this skill to add or refactor a custom mutation hook in src/lib/mutations."

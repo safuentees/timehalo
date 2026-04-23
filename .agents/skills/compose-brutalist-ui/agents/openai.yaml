@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compose Brutalist UI"
+  short_description: "Compose brutalist shadcn UI surfaces"
+  default_prompt: "Use this skill to build or refactor a brutalist UI surface in trpc-lab."
