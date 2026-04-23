@@ -905,8 +905,8 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 28px 16px max(16px, env(safe-area-inset-bottom));
   background: linear-gradient(
     to top,
-    var(--bru-paper) 0%,
-    var(--bru-paper) 55%,
+    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 0%,
+    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 55%,
     color-mix(in srgb, var(--bru-paper) 70%, transparent) 85%,
     transparent 100%
   );
