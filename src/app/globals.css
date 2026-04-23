@@ -990,16 +990,24 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   left: 0;
   right: 0;
   bottom: 0;
+  margin-top: 6rem;
   z-index: 51;
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: 97%;
+  max-height: 96%;
   background: var(--bru-paper);
   color: var(--bru-ink);
   border-top: 2.5px solid var(--bru-ink);
   border-radius: 0;
   outline: none;
+}
+/* Nested drawer sits meaningfully shorter than parent so the parent's
+   header strip ("SCHEDULE YOUR MEETING") stays visible behind the
+   stacked sheet — canonical vaul nested peek pattern. Vaul also scales
+   the parent slightly on open, which compounds with this delta. */
+.bru-drawer-content-nested {
+  max-height: 94%;
 }
 .bru-drawer-handle {
   width: 72px;
