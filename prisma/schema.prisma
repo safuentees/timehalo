@@ -23,6 +23,7 @@ model User {
   Authenticator        Authenticator[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  bookings             Booking[]
 }
 
 model Account {
@@ -84,6 +85,26 @@ model Post {
   tag      String
   user     User?   @relation(fields: [userId], references: [id])
   userId   String?
+}
+
+// A visitor's confirmed 15-minute slot with a host. Visitors are not
+// authenticated — `visitorName` / `visitorEmail` are plain text from the
+// booking form. `@@unique([hostId, slotStart])` is the double-book
+// guard: two concurrent bookings for the same host at the same minute
+// trip the unique constraint and surface as a tRPC CONFLICT error.
+model Booking {
+  id           Int      @id @default(autoincrement())
+  host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId       String
+  visitorName  String
+  visitorEmail String
+  question     String?
+  slotStart    DateTime
+  slotEnd      DateTime
+  createdAt    DateTime @default(now())
+
+  @@unique([hostId, slotStart])
+  @@index([hostId, slotStart])
 }
 
 // A single time window on a specific day of the week. A user can have many
