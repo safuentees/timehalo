@@ -45,6 +45,14 @@ export function DayStrip({
   const densityMap = useMemo(() => computeDensityMap(slots), [slots]);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
+    // `align: "start"` here (NOT `() => 20` like the chips). The day
+    // strip's viewport has CSS `padding: 4px 20px 14px`, and the slide
+    // widths are calc'd as `(100% - 6*gap) / 7` where 100% = the
+    // viewport's content area (inside padding). Embla measures slide
+    // alignment relative to that content area, so "start" already lands
+    // Monday 20px from the drawer edge AND keeps Sunday 20px from the
+    // right edge symmetrically. Adding a `() => 20` offset would double
+    // up against the CSS padding and push Sunday past the right edge.
     align: "start",
     slidesToScroll: 7,
     dragFree: false,
