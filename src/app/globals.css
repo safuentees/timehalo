@@ -963,10 +963,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   bottom: 0;
   z-index: 30;
   padding: 28px 16px max(16px, env(safe-area-inset-bottom));
+  /* Subtly ink-tinted shelf so the paper TriggerCard reads as a
+     distinct island sitting ON the bar, not merging into the page.
+     Top of the gradient stays transparent so in-flow content fades
+     gracefully behind the island. */
   background: linear-gradient(
     to top,
-    var(--bru-paper) 0%,
-    var(--bru-paper) 55%,
+    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 0%,
+    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 55%,
     color-mix(in srgb, var(--bru-paper) 70%, transparent) 85%,
     transparent 100%
   );
