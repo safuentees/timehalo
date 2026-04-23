@@ -836,6 +836,90 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   max-width: 640px;
 }
 
+/* Primary "BOOK NOW" CTA below the trigger card. Disabled state is
+   tied to `!selectedSlot` in host-profile.tsx — muted + not clickable
+   until both a day and a time are picked. */
+.bru-book-now {
+  width: 100%;
+  justify-content: space-between;
+  padding: 18px 22px;
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  gap: 12px;
+}
+.bru-book-now svg {
+  width: 16px;
+  height: 16px;
+}
+.bru-book-now:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Booking form inside the BookingDrawer. */
+.bru-booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px 4px 16px;
+}
+.bru-field-label {
+  display: block;
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--bru-ink);
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.bru-field-label-opt {
+  opacity: 0.5;
+  margin-left: 6px;
+}
+.bru-field-error {
+  font-family: var(--bru-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-top: 6px;
+  color: var(--bru-ink);
+}
+.bru-textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+  color: var(--bru-ink);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  resize: vertical;
+  border-radius: 0;
+  transition: box-shadow var(--bru-t-fast);
+}
+.bru-textarea:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--bru-ink);
+}
+.bru-textarea[aria-invalid="true"] {
+  border-color: var(--bru-ink);
+  box-shadow: 3px 3px 0 var(--bru-ink);
+}
+.bru-book-submit {
+  width: 100%;
+  justify-content: center;
+  padding: 16px 22px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
 /* Next-available pill (info-only). */
 .bru-next-available {
   display: grid;
@@ -1388,6 +1472,19 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+/* Base kicker — small mono uppercase label sized to feel proportional
+   to the bordered chip buttons it sits above. The variant kickers
+   (.bru-profile-kicker, .bru-next-available-kicker) override sizing
+   for their specific contexts. */
+.bru-kicker {
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.6;
+  color: var(--bru-ink);
 }
 .bru-time-band-kicker {
   display: inline-block;
