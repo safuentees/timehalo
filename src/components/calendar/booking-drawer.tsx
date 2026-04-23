@@ -15,12 +15,10 @@ type Props = {
 };
 
 /**
- * Second-stage drawer — opened from the host profile's "BOOK NOW"
- * button AFTER a slot has been selected in the first drawer. Shows
- * the chosen date/time in the header plus the name/email/question
- * form. On success the parent clears its selection state and
- * `schedule.getUpcomingSlots` auto-invalidates (global hook) so the
- * just-booked chip disappears.
+ * Nested second-stage drawer — opens immediately after a slot is
+ * picked in the availability sheet. This keeps the date/time chooser
+ * and the booking form in a single stacked flow while preserving the
+ * selected slot if the visitor closes the form and goes back.
  */
 export function BookingDrawer({
   handle,
@@ -30,12 +28,13 @@ export function BookingDrawer({
   onBooked,
 }: Props) {
   const startDate = slot ? new Date(slot.start) : null;
+  const isOpen = open && !!slot;
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+    <Drawer.NestedRoot open={isOpen} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content">
+        <Drawer.Content className="bru-drawer-content bru-drawer-content-nested">
           <Drawer.Handle className="bru-drawer-handle" />
           <div className="bru-drawer-head">
             <Drawer.Title className="bru-drawer-title">
@@ -63,7 +62,7 @@ export function BookingDrawer({
           </div>
         </Drawer.Content>
       </Drawer.Portal>
-    </Drawer.Root>
+    </Drawer.NestedRoot>
   );
 }
 
