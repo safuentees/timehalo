@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarIcon, Clock3Icon } from "lucide-react";
+import { ArrowRightIcon, CalendarIcon, Clock3Icon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -12,7 +13,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { AvailabilityDrawer, TriggerCard } from "@/components/calendar";
+import {
+  AvailabilityDrawer,
+  BookingDrawer,
+  TriggerCard,
+} from "@/components/calendar";
 import type { Slot } from "@/lib/availability";
 
 type Props = { handle: string };
@@ -27,8 +32,11 @@ export default function HostProfile({ handle }: Props) {
   useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+
+  const canBook = !!selectedSlot;
 
   if (!user) return null;
 
@@ -98,6 +106,22 @@ export default function HostProfile({ handle }: Props) {
               selectedSlot={selectedSlot}
               onClick={() => setDrawerOpen(true)}
             />
+            <Button
+              type="button"
+              variant="brutalist"
+              size="brutalist"
+              disabled={!canBook}
+              onClick={() => setBookingOpen(true)}
+              className="bru-book-now"
+              aria-label={
+                canBook
+                  ? "Open the booking form"
+                  : "Pick a day and time before booking"
+              }
+            >
+              BOOK NOW
+              <ArrowRightIcon />
+            </Button>
             <AvailabilityDrawer
               slots={slots}
               open={drawerOpen}
@@ -107,6 +131,17 @@ export default function HostProfile({ handle }: Props) {
               onPickSlot={(s) => {
                 setSelectedSlot(s);
                 setDrawerOpen(false);
+              }}
+            />
+            <BookingDrawer
+              handle={handle}
+              slot={selectedSlot}
+              open={bookingOpen}
+              onOpenChange={setBookingOpen}
+              onBooked={() => {
+                setBookingOpen(false);
+                setSelectedSlot(undefined);
+                setSelectedDate(undefined);
               }}
             />
           </>
