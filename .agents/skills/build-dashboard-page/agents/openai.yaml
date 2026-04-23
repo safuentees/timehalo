@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Dashboard Page"
+  short_description: "Build dashboard pages in trpc-lab"
+  default_prompt: "Use this skill to add or refactor an authenticated dashboard page in trpc-lab."
