@@ -25,10 +25,10 @@ export default function HostProfile({ handle }: Props) {
     handle,
   });
   const availableSlots = slots.filter(isOpenSlot);
-  const takenCount = slots.length - availableSlots.length;
   const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
   const openToday = availableSlots.some((s) => isToday(new Date(s.start)));
+  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots);
   useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -67,61 +67,75 @@ export default function HostProfile({ handle }: Props) {
         </div>
       </div>
 
-      <article className="bru-v4">
-        <header className="bru-v4-hero bru-reveal">
-          <div className="bru-v4-kicker">
-            <div className="bru-v4-id">
-              <Avatar size="sm" className="bru-v4-avatar">
+      <article className="bru-v1">
+        <header className="bru-v1-hero bru-reveal">
+          <div className="bru-v1-kicker">
+            <div className="bru-v1-id">
+              <Avatar size="sm" className="bru-v1-avatar">
                 <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                <AvatarFallback className="bru-v4-avatar-fallback">
+                <AvatarFallback className="bru-v1-avatar-fallback">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="bru-v4-handle">@{user.handle}</span>
+              <span className="bru-v1-handle">@{user.handle}</span>
             </div>
             <span
-              className={`bru-v4-status ${openToday ? "is-open" : "is-closed"}`}
+              className={`bru-v1-status ${openToday ? "is-open" : "is-closed"}`}
             >
-              <span className="bru-v4-status-dot" aria-hidden />
+              <span className="bru-v1-status-dot" aria-hidden />
               {openToday ? "OPEN NOW" : "CLOSED TODAY"}
             </span>
           </div>
-          <h1 className="bru-v4-name">{displayName}</h1>
-          <p className="bru-v4-tag">OFFICE HOURS · ASK ANYTHING</p>
-        </header>
 
-        <section className="bru-v4-about">
-          <p>
+          <h1 className="bru-v1-name">{displayName}</h1>
+          <p className="bru-v1-tag">OFFICE HOURS · 15-MIN DROP-INS</p>
+          <p className="bru-v1-bio">
             Book a short conversation — writing, software, or whatever&apos;s
             been rattling around your head lately.
           </p>
-        </section>
 
-        <dl className="bru-v4-meta">
-          <div className="bru-v4-meta-cell">
-            <dt className="bru-v4-meta-label">SESSION</dt>
-            <dd className="bru-v4-meta-value">15<span>M</span></dd>
+          <p className="bru-v1-subtle">
+            <span>
+              {daysWithOpenSlotsThisWeek}{" "}
+              {daysWithOpenSlotsThisWeek === 1 ? "day" : "days"} with open slots
+              this week
+            </span>
+            {nextSlot ? (
+              <>
+                <span className="bru-v1-subtle-sep" aria-hidden>
+                  ·
+                </span>
+                <span>
+                  next free{" "}
+                  <strong>
+                    {fmtDayLabelShort(new Date(nextSlot.start))}{" "}
+                    {fmtTimeCompact(new Date(nextSlot.start))}
+                  </strong>
+                </span>
+              </>
+            ) : null}
+          </p>
+        </header>
+
+        <dl className="bru-v1-meta">
+          <div className="bru-v1-meta-cell">
+            <dt className="bru-v1-meta-label">SESSION</dt>
+            <dd className="bru-v1-meta-value">15<span>M</span></dd>
           </div>
-          <div className="bru-v4-meta-cell">
-            <dt className="bru-v4-meta-label">OPEN</dt>
-            <dd className="bru-v4-meta-value">
+          <div className="bru-v1-meta-cell">
+            <dt className="bru-v1-meta-label">OPEN</dt>
+            <dd className="bru-v1-meta-value">
               {availableSlots.length.toString().padStart(2, "0")}
             </dd>
           </div>
-          <div className="bru-v4-meta-cell">
-            <dt className="bru-v4-meta-label">TAKEN</dt>
-            <dd className="bru-v4-meta-value">
-              {takenCount.toString().padStart(2, "0")}
-            </dd>
-          </div>
-          <div className="bru-v4-meta-cell">
-            <dt className="bru-v4-meta-label">TZ</dt>
-            <dd className="bru-v4-meta-value">{visitorTz}</dd>
+          <div className="bru-v1-meta-cell">
+            <dt className="bru-v1-meta-label">TZ</dt>
+            <dd className="bru-v1-meta-value">{visitorTz}</dd>
           </div>
         </dl>
 
-        <div className="bru-v4-foot">
-          <span>OH · EST 2026 · @{user.handle}</span>
+        <div className="bru-v1-foot">
+          <span>OFFICEHOURS · @{user.handle}</span>
         </div>
       </article>
 
@@ -221,6 +235,29 @@ function fmtTime(d: Date): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function fmtTimeCompact(d: Date): string {
+  const hour12 = ((d.getHours() + 11) % 12) + 1;
+  const suffix = d.getHours() < 12 ? "AM" : "PM";
+  const minute = d.getMinutes();
+  return minute === 0
+    ? `${hour12}${suffix}`
+    : `${hour12}:${String(minute).padStart(2, "0")}${suffix}`;
+}
+
+function countOpenDaysThisWeek(slots: Slot[]): number {
+  const now = new Date();
+  const horizon = new Date(now);
+  horizon.setDate(horizon.getDate() + 7);
+  const days = new Set<string>();
+  for (const s of slots) {
+    const d = new Date(s.start);
+    if (d >= now && d <= horizon) {
+      days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    }
+  }
+  return days.size;
 }
 
 function fmtRelative(d: Date): string {
