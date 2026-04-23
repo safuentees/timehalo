@@ -10,6 +10,8 @@ import {
   type Slot,
 } from "@/lib/availability";
 
+const DAYS_PER_WEEK = 7;
+
 type Props = {
   slots: Slot[];
   selectedDate: Date | undefined;
@@ -22,8 +24,9 @@ type Props = {
  * Embla snaps each cell into view. Closed days are strikethrough + disabled.
  *
  * The parent may push a new `selectedDate` (e.g., after picking in the full
- * month view). When that happens the strip programmatically scrolls to center
- * the matching cell so the selection stays visible.
+ * month view). When that happens the strip programmatically scrolls to the
+ * matching week snap so the selection stays visible without breaking the
+ * week-aligned layout.
  */
 export function DayStrip({
   slots,
@@ -54,7 +57,7 @@ export function DayStrip({
     // right edge symmetrically. Adding a `() => 20` offset would double
     // up against the CSS padding and push Sunday past the right edge.
     align: "start",
-    slidesToScroll: 7,
+    slidesToScroll: DAYS_PER_WEEK,
     dragFree: false,
     containScroll: "keepSnaps",
     skipSnaps: false,
@@ -63,8 +66,17 @@ export function DayStrip({
 
   useEffect(() => {
     if (!emblaApi || !selectedDate) return;
-    const idx = days.findIndex((d) => isSameDay(d, selectedDate));
-    if (idx >= 0) emblaApi.scrollTo(idx, false);
+    const slideIndex = days.findIndex((d) => isSameDay(d, selectedDate));
+    if (slideIndex < 0) return;
+
+    // Embla's `scrollTo` targets a scroll snap, not an individual slide.
+    // With `slidesToScroll: 7`, each snap is a week group, so map the
+    // selected day back to its containing week before scrolling.
+    const snapIndex = Math.floor(slideIndex / DAYS_PER_WEEK);
+
+    if (emblaApi.selectedScrollSnap() !== snapIndex) {
+      emblaApi.scrollTo(snapIndex, false);
+    }
   }, [emblaApi, days, selectedDate]);
 
   return (
@@ -72,21 +84,25 @@ export function DayStrip({
       <div className="bru-day-strip-track">
         {days.map((d) => {
           const density = densityMap.get(toKey(d));
-          const available = !!density;
+          const hasSlots = !!density;
+          const isFullyBooked = !!density?.isFullyBooked;
           const selected = selectedDate ? isSameDay(d, selectedDate) : false;
           return (
             <button
               key={d.toISOString()}
               type="button"
               className="bru-day-strip-slide"
+              data-state={isFullyBooked ? "full" : hasSlots ? "open" : "closed"}
               aria-pressed={selected}
-              aria-disabled={!available}
+              aria-disabled={!hasSlots}
               aria-label={
-                available
-                  ? `${d.toDateString()}, ${density.count} slots`
-                  : `${d.toDateString()}, no slots`
+                !density
+                  ? `${d.toDateString()}, no slots`
+                  : density.isFullyBooked
+                    ? `${d.toDateString()}, fully booked`
+                    : `${d.toDateString()}, ${density.count} open slots`
               }
-              onClick={() => available && onSelectDate(d)}
+              onClick={() => hasSlots && onSelectDate(d)}
             >
               <span className="bru-day-strip-weekday">
                 {d

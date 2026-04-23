@@ -1440,6 +1440,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-day-num,
 .bru-day-num--past,
+.bru-day-num--full,
 .bru-day-num--closed {
   font-size: 14px;
   font-weight: 700;
@@ -1452,6 +1453,9 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.35;
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
+}
+.bru-day-num--full {
+  opacity: 0.72;
 }
 /* Modifiers — available days invert on hover; today has a 2px inset border. */
 .bru-day-available {
@@ -1474,6 +1478,17 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-day-button[data-selected-single="true"] {
   background: var(--bru-ink) !important;
   color: var(--bru-paper) !important;
+}
+.bru-day-booked .bru-day-button {
+  border-style: dashed;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--bru-paper) 92%, var(--bru-ink) 8%);
+}
+.bru-day-booked .bru-day-button:hover,
+.bru-day-booked .bru-day-button:focus-visible {
+  background: color-mix(in srgb, var(--bru-paper) 82%, var(--bru-ink) 18%);
+  color: var(--bru-ink);
+  outline: none;
 }
 .bru-day-closed .bru-day-button {
   cursor: default;
@@ -1560,6 +1575,13 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   text-decoration-thickness: 1.5px;
   cursor: not-allowed;
 }
+.bru-day-strip-slide[data-state="full"] {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--bru-paper) 92%, var(--bru-ink) 8%);
+}
+.bru-day-strip-slide[data-state="full"] .bru-day-strip-weekday {
+  opacity: 0.72;
+}
 .bru-day-strip-slide:focus-visible {
   outline: none;
   box-shadow: 3px 3px 0 var(--bru-ink);
@@ -1600,6 +1622,13 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.55;
   text-transform: uppercase;
 }
+.bru-day-slots-note {
+  margin: -4px 0 2px;
+  font-family: var(--bru-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--bru-ink) 76%, transparent);
+}
 
 /* Time bands + chips (shared with day-slots + drawer) */
 .bru-time-band {
@@ -1623,31 +1652,46 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-time-band-kicker {
   display: inline-block;
 }
-/* Time band chips — Embla horizontal carousel. Mirrors the day strip
-   pattern exactly: negative margin bleeds the viewport to the drawer
-   edges (overflow then clips at the drawer wall, giving chips the
-   "spill toward the edge" affordance). 20px CSS padding gives the
-   first chip its left inset. Embla's `containScroll: false` (set in
-   day-slots.tsx) is required so Embla doesn't override the `align`
-   for the first slide to "cover" the leading 20px space. */
+/* Time band chips — Embla horizontal carousel. Embla's docs recommend
+   keeping containScroll enabled so the end of a non-looping carousel
+   clamps without leaving blank space. To preserve the 20px drawer inset
+   while doing that, spacing is expressed on the slide wrappers
+   themselves instead of via viewport padding + container gap. */
 .bru-time-band-chips {
+  --bru-chip-edge: 20px;
+  --bru-chip-gap: 8px;
+
   overflow: hidden;
-  padding: 4px 20px;
+  padding: 4px 0;
   margin: 0 -20px;
 }
 .bru-time-band-chips-track {
   display: flex;
-  gap: 8px;
 }
-.bru-time-band-chips-track .bru-slot-chip {
+.bru-time-band-chip-slide {
   flex: 0 0 auto;
+  min-width: 0;
+}
+.bru-time-band-chip-slide + .bru-time-band-chip-slide {
+  padding-left: var(--bru-chip-gap);
+}
+.bru-time-band-chip-slide:first-child {
+  padding-left: var(--bru-chip-edge);
+}
+.bru-time-band-chip-slide:last-child {
+  padding-right: var(--bru-chip-edge);
 }
 .bru-slot-chip {
   appearance: none;
+  min-height: 48px;
   padding: 10px 14px;
   border: 1.5px solid var(--bru-ink);
   background: var(--bru-paper);
   color: var(--bru-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-family: var(--bru-mono);
   font-size: 12px;
   font-weight: 800;
@@ -1666,6 +1710,27 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   outline: none;
   box-shadow: 3px 3px 0 var(--bru-ink);
   transform: translate(-1px, -1px);
+}
+.bru-slot-chip--taken {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--bru-paper) 90%, var(--bru-ink) 10%);
+  color: color-mix(in srgb, var(--bru-ink) 76%, transparent);
+  cursor: default;
+}
+.bru-slot-chip--taken:hover {
+  background: color-mix(in srgb, var(--bru-paper) 90%, var(--bru-ink) 10%);
+  color: color-mix(in srgb, var(--bru-ink) 76%, transparent);
+}
+.bru-slot-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 /* Tablet+ — bound drawer width so it's not a stretched wall on iPads. */
 @container bru-root (min-width: 720px) {

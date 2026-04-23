@@ -61,11 +61,16 @@ export function MonthStack({
               ),
             }}
             modifiers={{
-              available: (d) => !!densityMap.get(toKey(d)),
+              available: (d) => {
+                const density = densityMap.get(toKey(d));
+                return !!density && !density.isFullyBooked;
+              },
+              booked: (d) => densityMap.get(toKey(d))?.isFullyBooked ?? false,
               closed: (d) => !densityMap.get(toKey(d)) && d >= today,
             }}
             modifiersClassNames={{
               available: "bru-day-available",
+              booked: "bru-day-booked",
               closed: "bru-day-closed",
             }}
           />

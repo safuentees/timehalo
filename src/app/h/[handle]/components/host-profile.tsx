@@ -16,7 +16,7 @@ import {
   AvailabilityDrawer,
   TriggerCard,
 } from "@/components/calendar";
-import type { Slot } from "@/lib/availability";
+import { isOpenSlot, type Slot } from "@/lib/availability";
 
 type Props = { handle: string };
 
@@ -25,7 +25,9 @@ export default function HostProfile({ handle }: Props) {
   const { data: slots = [] } = trpc.schedule.getUpcomingSlots.useQuery({
     handle,
   });
-  const nextSlot = slots[0] as Slot | undefined;
+  const availableSlots = slots.filter(isOpenSlot);
+  const takenCount = slots.length - availableSlots.length;
+  const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
   useReadyClass();
 
@@ -90,7 +92,8 @@ export default function HostProfile({ handle }: Props) {
                 15 MIN
               </Badge>
               <Badge variant="outline" className="bru-profile-badge">
-                {slots.length.toString().padStart(2, "0")} SLOTS · 7 DAYS
+                {availableSlots.length.toString().padStart(2, "0")} OPEN ·{" "}
+                {takenCount.toString().padStart(2, "0")} TAKEN
               </Badge>
               <Badge variant="outline" className="bru-profile-badge">
                 {visitorTz} · [TZ TBD]
@@ -104,7 +107,9 @@ export default function HostProfile({ handle }: Props) {
         {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
 
         {slots.length === 0 ? (
-          <HostEmpty displayName={displayName} />
+          <HostEmpty displayName={displayName} kind="closed" />
+        ) : availableSlots.length === 0 ? (
+          <HostEmpty displayName={displayName} kind="booked" />
         ) : (
           <>
             <TriggerCard
@@ -136,7 +141,20 @@ export default function HostProfile({ handle }: Props) {
   );
 }
 
-function HostEmpty({ displayName }: { displayName: string }) {
+function HostEmpty({
+  displayName,
+  kind,
+}: {
+  displayName: string;
+  kind: "closed" | "booked";
+}) {
+  const title =
+    kind === "closed" ? "No slots this week" : "Fully booked this week";
+  const description =
+    kind === "closed"
+      ? `${displayName} hasn't opened any time yet. Check back later.`
+      : `${displayName} has availability, but every visible slot is already taken. Check back later for the next opening.`;
+
   return (
     <div className="bru-profile-empty">
       <Empty>
@@ -144,10 +162,8 @@ function HostEmpty({ displayName }: { displayName: string }) {
           <EmptyMedia variant="icon">
             <CalendarIcon />
           </EmptyMedia>
-          <EmptyTitle>No slots this week</EmptyTitle>
-          <EmptyDescription>
-            {displayName} hasn&apos;t opened any time yet. Check back later.
-          </EmptyDescription>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     </div>
