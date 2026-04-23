@@ -967,6 +967,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   flex: 1 1 0;
   min-width: 0;
   text-align: center;
+  text-indent: 2px;
   font-family: var(--bru-mono);
   font-size: 10px;
   letter-spacing: 2px;
@@ -1303,7 +1304,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-time-band-chips {
   overflow: hidden;
-  padding: 4px 0;
+  padding: 4px 20px;
   margin: 0 -20px;
 }
 .bru-time-band-chips-track {

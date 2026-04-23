@@ -56,9 +56,9 @@ function TimeBand({
   onPick: (slot: Slot) => void;
 }) {
   const [emblaRef] = useEmblaCarousel({
-    align: () => 20,
+    align: "start",
     dragFree: false,
-    containScroll: "trimSnaps",
+    containScroll: false,
     skipSnaps: true,
   });
 
