@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowRightIcon, CalendarIcon, Clock3Icon } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { CalendarIcon, Clock3Icon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -15,7 +14,6 @@ import {
 } from "@/components/ui/empty";
 import {
   AvailabilityDrawer,
-  BookingDrawer,
   TriggerCard,
 } from "@/components/calendar";
 import type { Slot } from "@/lib/availability";
@@ -32,16 +30,24 @@ export default function HostProfile({ handle }: Props) {
   useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [bookingOpen, setBookingOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
-
-  const canBook = !!selectedSlot;
 
   if (!user) return null;
 
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
+
+  function handleSelectDate(date: Date | undefined) {
+    setSelectedDate(date);
+
+    setSelectedSlot((currentSlot) => {
+      if (!currentSlot || !date) return undefined;
+      return isSameCalendarDay(new Date(currentSlot.start), date)
+        ? currentSlot
+        : undefined;
+    });
+  }
 
   return (
     <main className="bru-main" id="top">
@@ -106,40 +112,19 @@ export default function HostProfile({ handle }: Props) {
               selectedSlot={selectedSlot}
               onClick={() => setDrawerOpen(true)}
             />
-            <Button
-              type="button"
-              variant="brutalist"
-              size="brutalist"
-              disabled={!canBook}
-              onClick={() => setBookingOpen(true)}
-              className="bru-book-now"
-              aria-label={
-                canBook
-                  ? "Open the booking form"
-                  : "Pick a day and time before booking"
-              }
-            >
-              BOOK NOW
-              <ArrowRightIcon />
-            </Button>
             <AvailabilityDrawer
+              handle={handle}
               slots={slots}
               open={drawerOpen}
               onOpenChange={setDrawerOpen}
               selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
+              onSelectDate={handleSelectDate}
+              selectedSlot={selectedSlot}
               onPickSlot={(s) => {
                 setSelectedSlot(s);
-                setDrawerOpen(false);
               }}
-            />
-            <BookingDrawer
-              handle={handle}
-              slot={selectedSlot}
-              open={bookingOpen}
-              onOpenChange={setBookingOpen}
               onBooked={() => {
-                setBookingOpen(false);
+                setDrawerOpen(false);
                 setSelectedSlot(undefined);
                 setSelectedDate(undefined);
               }}
@@ -230,21 +215,33 @@ function toInitials(name: string): string {
 }
 
 function useVisitorTz(): string {
-  const [tz, setTz] = useState("—");
-  useEffect(() => {
-    try {
-      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
-      const tail = zone.split("/").pop() ?? zone;
-      setTz(tail.replace(/_/g, " ").toUpperCase() || "—");
-    } catch {
-      setTz("—");
-    }
-  }, []);
-  return tz;
+  return useSyncExternalStore(
+    () => () => {},
+    getVisitorTzLabel,
+    () => "—",
+  );
 }
 
 function useReadyClass() {
   useEffect(() => {
     document.body.classList.add("bru-ready");
   }, []);
+}
+
+function isSameCalendarDay(left: Date, right: Date): boolean {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function getVisitorTzLabel(): string {
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+    const tail = zone.split("/").pop() ?? zone;
+    return tail.replace(/_/g, " ").toUpperCase() || "—";
+  } catch {
+    return "—";
+  }
 }

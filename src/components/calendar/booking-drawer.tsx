@@ -20,12 +20,13 @@ export function BookingDrawer({
   onBooked,
 }: Props) {
   const startDate = slot ? new Date(slot.start) : null;
+  const isOpen = open && !!slot;
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+    <Drawer.NestedRoot open={isOpen} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content">
+        <Drawer.Content className="bru-drawer-content bru-drawer-content-nested">
           <Drawer.Handle className="bru-drawer-handle" />
           <div className="bru-drawer-head">
             <Drawer.Title className="bru-drawer-title">
@@ -53,7 +54,7 @@ export function BookingDrawer({
           </div>
         </Drawer.Content>
       </Drawer.Portal>
-    </Drawer.Root>
+    </Drawer.NestedRoot>
   );
 }
 
