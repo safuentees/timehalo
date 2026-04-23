@@ -94,6 +94,7 @@ model Post {
 // trip the unique constraint and surface as a tRPC CONFLICT error.
 model Booking {
   id           Int      @id @default(autoincrement())
+  publicUid    String   @unique @default(cuid())
   host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
   hostId       String
   visitorName  String

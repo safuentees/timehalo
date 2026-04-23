@@ -9,9 +9,6 @@ type Props = {
   slot: Slot | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called after a successful booking. Parent clears local selection +
-   *  closes this drawer. */
-  onBooked: () => void;
 };
 
 /**
@@ -25,7 +22,6 @@ export function BookingDrawer({
   slot,
   open,
   onOpenChange,
-  onBooked,
 }: Props) {
   const startDate = slot ? new Date(slot.start) : null;
   const isOpen = open && !!slot;
@@ -56,7 +52,6 @@ export function BookingDrawer({
               <BookingForm
                 handle={handle}
                 slotStart={slot.start}
-                onBooked={onBooked}
               />
             ) : null}
           </div>
