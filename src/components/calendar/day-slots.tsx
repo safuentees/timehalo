@@ -60,13 +60,17 @@ function TimeBand({
   onPick: (slot: Slot) => void;
 }) {
   const [emblaRef] = useEmblaCarousel({
-    // Custom align offset — snap each chip 20px from the viewport's start
-    // edge instead of flush with it. Embla's `"start"` preset ignores CSS
-    // padding on the viewport for snap alignment, so the pixel offset has
-    // to be set here. Matches the first chip's initial left inset.
-    align: () => 20,
+    // Mirrors the day strip's setup. `containScroll: false` is the
+    // critical bit — Embla's default ("trimSnaps") OR "keepSnaps"
+    // override the `align` for slides at the start/end of the carousel
+    // in order to "cover" leading and trailing empty space, which
+    // would push the first chip flush with the drawer wall and undo
+    // the 20px CSS padding. Disabling it lets every snap (including
+    // the initial position) respect `align: "start"` = the viewport's
+    // content-area edge = drawer x=20.
+    align: "start",
     dragFree: false,
-    containScroll: "trimSnaps",
+    containScroll: false,
     skipSnaps: true,
   });
 
