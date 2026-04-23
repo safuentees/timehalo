@@ -765,31 +765,40 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   opacity: 0.55;
 }
 
-/* ——— v4 minimal: quiet paper profile ——— */
-.bru-v4 {
+/* ——— v1 calm: quiet paper profile ———
+   Hero stacks identity, name, tag, bio, and a one-liner with live counts.
+   Meta is a 3-cell horizontal strip with vertical hairlines for symmetry.
+   Avatar in kicker (Airbnb pattern) anchors trust without fighting the
+   giant name. No FAQ section — we have no per-host FAQ data, so we keep
+   the page truthful and quiet. */
+.bru-v1 {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
   border-bottom: 1px solid var(--bru-line-firm);
 }
 
-.bru-v4-hero {
-  padding: 36px 22px 18px;
+.bru-v1-hero {
+  padding: 24px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--bru-line-soft);
 }
-.bru-v4-kicker {
+.bru-v1-kicker {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 6px;
 }
-.bru-v4-id {
+.bru-v1-id {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
-.bru-v4-avatar {
+.bru-v1-avatar {
   width: 32px !important;
   height: 32px !important;
   border-radius: 0 !important;
@@ -797,11 +806,11 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   background: var(--bru-paper);
   flex-shrink: 0;
 }
-.bru-v4-avatar > [data-slot="avatar-image"],
-.bru-v4-avatar > [data-slot="avatar-fallback"] {
+.bru-v1-avatar > [data-slot="avatar-image"],
+.bru-v1-avatar > [data-slot="avatar-fallback"] {
   border-radius: 0 !important;
 }
-.bru-v4-avatar-fallback {
+.bru-v1-avatar-fallback {
   background: var(--bru-paper) !important;
   color: var(--bru-ink) !important;
   font-family: var(--bru-mono) !important;
@@ -809,18 +818,18 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   font-weight: 800 !important;
   letter-spacing: 1px !important;
 }
-.bru-v4-handle {
+.bru-v1-handle {
   font-family: var(--bru-mono);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  opacity: 0.78;
+  opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bru-v4-status {
+.bru-v1-status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -831,73 +840,85 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   letter-spacing: 2px;
   font-weight: 800;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
-.bru-v4-status-dot {
+.bru-v1-status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
 }
-.bru-v4-status.is-open .bru-v4-status-dot {
+.bru-v1-status.is-open .bru-v1-status-dot {
   background: var(--bru-ink);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--bru-ink) 22%, transparent);
-  animation: bru-v4-pulse 2.2s ease-in-out infinite;
+  animation: bru-v1-pulse 2.2s ease-in-out infinite;
 }
-.bru-v4-status.is-closed .bru-v4-status-dot {
+.bru-v1-status.is-closed .bru-v1-status-dot {
   background: transparent;
   border: 1.5px solid var(--bru-ink);
 }
-@keyframes bru-v4-pulse {
+@keyframes bru-v1-pulse {
   0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--bru-ink) 28%, transparent); }
   50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bru-ink) 8%, transparent); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bru-v4-status.is-open .bru-v4-status-dot { animation: none; }
+  .bru-v1-status.is-open .bru-v1-status-dot { animation: none; }
 }
 
-.bru-v4-name {
-  margin: 0 0 10px;
+.bru-v1-name {
+  margin: 4px 0 2px;
   font-weight: 900;
-  font-size: clamp(42px, 12cqi, 72px);
-  line-height: 0.94;
+  font-size: clamp(40px, 12cqi, 64px);
+  line-height: 0.92;
   letter-spacing: -0.04em;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
-.bru-v4-tag {
-  margin: 0;
+.bru-v1-tag {
+  margin: 0 0 4px;
   font-family: var(--bru-mono);
-  font-size: 11.5px;
-  letter-spacing: 2px;
+  font-size: 11px;
+  letter-spacing: 1.8px;
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.7;
 }
-
-.bru-v4-about {
-  padding: 4px 22px 22px;
-  border-top: 1px solid var(--bru-line-soft);
-  padding-top: 20px;
-}
-.bru-v4-about p {
+.bru-v1-bio {
   margin: 0;
-  font-size: 15.5px;
+  font-size: 15px;
   line-height: 1.55;
-  opacity: 0.86;
-  max-width: 38ch;
+  opacity: 0.85;
+  max-width: 36ch;
   text-wrap: pretty;
 }
+.bru-v1-subtle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  font-family: var(--bru-mono);
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+.bru-v1-subtle-sep { opacity: 0.45; }
+.bru-v1-subtle strong {
+  font-weight: 900;
+  opacity: 1;
+}
 
-/* 4-cell horizontal metric strip — equal columns via minmax(0,1fr).
+/* 3-cell horizontal metric strip — equal columns via minmax(0,1fr).
    Vertical hairlines + centered tabular values keep the row symmetric
    regardless of value width (digit pairs vs short TZ abbrev). */
-.bru-v4-meta {
+.bru-v1-meta {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0 22px;
-  border-top: 1px solid var(--bru-line-soft);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
   border-bottom: 1px solid var(--bru-line-soft);
 }
-.bru-v4-meta-cell {
+.bru-v1-meta-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -907,19 +928,19 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   min-width: 0;
   border-right: 1px solid var(--bru-line-soft);
 }
-.bru-v4-meta-cell:last-child {
+.bru-v1-meta-cell:last-child {
   border-right: 0;
 }
-.bru-v4-meta-label {
+.bru-v1-meta-label {
   margin: 0;
   font-family: var(--bru-mono);
   font-size: 9px;
   letter-spacing: 2px;
   font-weight: 700;
   text-transform: uppercase;
-  opacity: 0.55;
+  opacity: 0.5;
 }
-.bru-v4-meta-value {
+.bru-v1-meta-value {
   margin: 0;
   font-family: var(--bru-mono);
   font-size: 16px;
@@ -933,13 +954,13 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   text-overflow: ellipsis;
   max-width: 100%;
 }
-.bru-v4-meta-value > span {
+.bru-v1-meta-value > span {
   font-size: 0.65em;
   opacity: 0.55;
   margin-left: 1px;
 }
 
-.bru-v4-foot {
+.bru-v1-foot {
   display: flex;
   justify-content: center;
   padding: 18px 22px 24px;
@@ -1907,21 +1928,17 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   }
 }
 @container bru-root (max-width: 480px) {
-  .bru-v4-hero {
-    padding: 28px 18px 14px;
+  .bru-v1-hero {
+    padding: 20px 18px 18px;
   }
-  .bru-v4-about,
-  .bru-v4-foot {
+  .bru-v1-foot {
     padding-left: 18px;
     padding-right: 18px;
   }
-  .bru-v4-meta {
-    margin: 0 18px;
-  }
-  .bru-v4-meta-cell {
+  .bru-v1-meta-cell {
     padding: 14px 4px;
   }
-  .bru-v4-meta-value {
+  .bru-v1-meta-value {
     font-size: 14px;
   }
   .bru-next-available {
