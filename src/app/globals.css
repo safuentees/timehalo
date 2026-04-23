@@ -920,6 +920,132 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   margin-top: 4px;
 }
 
+/* Booking confirmation page — dedicated receipt screen after submit. */
+.bru-confirm-main {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+.bru-confirm-hero {
+  display: grid;
+  gap: 14px;
+  padding: 22px 20px;
+  border: 2px solid var(--bru-ink);
+  background: var(--bru-paper);
+}
+.bru-confirm-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--bru-ink);
+  background: var(--bru-ink);
+  color: var(--bru-paper);
+}
+.bru-confirm-mark svg {
+  width: 20px;
+  height: 20px;
+}
+.bru-confirm-title {
+  margin: 0;
+  font-size: clamp(30px, 8cqi, 56px);
+  font-weight: 900;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.bru-confirm-body {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 15px;
+  line-height: 1.55;
+  opacity: 0.78;
+}
+.bru-confirm-ref {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bru-line-firm);
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.bru-confirm-ref strong {
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  overflow-wrap: anywhere;
+}
+.bru-confirm-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+.bru-confirm-card {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1.5px solid var(--bru-ink);
+  background: var(--bru-paper);
+}
+.bru-confirm-value {
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+.bru-confirm-meta {
+  font-family: var(--bru-mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.bru-confirm-note {
+  margin: 0;
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.58;
+}
+.bru-confirm-host {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.bru-confirm-avatar {
+  width: 72px !important;
+  height: 72px !important;
+}
+.bru-confirm-host-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.bru-confirm-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.bru-confirm-actions {
+  display: grid;
+  gap: 10px;
+}
+.bru-confirm-action {
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
 /* Next-available pill (info-only). */
 .bru-next-available {
   display: grid;
@@ -1546,6 +1672,21 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-profile-cta {
     padding: 48px 44px 56px;
   }
+  .bru-confirm-main {
+    padding: 36px 44px 64px;
+  }
+  .bru-confirm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .bru-confirm-card-wide,
+  .bru-confirm-actions {
+    grid-column: 1 / -1;
+  }
+  .bru-confirm-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 @media (min-width: 720px) {
   .bru-drawer-content {
@@ -1576,6 +1717,9 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-profile-cta {
     padding: 28px 20px 32px;
   }
+  .bru-confirm-main {
+    padding: 24px 20px 48px;
+  }
 }
 @container bru-root (max-width: 480px) {
   .bru-profile-hero-inner {
@@ -1593,5 +1737,15 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   }
   .bru-month {
     --cell-size: 40px;
+  }
+  .bru-confirm-hero,
+  .bru-confirm-card {
+    padding: 18px 16px;
+  }
+  .bru-confirm-value {
+    font-size: 22px;
+  }
+  .bru-confirm-host {
+    align-items: flex-start;
   }
 }

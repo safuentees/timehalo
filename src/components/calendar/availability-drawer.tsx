@@ -17,7 +17,6 @@ type Props = {
   selectedDate: Date | undefined;
   onSelectDate: (date: Date | undefined) => void;
   onPickSlot: (slot: Slot) => void;
-  onBooked: () => void;
   months?: number;
   selectedSlot: Slot | undefined;
 };
@@ -35,7 +34,6 @@ export function AvailabilityDrawer({
   selectedDate,
   onSelectDate,
   onPickSlot,
-  onBooked,
   months = 3,
   selectedSlot,
 }: Props) {
@@ -128,10 +126,6 @@ export function AvailabilityDrawer({
             slot={selectedSlot}
             open={bookingOpen}
             onOpenChange={setBookingOpen}
-            onBooked={() => {
-              setBookingOpen(false);
-              onBooked();
-            }}
           />
         </Drawer.Content>
       </Drawer.Portal>
