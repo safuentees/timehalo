@@ -123,11 +123,6 @@ export default function HostProfile({ handle }: Props) {
               onPickSlot={(s) => {
                 setSelectedSlot(s);
               }}
-              onBooked={() => {
-                setDrawerOpen(false);
-                setSelectedSlot(undefined);
-                setSelectedDate(undefined);
-              }}
             />
           </>
         )}

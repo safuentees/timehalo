@@ -5,7 +5,8 @@ export const proxy = auth((req) => {
   const pathname = req.nextUrl.pathname;
 
   // Public routes — accessible without auth
-  const isPublic = ["/login", "/register"].includes(pathname);
+  const isPublic =
+    ["/login", "/register"].includes(pathname) || pathname.startsWith("/h/");
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));

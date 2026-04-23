@@ -2,6 +2,7 @@
 
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import {
   BrutalistInputGroup,
   BrutalistInputGroupAddon,
@@ -19,7 +20,6 @@ import {
 type Props = {
   handle: string;
   slotStart: string; // ISO
-  onBooked: () => void;
 };
 
 /**
@@ -27,7 +27,8 @@ type Props = {
  * name, email, question (optional). On submit, calls `bookings.create`
  * with the pre-selected slotStart passed in from the parent page.
  */
-export function BookingForm({ handle, slotStart, onBooked }: Props) {
+export function BookingForm({ handle, slotStart }: Props) {
+  const router = useRouter();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { visitorName: "", visitorEmail: "", question: "" },
@@ -35,9 +36,9 @@ export function BookingForm({ handle, slotStart, onBooked }: Props) {
   });
 
   const book = useBookingCreate({
-    onSuccess: () => {
+    onSuccess: (booking) => {
       form.reset();
-      onBooked();
+      router.push(`/h/${handle}/booked/${booking.publicUid}`);
     },
   });
 
@@ -151,6 +152,11 @@ export function BookingForm({ handle, slotStart, onBooked }: Props) {
           >
             {book.isPending ? "Booking…" : "Confirm booking →"}
           </Button>
+          {book.error ? (
+            <p className="bru-field-error" role="alert">
+              {book.error.message}
+            </p>
+          ) : null}
         </FieldGroup>
       </form>
     </FormProvider>
