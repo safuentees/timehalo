@@ -23,6 +23,7 @@ model User {
   Authenticator        Authenticator[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  bookings             Booking[]
 }
 
 model Account {
@@ -84,6 +85,21 @@ model Post {
   tag      String
   user     User?   @relation(fields: [userId], references: [id])
   userId   String?
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId       String
+  visitorName  String
+  visitorEmail String
+  question     String?
+  slotStart    DateTime
+  slotEnd      DateTime
+  createdAt    DateTime @default(now())
+
+  @@unique([hostId, slotStart])
+  @@index([hostId, slotStart])
 }
 
 model AvailabilityRange {

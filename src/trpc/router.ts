@@ -5,6 +5,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
+import { bookingInputSchema } from "@/lib/booking-schema";
 
 const handleSchema = z
   .string()
@@ -228,6 +229,95 @@ const users = router({
     }),
 });
 
-export const appRouter = router({ posts, schedule, users });
+const SLOT_MINUTES = 15;
+
+const bookings = router({
+  create: publicProcedure
+    .input(bookingInputSchema)
+    .mutation(async ({ input }) => {
+      const host = await prisma.user.findUnique({
+        where: { handle: input.handle },
+        select: { id: true },
+      });
+      if (!host) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Host not found",
+        });
+      }
+
+      const slotStart = new Date(input.slotStart);
+      if (Number.isNaN(slotStart.getTime())) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid slot timestamp",
+        });
+      }
+      if (slotStart.getTime() <= Date.now()) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That slot is in the past",
+        });
+      }
+
+      const ranges = await prisma.availabilityRange.findMany({
+        where: { userId: host.id },
+        select: { dayOfWeek: true, startTime: true, endTime: true },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      });
+      const upcoming = generateUpcomingSlots({
+        ranges,
+        from: new Date(),
+        days: 14,
+        stepMinutes: SLOT_MINUTES,
+      });
+      const isValid = upcoming.some((s) => s.start === input.slotStart);
+      if (!isValid) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "That slot isn't available anymore",
+        });
+      }
+
+      const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
+
+      try {
+        const booking = await prisma.booking.create({
+          data: {
+            hostId: host.id,
+            visitorName: input.visitorName,
+            visitorEmail: input.visitorEmail,
+            question: input.question,
+            slotStart,
+            slotEnd,
+          },
+          select: {
+            id: true,
+            slotStart: true,
+            slotEnd: true,
+          },
+        });
+        return booking;
+      } catch (cause) {
+        if (
+          cause instanceof Prisma.PrismaClientKnownRequestError &&
+          cause.code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Someone just grabbed that slot. Pick another.",
+            cause,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not create booking. Try again.",
+          cause,
+        });
+      }
+    }),
+});
+
+export const appRouter = router({ posts, schedule, users, bookings });
 
 export type AppRouter = typeof appRouter;
