@@ -33,8 +33,10 @@ function BrutalistInputGroup({
     <InputGroup
       data-slot="brutalist-input-group"
       className={cn(
-        // structure + base brutalist look
-        "h-auto items-stretch rounded-none border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
+        // structure + base brutalist look. Outer radius + overflow-hidden
+        // lets the rounded-none addon + input stay flush against each other
+        // while the shell matches the --bru-r-xs scale used by other inputs.
+        "h-auto items-stretch overflow-hidden rounded-(--bru-r-xs) border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
         // brutalist focus effect, kills shadcn's ring
         "transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]",
         "has-[[data-slot=input-group-control]:focus-visible]:border-(--bru-ink) has-[[data-slot=input-group-control]:focus-visible]:ring-0",
