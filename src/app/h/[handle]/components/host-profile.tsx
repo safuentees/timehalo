@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -55,7 +55,6 @@ export default function HostProfile({
     availableSlots,
     now,
   );
-  useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -315,12 +314,6 @@ function toInitials(name: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-function useReadyClass() {
-  useEffect(() => {
-    document.body.classList.add("bru-ready");
-  }, []);
 }
 
 function isSameCalendarDay(left: Date, right: Date): boolean {
