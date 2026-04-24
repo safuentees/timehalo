@@ -822,14 +822,15 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-v1-avatar {
   width: 32px !important;
   height: 32px !important;
-  border-radius: var(--bru-r-sm) !important;
+  border-radius: 50% !important;
   border: 1.5px solid var(--bru-ink);
   background: var(--bru-paper);
   flex-shrink: 0;
+  overflow: hidden;
 }
 .bru-v1-avatar > [data-slot="avatar-image"],
 .bru-v1-avatar > [data-slot="avatar-fallback"] {
-  border-radius: var(--bru-r-sm) !important;
+  border-radius: 50% !important;
 }
 .bru-v1-avatar-fallback {
   background: var(--bru-paper) !important;
@@ -987,18 +988,10 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 28px max(16px, env(safe-area-inset-right))
     max(16px, env(safe-area-inset-bottom))
     max(16px, env(safe-area-inset-left));
-  /* Subtly ink-tinted shelf so the paper TriggerCard reads as a
-     distinct island sitting ON the bar, not merging into the page.
-     Top of the gradient stays transparent so in-flow content fades
-     gracefully behind the island. Left/right safe-area insets keep
-     the island clear of landscape-mode rounded bezels. */
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 0%,
-    color-mix(in srgb, var(--bru-paper) 93%, var(--bru-ink)) 55%,
-    color-mix(in srgb, var(--bru-paper) 70%, transparent) 85%,
-    transparent 100%
-  );
+  /* Transparent shelf — the island sits directly on the page without a
+     tinted backdrop. Safe-area insets keep the island clear of
+     landscape-mode rounded bezels. */
+  background: transparent;
   pointer-events: none;
 }
 .bru-v1-bar-inner {
@@ -1007,7 +1000,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   max-width: 520px;
   margin: 0 auto;
   border-radius: var(--bru-r-sm);
-  box-shadow: 4px 4px 0 var(--bru-ink);
 }
 /* Spacer keeps the last in-flow content above the floating bar. Tuned
    to match the bar's padding + the TriggerCard's intrinsic height. */
@@ -1018,6 +1010,31 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   .bru-v1-bar {
     transition: padding-bottom 200ms ease;
   }
+}
+
+/* Dashboard save bar — mirrors the /h/ floating-island pattern but
+   uses sticky positioning so it flows within .bru-main (respecting
+   the sidebar) instead of covering it. Same scroll-edge gradient and
+   centered paper island read, consistent with the profile CTA. */
+.bru-dash-save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding: 40px max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  background: transparent;
+  pointer-events: none;
+}
+.bru-dash-save-bar-inner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: var(--bru-r-sm);
+}
+.bru-dash-save-spacer {
+  height: 120px;
 }
 
 /* CTA section — NextAvailable info pill + PICK A DATE drawer trigger.
@@ -1408,10 +1425,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   max-height: 96%;
   background: var(--bru-paper);
   color: var(--bru-ink);
-  border-top: 2.5px solid var(--bru-ink);
   /* Top corners only — mobile bottom-sheet convention. */
   border-radius: var(--bru-r-md) var(--bru-r-md) 0 0;
   outline: none;
+  overflow: hidden;
+  box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.28);
+}
+.dark .bru-drawer-content {
+  background: color-mix(in srgb, var(--bru-paper) 94%, var(--bru-ink));
 }
 /* Nested drawer sits meaningfully shorter than parent so the parent's
    header strip ("SCHEDULE YOUR MEETING") stays visible behind the
@@ -1961,8 +1982,6 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
     right: auto !important;
     transform: translateX(-50%);
     width: min(520px, 92vw);
-    border-left: 2.5px solid var(--bru-ink);
-    border-right: 2.5px solid var(--bru-ink);
   }
 }
 
