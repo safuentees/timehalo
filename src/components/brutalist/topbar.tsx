@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,17 @@ export function BrutalistTopbar() {
   const { theme, isDark, toggleTheme } = useBrutalistPrefs();
   const { openNewPost } = useNewPost();
 
-  const { title, sub } = resolveTitle(pathname);
-  const showNewPost = pathname === "/";
+  // Hold pathname-derived conditionals until after mount. Next.js 16 can
+  // prerender a static shell where `usePathname()` doesn't match the
+  // client value, which makes the conditional `+ NEW POST` button exist
+  // on the client but not on the server. React then fails hydration on
+  // this subtree, which silently drops every button's event handler.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const activePath = mounted ? pathname : null;
+
+  const { title, sub } = resolveTitle(activePath);
+  const showNewPost = activePath === "/";
 
   return (
     <div className="bru-topbar bru-reveal" style={{ ["--d" as string]: "0ms" }}>

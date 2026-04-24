@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -53,7 +54,16 @@ function NavBullet({ active }: { active: boolean }) {
 }
 
 export function BrutalistAppSidebar() {
+  // Defer pathname-derived active state until after mount. Next.js 16
+  // can prerender a static shell where usePathname returns a stub value,
+  // so reading it during SSR-then-hydrate causes a `data-active` mismatch
+  // on the sidebar links. React then bails out of hydrating this subtree,
+  // which leaves adjacent buttons (topbar, + NEW POST) without their
+  // event handlers — which is the "button does nothing" symptom.
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const activePath = mounted ? pathname : null;
 
   return (
     <Sidebar
@@ -78,7 +88,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {PRIMARY_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
@@ -106,7 +116,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {SECONDARY_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
@@ -134,7 +144,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {LAB_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
