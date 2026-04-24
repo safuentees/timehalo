@@ -23,7 +23,7 @@ import { LAB_NAV, PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 // Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
 // attributes set by shadcn's SidebarMenuButton.
 const menuButtonClass = [
-  "relative rounded-none",
+  "relative rounded-(--bru-r-xs)",
   "font-sans text-[13.5px] font-medium",
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
@@ -162,7 +162,7 @@ export function BrutalistAppSidebar() {
             <SidebarMenuButton
               tooltip="Sign out"
               onClick={() => signOut({ redirectTo: "/login" })}
-              className="rounded-none font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-[80ms] [transition-timing-function:steps(1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
+              className="rounded-(--bru-r-xs) font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-[80ms] [transition-timing-function:steps(1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
             >
               <LogOut className="size-3.5 stroke-[1.5]" />
               <span>Sign out</span>

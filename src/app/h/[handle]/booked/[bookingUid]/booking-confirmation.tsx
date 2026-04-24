@@ -117,9 +117,9 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 <AvatarImage
                   src={booking.host.image ?? undefined}
                   alt={hostName}
-                  className="rounded-none"
+                  className="rounded-(--bru-r-sm)"
                 />
-                <AvatarFallback className="rounded-none bg-(--bru-paper) text-(color:--bru-ink) font-[family-name:var(--bru-mono)] text-[16px] font-extrabold">
+                <AvatarFallback className="rounded-(--bru-r-sm) bg-(--bru-paper) text-(color:--bru-ink) font-[family-name:var(--bru-mono)] text-[16px] font-extrabold">
                   {toInitials(hostName)}
                 </AvatarFallback>
               </Avatar>
