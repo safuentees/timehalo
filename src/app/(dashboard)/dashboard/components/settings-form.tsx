@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,6 @@ import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
 import { useSetHandle } from "@/lib/mutations/use-set-handle";
 import { Button } from "@/components/ui/button";
 import {
-  Field,
   FieldDescription,
   FieldGroup,
   FieldLegend,
@@ -94,46 +93,71 @@ export default function SettingsForm() {
   }
 
   const isPending = saveSchedule.isPending || saveHandle.isPending;
+  const isDirty = form.formState.isDirty;
+
+  // Defer form-state-driven button rendering to a post-mount pass. Back/forward
+  // nav in Next.js 16 + Turbopack can re-hydrate this tree with a queryClient
+  // state that differs from the server's dehydrated snapshot; RHF's `values`
+  // sync runs in an effect, so `isDirty` can momentarily disagree between the
+  // server HTML and the client's first paint. Holding a stable initial state
+  // until after mount avoids the hydration mismatch without changing UX.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const buttonDisabled = mounted ? isPending || !isDirty : true;
+  const buttonLabel = !mounted
+    ? "Saved"
+    : isPending
+      ? "Saving…"
+      : isDirty
+        ? "Save changes"
+        : "Saved";
 
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FieldGroup>
-          <FieldSet>
-            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-              Handle
-            </FieldLegend>
-            <FieldGroup>
-              <HandleFields />
-            </FieldGroup>
-          </FieldSet>
+        <div className="mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10">
+          <FieldGroup>
+            <FieldSet>
+              <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+                Handle
+              </FieldLegend>
+              <FieldGroup>
+                <HandleFields />
+              </FieldGroup>
+            </FieldSet>
 
-          <FieldSeparator />
+            <FieldSeparator />
 
-          <FieldSet>
-            <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-              Availability
-            </FieldLegend>
-            <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-              Weekly windows visitors can book from.
-            </FieldDescription>
-            <FieldGroup>
-              <AvailabilityFields />
-            </FieldGroup>
-          </FieldSet>
+            <FieldSet>
+              <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+                Availability
+              </FieldLegend>
+              <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+                Weekly windows visitors can book from.
+              </FieldDescription>
+              <FieldGroup>
+                <AvailabilityFields />
+              </FieldGroup>
+            </FieldSet>
+          </FieldGroup>
+          <div className="bru-dash-save-spacer" aria-hidden />
+        </div>
 
-          <Field orientation="horizontal" className="justify-end">
+        <div className="bru-dash-save-bar" role="region" aria-label="Save changes">
+          <div className="bru-dash-save-bar-inner">
             <Button
               type="submit"
               variant="brutalist"
               size="brutalist"
-              className="w-full sm:w-auto"
-              disabled={isPending}
+              className="w-full"
+              disabled={buttonDisabled}
             >
-              {isPending ? "Saving…" : "Save"}
+              {buttonLabel}
             </Button>
-          </Field>
-        </FieldGroup>
+          </div>
+        </div>
       </form>
     </FormProvider>
   );
