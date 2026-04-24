@@ -22,13 +22,11 @@ export function BrutalistDashboardLayout({
   const { open: modalOpen, closeNewPost } = useNewPost();
 
   useEffect(() => {
-    const id = requestAnimationFrame(() =>
-      document.body.classList.add("bru-ready"),
-    );
-    return () => {
-      cancelAnimationFrame(id);
-      document.body.classList.remove("bru-ready");
-    };
+    // Flip directly on mount — wrapping in rAF is fragile on client
+    // navigation (the callback can be skipped when React StrictMode
+    // rapidly mounts → cleans up → mounts, or when the tab was hidden
+    // between pages). The CSS keyframe itself handles the enter transition.
+    document.body.classList.add("bru-ready");
   }, []);
 
   const insetClass = ["bru-root", motion ? "bru-motion" : ""]
