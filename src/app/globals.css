@@ -97,6 +97,10 @@
   --bru-placeholder: color-mix(in srgb, var(--bru-ink) 45%, transparent);
   --bru-twdivider-bg: color-mix(in oklab, var(--bru-ink) 8%, var(--bru-paper));
   --bru-t-fast: 80ms steps(1);
+
+  --bru-r-xs: 2px;
+  --bru-r-sm: 6px;
+  --bru-r-md: 12px;
 }
 
 .dark {
@@ -193,6 +197,7 @@
   display: grid; place-items: center;
   font-weight: 900; font-size: 16px;
   flex-shrink: 0;
+  border-radius: var(--bru-r-xs);
 }
 .bru-brand-name {
   font-weight: 800; font-size: 12.5px; letter-spacing: 2px;
@@ -234,7 +239,7 @@
   transition: background 80ms steps(1), color 80ms steps(1);
   display: inline-flex; align-items: center; justify-content: center;
   gap: 6px;
-  border-radius: 0;
+  border-radius: var(--bru-r-sm);
 }
 .bru-btn:hover:not(:disabled) { background: var(--bru-ink); color: var(--bru-paper); }
 .bru-btn-solid { background: var(--bru-ink); color: var(--bru-paper); }
@@ -405,6 +410,7 @@
 .bru-tag {
   padding: 4px 10px;
   border: 1.5px solid var(--bru-ink);
+  border-radius: var(--bru-r-xs);
   font-family: var(--bru-mono);
   font-size: 10px; font-weight: 800; letter-spacing: 2px;
   transition: background 80ms steps(1), color 80ms steps(1);
@@ -481,6 +487,7 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   border: 2px solid var(--bru-ink);
+  border-radius: var(--bru-r-sm);
   box-shadow: 6px 6px 0 var(--bru-ink);
   font-family: var(--bru-mono);
 }
@@ -517,7 +524,7 @@
   background: transparent; border: 0; color: inherit;
   font-size: 18px; cursor: pointer; line-height: 1; padding: 0 4px;
 }
-.bru-seg { display: flex; border: 1.5px solid var(--bru-ink); }
+.bru-seg { display: flex; border: 1.5px solid var(--bru-ink); border-radius: var(--bru-r-xs); overflow: hidden; }
 .bru-seg button {
   flex: 1;
   background: var(--bru-paper); color: var(--bru-ink);
@@ -558,6 +565,7 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   border: 2.5px solid var(--bru-ink);
+  border-radius: var(--bru-r-md);
   box-shadow: 12px 12px 0 var(--bru-ink);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
@@ -600,7 +608,7 @@
   font-family: inherit;
   font-size: 15px; line-height: 1.4;
   outline: 0;
-  border-radius: 0;
+  border-radius: var(--bru-r-xs);
   transition: box-shadow 80ms steps(1), transform 80ms steps(1);
 }
 .bru-input::placeholder { color: var(--bru-placeholder); }
@@ -701,7 +709,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-profile-avatar {
   width: 96px !important;
   height: 96px !important;
-  border-radius: 0 !important;
+  border-radius: var(--bru-r-sm) !important;
   border: 2.5px solid var(--bru-ink);
   flex-shrink: 0;
   background: var(--bru-paper);
@@ -711,7 +719,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 }
 .bru-profile-avatar > [data-slot="avatar-image"],
 .bru-profile-avatar > [data-slot="avatar-fallback"] {
-  border-radius: 0 !important;
+  border-radius: var(--bru-r-sm) !important;
 }
 
 .bru-profile-kicker {
@@ -751,14 +759,14 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-v1-avatar {
   width: 32px !important;
   height: 32px !important;
-  border-radius: 0 !important;
+  border-radius: var(--bru-r-sm) !important;
   border: 1.5px solid var(--bru-ink);
   background: var(--bru-paper);
   flex-shrink: 0;
 }
 .bru-v1-avatar > [data-slot="avatar-image"],
 .bru-v1-avatar > [data-slot="avatar-fallback"] {
-  border-radius: 0 !important;
+  border-radius: var(--bru-r-sm) !important;
 }
 .bru-v1-avatar-fallback {
   background: var(--bru-paper) !important;
@@ -791,6 +799,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   font-weight: 800;
   text-transform: uppercase;
   flex-shrink: 0;
+  border-radius: var(--bru-r-xs);
 }
 .bru-v1-status-dot {
   width: 7px;
@@ -921,6 +930,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
+  border-radius: var(--bru-r-sm);
   box-shadow: 4px 4px 0 var(--bru-ink);
 }
 .bru-v1-spacer {
@@ -1001,7 +1011,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   font-size: 14px;
   line-height: 1.45;
   resize: vertical;
-  border-radius: 0;
+  border-radius: var(--bru-r-xs);
   transition: box-shadow var(--bru-t-fast);
 }
 .bru-textarea:focus {
@@ -1032,6 +1042,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 22px 20px;
   border: 2px solid var(--bru-ink);
   background: var(--bru-paper);
+  border-radius: var(--bru-r-sm);
 }
 .bru-confirm-mark {
   display: grid;
@@ -1041,6 +1052,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   border: 2px solid var(--bru-ink);
   background: var(--bru-ink);
   color: var(--bru-paper);
+  border-radius: var(--bru-r-sm);
 }
 .bru-confirm-mark svg {
   width: 20px;
@@ -1088,6 +1100,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 20px;
   border: 1.5px solid var(--bru-ink);
   background: var(--bru-paper);
+  border-radius: var(--bru-r-sm);
 }
 .bru-confirm-value {
   font-size: 25px;
@@ -1152,6 +1165,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   padding: 18px 20px;
   border: 2px solid var(--bru-ink);
   background: var(--bru-paper);
+  border-radius: var(--bru-r-sm);
   position: relative;
   overflow: hidden;
 }
@@ -1212,6 +1226,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   color: var(--bru-ink);
   cursor: pointer;
   transition: background var(--bru-t-fast), color var(--bru-t-fast);
+  border-radius: var(--bru-r-sm);
 }
 .bru-trigger-card:hover,
 .bru-trigger-card:focus-visible {
@@ -1273,7 +1288,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
 .bru-profile-empty [data-slot="empty"] {
   background: transparent;
   border: 2px dashed var(--bru-line-dashed);
-  border-radius: 0;
+  border-radius: var(--bru-r-sm);
   padding: 56px 24px;
 }
 
@@ -1301,7 +1316,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   background: var(--bru-paper);
   color: var(--bru-ink);
   border-top: 2.5px solid var(--bru-ink);
-  border-radius: 0;
+  border-radius: var(--bru-r-md) var(--bru-r-md) 0 0;
   outline: none;
 }
 .bru-drawer-content-nested {
@@ -1313,7 +1328,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   margin: 10px auto 0;
   background: var(--bru-ink);
   opacity: 0.5;
-  border-radius: 0;
+  border-radius: var(--bru-r-xs);
 }
 .bru-drawer-head {
   position: relative;
@@ -1477,7 +1492,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   flex: 1 1 0 !important;
   min-width: 0;
   padding: 2px !important;
-  border-radius: 0 !important;
+  border-radius: var(--bru-r-xs) !important;
   background: transparent !important;
 }
 
@@ -1603,7 +1618,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   cursor: pointer;
   transition: background-color var(--bru-t-fast),
     color var(--bru-t-fast);
-  border-radius: 0;
+  border-radius: var(--bru-r-xs);
 }
 .bru-day-strip-weekday {
   font-size: 10px;
@@ -1744,7 +1759,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: background var(--bru-t-fast), color var(--bru-t-fast);
-  border-radius: 0;
+  border-radius: var(--bru-r-xs);
 }
 .bru-slot-chip:hover {
   background: var(--bru-ink);
@@ -1772,6 +1787,7 @@ body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
   min-height: 22px;
   padding: 0 8px;
   border: 1px solid currentColor;
+  border-radius: var(--bru-r-xs);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1px;
