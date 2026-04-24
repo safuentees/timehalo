@@ -12,11 +12,9 @@ export default async function Page() {
 
   return (
     <main className="bru-main">
-      <section className="mx-auto w-full max-w-[640px] px-4 py-8 sm:px-6 sm:py-10">
-        <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-          <SettingsForm />
-        </HydrationBoundary>
-      </section>
+      <HydrationBoundary state={dehydrate(trpc.queryClient)}>
+        <SettingsForm />
+      </HydrationBoundary>
     </main>
   );
 }

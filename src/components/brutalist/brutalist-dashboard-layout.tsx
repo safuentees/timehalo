@@ -22,13 +22,7 @@ export function BrutalistDashboardLayout({
   const { open: modalOpen, closeNewPost } = useNewPost();
 
   useEffect(() => {
-    const id = requestAnimationFrame(() =>
-      document.body.classList.add("bru-ready"),
-    );
-    return () => {
-      cancelAnimationFrame(id);
-      document.body.classList.remove("bru-ready");
-    };
+    document.body.classList.add("bru-ready");
   }, []);
 
   const insetClass = ["bru-root", motion ? "bru-motion" : ""]
