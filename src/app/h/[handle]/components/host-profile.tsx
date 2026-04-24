@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
+import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Empty,
@@ -17,25 +19,47 @@ import {
 } from "@/components/calendar";
 import { isOpenSlot, type Slot } from "@/lib/availability";
 
-type Props = { handle: string };
+type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-export default function HostProfile({ handle }: Props) {
-  const { data: user } = trpc.users.getByHandle.useQuery({ handle });
-  const { data: slots = [] } = trpc.schedule.getUpcomingSlots.useQuery({
-    handle,
-  });
+type Props = {
+  handle: string;
+  initialUser: RouterOutputs["users"]["getByHandle"];
+  initialSlots: RouterOutputs["schedule"]["getUpcomingSlots"];
+  renderedAt: string;
+};
+
+const WEEKDAY_SHORT = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
+
+export default function HostProfile({
+  handle,
+  initialUser,
+  initialSlots,
+  renderedAt,
+}: Props) {
+  const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
+    { handle },
+    { initialData: initialUser },
+  );
+  const { data: fetchedSlots } = trpc.schedule.getUpcomingSlots.useQuery(
+    { handle },
+    { initialData: initialSlots },
+  );
+  const user = fetchedUser ?? initialUser;
+  const slots = fetchedSlots ?? initialSlots;
+  const now = new Date(renderedAt);
   const availableSlots = slots.filter(isOpenSlot);
   const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
-  const openToday = availableSlots.some((s) => isToday(new Date(s.start)));
-  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots);
+  const openToday = availableSlots.some((s) => isToday(new Date(s.start), now));
+  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(
+    availableSlots,
+    now,
+  );
   useReadyClass();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
-
-  if (!user) return null;
 
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
@@ -134,7 +158,7 @@ export default function HostProfile({ handle }: Props) {
       </article>
 
       <section className="bru-profile-cta">
-        {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
+        {nextSlot ? <NextAvailable slot={nextSlot} now={now} /> : null}
         {!hasSlots ? (
           <HostEmpty displayName={displayName} kind="closed" />
         ) : !hasOpenSlots ? (
@@ -202,7 +226,7 @@ function HostEmpty({
   );
 }
 
-function NextAvailable({ slot }: { slot: Slot }) {
+function NextAvailable({ slot, now }: { slot: Slot; now: Date }) {
   const startDate = new Date(slot.start);
   return (
     <section className="bru-next-available bru-reveal" aria-label="Next available slot">
@@ -210,7 +234,7 @@ function NextAvailable({ slot }: { slot: Slot }) {
       <div className="bru-next-available-body">
         <span className="bru-next-available-time">{fmtTime(startDate)}</span>
         <span className="bru-next-available-meta">
-          {fmtDayLabelShort(startDate)} · {fmtRelative(startDate)}
+          {fmtDayLabelShort(startDate)} · {fmtRelative(startDate, now)}
         </span>
       </div>
     </section>
@@ -220,17 +244,14 @@ function NextAvailable({ slot }: { slot: Slot }) {
 // ——— Helpers ———
 
 function fmtDayLabelShort(d: Date): string {
-  const weekday = d
-    .toLocaleDateString(undefined, { weekday: "short" })
-    .toUpperCase();
-  return `${weekday} ${d.getDate()}`;
+  return `${WEEKDAY_SHORT[d.getDay()]} ${d.getDate()}`;
 }
 
 function fmtTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const hour24 = d.getHours();
+  const hour12 = ((hour24 + 11) % 12) + 1;
+  const suffix = hour24 < 12 ? "AM" : "PM";
+  return `${hour12}:${String(d.getMinutes()).padStart(2, "0")} ${suffix}`;
 }
 
 function fmtTimeCompact(d: Date): string {
@@ -242,8 +263,7 @@ function fmtTimeCompact(d: Date): string {
     : `${hour12}:${String(minute).padStart(2, "0")}${suffix}`;
 }
 
-function countOpenDaysThisWeek(slots: Slot[]): number {
-  const now = new Date();
+function countOpenDaysThisWeek(slots: Slot[], now: Date): number {
   const horizon = new Date(now);
   horizon.setDate(horizon.getDate() + 7);
   const days = new Set<string>();
@@ -256,8 +276,7 @@ function countOpenDaysThisWeek(slots: Slot[]): number {
   return days.size;
 }
 
-function fmtRelative(d: Date): string {
-  const now = new Date();
+function fmtRelative(d: Date, now: Date): string {
   const startOfToday = new Date(
     now.getFullYear(),
     now.getMonth(),
@@ -272,8 +291,7 @@ function fmtRelative(d: Date): string {
   return `IN ${diffDays} DAYS`;
 }
 
-function isToday(d: Date): boolean {
-  const now = new Date();
+function isToday(d: Date, now: Date): boolean {
   return (
     d.getFullYear() === now.getFullYear() &&
     d.getMonth() === now.getMonth() &&
