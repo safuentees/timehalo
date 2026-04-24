@@ -17,7 +17,7 @@ function BrutalistInputGroup({
     <InputGroup
       data-slot="brutalist-input-group"
       className={cn(
-        "h-auto items-stretch rounded-none border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
+        "h-auto items-stretch overflow-hidden rounded-(--bru-r-xs) border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
         "transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]",
         "has-[[data-slot=input-group-control]:focus-visible]:border-(--bru-ink) has-[[data-slot=input-group-control]:focus-visible]:ring-0",
         "has-[[data-slot][aria-invalid=true]]:border-(--bru-ink) has-[[data-slot][aria-invalid=true]]:ring-0",

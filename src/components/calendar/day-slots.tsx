@@ -22,19 +22,12 @@ const BAND_LABELS: Record<BandId, string> = {
 export function DaySlots({ date, slots, onPick }: Props) {
   const bands = useMemo(() => bucketByTimeOfDay(slots), [slots]);
   const openCount = slots.filter(isOpenSlot).length;
-  const takenCount = slots.filter(isTakenSlot).length;
 
   return (
     <section
       className="bru-day-slots"
       aria-label={`Slots on ${date.toDateString()}`}
     >
-      <header className="bru-day-slots-head">
-        <span className="bru-kicker">PICK A TIME</span>
-        <span className="bru-day-slots-date">
-          {fmtSlotHeader(date, openCount, takenCount)}
-        </span>
-      </header>
       {slots.length === 0 ? (
         <p className="bru-day-slots-empty">closed ·</p>
       ) : (
@@ -131,31 +124,4 @@ function bucketByTimeOfDay(slots: Slot[]): Band[] {
     bands[idx].slots.push(s);
   }
   return bands;
-}
-
-function fmtSlotHeader(
-  date: Date,
-  openCount: number,
-  takenCount: number,
-): string {
-  const prefix = date
-    .toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    })
-    .toUpperCase();
-  if (openCount === 0 && takenCount === 0) return `${prefix} · CLOSED`;
-
-  const parts: string[] = [];
-
-  if (openCount > 0) {
-    parts.push(`${openCount.toString().padStart(2, "0")} OPEN`);
-  }
-
-  if (takenCount > 0) {
-    parts.push(`${takenCount.toString().padStart(2, "0")} TAKEN`);
-  }
-
-  return `${prefix} · ${parts.join(" · ")}`;
 }
