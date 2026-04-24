@@ -677,19 +677,17 @@
 }
 .bru-post-delete:focus-visible { opacity: 1; }
 
-/* ——— reveal ——— */
-.bru-reveal { opacity: 0; transform: translateY(6px); }
-body.bru-ready .bru-motion .bru-reveal {
-  animation: bru-in 480ms cubic-bezier(.2,.9,.2,1) forwards;
-  animation-delay: var(--d, 0ms);
-}
-body.bru-ready .bru-root:not(.bru-motion) .bru-reveal {
-  opacity: 1; transform: none;
-}
+/* ——— reveal ———
+   Entry animation disabled. The JS-toggled `body.bru-ready` gate was
+   interacting badly with Next.js 16 soft navigation between route
+   groups, leaving the topbar and hero stuck at opacity:0 on client
+   nav back to the dashboard. Content is now always visible on render;
+   reintroduce a CSS-only animation here when we have a stable trigger
+   that doesn't depend on JS timing. */
+.bru-reveal { opacity: 1; transform: none; }
 @keyframes bru-in { to { opacity: 1; transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .bru-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
   .bru-ticker-track { animation: none !important; }
 }
 

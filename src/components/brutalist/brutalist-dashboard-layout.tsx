@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -20,14 +20,6 @@ export function BrutalistDashboardLayout({
 }) {
   const { typeface, density, motion } = useBrutalistPrefs();
   const { open: modalOpen, closeNewPost } = useNewPost();
-
-  useEffect(() => {
-    // Flip directly on mount — wrapping in rAF is fragile on client
-    // navigation (the callback can be skipped when React StrictMode
-    // rapidly mounts → cleans up → mounts, or when the tab was hidden
-    // between pages). The CSS keyframe itself handles the enter transition.
-    document.body.classList.add("bru-ready");
-  }, []);
 
   const insetClass = ["bru-root", motion ? "bru-motion" : ""]
     .filter(Boolean)
