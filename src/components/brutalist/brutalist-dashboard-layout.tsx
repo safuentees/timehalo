@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -20,10 +20,6 @@ export function BrutalistDashboardLayout({
 }) {
   const { typeface, density, motion } = useBrutalistPrefs();
   const { open: modalOpen, closeNewPost } = useNewPost();
-
-  useEffect(() => {
-    document.body.classList.add("bru-ready");
-  }, []);
 
   const insetClass = ["bru-root", motion ? "bru-motion" : ""]
     .filter(Boolean)

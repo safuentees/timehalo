@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -51,6 +52,9 @@ function NavBullet({ active }: { active: boolean }) {
 
 export function BrutalistAppSidebar() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const activePath = mounted ? pathname : null;
 
   return (
     <Sidebar
@@ -75,7 +79,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {PRIMARY_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
@@ -103,7 +107,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {SECONDARY_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
@@ -131,7 +135,7 @@ export function BrutalistAppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
               {LAB_NAV.map((item) => {
-                const active = pathname === item.href;
+                const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton

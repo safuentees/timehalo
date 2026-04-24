@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,12 @@ export function BrutalistTopbar() {
   const { theme, isDark, toggleTheme } = useBrutalistPrefs();
   const { openNewPost } = useNewPost();
 
-  const { title, sub } = resolveTitle(pathname);
-  const showNewPost = pathname === "/";
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const activePath = mounted ? pathname : null;
+
+  const { title, sub } = resolveTitle(activePath);
+  const showNewPost = activePath === "/";
 
   return (
     <div className="bru-topbar bru-reveal" style={{ ["--d" as string]: "0ms" }}>
