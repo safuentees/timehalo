@@ -381,6 +381,32 @@ const bookings = router({
 
       return booking;
     }),
+
+  // Host-side: every booking against this host, split by upcoming vs
+  // past based on slotStart. No "pending/confirmed" yet — the data
+  // model has no status field; per the project guide we don't add it
+  // until a story actually demands the confirm flow.
+  listForHost: privateProcedure.query(async ({ ctx }) => {
+    const now = new Date();
+    const rows = await prisma.booking.findMany({
+      where: { hostId: ctx.user.id },
+      select: {
+        id: true,
+        publicUid: true,
+        visitorName: true,
+        visitorEmail: true,
+        question: true,
+        slotStart: true,
+        slotEnd: true,
+        createdAt: true,
+      },
+      orderBy: { slotStart: "asc" },
+    });
+
+    const upcoming = rows.filter((b) => b.slotStart >= now);
+    const past = rows.filter((b) => b.slotStart < now).reverse();
+    return { upcoming, past };
+  }),
 });
 
 export const appRouter = router({ schedule, users, bookings });
