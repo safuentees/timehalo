@@ -16,6 +16,7 @@ import {
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { DAY_KEYS, defaultSchedule } from "@/lib/schedule";
 import type { DayKey, ScheduleValues } from "@/lib/schedule";
 
@@ -139,7 +140,17 @@ export function AvailabilityFields() {
           onClick={() =>
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
-          className="w-full justify-center border-dashed"
+          className={cn(
+            // Mobile: full-width dashed CTA — clear "tap to add" target
+            // at the bottom of the list, sized for thumb reach.
+            "w-full justify-center border-dashed",
+            // Desktop: content-sized text affordance, left-aligned. No
+            // border, no resting bg — gets out of the list's way and
+            // doesn't compete with the visually weighted block chips
+            // above. Subtle tint hover replaces the variant's full ink
+            // invert (which would over-emphasise it on a 760px row).
+            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--bru-tint)] md:hover:text-[var(--bru-ink)]",
+          )}
         >
           <PlusIcon /> Add more hours
         </Button>
