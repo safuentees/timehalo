@@ -77,53 +77,6 @@ const privateProcedure = publicProcedure.use(isAuthed);
 
 const router = t.router;
 
-const posts = router({
-  list: publicProcedure.query(async () => {
-    return await prisma.post.findMany({
-      orderBy: [{ date: "desc" }, { id: "desc" }],
-    });
-  }),
-
-  push: privateProcedure
-    .input(
-      z.object({
-        title: z.string(),
-        excerpt: z.string(),
-        date: z.string(),
-        readTime: z.string(),
-        tag: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await prisma.post.create({
-        data: { ...input, userId: ctx.user.id },
-      });
-      return input;
-    }),
-  onNewPost: publicProcedure.subscription(async function* () {
-    // This keeps running, yielding whenever there's a new post
-    // while (true) {
-    //   // const newPost = await waitForNewPost(); // your logic
-    //   // yield newPost; // pushed to the client
-    // }
-  }),
-  del: privateProcedure
-    .input(z.object({ id: z.int() }))
-    .mutation(async ({ input, ctx }) => {
-      const post = await prisma.post.findUnique({
-        where: { id: input.id, userId: ctx.user.id },
-      });
-      if (!post) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Post not found or you don't have permission to delete it",
-        });
-      }
-      await prisma.post.delete({ where: { id: input.id } });
-      return { id: input.id };
-    }),
-});
-
 const schedule = router({
   // Returns all AvailabilityRange rows for the logged-in user, sorted
   // by day then start time. Client groups them into the weekly form shape.
@@ -430,6 +383,6 @@ const bookings = router({
     }),
 });
 
-export const appRouter = router({ posts, schedule, users, bookings });
+export const appRouter = router({ schedule, users, bookings });
 
 export type AppRouter = typeof appRouter;
