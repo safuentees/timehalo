@@ -6,17 +6,40 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 type Props = {
   className?: string;
   seed?: number;
+  density?: number[];
+  gridX?: number;
+  gridY?: number;
+  alpha?: number;
+  maxR?: number;
+  minR?: number;
 };
 
-const GRID_X = 36; // dots wide
-const GRID_Y = 9; // dots tall — masthead is short and wide
-const MAX_R = 3.6; // px at DPR=1
-const MIN_R = 0.6;
+const DEFAULT_GRID_X = 36;
+const DEFAULT_GRID_Y = 9;
+const DEFAULT_MAX_R = 3.6;
+const DEFAULT_MIN_R = 0.6;
+const DEFAULT_ALPHA = 0.18;
 
-export function HalftoneMasthead({ className, seed = 7 }: Props) {
+const DENSITY_FLOOR = 0.18;
+
+export function HalftoneMasthead({
+  className,
+  seed = 7,
+  density,
+  gridX = DEFAULT_GRID_X,
+  gridY = DEFAULT_GRID_Y,
+  alpha = DEFAULT_ALPHA,
+  maxR = DEFAULT_MAX_R,
+  minR = DEFAULT_MIN_R,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const reduced = useReducedMotion();
+
+  const densityRef = useRef<number[] | undefined>(density);
+  useEffect(() => {
+    densityRef.current = density;
+  }, [density]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,22 +74,32 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
       return c || "rgb(10,10,10)";
     }
 
+    function densityAtCol(col: number): number {
+      const d = densityRef.current;
+      if (!d || d.length === 0) return 1;
+      const u = gridX <= 1 ? 0 : col / (gridX - 1);
+      const idx = Math.min(d.length - 1, Math.max(0, Math.floor(u * d.length)));
+      const raw = d[idx] ?? 0;
+      const clamped = Math.max(0, Math.min(1, raw));
+      return DENSITY_FLOOR + (1 - DENSITY_FLOOR) * clamped;
+    }
+
     function draw(t: number) {
       if (!ctx) return;
       ctx.clearRect(0, 0, width, height);
-      const stepX = width / GRID_X;
-      const stepY = height / GRID_Y;
+      const stepX = width / gridX;
+      const stepY = height / gridY;
       const offsetX = stepX / 2;
       const offsetY = stepY / 2;
 
       const phase = (t - start) / 1000; // seconds since mount
       ctx.fillStyle = inkColor();
-      ctx.globalAlpha = 0.18; // quiet — masthead, not splash screen
+      ctx.globalAlpha = alpha;
 
-      for (let row = 0; row < GRID_Y; row++) {
-        for (let col = 0; col < GRID_X; col++) {
-          const u = col / (GRID_X - 1);
-          const v = row / (GRID_Y - 1);
+      for (let row = 0; row < gridY; row++) {
+        for (let col = 0; col < gridX; col++) {
+          const u = gridX <= 1 ? 0 : col / (gridX - 1);
+          const v = gridY <= 1 ? 0 : row / (gridY - 1);
           const wave =
             0.5 +
             0.5 *
@@ -78,7 +111,8 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
             0.5 *
               Math.sin((u + v) * Math.PI * 1.3 - phase * 0.32 + seed * 0.31);
           const f = wave * 0.65 + swirl * 0.35;
-          const r = MIN_R + f * (MAX_R - MIN_R);
+          const dMul = densityAtCol(col);
+          const r = minR + f * (maxR - minR) * dMul;
           ctx.beginPath();
           ctx.arc(
             offsetX + col * stepX,
@@ -132,19 +166,14 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
       ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [reduced, seed]);
+  }, [reduced, seed, gridX, gridY, alpha, maxR, minR]);
 
   return (
     <div
       ref={wrapRef}
       aria-hidden
       className={className}
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        overflow: "hidden",
-      }}
+      style={{ pointerEvents: "none", overflow: "hidden" }}
     >
       <canvas ref={canvasRef} />
     </div>
