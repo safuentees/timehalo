@@ -1,7 +1,15 @@
 "use client";
 
 import { type ReactNode, useMemo, useState } from "react";
-import { Drawer } from "vaul";
+import {
+  ResponsiveModal,
+  ResponsiveModalClose,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalTrigger,
+} from "@/components/ui/responsive-modal";
 import { computeDensityMap, type Slot } from "@/lib/availability";
 import { MonthStack } from "./month-stack";
 
@@ -41,37 +49,36 @@ export function MonthDrawer({
   }
 
   return (
-    <Drawer.NestedRoot open={open} onOpenChange={setOpen}>
-      <Drawer.Trigger asChild>{children}</Drawer.Trigger>
-      <Drawer.Portal>
-        <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content bru-drawer-content-nested">
-          <Drawer.Handle className="bru-drawer-handle" />
-          <div className="bru-drawer-head">
-            <Drawer.Title className="bru-drawer-title">{title}</Drawer.Title>
-            <Drawer.Description className="sr-only">
-              {description}
-            </Drawer.Description>
-          </div>
+    <ResponsiveModal open={open} onOpenChange={setOpen} nested>
+      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
+      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
+        <ResponsiveModalClose floating />
+        <ResponsiveModalHeader className="bru-drawer-head">
+          <ResponsiveModalTitle className="bru-drawer-title">
+            {title}
+          </ResponsiveModalTitle>
+          <ResponsiveModalDescription className="sr-only">
+            {description}
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
-          <div className="bru-drawer-weekdays" aria-hidden="true">
-            {WEEKDAY_LABELS.map((d) => (
-              <span key={d} className="bru-drawer-weekdays-cell">
-                {d}
-              </span>
-            ))}
-          </div>
+        <div className="bru-drawer-weekdays" aria-hidden="true">
+          {WEEKDAY_LABELS.map((d) => (
+            <span key={d} className="bru-drawer-weekdays-cell">
+              {d}
+            </span>
+          ))}
+        </div>
 
-          <div className="bru-drawer-body" data-view="month">
-            <MonthStack
-              months={months}
-              densityMap={densityMap}
-              selectedDate={selectedDate}
-              onSelectDate={handlePick}
-            />
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.NestedRoot>
+        <div className="bru-drawer-body" data-view="month">
+          <MonthStack
+            months={months}
+            densityMap={densityMap}
+            selectedDate={selectedDate}
+            onSelectDate={handlePick}
+          />
+        </div>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
