@@ -28,7 +28,7 @@ const menuButtonClass = [
   "font-sans text-[13.5px] font-medium",
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
-  "transition-colors duration-[80ms] [transition-timing-function:steps(1)]",
+  "transition-colors duration-150 ease-bru",
   "hover:bg-[var(--bru-tint-hover)]",
   "data-[active=true]:bg-[var(--bru-tint-active)]",
   "data-[active=true]:border-l-[var(--bru-ink)]",
@@ -172,7 +172,7 @@ export function BrutalistAppSidebar() {
             <SidebarMenuButton
               tooltip="Sign out"
               onClick={() => signOut({ redirectTo: "/login" })}
-              className="rounded-(--bru-r-xs) font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-[80ms] [transition-timing-function:steps(1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
+              className="rounded-(--bru-r-xs) font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-150 ease-bru focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
             >
               <LogOut className="size-3.5 stroke-[1.5]" />
               <span>Sign out</span>
