@@ -231,6 +231,10 @@
   }
   html {
     @apply font-sans;
+    /* Reserve scrollbar gutter so centered layouts (e.g. /bookings tab
+       swaps) don't jump horizontally when overflow toggles. Overlay
+       scrollbars (macOS, mobile) ignore this and stay invisible. */
+    scrollbar-gutter: stable;
   }
 }
 
