@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -46,7 +45,7 @@ function NavBullet({ active }: { active: boolean }) {
       className={[
         "inline-block size-[6px] shrink-0",
         "bg-[var(--bru-ink)]",
-        "transition-[opacity,transform] duration-[120ms] [transition-timing-function:cubic-bezier(.2,.9,.2,1)]",
+        "transition-[opacity,transform] duration-200 ease-bru",
         active ? "opacity-100 scale-[1.2]" : "opacity-35 group-hover/item:opacity-85",
       ].join(" ")}
     />
@@ -54,16 +53,12 @@ function NavBullet({ active }: { active: boolean }) {
 }
 
 export function BrutalistAppSidebar() {
-  // Defer pathname-derived active state until after mount. Next.js 16
-  // can prerender a static shell where usePathname returns a stub value,
-  // so reading it during SSR-then-hydrate causes a `data-active` mismatch
-  // on the sidebar links. React then bails out of hydrating this subtree,
-  // which leaves adjacent buttons (topbar, + NEW POST) without their
-  // event handlers — which is the "button does nothing" symptom.
+  // usePathname() returns the same value at SSR and on the client (no
+  // rewrites in this app — proxy.ts only redirects), so the active link
+  // is server-rendered. Skipping the previous `mounted` gate means the
+  // active highlight isn't briefly absent on first paint.
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const activePath = mounted ? pathname : null;
+  const activePath = pathname;
 
   return (
     <Sidebar
