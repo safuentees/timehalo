@@ -175,7 +175,7 @@ function BlockChip({
     <button
       type="button"
       onClick={onEdit}
-      className="group relative flex w-full flex-col gap-1.5 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-shadow duration-75 [transition-timing-function:steps(1)] hover:border-[var(--bru-ink)] hover:shadow-[3px_3px_0_var(--bru-ink)] focus-visible:border-[var(--bru-ink)] focus-visible:shadow-[3px_3px_0_var(--bru-ink)] focus-visible:outline-none"
+      className="group relative flex w-full flex-col gap-1.5 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
       aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
     >
       <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
@@ -360,7 +360,7 @@ function DaysRowButton({
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-shadow duration-75 [transition-timing-function:steps(1)] hover:border-[var(--bru-ink)] hover:shadow-[3px_3px_0_var(--bru-ink)] focus-visible:border-[var(--bru-ink)] focus-visible:shadow-[3px_3px_0_var(--bru-ink)] focus-visible:outline-none"
+      className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
       aria-label={`Edit days: ${label}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -396,7 +396,7 @@ function DayToggle({
       onClick={onClick}
       aria-pressed={selected}
       aria-label={longLabel}
-      className={`relative flex w-full items-center justify-between gap-3 rounded-(--bru-r-xs) border-[1.5px] border-[var(--bru-ink)] px-4 py-3 text-left font-[family-name:var(--bru-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-75 [transition-timing-function:steps(1)] focus-visible:outline-none focus-visible:shadow-[3px_3px_0_var(--bru-ink)] ${
+      className={`relative flex w-full items-center justify-between gap-3 rounded-(--bru-r-xs) border-[1.5px] border-[var(--bru-ink)] px-4 py-3 text-left font-[family-name:var(--bru-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)] ${
         selected
           ? "bg-[var(--bru-ink)] text-[var(--bru-paper)]"
           : "bg-[var(--bru-paper)] text-[var(--bru-ink)] opacity-65 hover:opacity-100"
@@ -489,7 +489,7 @@ function TimeColumn({
   ariaLabel: string;
 }) {
   return (
-    <label className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-shadow duration-75 [transition-timing-function:steps(1)] hover:border-[var(--bru-ink)] hover:shadow-[3px_3px_0_var(--bru-ink)] has-[:focus-visible]:border-[var(--bru-ink)] has-[:focus-visible]:shadow-[3px_3px_0_var(--bru-ink)]">
+    <label className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] has-[:focus-visible]:border-[var(--bru-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--bru-ink)]">
       <input
         type="time"
         step={900}
