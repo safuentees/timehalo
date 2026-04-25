@@ -215,7 +215,7 @@ function BlockEditorDrawer({
       open={state !== null}
       onOpenChange={(open) => !open && onClose()}
     >
-      <ResponsiveModalContent>
+      <ResponsiveModalContent defaultClose={false}>
         {state ? (
           <BlockEditorContent
             key={state.mode === "edit" ? state.originalId : "new"}
@@ -314,14 +314,30 @@ function BlockEditorContent({
       </div>
 
       <div className="border-t border-[var(--bru-line-firm)] bg-[color-mix(in_srgb,var(--bru-ink)_4%,var(--bru-paper))] p-4">
-        <div className={`grid gap-2.5 ${onRemove ? "grid-cols-[1fr_1.4fr]" : "grid-cols-1"}`}>
+        {/*
+          Footer follows the canonical dialog pattern (Apple HIG / shadcn
+          DialogFooter / Linear / Vercel):
+          • Mobile (drawer): stack column-reverse so the primary action
+            sits on top of the destructive one, full-width tap targets.
+          • Desktop (modal): row, content-sized buttons. Destructive
+            (Remove) far-left, primary (Save) far-right with the gap
+            between them — separates the destructive action from the
+            primary so it can't be tapped by accident.
+          When there's no Remove (new-block mode), Save right-aligns
+          alone via `md:justify-end`.
+        */}
+        <div
+          className={`flex flex-col-reverse gap-3 md:flex-row md:items-center ${
+            onRemove ? "md:justify-between" : "md:justify-end"
+          }`}
+        >
           {onRemove ? (
             <Button
               type="button"
               variant="brutalistGhost"
               size="brutalist"
               onClick={onRemove}
-              className="w-full justify-center rounded-(--bru-r-xs)"
+              className="w-full justify-center rounded-(--bru-r-xs) md:w-auto"
             >
               <Trash2Icon /> Remove
             </Button>
@@ -332,7 +348,7 @@ function BlockEditorContent({
             size="brutalist"
             onClick={() => onSave(draft)}
             disabled={!canSave}
-            className="w-full justify-center rounded-(--bru-r-xs)"
+            className="w-full justify-center rounded-(--bru-r-xs) md:w-auto"
           >
             <CheckIcon /> {state.mode === "edit" ? "Save" : "Add"}
           </Button>
@@ -444,7 +460,10 @@ function DayPickerDrawer({
       onOpenChange={(v) => !v && onClose()}
       nested
     >
-      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
+      <ResponsiveModalContent
+        mobileClassName="bru-drawer-content-nested"
+        defaultClose={false}
+      >
         <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -620,15 +639,37 @@ function formatDayLabel(days: DayKey[], length: "short" | "long" = "short"): str
   )
     return `${name("sat")} – ${name("sun")}`;
 
+  // Range-compression / "summary ranges" algorithm. Walk the sorted
+  // day indices, open a run at each value, close it when the next
+  // index breaks contiguity. Each closed run emits a single name (if
+  // length 1) or "start – end" (if length 2+). Joined with ", " gives:
+  //   [mon, tue, wed]            -> "Mon – Wed"
+  //   [mon, tue, wed, fri, sat]  -> "Mon – Wed, Fri – Sat"
+  //   [mon, wed, fri]            -> "Mon, Wed, Fri"
   const sorted = sortDays(days);
   const indices = sorted.map((d) => DAY_INDEX[d]);
-  const contiguous = indices.every(
-    (value, i) => i === 0 || value === indices[i - 1] + 1,
-  );
-  if (contiguous && sorted.length > 1) {
-    return `${name(sorted[0])} – ${name(sorted[sorted.length - 1])}`;
+  const runs: Array<[number, number]> = [];
+  let start = indices[0];
+  let prev = start;
+  for (let i = 1; i < indices.length; i++) {
+    const curr = indices[i];
+    if (curr === prev + 1) {
+      prev = curr;
+    } else {
+      runs.push([start, prev]);
+      start = curr;
+      prev = curr;
+    }
   }
-  return sorted.map(name).join(", ");
+  runs.push([start, prev]);
+
+  return runs
+    .map(([s, e]) =>
+      s === e
+        ? name(sorted[indices.indexOf(s)])
+        : `${name(sorted[indices.indexOf(s)])} – ${name(sorted[indices.indexOf(e)])}`,
+    )
+    .join(", ");
 }
 
 function formatTimeRange(from: string, to: string): string {
