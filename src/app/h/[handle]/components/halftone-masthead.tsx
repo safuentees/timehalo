@@ -3,41 +3,79 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
-// Live halftone canvas for the public host page masthead. Tier A #2
-// from HALFTONE-IDEAS.md. Renders behind the host's name/bio so
-// visitors land on a quietly-animated brand surface without it
-// touching the booking grid below.
+// Live halftone canvas for brand surfaces. Two roles:
+//   1. Masthead behind the host's name/bio on /h/[handle] (Tier A #2).
+//   2. Density strip above the bookings list, encoding booking
+//      volume per day (Tier C #7).
 //
 // Performance contract:
 //   - Canvas2D, NOT WebGL — sub-30fps animation, simple math, no
 //     shader pipeline. Easier to reason about, lower battery drain.
-//   - IntersectionObserver gated: pauses the rAF loop when the
-//     masthead scrolls out of view.
+//   - IntersectionObserver gated: pauses the rAF loop when off-screen.
 //   - prefers-reduced-motion: reduce → renders ONE static frame and
 //     stops the loop entirely.
 //   - DPR-aware so dots render crisply on retina without burning 4×
 //     the pixels.
 //
 // `seed` keeps the field deterministic across renders (no flicker on
-// re-render). Pass a hash of the handle if you want per-host signature
-// later — Tier C #7 territory.
+// re-render). Pass a hash of the handle for per-host signature.
+//
+// `density` is an optional 0..1 array. When present, it modulates the
+// per-column dot radius — high-density days get fatter dots. The array
+// length doesn't have to match GRID_X; we sample by normalized index.
 
 type Props = {
-  /** CSS class on the wrapping <div>. Use it to size the canvas. */
+  /** CSS class on the wrapping <div>. Caller controls sizing AND positioning. */
   className?: string;
   /** Stable seed; same value = same wave field. Defaults to a constant. */
   seed?: number;
+  /**
+   * Per-column density values in [0, 1]. Length is independent of GRID_X.
+   * Higher values produce fatter dots in that column. Empty/undefined =
+   * uniform field. Empty buckets still render at a baseline floor so the
+   * surface never goes fully blank.
+   */
+  density?: number[];
+  /** Override grid resolution. Defaults: 36×9 (masthead). Strip uses fewer rows. */
+  gridX?: number;
+  gridY?: number;
+  /** Override fill alpha. Defaults: 0.18. Strip can go louder for legibility. */
+  alpha?: number;
+  /** Override max/min dot radius (px at DPR=1). */
+  maxR?: number;
+  minR?: number;
 };
 
-const GRID_X = 36; // dots wide
-const GRID_Y = 9; // dots tall — masthead is short and wide
-const MAX_R = 3.6; // px at DPR=1
-const MIN_R = 0.6;
+const DEFAULT_GRID_X = 36;
+const DEFAULT_GRID_Y = 9;
+const DEFAULT_MAX_R = 3.6;
+const DEFAULT_MIN_R = 0.6;
+const DEFAULT_ALPHA = 0.18;
 
-export function HalftoneMasthead({ className, seed = 7 }: Props) {
+// When density is provided, empty buckets still get this fraction of the
+// max radius — keeps the surface from going abruptly blank on quiet days.
+const DENSITY_FLOOR = 0.18;
+
+export function HalftoneMasthead({
+  className,
+  seed = 7,
+  density,
+  gridX = DEFAULT_GRID_X,
+  gridY = DEFAULT_GRID_Y,
+  alpha = DEFAULT_ALPHA,
+  maxR = DEFAULT_MAX_R,
+  minR = DEFAULT_MIN_R,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const reduced = useReducedMotion();
+
+  // Stable density ref so the effect doesn't re-run on every parent
+  // re-render. Density updates happen in-place through the ref.
+  const densityRef = useRef<number[] | undefined>(density);
+  useEffect(() => {
+    densityRef.current = density;
+  }, [density]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -73,22 +111,33 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
       return c || "rgb(10,10,10)";
     }
 
+    function densityAtCol(col: number): number {
+      const d = densityRef.current;
+      if (!d || d.length === 0) return 1;
+      // Map column → bucket index in the density array.
+      const u = gridX <= 1 ? 0 : col / (gridX - 1);
+      const idx = Math.min(d.length - 1, Math.max(0, Math.floor(u * d.length)));
+      const raw = d[idx] ?? 0;
+      const clamped = Math.max(0, Math.min(1, raw));
+      return DENSITY_FLOOR + (1 - DENSITY_FLOOR) * clamped;
+    }
+
     function draw(t: number) {
       if (!ctx) return;
       ctx.clearRect(0, 0, width, height);
-      const stepX = width / GRID_X;
-      const stepY = height / GRID_Y;
+      const stepX = width / gridX;
+      const stepY = height / gridY;
       const offsetX = stepX / 2;
       const offsetY = stepY / 2;
 
       const phase = (t - start) / 1000; // seconds since mount
       ctx.fillStyle = inkColor();
-      ctx.globalAlpha = 0.18; // quiet — masthead, not splash screen
+      ctx.globalAlpha = alpha;
 
-      for (let row = 0; row < GRID_Y; row++) {
-        for (let col = 0; col < GRID_X; col++) {
-          const u = col / (GRID_X - 1);
-          const v = row / (GRID_Y - 1);
+      for (let row = 0; row < gridY; row++) {
+        for (let col = 0; col < gridX; col++) {
+          const u = gridX <= 1 ? 0 : col / (gridX - 1);
+          const v = gridY <= 1 ? 0 : row / (gridY - 1);
           // Two slow waves crossing each other + a tiny seeded jitter
           // so re-renders with the same seed produce the same field.
           const wave =
@@ -102,7 +151,8 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
             0.5 *
               Math.sin((u + v) * Math.PI * 1.3 - phase * 0.32 + seed * 0.31);
           const f = wave * 0.65 + swirl * 0.35;
-          const r = MIN_R + f * (MAX_R - MIN_R);
+          const dMul = densityAtCol(col);
+          const r = minR + f * (maxR - minR) * dMul;
           ctx.beginPath();
           ctx.arc(
             offsetX + col * stepX,
@@ -158,19 +208,14 @@ export function HalftoneMasthead({ className, seed = 7 }: Props) {
       ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [reduced, seed]);
+  }, [reduced, seed, gridX, gridY, alpha, maxR, minR]);
 
   return (
     <div
       ref={wrapRef}
       aria-hidden
       className={className}
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        overflow: "hidden",
-      }}
+      style={{ pointerEvents: "none", overflow: "hidden" }}
     >
       <canvas ref={canvasRef} />
     </div>
