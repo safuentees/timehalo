@@ -17,7 +17,12 @@ import {
   AvailabilityDrawer,
   TriggerCard,
 } from "@/components/calendar";
-import { isOpenSlot, type Slot } from "@/lib/availability";
+import {
+  isOpenSlot,
+  slotBusynessWindow,
+  startOfToday,
+  type Slot,
+} from "@/lib/availability";
 import { HalftoneMasthead } from "./halftone-masthead";
 
 // Stable per-handle seed so two visitors looking at the same host see
@@ -74,6 +79,11 @@ export default function HostProfile({
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
+  // Density signal for the masthead halftone (Tier C #7). Slot busyness
+  // across the next 14 days = taken / total per day. Quiet days fade
+  // toward the field floor; popular days bloom into fatter dots.
+  const mastheadDensity = slotBusynessWindow(slots, startOfToday(), 14);
+
   function handleSelectDate(date: Date | undefined) {
     setSelectedDate(date);
 
@@ -102,10 +112,15 @@ export default function HostProfile({
 
       <article className="bru-v1">
         <header className="bru-v1-hero bru-reveal" style={{ position: "relative" }}>
-          {/* Live halftone behind the host's name + bio. Tier A #2 from
-              HALFTONE-IDEAS.md — quietly animated, IO/reduced-motion
-              gated, NEVER on the host dashboard. */}
-          <HalftoneMasthead seed={seedFromHandle(handle)} />
+          {/* Live halftone behind the host's name + bio. Tier A #2 +
+              Tier C #7 from HALFTONE-IDEAS.md — quietly animated,
+              IO/reduced-motion gated, NEVER on the host dashboard.
+              Density encodes per-day slot busyness over the next 14 days. */}
+          <HalftoneMasthead
+            seed={seedFromHandle(handle)}
+            density={mastheadDensity}
+            className="absolute inset-0"
+          />
           <div className="relative z-10 flex flex-col gap-3">
           <div className="bru-v1-kicker">
             <div className="bru-v1-id">
