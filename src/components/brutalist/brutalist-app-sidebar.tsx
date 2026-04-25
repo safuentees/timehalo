@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -43,7 +42,7 @@ function NavBullet({ active }: { active: boolean }) {
       className={[
         "inline-block size-[6px] shrink-0",
         "bg-[var(--bru-ink)]",
-        "transition-[opacity,transform] duration-[120ms] [transition-timing-function:cubic-bezier(.2,.9,.2,1)]",
+        "transition-[opacity,transform] duration-200 ease-bru",
         active ? "opacity-100 scale-[1.2]" : "opacity-35 group-hover/item:opacity-85",
       ].join(" ")}
     />
@@ -52,9 +51,7 @@ function NavBullet({ active }: { active: boolean }) {
 
 export function BrutalistAppSidebar() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const activePath = mounted ? pathname : null;
+  const activePath = pathname;
 
   return (
     <Sidebar

@@ -527,7 +527,7 @@
   overflow: auto;
   background: var(--bru-paper);
   color: var(--bru-ink);
-  border: 2px solid var(--bru-ink);
+  box-shadow: inset 0 0 0 2px var(--bru-ink);
   border-radius: var(--bru-r-sm);
   font-family: var(--bru-mono);
 }
@@ -537,6 +537,7 @@
   padding: 8px 12px;
   background: var(--bru-ink); color: var(--bru-paper);
   font-size: 11px; letter-spacing: 3px; font-weight: 800;
+  border-radius: var(--bru-r-sm) var(--bru-r-sm) 0 0;
 }
 .bru-twdivider {
   padding: 10px 12px 6px;
