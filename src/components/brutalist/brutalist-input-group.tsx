@@ -38,7 +38,7 @@ function BrutalistInputGroup({
         // while the shell matches the --bru-r-xs scale used by other inputs.
         "h-auto items-stretch overflow-hidden rounded-(--bru-r-xs) border-[1.5px] border-(--bru-ink) bg-(--bru-paper)",
         // brutalist focus effect, kills shadcn's ring
-        "transition-shadow duration-75 [transition-timing-function:steps(1)] focus-within:shadow-[3px_3px_0_var(--bru-ink)]",
+        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--bru-ink)]",
         "has-[[data-slot=input-group-control]:focus-visible]:border-(--bru-ink) has-[[data-slot=input-group-control]:focus-visible]:ring-0",
         // keep ink border when the nested input is aria-invalid; FieldError communicates the actual error
         "has-[[data-slot][aria-invalid=true]]:border-(--bru-ink) has-[[data-slot][aria-invalid=true]]:ring-0",
