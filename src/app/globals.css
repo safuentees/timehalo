@@ -9,6 +9,30 @@
   --color-foreground: var(--foreground);
   --color-bru-paper: var(--bru-paper);
   --color-bru-ink: var(--bru-ink);
+
+  --color-bru-bg: var(--bru-paper);
+  --color-bru-bg-muted: var(--bru-twdivider-bg);
+  --color-bru-content: var(--bru-ink);
+  --color-bru-content-muted: var(--bru-content-muted);
+  --color-bru-content-subtle: var(--bru-content-subtle);
+  --color-bru-line: var(--bru-line-firm);
+  --color-bru-line-strong: var(--bru-ink);
+
+  --text-bru-meta: 10px;
+  --text-bru-meta--line-height: 1.4;
+  --text-bru-sub: 13px;
+  --text-bru-sub--line-height: 1.5;
+  --text-bru-body: 15px;
+  --text-bru-body--line-height: 1.55;
+  --text-bru-strong: clamp(18px, 1.1rem + 0.4vw, 22px);
+  --text-bru-strong--line-height: 1.25;
+  --text-bru-h3: clamp(22px, 1.4rem + 0.6vw, 28px);
+  --text-bru-h3--line-height: 1.1;
+  --text-bru-h2: clamp(26px, 1.5rem + 1vw, 32px);
+  --text-bru-h2--line-height: 1.05;
+  --text-bru-h1: clamp(36px, 2rem + 2.5vw, 56px);
+  --text-bru-h1--line-height: 1;
+
   --font-sans: var(--font-grotesk);
   --font-mono: var(--font-jetbrains);
   --font-heading: var(--font-heading);
@@ -98,9 +122,16 @@
   --bru-twdivider-bg: color-mix(in oklab, var(--bru-ink) 8%, var(--bru-paper));
   --bru-t-fast: 80ms steps(1);
 
+  --bru-content-muted: color-mix(in srgb, var(--bru-ink) 55%, transparent);
+  --bru-content-subtle: color-mix(in srgb, var(--bru-ink) 35%, transparent);
+
   --bru-r-xs: 2px;
   --bru-r-sm: 6px;
   --bru-r-md: 12px;
+
+  --bru-modal-w: 720px;
+  --bru-modal-vinset: 56px;
+  --bru-modal-edge: 24px;
 }
 
 .dark {
@@ -1333,6 +1364,20 @@
 .bru-drawer-content-nested {
   max-height: 94%;
 }
+
+.bru-modal-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+
+  background: var(--bru-paper) !important;
+  color: var(--bru-ink) !important;
+  border: 2px solid var(--bru-ink) !important;
+  border-radius: var(--bru-r-md) !important;
+  box-shadow: 8px 8px 0 var(--bru-ink) !important;
+}
 .bru-drawer-handle {
   width: 72px;
   height: 4px;
@@ -1343,7 +1388,12 @@
 }
 .bru-drawer-head {
   position: relative;
-  padding: 14px 20px 10px;
+  padding: 44px 20px 14px;
+}
+@media (min-width: 768px) {
+  .bru-drawer-head {
+    padding: 56px 24px 18px;
+  }
 }
 .bru-drawer-weekdays {
   display: flex;
@@ -1356,7 +1406,8 @@
   text-align: center;
   text-indent: 2px;
   font-family: var(--bru-mono);
-  font-size: 10px;
+  container-type: inline-size;
+  font-size: clamp(10px, 18cqi, 14px);
   letter-spacing: 2px;
   font-weight: 800;
   opacity: 0.55;
@@ -1365,11 +1416,17 @@
 }
 .bru-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
   letter-spacing: -0.02em;
+  line-height: 1.05;
   text-transform: uppercase;
   margin: 0;
+}
+@media (min-width: 768px) {
+  .bru-drawer-title {
+    font-size: 32px;
+  }
 }
 .bru-drawer-sub {
   font-family: var(--bru-mono);
@@ -1473,6 +1530,12 @@
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+@media (min-width: 768px) {
+  .bru-month-caption-label {
+    font-size: 18px !important;
+    letter-spacing: 1.5px;
+  }
+}
 
 .bru-weekdays {
   display: none !important;
@@ -1526,6 +1589,7 @@
   font-variant-numeric: tabular-nums;
   transition: background var(--bru-t-fast), color var(--bru-t-fast),
     border-color var(--bru-t-fast);
+  container-type: inline-size;
 }
 .bru-day-button:disabled {
   cursor: not-allowed;
@@ -1534,7 +1598,7 @@
 .bru-day-num--past,
 .bru-day-num--full,
 .bru-day-num--closed {
-  font-size: 14px;
+  font-size: clamp(14px, 28cqi, 26px);
   font-weight: 700;
   line-height: 1;
 }
@@ -1630,15 +1694,18 @@
   transition: background-color var(--bru-t-fast),
     color var(--bru-t-fast);
   border-radius: var(--bru-r-xs);
+  container-type: inline-size;
 }
 .bru-day-strip-weekday {
-  font-size: 10px;
+  font-size: clamp(10px, 22cqi, 16px);
+  line-height: 1;
   letter-spacing: 1.5px;
   font-weight: 700;
   opacity: 0.6;
 }
 .bru-day-strip-date {
-  font-size: 18px;
+  font-size: clamp(18px, 35cqi, 32px);
+  line-height: 1;
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -1823,15 +1890,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-@media (min-width: 720px) {
-  .bru-drawer-content {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
-    width: min(520px, 92vw);
-  }
-}
-
 @container bru-root (max-width: 720px) {
   .bru-profile-shell .bru-topbar {
     padding: 14px 20px;

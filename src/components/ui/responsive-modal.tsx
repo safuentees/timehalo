@@ -1,0 +1,316 @@
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import { XIcon } from "lucide-react";
+import { Drawer as DrawerPrimitive } from "vaul";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
+
+const MOBILE_QUERY = "(max-width: 767px)";
+
+type ModalCtx = {
+  isMobile: boolean;
+  nested: boolean;
+};
+
+const Ctx = createContext<ModalCtx | null>(null);
+
+function useResponsiveModal() {
+  const ctx = useContext(Ctx);
+  if (!ctx) {
+    throw new Error(
+      "ResponsiveModal subcomponents must be used inside <ResponsiveModal>",
+    );
+  }
+  return ctx;
+}
+
+type RootProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: ReactNode;
+  nested?: boolean;
+};
+
+export function ResponsiveModal({
+  open,
+  onOpenChange,
+  children,
+  nested = false,
+}: RootProps) {
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
+  const Root = isMobile
+    ? nested
+      ? DrawerPrimitive.NestedRoot
+      : DrawerPrimitive.Root
+    : null;
+
+  return (
+    <Ctx.Provider value={{ isMobile, nested }}>
+      {isMobile && Root ? (
+        <Root open={open} onOpenChange={onOpenChange}>
+          {children}
+        </Root>
+      ) : (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          {children}
+        </Dialog>
+      )}
+    </Ctx.Provider>
+  );
+}
+
+type TriggerProps = ComponentProps<typeof DrawerPrimitive.Trigger> & {
+  asChild?: boolean;
+};
+
+export function ResponsiveModalTrigger({
+  asChild,
+  children,
+  ...props
+}: TriggerProps) {
+  const { isMobile } = useResponsiveModal();
+  if (isMobile) {
+    return (
+      <DrawerPrimitive.Trigger asChild={asChild} {...props}>
+        {children}
+      </DrawerPrimitive.Trigger>
+    );
+  }
+  // @base-ui/react Dialog uses `render` instead of `asChild`. Pass the lone
+  if (asChild) {
+    return (
+      <DialogTrigger render={children as ReactElement} {...(props as object)} />
+    );
+  }
+  return <DialogTrigger {...(props as object)}>{children}</DialogTrigger>;
+}
+
+type ContentProps = {
+  children: ReactNode;
+  mobileClassName?: string;
+  desktopClassName?: string;
+  overlayClassName?: string;
+  showHandle?: boolean;
+  showCloseButton?: boolean;
+};
+
+export function ResponsiveModalContent({
+  children,
+  mobileClassName,
+  desktopClassName,
+  overlayClassName,
+  showHandle = true,
+  showCloseButton = false,
+}: ContentProps) {
+  const { isMobile } = useResponsiveModal();
+
+  if (isMobile) {
+    return (
+      <DrawerPrimitive.Portal>
+        <DrawerPrimitive.Overlay
+          className={cn("bru-drawer-overlay", overlayClassName)}
+        />
+        <DrawerPrimitive.Content
+          className={cn("bru-drawer-content", mobileClassName)}
+        >
+          {showHandle ? (
+            <DrawerPrimitive.Handle className="bru-drawer-handle" />
+          ) : null}
+          {children}
+        </DrawerPrimitive.Content>
+      </DrawerPrimitive.Portal>
+    );
+  }
+
+  return (
+    <DialogContent
+      className={cn("bru-modal-content", desktopClassName)}
+      style={{
+        position: "fixed",
+        inset: 0,
+        margin: "auto",
+        translate: "none",
+        width: "var(--bru-modal-w)",
+        maxWidth: "calc(100vw - 2 * var(--bru-modal-edge))",
+        height: "calc(100vh - 2 * var(--bru-modal-vinset))",
+        maxHeight: "calc(100vh - 2 * var(--bru-modal-vinset))",
+      }}
+      showCloseButton={showCloseButton}
+    >
+      {children}
+    </DialogContent>
+  );
+}
+
+type HeaderProps = {
+  children: ReactNode;
+  className?: string;
+  mobileClassName?: string;
+  desktopClassName?: string;
+};
+
+export function ResponsiveModalHeader({
+  children,
+  className,
+  mobileClassName,
+  desktopClassName,
+}: HeaderProps) {
+  const { isMobile } = useResponsiveModal();
+  if (isMobile) {
+    return (
+      <div className={cn(className, mobileClassName)}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <DialogHeader className={cn(className, desktopClassName)}>
+      {children}
+    </DialogHeader>
+  );
+}
+
+type TitleProps = {
+  children: ReactNode;
+  className?: string;
+  mobileClassName?: string;
+  desktopClassName?: string;
+};
+
+export function ResponsiveModalTitle({
+  children,
+  className,
+  mobileClassName,
+  desktopClassName,
+}: TitleProps) {
+  const { isMobile } = useResponsiveModal();
+  if (isMobile) {
+    return (
+      <DrawerPrimitive.Title className={cn(className, mobileClassName)}>
+        {children}
+      </DrawerPrimitive.Title>
+    );
+  }
+  return (
+    <DialogTitle className={cn(className, desktopClassName)}>
+      {children}
+    </DialogTitle>
+  );
+}
+
+type DescriptionProps = {
+  children: ReactNode;
+  className?: string;
+  mobileClassName?: string;
+  desktopClassName?: string;
+};
+
+export function ResponsiveModalDescription({
+  children,
+  className,
+  mobileClassName,
+  desktopClassName,
+}: DescriptionProps) {
+  const { isMobile } = useResponsiveModal();
+  if (isMobile) {
+    return (
+      <DrawerPrimitive.Description
+        className={cn(className, mobileClassName)}
+      >
+        {children}
+      </DrawerPrimitive.Description>
+    );
+  }
+  return (
+    <DialogDescription className={cn(className, desktopClassName)}>
+      {children}
+    </DialogDescription>
+  );
+}
+
+type CloseProps = {
+  className?: string;
+  children?: ReactNode;
+  floating?: boolean;
+};
+
+export function ResponsiveModalClose({
+  className,
+  children,
+  floating = false,
+}: CloseProps) {
+  const { isMobile } = useResponsiveModal();
+  const baseClass = cn(
+    "rounded-(--bru-r-xs)",
+    floating &&
+      "absolute top-3 right-3 z-10 [&]:translate-x-0 [&]:translate-y-0",
+    className,
+  );
+
+  const icon = children ?? (
+    <>
+      <XIcon />
+      <span className="sr-only">Close</span>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <DrawerPrimitive.Close asChild>
+        <Button
+          type="button"
+          variant="brutalistGhost"
+          size="icon-sm"
+          aria-label="Close"
+          className={baseClass}
+        >
+          {icon}
+        </Button>
+      </DrawerPrimitive.Close>
+    );
+  }
+
+  return (
+    <DialogClose
+      render={
+        <Button
+          type="button"
+          variant="brutalistGhost"
+          size="icon-sm"
+          aria-label="Close"
+          className={baseClass}
+        />
+      }
+    >
+      {icon}
+    </DialogClose>
+  );
+}
+
+export function useResponsiveModalForm() {
+  return useResponsiveModal();
+}

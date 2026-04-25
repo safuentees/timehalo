@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
-import { Drawer } from "vaul";
+import {
+  ResponsiveModal,
+  ResponsiveModalClose,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import { DayStrip } from "./day-strip";
 import { MonthDrawer } from "./month-drawer";
@@ -63,68 +70,65 @@ export function AvailabilityDrawer({
   }
 
   return (
-    <Drawer.Root open={open} onOpenChange={handleDrawerOpenChange}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content">
-          <Drawer.Handle className="bru-drawer-handle" />
-          <div className="bru-drawer-head">
-            <Drawer.Title className="bru-drawer-title">
-              SCHEDULE YOUR MEETING
-            </Drawer.Title>
-            <Drawer.Description className="sr-only">
-              Pick a day and a time for your 15-minute meeting.
-            </Drawer.Description>
-          </div>
+    <ResponsiveModal open={open} onOpenChange={handleDrawerOpenChange}>
+      <ResponsiveModalContent>
+        <ResponsiveModalClose floating />
+        <ResponsiveModalHeader className="bru-drawer-head">
+          <ResponsiveModalTitle className="bru-drawer-title">
+            SCHEDULE YOUR MEETING
+          </ResponsiveModalTitle>
+          <ResponsiveModalDescription className="sr-only">
+            Pick a day and a time for your 15-minute meeting.
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
-          <div className="bru-drawer-monthbar">
-            <span className="bru-drawer-monthbar-label">
-              {fmtMonthYear(monthBarDate)}
-            </span>
-            <MonthDrawer
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              months={months}
+        <div className="bru-drawer-monthbar">
+          <span className="bru-drawer-monthbar-label">
+            {fmtMonthYear(monthBarDate)}
+          </span>
+          <MonthDrawer
+            slots={slots}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            months={months}
+          >
+            <button
+              type="button"
+              className="bru-view-toggle"
+              aria-label="Open month view"
             >
-              <button
-                type="button"
-                className="bru-view-toggle"
-                aria-label="Open month view"
-              >
-                <CalendarIcon />
-              </button>
-            </MonthDrawer>
-          </div>
+              <CalendarIcon />
+            </button>
+          </MonthDrawer>
+        </div>
 
-          <div className="bru-drawer-body">
-            <DayStrip
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-            />
-
-            {selectedDate ? (
-              <DaySlots
-                date={selectedDate}
-                slots={dayOfSlots}
-                onPick={handlePickSlot}
-              />
-            ) : (
-              <p className="bru-drawer-hint">
-                — TAP A DATE ABOVE TO SEE TIMES —
-              </p>
-            )}
-          </div>
-          <BookingDrawer
-            handle={handle}
-            slot={selectedSlot}
-            open={bookingOpen}
-            onOpenChange={setBookingOpen}
+        <div className="bru-drawer-body">
+          <DayStrip
+            slots={slots}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
           />
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+
+          {selectedDate ? (
+            <DaySlots
+              date={selectedDate}
+              slots={dayOfSlots}
+              onPick={handlePickSlot}
+            />
+          ) : (
+            <p className="bru-drawer-hint">
+              — TAP A DATE ABOVE TO SEE TIMES —
+            </p>
+          )}
+        </div>
+        <BookingDrawer
+          handle={handle}
+          slot={selectedSlot}
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+        />
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 

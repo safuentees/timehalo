@@ -6,10 +6,15 @@ import {
   ChevronRightIcon,
   PlusIcon,
   Trash2Icon,
-  XIcon,
 } from "lucide-react";
-import { Drawer } from "vaul";
 import { useFormContext, useWatch } from "react-hook-form";
+import {
+  ResponsiveModal,
+  ResponsiveModalClose,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { DAY_KEYS, defaultSchedule } from "@/lib/schedule";
 import type { DayKey, ScheduleValues } from "@/lib/schedule";
@@ -197,24 +202,23 @@ function BlockEditorDrawer({
   onRemove?: () => void;
 }) {
   return (
-    <Drawer.Root open={state !== null} onOpenChange={(open) => !open && onClose()}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content">
-          <Drawer.Handle className="bru-drawer-handle" />
-          {state ? (
-            <BlockEditorContent
-              key={state.mode === "edit" ? state.originalId : "new"}
-              state={state}
-              otherBlocks={otherBlocks}
-              onClose={onClose}
-              onSave={onSave}
-              onRemove={onRemove}
-            />
-          ) : null}
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+    <ResponsiveModal
+      open={state !== null}
+      onOpenChange={(open) => !open && onClose()}
+    >
+      <ResponsiveModalContent>
+        {state ? (
+          <BlockEditorContent
+            key={state.mode === "edit" ? state.originalId : "new"}
+            state={state}
+            otherBlocks={otherBlocks}
+            onClose={onClose}
+            onSave={onSave}
+            onRemove={onRemove}
+          />
+        ) : null}
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 
@@ -253,28 +257,19 @@ function BlockEditorContent({
       <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <Drawer.Title className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+            <ResponsiveModalTitle className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
               {state.mode === "edit" ? "Edit hours" : "New hours"}
-            </Drawer.Title>
+            </ResponsiveModalTitle>
             <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase tabular-nums">
               {formatTimeRange(draft.from, draft.to)}
             </p>
-            <Drawer.Description className="sr-only">
+            <ResponsiveModalDescription className="sr-only">
               {draft.days.length === 0
                 ? "Pick at least one day"
                 : formatDayLabel(draft.days)}
-            </Drawer.Description>
+            </ResponsiveModalDescription>
           </div>
-          <Button
-            type="button"
-            variant="brutalistGhost"
-            size="icon-sm"
-            onClick={onClose}
-            aria-label="Close editor"
-            className="rounded-(--bru-r-xs)"
-          >
-            <XIcon />
-          </Button>
+          <ResponsiveModalClose />
         </div>
       </div>
 
@@ -434,60 +429,51 @@ function DayPickerDrawer({
   toggleDay: (day: DayKey) => void;
 }) {
   return (
-    <Drawer.NestedRoot open={open} onOpenChange={(v) => !v && onClose()}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content bru-drawer-content-nested">
-          <Drawer.Handle className="bru-drawer-handle" />
-          <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <Drawer.Title className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
-                  Days
-                </Drawer.Title>
-                <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
-                  {days.length === 0 ? "None" : formatDayLabel(days, "long")}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="brutalistGhost"
-                size="icon-sm"
-                onClick={onClose}
-                aria-label="Close day picker"
-                className="rounded-(--bru-r-xs)"
-              >
-                <XIcon />
-              </Button>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={(v) => !v && onClose()}
+      nested
+    >
+      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
+        <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <ResponsiveModalTitle className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+                Days
+              </ResponsiveModalTitle>
+              <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
+                {days.length === 0 ? "None" : formatDayLabel(days, "long")}
+              </p>
             </div>
+            <ResponsiveModalClose />
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-            <div className="flex flex-col gap-1.5">
-              {DAYS.map((day) => (
-                <DayToggle
-                  key={day.key}
-                  label={day.long}
-                  longLabel={day.long}
-                  selected={days.includes(day.key)}
-                  onClick={() => toggleDay(day.key)}
-                />
-              ))}
-            </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <div className="flex flex-col gap-1.5">
+            {DAYS.map((day) => (
+              <DayToggle
+                key={day.key}
+                label={day.long}
+                longLabel={day.long}
+                selected={days.includes(day.key)}
+                onClick={() => toggleDay(day.key)}
+              />
+            ))}
           </div>
-          <div className="border-t border-[var(--bru-line-firm)] bg-[color-mix(in_srgb,var(--bru-ink)_4%,var(--bru-paper))] p-4">
-            <Button
-              type="button"
-              variant="brutalist"
-              size="brutalist"
-              onClick={onClose}
-              className="w-full justify-center rounded-(--bru-r-xs)"
-            >
-              <CheckIcon /> Done
-            </Button>
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.NestedRoot>
+        </div>
+        <div className="border-t border-[var(--bru-line-firm)] bg-[color-mix(in_srgb,var(--bru-ink)_4%,var(--bru-paper))] p-4">
+          <Button
+            type="button"
+            variant="brutalist"
+            size="brutalist"
+            onClick={onClose}
+            className="w-full justify-center rounded-(--bru-r-xs)"
+          >
+            <CheckIcon /> Done
+          </Button>
+        </div>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 

@@ -1,6 +1,13 @@
 "use client";
 
-import { Drawer } from "vaul";
+import {
+  ResponsiveModal,
+  ResponsiveModalClose,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import type { Slot } from "@/lib/availability";
 import { BookingForm } from "./booking-form";
 
@@ -21,37 +28,29 @@ export function BookingDrawer({
   const isOpen = open && !!slot;
 
   return (
-    <Drawer.NestedRoot open={isOpen} onOpenChange={onOpenChange}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="bru-drawer-overlay" />
-        <Drawer.Content className="bru-drawer-content bru-drawer-content-nested">
-          <Drawer.Handle className="bru-drawer-handle" />
-          <div className="bru-drawer-head">
-            <Drawer.Title className="bru-drawer-title">
-              CONFIRM BOOKING
-            </Drawer.Title>
-            {startDate ? (
-              <Drawer.Description className="bru-drawer-sub">
-                {fmtSlot(startDate)} · 15 MIN
-              </Drawer.Description>
-            ) : (
-              <Drawer.Description className="sr-only">
-                Booking form
-              </Drawer.Description>
-            )}
-          </div>
+    <ResponsiveModal open={isOpen} onOpenChange={onOpenChange} nested>
+      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
+        <ResponsiveModalClose floating />
+        <ResponsiveModalHeader className="bru-drawer-head">
+          <ResponsiveModalTitle className="bru-drawer-title">
+            CONFIRM BOOKING
+          </ResponsiveModalTitle>
+          {startDate ? (
+            <ResponsiveModalDescription className="bru-drawer-sub">
+              {fmtSlot(startDate)} · 15 MIN
+            </ResponsiveModalDescription>
+          ) : (
+            <ResponsiveModalDescription className="sr-only">
+              Booking form
+            </ResponsiveModalDescription>
+          )}
+        </ResponsiveModalHeader>
 
-          <div className="bru-drawer-body">
-            {slot ? (
-              <BookingForm
-                handle={handle}
-                slotStart={slot.start}
-              />
-            ) : null}
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.NestedRoot>
+        <div className="bru-drawer-body">
+          {slot ? <BookingForm handle={handle} slotStart={slot.start} /> : null}
+        </div>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 
