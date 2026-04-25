@@ -18,6 +18,15 @@ import {
   TriggerCard,
 } from "@/components/calendar";
 import { isOpenSlot, type Slot } from "@/lib/availability";
+import { HalftoneMasthead } from "./halftone-masthead";
+
+function seedFromHandle(handle: string): number {
+  let h = 5381;
+  for (let i = 0; i < handle.length; i++) {
+    h = ((h << 5) + h + handle.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -90,7 +99,9 @@ export default function HostProfile({
       </div>
 
       <article className="bru-v1">
-        <header className="bru-v1-hero bru-reveal">
+        <header className="bru-v1-hero bru-reveal" style={{ position: "relative" }}>
+          <HalftoneMasthead seed={seedFromHandle(handle)} />
+          <div className="relative z-10 flex flex-col gap-3">
           <div className="bru-v1-kicker">
             <div className="bru-v1-id">
               <Avatar size="sm" className="bru-v1-avatar">
@@ -136,6 +147,7 @@ export default function HostProfile({
               </>
             ) : null}
           </p>
+          </div>
         </header>
 
         <dl className="bru-v1-meta">

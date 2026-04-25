@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { HalftoneMark } from "@/components/brand/halftone-mark";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 
 const menuButtonClass = [
@@ -60,10 +61,10 @@ export function BrutalistAppSidebar() {
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
         <div className="bru-brand">
-          <div className="bru-monogram">N</div>
+          <HalftoneMark size={32} className="bru-brand-mark" />
           <div className="bru-brand-name">
-            <div>NICO</div>
-            <div className="bru-brand-sub">WRITING</div>
+            <div>OFFICEHOURS</div>
+            <div className="bru-brand-sub">HOST · v0.1</div>
           </div>
         </div>
       </SidebarHeader>
