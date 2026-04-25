@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/empty";
 import { bookingDensityWindow, startOfToday } from "@/lib/availability";
 import { HalftoneMasthead } from "@/app/h/[handle]/components/halftone-masthead";
+import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 
 type Tab = "upcoming" | "past";
 
@@ -32,20 +33,13 @@ export function BookingsList() {
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10">
-      <div className="border-b-2 border-bru-line-strong pb-6">
-        <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-          Host · Bookings
-        </p>
-        <h1 className="mt-3 text-bru-h2 font-black uppercase tracking-tight">
-          Your bookings
-        </h1>
-      </div>
+      <BrutalistPageHeader kicker="Host · Bookings" title="Your bookings" />
 
       {totalUpcoming > 0 ? (
         <DensityStrip density={density} totalUpcoming={totalUpcoming} />
       ) : null}
 
-      <div className="mt-6 inline-flex border-2 border-bru-line-strong">
+      <div className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong">
         <SegButton
           active={tab === "upcoming"}
           count={data?.upcoming.length}
@@ -139,7 +133,7 @@ function BookingRow({
   slotStart: Date;
 }) {
   return (
-    <article className="border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div className="flex flex-col gap-1.5 min-w-0">
           <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
@@ -191,7 +185,7 @@ function DensityStrip({
   return (
     <section
       aria-label="Booking volume next 14 days"
-      className="mt-6 border-2 border-bru-line-strong"
+      className="mt-6 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
     >
       <header className="flex items-baseline justify-between gap-3 border-b-2 border-bru-line-strong px-3 py-2">
         <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">

@@ -13,6 +13,7 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
+import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import {
   HandleFields,
   handleFieldSchema,
@@ -75,21 +76,24 @@ export default function ProfileForm() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10">
-          <FieldGroup>
-            <FieldSet>
-              <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-                Public handle
-              </FieldLegend>
-              <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                The slug visitors use to reach your booking page —
-                officehours.app/h/&lt;handle&gt;.
-              </FieldDescription>
-              <FieldGroup>
-                <HandleFields />
-              </FieldGroup>
-            </FieldSet>
-          </FieldGroup>
+        <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
+          <BrutalistPageHeader kicker="Host · Profile" title="Public profile" />
+          <div className="mt-8">
+            <FieldGroup>
+              <FieldSet>
+                <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+                  Public handle
+                </FieldLegend>
+                <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+                  The slug visitors use to reach your booking page —
+                  officehours.app/h/&lt;handle&gt;.
+                </FieldDescription>
+                <FieldGroup>
+                  <HandleFields />
+                </FieldGroup>
+              </FieldSet>
+            </FieldGroup>
+          </div>
           <div className="bru-dash-save-spacer" aria-hidden />
         </div>
 

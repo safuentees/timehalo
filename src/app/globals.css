@@ -766,6 +766,9 @@
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
+  border: 1.5px solid var(--bru-line);
+  border-radius: var(--bru-r-sm);
+  overflow: hidden;
 }
 
 .bru-v1-hero {
@@ -896,7 +899,6 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  border-bottom: 1px solid var(--bru-line-soft);
 }
 .bru-v1-meta-cell {
   display: flex;
