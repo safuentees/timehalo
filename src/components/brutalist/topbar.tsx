@@ -55,23 +55,18 @@ export function BrutalistTopbar() {
       <div className="bru-topbar-right">
         <Button
           variant="brutalistGhost"
-          size="brutalist"
+          size="brutalistIcon"
           onClick={toggleTheme}
-          aria-label="Toggle theme"
+          aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          className="rounded-(--bru-r-xs)"
           suppressHydrationWarning
         >
           {theme === undefined ? (
-            <span className="w-[60px]" aria-hidden />
+            <span aria-hidden />
           ) : isDark ? (
-            <>
-              <Sun className="size-3" />
-              LIGHT
-            </>
+            <Sun />
           ) : (
-            <>
-              <Moon className="size-3" />
-              DARK
-            </>
+            <Moon />
           )}
         </Button>
         {showNewPost ? (

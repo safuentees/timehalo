@@ -36,7 +36,8 @@ const buttonVariants = cva(
           "size-7",
         "icon-lg": "size-9",
         brutalist:
-          "h-auto py-[9px] px-[14px] text-[11px] gap-1.5",
+          "h-9 px-[14px] text-[11px] gap-1.5",
+        brutalistIcon: "size-9 p-0 gap-0",
       },
     },
     defaultVariants: {
