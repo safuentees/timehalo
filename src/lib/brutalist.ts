@@ -6,6 +6,8 @@ import {
   BarChart3,
   Settings,
   Waves,
+  LayoutDashboard,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,6 +19,8 @@ export type NavItem = {
 
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Profile", href: "/h/turbius", icon: UserRound },
   { label: "Drafts", href: "/drafts", icon: FileEdit },
   { label: "Archive", href: "/archive", icon: Archive },
   { label: "Tags", href: "/tags", icon: Tag },
