@@ -594,7 +594,12 @@
   overflow: auto;
   background: var(--bru-paper);
   color: var(--bru-ink);
-  border: 2px solid var(--bru-ink);
+  /* Inner box-shadow instead of `border` — paints the 2px ring in the
+     same layer as the bg, so children at the corners share the same
+     radius and the same anti-alias pass. Eliminates the sub-pixel seam
+     that `border + child-bg` produces around rounded corners (Mozilla
+     bug #603337). border-radius unchanged. */
+  box-shadow: inset 0 0 0 2px var(--bru-ink);
   border-radius: var(--bru-r-sm);
   font-family: var(--bru-mono);
 }
@@ -604,6 +609,10 @@
   padding: 8px 12px;
   background: var(--bru-ink); color: var(--bru-paper);
   font-size: 11px; letter-spacing: 3px; font-weight: 800;
+  /* No inner-curve concept now — the parent's ring is a same-layer
+     shadow, so the head fills edge-to-edge and the overflow:auto on
+     the parent clips both bg and shadow to the same 6px curve. */
+  border-radius: var(--bru-r-sm) var(--bru-r-sm) 0 0;
 }
 .bru-twdivider {
   padding: 10px 12px 6px;
