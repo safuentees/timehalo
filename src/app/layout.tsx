@@ -25,8 +25,13 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Writing",
-  description: "A learning journal — notes on building software, frontend craft, and the occasional opinion nobody asked for.",
+  title: "Officehours",
+  description:
+    "A small scheduler for office-hours-style drop-ins. One host, one visitor, one booking.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
 };
 
 export const viewport: Viewport = {
