@@ -5,38 +5,31 @@ import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBrutalistPrefs } from "./prefs-context";
-import { useNewPost } from "./new-post-context";
 
 type TitleInfo = { title: string; sub: string };
 
 const TITLE_MAP: Record<string, TitleInfo> = {
-  "/": { title: "WRITING / 2026 / APRIL", sub: "A LEARNING JOURNAL · v0.4.2" },
-  "/drafts": { title: "DRAFTS / LIBRARY", sub: "UNFINISHED THOUGHTS · PENDING" },
-  "/archive": { title: "ARCHIVE / LIBRARY", sub: "OLDER · STILL READABLE" },
-  "/tags": { title: "TAGS / LIBRARY", sub: "CROSS-CUTTING CONCERNS" },
-  "/analytics": {
-    title: "ANALYTICS / WORKSPACE",
-    sub: "READS · TIME · DROP-OFF",
+  "/bookings": { title: "BOOKINGS / HOST", sub: "PENDING · CONFIRMED · PAST" },
+  "/availability": {
+    title: "AVAILABILITY / HOST",
+    sub: "WEEKLY WINDOWS · OVERRIDES",
   },
+  "/profile": { title: "PROFILE / HOST", sub: "HANDLE · BIO · FAQ" },
   "/settings": {
-    title: "SETTINGS / WORKSPACE",
-    sub: "PREFERENCES · ACCOUNT",
+    title: "SETTINGS / HOST",
+    sub: "ACCOUNT · TIMEZONE · DANGER",
   },
-  "/lab/halftone": { title: "HALFTONE / LAB", sub: "WEBGL WALKTHROUGH" },
 };
 
 function resolveTitle(pathname: string | null): TitleInfo {
   if (pathname && TITLE_MAP[pathname]) return TITLE_MAP[pathname];
-  return TITLE_MAP["/"];
+  return { title: "OFFICEHOURS / HOST", sub: "ONE BOOKING AT A TIME" };
 }
 
 export function BrutalistTopbar() {
   const pathname = usePathname();
   const { toggleTheme } = useBrutalistPrefs();
-  const { openNewPost } = useNewPost();
-
   const { title, sub } = resolveTitle(pathname);
-  const showNewPost = pathname === "/";
 
   return (
     <div className="bru-topbar bru-reveal" style={{ ["--d" as string]: "0ms" }}>
@@ -58,15 +51,6 @@ export function BrutalistTopbar() {
           <Sun className="dark:hidden" />
           <Moon className="hidden dark:block" />
         </Button>
-        {showNewPost ? (
-          <Button
-            variant="brutalist"
-            size="brutalist"
-            onClick={openNewPost}
-          >
-            + NEW POST
-          </Button>
-        ) : null}
       </div>
     </div>
   );

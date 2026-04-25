@@ -19,7 +19,6 @@ model User {
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
-  posts                Post[]
   Authenticator        Authenticator[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -74,17 +73,6 @@ model Authenticator {
   user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
-}
-
-model Post {
-  id       Int     @id @default(autoincrement())
-  title    String
-  excerpt  String
-  date     String
-  readTime String
-  tag      String
-  user     User?   @relation(fields: [userId], references: [id])
-  userId   String?
 }
 
 model Booking {

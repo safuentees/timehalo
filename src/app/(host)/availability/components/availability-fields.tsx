@@ -16,6 +16,7 @@ import {
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { DAY_KEYS, defaultSchedule } from "@/lib/schedule";
 import type { DayKey, ScheduleValues } from "@/lib/schedule";
 
@@ -130,7 +131,10 @@ export function AvailabilityFields() {
           onClick={() =>
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
-          className="w-full justify-center border-dashed"
+          className={cn(
+            "w-full justify-center border-dashed",
+            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--bru-tint)] md:hover:text-[var(--bru-ink)]",
+          )}
         >
           <PlusIcon /> Add more hours
         </Button>

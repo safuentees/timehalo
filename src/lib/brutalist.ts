@@ -1,12 +1,7 @@
 import {
-  Home,
-  FileEdit,
-  Archive,
-  Tag,
-  BarChart3,
+  CalendarCheck,
+  Clock,
   Settings,
-  Waves,
-  LayoutDashboard,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -18,28 +13,19 @@ export type NavItem = {
 };
 
 export const PRIMARY_NAV: NavItem[] = [
-  { label: "Home", href: "/", icon: Home },
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Profile", href: "/h/turbius", icon: UserRound },
-  { label: "Drafts", href: "/drafts", icon: FileEdit },
-  { label: "Archive", href: "/archive", icon: Archive },
-  { label: "Tags", href: "/tags", icon: Tag },
+  { label: "Bookings", href: "/bookings", icon: CalendarCheck },
+  { label: "Availability", href: "/availability", icon: Clock },
+  { label: "Profile", href: "/profile", icon: UserRound },
 ];
 
 export const SECONDARY_NAV: NavItem[] = [
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-export const LAB_NAV: NavItem[] = [
-  { label: "Halftone", href: "/lab/halftone", icon: Waves },
-];
-
 export const TICKER_ITEMS: string[] = [
-  "NOW READING · RETHINKING STATE MACHINES",
+  "OFFICEHOURS · v0.1",
   "BUILT WITH NEXT · TRPC · PRISMA",
-  "DRAFTS · 03 PENDING",
-  "STREAK · 11 DAYS",
+  "ONE HOST · ONE VISITOR · ONE BOOKING",
   "REPO · SAFUENTEES/TRPC-LAB",
 ];
 

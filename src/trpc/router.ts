@@ -70,48 +70,6 @@ const privateProcedure = publicProcedure.use(isAuthed);
 
 const router = t.router;
 
-const posts = router({
-  list: publicProcedure.query(async () => {
-    return await prisma.post.findMany({
-      orderBy: [{ date: "desc" }, { id: "desc" }],
-    });
-  }),
-
-  push: privateProcedure
-    .input(
-      z.object({
-        title: z.string(),
-        excerpt: z.string(),
-        date: z.string(),
-        readTime: z.string(),
-        tag: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await prisma.post.create({
-        data: { ...input, userId: ctx.user.id },
-      });
-      return input;
-    }),
-  onNewPost: publicProcedure.subscription(async function* () {
-  }),
-  del: privateProcedure
-    .input(z.object({ id: z.int() }))
-    .mutation(async ({ input, ctx }) => {
-      const post = await prisma.post.findUnique({
-        where: { id: input.id, userId: ctx.user.id },
-      });
-      if (!post) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Post not found or you don't have permission to delete it",
-        });
-      }
-      await prisma.post.delete({ where: { id: input.id } });
-      return { id: input.id };
-    }),
-});
-
 const schedule = router({
   get: privateProcedure.query(async ({ ctx }) => {
     return await prisma.availabilityRange.findMany({
@@ -391,6 +349,6 @@ const bookings = router({
     }),
 });
 
-export const appRouter = router({ posts, schedule, users, bookings });
+export const appRouter = router({ schedule, users, bookings });
 
 export type AppRouter = typeof appRouter;
