@@ -885,6 +885,13 @@
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
+  /* Soft-brutalist outer card frame — matches the curved bordered cards
+     on /bookings so the public profile reads as part of the same system,
+     not a one-off page. overflow:hidden clips the halftone canvas (which
+     fills .bru-v1-hero) to the rounded corners. */
+  border: 1.5px solid var(--bru-line);
+  border-radius: var(--bru-r-sm);
+  overflow: hidden;
 }
 
 .bru-v1-hero {
@@ -1018,7 +1025,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  border-bottom: 1px solid var(--bru-line-soft);
+  /* Outer frame on .bru-v1 now provides the bottom edge — drop the
+     redundant hairline below the meta strip. */
 }
 .bru-v1-meta-cell {
   display: flex;
