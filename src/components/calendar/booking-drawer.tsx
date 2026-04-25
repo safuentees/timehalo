@@ -2,7 +2,6 @@
 
 import {
   ResponsiveModal,
-  ResponsiveModalClose,
   ResponsiveModalContent,
   ResponsiveModalDescription,
   ResponsiveModalHeader,
@@ -30,7 +29,6 @@ export function BookingDrawer({
   return (
     <ResponsiveModal open={isOpen} onOpenChange={onOpenChange} nested>
       <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
-        <ResponsiveModalClose floating />
         <ResponsiveModalHeader className="bru-drawer-head">
           <ResponsiveModalTitle className="bru-drawer-title">
             CONFIRM BOOKING

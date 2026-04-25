@@ -116,6 +116,7 @@ type ContentProps = {
   overlayClassName?: string;
   showHandle?: boolean;
   showCloseButton?: boolean;
+  defaultClose?: boolean;
 };
 
 export function ResponsiveModalContent({
@@ -125,6 +126,7 @@ export function ResponsiveModalContent({
   overlayClassName,
   showHandle = true,
   showCloseButton = false,
+  defaultClose = true,
 }: ContentProps) {
   const { isMobile } = useResponsiveModal();
 
@@ -139,6 +141,12 @@ export function ResponsiveModalContent({
         >
           {showHandle ? (
             <DrawerPrimitive.Handle className="bru-drawer-handle" />
+          ) : null}
+          {defaultClose ? (
+            <>
+              <ResponsiveModalClose floating />
+              <div className="bru-modal-close-bar" aria-hidden />
+            </>
           ) : null}
           {children}
         </DrawerPrimitive.Content>
@@ -161,6 +169,12 @@ export function ResponsiveModalContent({
       }}
       showCloseButton={showCloseButton}
     >
+      {defaultClose ? (
+        <>
+          <ResponsiveModalClose floating />
+          <div className="bru-modal-close-bar" aria-hidden />
+        </>
+      ) : null}
       {children}
     </DialogContent>
   );

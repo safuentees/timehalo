@@ -3,7 +3,6 @@
 import { type ReactNode, useMemo, useState } from "react";
 import {
   ResponsiveModal,
-  ResponsiveModalClose,
   ResponsiveModalContent,
   ResponsiveModalDescription,
   ResponsiveModalHeader,
@@ -46,7 +45,6 @@ export function MonthDrawer({
     <ResponsiveModal open={open} onOpenChange={setOpen} nested>
       <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
       <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
-        <ResponsiveModalClose floating />
         <ResponsiveModalHeader className="bru-drawer-head">
           <ResponsiveModalTitle className="bru-drawer-title">
             {title}

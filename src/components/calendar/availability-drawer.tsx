@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
 import {
   ResponsiveModal,
-  ResponsiveModalClose,
   ResponsiveModalContent,
   ResponsiveModalDescription,
   ResponsiveModalHeader,
@@ -72,7 +71,6 @@ export function AvailabilityDrawer({
   return (
     <ResponsiveModal open={open} onOpenChange={handleDrawerOpenChange}>
       <ResponsiveModalContent>
-        <ResponsiveModalClose floating />
         <ResponsiveModalHeader className="bru-drawer-head">
           <ResponsiveModalTitle className="bru-drawer-title">
             SCHEDULE YOUR MEETING

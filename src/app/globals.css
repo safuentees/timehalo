@@ -1398,11 +1398,21 @@
 }
 .bru-drawer-head {
   position: relative;
-  padding: 44px 20px 14px;
+  padding: 0 20px 14px;
 }
 @media (min-width: 768px) {
   .bru-drawer-head {
-    padding: 56px 24px 18px;
+    padding: 0 24px 18px;
+  }
+}
+
+.bru-modal-close-bar {
+  height: 44px;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .bru-modal-close-bar {
+    height: 56px;
   }
 }
 .bru-drawer-weekdays {
