@@ -1570,15 +1570,29 @@
 }
 .bru-drawer-head {
   position: relative;
-  /* Top padding reserves a fixed row for the floating close button so
-     the title never shares its line. Close button = `top:12px` + 32px
-     icon-sm = occupies 12–44px → 44px top padding clears it on mobile,
-     56px on desktop where the modal is wider and the title is bigger. */
-  padding: 44px 20px 14px;
+  /* No top padding — the reservation moved into `.bru-modal-close-bar`
+     so it applies automatically to every modal/drawer that opts into
+     the default close button (most of them). */
+  padding: 0 20px 14px;
 }
 @media (min-width: 768px) {
   .bru-drawer-head {
-    padding: 56px 24px 18px;
+    padding: 0 24px 18px;
+  }
+}
+
+/* Automatic vertical reservation for the floating close button. Rendered
+   by `ResponsiveModalContent` when `defaultClose` is true (the default).
+   Same 44/56px height as the close button's footprint (`top:12px` +
+   `size-7`). Flex-shrink 0 so collapsing flex parents don't crush it.
+   Aria-hidden in JSX since this is a pure layout spacer. */
+.bru-modal-close-bar {
+  height: 44px;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .bru-modal-close-bar {
+    height: 56px;
   }
 }
 /* Weekday row that sits below the month-year bar when the month view is

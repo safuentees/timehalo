@@ -146,6 +146,14 @@ type ContentProps = {
    * primitive close so consumers control the look + placement").
    */
   showCloseButton?: boolean;
+  /**
+   * Auto-render a floating <ResponsiveModalClose /> at the top-right plus
+   * a `.bru-modal-close-bar` spacer that reserves the equivalent vertical
+   * space at the top of the content. New modals get the reservation
+   * without any opt-in. Set false when the call site provides its own
+   * inline close button (e.g. inside a custom title row).
+   */
+  defaultClose?: boolean;
 };
 
 export function ResponsiveModalContent({
@@ -155,6 +163,7 @@ export function ResponsiveModalContent({
   overlayClassName,
   showHandle = true,
   showCloseButton = false,
+  defaultClose = true,
 }: ContentProps) {
   const { isMobile } = useResponsiveModal();
 
@@ -169,6 +178,12 @@ export function ResponsiveModalContent({
         >
           {showHandle ? (
             <DrawerPrimitive.Handle className="bru-drawer-handle" />
+          ) : null}
+          {defaultClose ? (
+            <>
+              <ResponsiveModalClose floating />
+              <div className="bru-modal-close-bar" aria-hidden />
+            </>
           ) : null}
           {children}
         </DrawerPrimitive.Content>
@@ -199,6 +214,12 @@ export function ResponsiveModalContent({
       }}
       showCloseButton={showCloseButton}
     >
+      {defaultClose ? (
+        <>
+          <ResponsiveModalClose floating />
+          <div className="bru-modal-close-bar" aria-hidden />
+        </>
+      ) : null}
       {children}
     </DialogContent>
   );
