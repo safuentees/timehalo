@@ -7,56 +7,38 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
 import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
-import { useSetHandle } from "@/lib/mutations/use-set-handle";
 import { Button } from "@/components/ui/button";
 import {
   FieldDescription,
   FieldGroup,
   FieldLegend,
-  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
-import {
-  HandleFields,
-  handleFieldSchema,
-  defaultHandle,
-} from "./handle-fields";
 import {
   AvailabilityFields,
   availabilitySchema,
   defaultAvailability,
 } from "./availability-fields";
 
-/**
- * One form, two mutations running in parallel on submit:
- *
- *   schedule.save   — persists the weekly availability
- *   users.setHandle — persists the handle
- *
- * Both are fired via `mutateAsync` inside `Promise.allSettled` so one
- * failing doesn't abort the other. CONFLICT on the handle is mapped to
- * a field-level error via `form.setError`, so the user sees "taken"
- * under the handle input instead of a generic toast.
- */
+// Single-purpose form: weekly availability windows. Persists via
+// `schedule.save`. Apple HIG one-screen-one-purpose — handle editing
+// lives on /profile, account stuff on /settings.
 
 const schema = z.object({
-  handle: handleFieldSchema,
   availability: availabilitySchema,
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export default function SettingsForm() {
+export default function AvailabilityForm() {
   const { data: rows } = trpc.schedule.get.useQuery();
-  const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
     () => ({
-      handle: me?.handle ?? defaultHandle,
       availability:
         rows && rows.length > 0 ? rowsToFormValues(rows) : defaultAvailability,
     }),
-    [me, rows],
+    [rows],
   );
 
   const form = useForm<FormValues>({
@@ -67,40 +49,18 @@ export default function SettingsForm() {
   });
 
   const saveSchedule = useScheduleSave();
-  const saveHandle = useSetHandle({
-    onError: (error) => {
-      // CONFLICT = handle taken. Attach to the field so the user sees
-      // the error inline instead of just in a toast.
-      if (error.data?.code === "CONFLICT") {
-        form.setError("handle", {
-          type: "server",
-          message: error.message,
-        });
-      }
-    },
-  });
 
   async function onSubmit(v: FormValues) {
-    form.clearErrors("handle");
-
-    // Fire both in parallel. allSettled so a handle CONFLICT doesn't
-    // prevent the schedule from saving (and vice versa). Each mutation
-    // reports its own success/error via its custom hook.
-    await Promise.allSettled([
-      saveHandle.mutateAsync({ handle: v.handle }),
-      saveSchedule.mutateAsync(v.availability),
-    ]);
+    await saveSchedule.mutateAsync(v.availability);
   }
 
-  const isPending = saveSchedule.isPending || saveHandle.isPending;
+  const isPending = saveSchedule.isPending;
   const isDirty = form.formState.isDirty;
 
-  // Defer form-state-driven button rendering to a post-mount pass. Back/forward
-  // nav in Next.js 16 + Turbopack can re-hydrate this tree with a queryClient
-  // state that differs from the server's dehydrated snapshot; RHF's `values`
-  // sync runs in an effect, so `isDirty` can momentarily disagree between the
-  // server HTML and the client's first paint. Holding a stable initial state
-  // until after mount avoids the hydration mismatch without changing UX.
+  // Defer save-button state until after mount — avoids a hydration
+  // mismatch between SSR (where RHF doesn't know server values) and
+  // client (where `values` syncs in an effect). Same pattern the old
+  // SettingsForm used.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -121,21 +81,10 @@ export default function SettingsForm() {
           <FieldGroup>
             <FieldSet>
               <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-                Handle
-              </FieldLegend>
-              <FieldGroup>
-                <HandleFields />
-              </FieldGroup>
-            </FieldSet>
-
-            <FieldSeparator />
-
-            <FieldSet>
-              <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-                Availability
+                Weekly availability
               </FieldLegend>
               <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                Weekly windows visitors can book from.
+                The hours visitors can book from on your public page.
               </FieldDescription>
               <FieldGroup>
                 <AvailabilityFields />
