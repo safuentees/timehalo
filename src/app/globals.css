@@ -9,6 +9,38 @@
   --color-foreground: var(--foreground);
   --color-bru-paper: var(--bru-paper);
   --color-bru-ink: var(--bru-ink);
+
+  /* ─── Tier 1: Brutalist semantic surfaces. Each generates the full
+     `bg-*` / `text-*` / `border-*` Tailwind utility family, so a
+     component reads `bg-bru-bg text-bru-content border-bru-line` and
+     dark mode flips for free. ─── */
+  --color-bru-bg: var(--bru-paper);
+  --color-bru-bg-muted: var(--bru-twdivider-bg);
+  --color-bru-content: var(--bru-ink);
+  --color-bru-content-muted: var(--bru-content-muted);
+  --color-bru-content-subtle: var(--bru-content-subtle);
+  --color-bru-line: var(--bru-line-firm);
+  --color-bru-line-strong: var(--bru-ink);
+
+  /* ─── Tier 1: Brutalist type scale. `--text-{name}` generates a
+     `text-bru-{name}` size utility; the paired `--line-height` carries
+     a default leading. Fluid clamp() on display sizes; static numerics
+     for the metadata / body floor where legibility wins. ─── */
+  --text-bru-meta: 10px;
+  --text-bru-meta--line-height: 1.4;
+  --text-bru-sub: 13px;
+  --text-bru-sub--line-height: 1.5;
+  --text-bru-body: 15px;
+  --text-bru-body--line-height: 1.55;
+  --text-bru-strong: clamp(18px, 1.1rem + 0.4vw, 22px);
+  --text-bru-strong--line-height: 1.25;
+  --text-bru-h3: clamp(22px, 1.4rem + 0.6vw, 28px);
+  --text-bru-h3--line-height: 1.1;
+  --text-bru-h2: clamp(26px, 1.5rem + 1vw, 32px);
+  --text-bru-h2--line-height: 1.05;
+  --text-bru-h1: clamp(36px, 2rem + 2.5vw, 56px);
+  --text-bru-h1--line-height: 1;
+
   --font-sans: var(--font-grotesk);
   --font-mono: var(--font-jetbrains);
   --font-heading: var(--font-heading);
@@ -99,6 +131,14 @@
   --bru-twdivider-bg: color-mix(in oklab, var(--bru-ink) 8%, var(--bru-paper));
   --bru-t-fast: 80ms steps(1);
 
+  /* ─── Tier 1 semantic content tokens. Single source of truth for
+     "muted body" and "subtle hint" copy. Mirrors dub.co's three-axis
+     model (bg / content / line); kept narrow so it stays opinionated.
+     Both reference --bru-ink so the .dark override below flips them
+     for free via lazy var() resolution. ─── */
+  --bru-content-muted: color-mix(in srgb, var(--bru-ink) 55%, transparent);
+  --bru-content-subtle: color-mix(in srgb, var(--bru-ink) 35%, transparent);
+
   /* Soft-brutalist radius scale — concentric-friendly.
      Apple's outer = inner + padding law applied manually:
      md (12px) outer shells - ~6px padding = sm (6px) cards
@@ -106,6 +146,14 @@
   --bru-r-xs: 2px;
   --bru-r-sm: 6px;
   --bru-r-md: 12px;
+
+  /* Desktop modal sizing — matched against the Drawer breakpoint in
+     `src/components/ui/responsive-modal.tsx`. Below
+     (--bru-modal-w + 2 * --bru-modal-edge) of viewport width, the shell
+     swaps to vaul Drawer, so these never drive a clipped layout. */
+  --bru-modal-w: 720px;
+  --bru-modal-vinset: 56px;
+  --bru-modal-edge: 24px;
 }
 
 .dark {
@@ -1439,6 +1487,31 @@
 .bru-drawer-content-nested {
   max-height: 94%;
 }
+
+/* ============================================================
+   DESKTOP MODAL — fixed-size shell. Mirrors dub.co's pattern:
+   `inset: 0 + margin: auto + explicit width/height` lets the
+   browser center the box without fighting shadcn's transform-
+   based centering utilities. `transform: none` neutralises
+   Tailwind's `-translate-{x,y}-1/2` defaults from <DialogContent>.
+   ============================================================ */
+.bru-modal-content {
+  /* Positioning lives in the inline `style` prop on <DialogContent> in
+     `responsive-modal.tsx` — that's the only reliable way to beat the
+     `top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2` utilities the
+     shadcn DialogContent ships with. This class only owns appearance. */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+
+  background: var(--bru-paper) !important;
+  color: var(--bru-ink) !important;
+  border: 2px solid var(--bru-ink) !important;
+  border-radius: var(--bru-r-md) !important;
+  box-shadow: 8px 8px 0 var(--bru-ink) !important;
+}
 .bru-drawer-handle {
   width: 72px;
   height: 4px;
@@ -1449,7 +1522,16 @@
 }
 .bru-drawer-head {
   position: relative;
-  padding: 14px 20px 10px;
+  /* Top padding reserves a fixed row for the floating close button so
+     the title never shares its line. Close button = `top:12px` + 32px
+     icon-sm = occupies 12–44px → 44px top padding clears it on mobile,
+     56px on desktop where the modal is wider and the title is bigger. */
+  padding: 44px 20px 14px;
+}
+@media (min-width: 768px) {
+  .bru-drawer-head {
+    padding: 56px 24px 18px;
+  }
 }
 /* Weekday row that sits below the month-year bar when the month view is
    active. Uses the same 20px horizontal padding as the drawer body so
@@ -1468,7 +1550,10 @@
      indent so the optical center matches the geometric center. */
   text-indent: 2px;
   font-family: var(--bru-mono);
-  font-size: 10px;
+  /* Track the day-cell scaling so weekday header and date number stay in
+     visual proportion across mobile drawer ↔ desktop modal. */
+  container-type: inline-size;
+  font-size: clamp(10px, 18cqi, 14px);
   letter-spacing: 2px;
   font-weight: 800;
   opacity: 0.55;
@@ -1477,11 +1562,17 @@
 }
 .bru-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
   letter-spacing: -0.02em;
+  line-height: 1.05;
   text-transform: uppercase;
   margin: 0;
+}
+@media (min-width: 768px) {
+  .bru-drawer-title {
+    font-size: 32px;
+  }
 }
 .bru-drawer-sub {
   font-family: var(--bru-mono);
@@ -1593,6 +1684,14 @@
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+@media (min-width: 768px) {
+  /* Modal is wider — give the per-month caption ("APRIL") room to read
+     as a section heading rather than a label. */
+  .bru-month-caption-label {
+    font-size: 18px !important;
+    letter-spacing: 1.5px;
+  }
+}
 
 /* Weekday labels — `classNames` prop replaces shadcn's `flex w-full`
    defaults, so we restore both flex + full width here. */
@@ -1654,6 +1753,10 @@
   font-variant-numeric: tabular-nums;
   transition: background var(--bru-t-fast), color var(--bru-t-fast),
     border-color var(--bru-t-fast);
+  /* Container-query context — day numbers scale with cell width, same
+     pattern as `.bru-day-strip-slide`. ~50px cell → 14px digit on mobile,
+     ~95px cell → 24px digit on desktop. */
+  container-type: inline-size;
 }
 .bru-day-button:disabled {
   cursor: not-allowed;
@@ -1662,7 +1765,7 @@
 .bru-day-num--past,
 .bru-day-num--full,
 .bru-day-num--closed {
-  font-size: 14px;
+  font-size: clamp(14px, 28cqi, 26px);
   font-weight: 700;
   line-height: 1;
 }
@@ -1769,15 +1872,24 @@
   transition: background-color var(--bru-t-fast),
     color var(--bru-t-fast);
   border-radius: var(--bru-r-xs);
+  /* Container-query context so the text inside scales with the chip's
+     width, not the viewport's. `cqi` = 1% of inline size of this box. */
+  container-type: inline-size;
 }
 .bru-day-strip-weekday {
-  font-size: 10px;
+  /* 10px at ~45px chip (mobile drawer) → 16px at ~90px chip (desktop modal).
+     Min/max keep it legible at the extremes. */
+  font-size: clamp(10px, 22cqi, 16px);
+  line-height: 1;
   letter-spacing: 1.5px;
   font-weight: 700;
   opacity: 0.6;
 }
 .bru-day-strip-date {
-  font-size: 18px;
+  /* 18px → 32px across the same range. Tighter line-height so the bigger
+     weights don't push the chip's vertical rhythm out. */
+  font-size: clamp(18px, 35cqi, 32px);
+  line-height: 1;
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -1974,15 +2086,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-@media (min-width: 720px) {
-  .bru-drawer-content {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
-    width: min(520px, 92vw);
-  }
-}
-
 /* Mobile */
 @container bru-root (max-width: 720px) {
   .bru-profile-shell .bru-topbar {
