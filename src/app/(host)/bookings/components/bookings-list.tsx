@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import {
@@ -21,7 +22,29 @@ const DENSITY_WINDOW_DAYS = 14;
 
 export function BookingsList() {
   const [tab, setTab] = useState<Tab>("upcoming");
+  const utils = trpc.useUtils();
   const { data } = trpc.bookings.listForHost.useQuery();
+  const [liveStatus, setLiveStatus] = useState<"connecting" | "live" | "off">(
+    "connecting",
+  );
+
+  // Live queue subscription. Whenever the server emits a booking event
+  // for this host, we toast the news + invalidate listForHost so the
+  // dashboard reflects it without a refresh. The subscription closes
+  // automatically when the component unmounts (tRPC handles the
+  // AbortSignal on its end).
+  trpc.bookings.queue.useSubscription(undefined, {
+    onStarted: () => setLiveStatus("live"),
+    onError: () => setLiveStatus("off"),
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(`New booking from ${event.visitorName}`);
+      } else {
+        toast(`Cancelled: ${event.visitorName}`);
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
 
   const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
   const upcoming = data?.upcoming ?? [];
@@ -37,6 +60,7 @@ export function BookingsList() {
   return (
     <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
+      <LiveIndicator status={liveStatus} />
 
       {/* Density strip — Tier C #7 from HALFTONE-IDEAS.md. Booking
           volume per day across the next 14 days, encoded as halftone
@@ -171,6 +195,43 @@ function BookingRow({
         {visitorEmail}
       </p>
     </article>
+  );
+}
+
+// Small status pill above the density strip — surfaces SSE
+// connection state so the host knows whether their dashboard is live
+// or stale. Three states:
+//  - connecting: yellow dot, "CONNECTING" — initial / transient
+//  - live: green dot with a soft pulse, "LIVE" — connection open
+//  - off: grey dot, "OFFLINE" — error / browser tab backgrounded too
+//    long for the SSE keepalive
+function LiveIndicator({
+  status,
+}: {
+  status: "connecting" | "live" | "off";
+}) {
+  const tone =
+    status === "live"
+      ? "bg-emerald-500"
+      : status === "connecting"
+        ? "bg-amber-500"
+        : "bg-neutral-400";
+  const label =
+    status === "live"
+      ? "LIVE"
+      : status === "connecting"
+        ? "CONNECTING"
+        : "OFFLINE";
+  return (
+    <p className="mt-3 inline-flex items-center gap-2 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-70">
+      <span
+        aria-hidden
+        className={`inline-block size-1.5 rounded-full ${tone} ${
+          status === "live" ? "animate-pulse" : ""
+        }`}
+      />
+      {label}
+    </p>
   );
 }
 
