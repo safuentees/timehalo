@@ -11,21 +11,85 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+      - name: Lint
+        run: pnpm lint
+      - name: Type check
+        run: pnpm exec tsc --noEmit
 
+  unit:
+    name: vitest (server-side contracts)
+    runs-on: ubuntu-latest
+    needs: check
+    env:
+      DATABASE_URL: file:./prisma/dev.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations to a fresh dev.db
+        run: pnpm prisma migrate deploy
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+      - name: Run vitest
+        run: pnpm test:run
+
+  e2e:
+    name: playwright (hydration smoke)
+    runs-on: ubuntu-latest
+    needs: check
+    env:
+      DATABASE_URL: file:./prisma/dev.db
+      AUTH_SECRET: ci-test-secret-not-used-in-prod
+      # NextAuth needs at least one provider config to boot. The
+      # credentials provider is internal — no external creds needed.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      - name: Lint
-        run: pnpm lint
+      # Cache the Playwright browser binary by version so we don't
+      # re-download Chromium (~92MB) on every run.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Type check
-        run: pnpm exec tsc --noEmit
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium --with-deps
+
+      # Playwright's webServer config in playwright.config.ts boots
+      # `pnpm dev` automatically and waits for it.
+      - name: Run Playwright tests
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
