@@ -187,6 +187,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: var(--bru-paper);
   }
   html {
     @apply font-sans;
@@ -1967,10 +1968,10 @@
   from { opacity: 0; }
 }
 @keyframes bru-vt-scale-out {
-  to { transform: scale(0.96); }
+  to { transform: scale(0.98); }
 }
 @keyframes bru-vt-scale-in {
-  from { transform: scale(0.96); }
+  from { transform: scale(0.98); }
 }
 
 .bru-app-sidebar {
