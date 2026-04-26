@@ -17,6 +17,10 @@ import {
   iterateBookingEvents,
   type BookingBusEvent,
 } from "@/trpc/bus";
+import {
+  getEnabledFeatures,
+  isFeatureEnabled,
+} from "@/lib/feature-flags";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -251,6 +255,15 @@ const users = router({
       where: { id: ctx.user.id },
       select: { id: true, handle: true },
     });
+  }),
+
+  // Per-user feature flag map. Returns every known flag's resolved
+  // state so the client can gate UI without a network roundtrip per
+  // flag check. Cached client-side via the standard react-query
+  // staleTime; flags that flip on the server take effect on the next
+  // refetch (or SSR boundary).
+  featureFlags: privateProcedure.query(async ({ ctx }) => {
+    return getEnabledFeatures(ctx.user.id);
   }),
 
   getByHandle: publicProcedure
@@ -773,6 +786,15 @@ const bookings = router({
   queue: privateProcedure
     .input(z.object({ lastEventId: z.string().nullish() }).optional())
     .subscription(async function* ({ ctx, signal }) {
+      // Server-side feature flag check — kill switch for the SSE
+      // bus. If `live-queue` is off, we close the connection
+      // immediately rather than holding it open forever. Belt-and-
+      // suspenders: the client also gates via featureFlags before
+      // calling useSubscription, but the server is the source of
+      // truth in case a stale client tries to bypass.
+      const enabled = await isFeatureEnabled("live-queue", ctx.user.id);
+      if (!enabled) return;
+
       // signal! is non-null inside subscription procedures — tRPC v11
       // wires the request abort signal automatically.
       const iterable = iterateBookingEvents(ctx.user.id, signal!);
