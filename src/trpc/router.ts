@@ -8,6 +8,10 @@ import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
 import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
+import {
+  findActiveSubscriptionsForEvent,
+  scheduleWebhookDelivery,
+} from "@/lib/tasks";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -428,6 +432,45 @@ const bookings = router({
           return created;
         });
         span.setAttribute("bookingPublicUid", booking.publicUid);
+
+        // Fan out the booking.created event to active webhooks. This
+        // intentionally runs OUTSIDE the $transaction — webhook delivery
+        // is best-effort, async, and a delivery-side failure must NOT
+        // roll back the booking write the visitor just confirmed.
+        // Same pattern as cal.com's bookings → scheduleTrigger flow
+        // (packages/features/webhooks/lib/scheduleTrigger.ts).
+        const subscriptions = await findActiveSubscriptionsForEvent(
+          host.id,
+          "booking.created",
+        );
+        for (const sub of subscriptions) {
+          await scheduleWebhookDelivery({
+            payload: {
+              webhookSubscriptionId: sub.id,
+              event: "booking.created",
+              body: {
+                event: "booking.created",
+                operationId,
+                booking: {
+                  publicUid: booking.publicUid,
+                  slotStart: booking.slotStart.toISOString(),
+                  slotEnd: booking.slotEnd.toISOString(),
+                  visitorName: input.visitorName,
+                  visitorEmail: input.visitorEmail,
+                  question: input.question ?? null,
+                },
+                host: {
+                  handle: input.handle,
+                  id: host.id,
+                },
+                createdAt: new Date().toISOString(),
+              },
+            },
+            referenceUid: `${booking.publicUid}:booking.created:${sub.id}`,
+          });
+        }
+        span.setAttribute("webhooksScheduled", subscriptions.length);
+
         return booking;
       } catch (cause) {
         if (
