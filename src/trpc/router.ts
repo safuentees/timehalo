@@ -109,6 +109,8 @@ function createRateLimitMiddleware(
 
 const router = t.router;
 
+export const createCaller = t.createCallerFactory;
+
 const schedule = router({
   get: privateProcedure.query(async ({ ctx }) => {
     return await prisma.availabilityRange.findMany({
@@ -357,6 +359,15 @@ const bookings = router({
 
       try {
         const booking = await prisma.$transaction(async (tx) => {
+          const existingByKeyInTx = await tx.booking.findFirst({
+            where: { idempotencyKey: input.idempotencyKey, deleted: false },
+            select: bookingSelect,
+          });
+          if (existingByKeyInTx) {
+            span.setAttribute("idempotencyHitInTx", true);
+            return existingByKeyInTx;
+          }
+
           const slotCollision = await tx.booking.findFirst({
             where: { hostId: host.id, slotStart, deleted: false },
             select: { id: true },
