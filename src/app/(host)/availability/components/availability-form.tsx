@@ -15,6 +15,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
+import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -78,7 +79,7 @@ export default function AvailabilityForm() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
+        <BrutalistPageShell>
           <BrutalistPageHeader title="Hours" />
           <div className="mt-8">
             <FieldGroup>
@@ -96,7 +97,7 @@ export default function AvailabilityForm() {
             </FieldGroup>
           </div>
           <div className="bru-dash-save-spacer" aria-hidden />
-        </div>
+        </BrutalistPageShell>
 
         <div className="bru-dash-save-bar" role="region" aria-label="Save changes">
           <div className="bru-dash-save-bar-inner">
