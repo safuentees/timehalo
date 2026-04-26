@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import {
@@ -21,7 +22,24 @@ const DENSITY_WINDOW_DAYS = 14;
 
 export function BookingsList() {
   const [tab, setTab] = useState<Tab>("upcoming");
+  const utils = trpc.useUtils();
   const { data } = trpc.bookings.listForHost.useQuery();
+  const [liveStatus, setLiveStatus] = useState<"connecting" | "live" | "off">(
+    "connecting",
+  );
+
+  trpc.bookings.queue.useSubscription(undefined, {
+    onStarted: () => setLiveStatus("live"),
+    onError: () => setLiveStatus("off"),
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(`New booking from ${event.visitorName}`);
+      } else {
+        toast(`Cancelled: ${event.visitorName}`);
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
 
   const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
   const upcoming = data?.upcoming ?? [];
@@ -35,6 +53,7 @@ export function BookingsList() {
   return (
     <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
+      <LiveIndicator status={liveStatus} />
 
       {totalUpcoming > 0 ? (
         <DensityStrip density={density} totalUpcoming={totalUpcoming} />
@@ -160,6 +179,36 @@ function BookingRow({
         {visitorEmail}
       </p>
     </article>
+  );
+}
+
+function LiveIndicator({
+  status,
+}: {
+  status: "connecting" | "live" | "off";
+}) {
+  const tone =
+    status === "live"
+      ? "bg-emerald-500"
+      : status === "connecting"
+        ? "bg-amber-500"
+        : "bg-neutral-400";
+  const label =
+    status === "live"
+      ? "LIVE"
+      : status === "connecting"
+        ? "CONNECTING"
+        : "OFFLINE";
+  return (
+    <p className="mt-3 inline-flex items-center gap-2 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-70">
+      <span
+        aria-hidden
+        className={`inline-block size-1.5 rounded-full ${tone} ${
+          status === "live" ? "animate-pulse" : ""
+        }`}
+      />
+      {label}
+    </p>
   );
 }
 
