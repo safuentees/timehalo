@@ -3,12 +3,11 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
+import { useMounted } from "@/hooks/use-mounted";
 import { XIcon } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import {
@@ -75,8 +74,7 @@ export function ResponsiveModal({
   const isMobile = useMediaQuery(MOBILE_QUERY);
   // Defer rendering until we know the breakpoint so the SSR pass and the
   // first client paint don't disagree on which primitive to mount.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted) return null;
 
