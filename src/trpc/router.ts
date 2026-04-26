@@ -10,6 +10,7 @@ import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
 import {
   findActiveSubscriptionsForEvent,
+  scheduleEmailSend,
   scheduleWebhookDelivery,
 } from "@/lib/tasks";
 import {
@@ -307,7 +308,7 @@ const bookings = router({
 
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true },
+        select: { id: true, name: true, handle: true },
       });
       if (!host) {
         throw new TRPCError({
@@ -447,6 +448,24 @@ const bookings = router({
           });
         }
         span.setAttribute("webhooksScheduled", subscriptions.length);
+
+        const hostName = host.name ?? host.handle ?? "your host";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        const confirmationUrl = `${appUrl}/h/${input.handle}/booked/${booking.publicUid}`;
+        await scheduleEmailSend({
+          payload: {
+            to: input.visitorEmail,
+            template: "booking-created",
+            props: {
+              hostName,
+              visitorName: input.visitorName,
+              slotStartIso: booking.slotStart.toISOString(),
+              question: input.question ?? null,
+              confirmationUrl,
+            },
+          },
+          referenceUid: `${booking.publicUid}:email:booking-created:visitor`,
+        });
 
         emitBookingEvent({
           type: "created",
@@ -611,6 +630,40 @@ const bookings = router({
             });
           }
           span.setAttribute("webhooksScheduled", subscriptions.length);
+
+          const hostUser = await prisma.user.findUnique({
+            where: { id: ctx.user.id },
+            select: { name: true, handle: true, email: true },
+          });
+          const hostName =
+            hostUser?.name ?? hostUser?.handle ?? "your host";
+          await scheduleEmailSend({
+            payload: {
+              to: result.visitorEmail,
+              template: "booking-cancelled",
+              props: {
+                hostName,
+                visitorName: result.visitorName,
+                slotStartIso: result.slotStart.toISOString(),
+              },
+            },
+            referenceUid: `${result.publicUid}:email:booking-cancelled:visitor:${operationId}`,
+          });
+          if (hostUser?.email) {
+            await scheduleEmailSend({
+              payload: {
+                to: hostUser.email,
+                template: "booking-cancelled-host",
+                props: {
+                  hostName,
+                  visitorName: result.visitorName,
+                  visitorEmail: result.visitorEmail,
+                  slotStartIso: result.slotStart.toISOString(),
+                },
+              },
+              referenceUid: `${result.publicUid}:email:booking-cancelled:host:${operationId}`,
+            });
+          }
 
           emitBookingEvent({
             type: "cancelled",

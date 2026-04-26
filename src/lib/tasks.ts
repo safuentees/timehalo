@@ -1,9 +1,14 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import type {
+  TemplateName,
+  TemplatePropsMap,
+} from "@/lib/email";
 import type { WebhookEvent } from "@/trpc/router";
 
-const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
+export const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
+export const TASK_TYPE_EMAIL_SEND = "emailSend";
 
 export type WebhookDeliveryPayload = {
   webhookSubscriptionId: number;
@@ -21,6 +26,40 @@ export async function scheduleWebhookDelivery(opts: ScheduleOpts) {
     await prisma.task.create({
       data: {
         type: TASK_TYPE_WEBHOOK_DELIVERY,
+        payload: JSON.stringify(opts.payload),
+        referenceUid: opts.referenceUid,
+      },
+    });
+    return true;
+  } catch (cause) {
+    if (
+      cause instanceof Prisma.PrismaClientKnownRequestError &&
+      cause.code === "P2002"
+    ) {
+      return false;
+    }
+    throw cause;
+  }
+}
+
+export type EmailSendPayload<T extends TemplateName = TemplateName> = {
+  to: string;
+  template: T;
+  props: TemplatePropsMap[T];
+};
+
+type ScheduleEmailOpts<T extends TemplateName> = {
+  payload: EmailSendPayload<T>;
+  referenceUid: string;
+};
+
+export async function scheduleEmailSend<T extends TemplateName>(
+  opts: ScheduleEmailOpts<T>,
+) {
+  try {
+    await prisma.task.create({
+      data: {
+        type: TASK_TYPE_EMAIL_SEND,
         payload: JSON.stringify(opts.payload),
         referenceUid: opts.referenceUid,
       },

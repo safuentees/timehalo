@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
+import type { EmailSendPayload } from "@/lib/tasks";
 import { signWebhookBody } from "@/lib/webhook-signature";
 
 const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
+const TASK_TYPE_EMAIL_SEND = "emailSend";
 const MAX_TASKS_PER_RUN = 25;
 
 function nextRetryAt(attempts: number): Date {
@@ -44,6 +47,10 @@ export async function POST(request: Request) {
 
     if (task.type === TASK_TYPE_WEBHOOK_DELIVERY) {
       const result = await runWebhookDelivery(task);
+      if (result === "ok") succeeded++;
+      else failed++;
+    } else if (task.type === TASK_TYPE_EMAIL_SEND) {
+      const result = await runEmailSend(task);
       if (result === "ok") succeeded++;
       else failed++;
     } else {
@@ -137,6 +144,48 @@ async function runWebhookDelivery(task: {
     task.attempts,
     `Receiver returned ${response.status}`,
   );
+}
+
+async function runEmailSend(task: {
+  id: number;
+  payload: string;
+  attempts: number;
+}): Promise<"ok" | "fail"> {
+  let payload: EmailSendPayload;
+  try {
+    payload = JSON.parse(task.payload) as EmailSendPayload;
+  } catch {
+    return markFailed(task.id, task.attempts, "Invalid email task payload JSON");
+  }
+
+  const result = await sendEmail({
+    to: payload.to,
+    template: payload.template,
+    props: payload.props,
+  });
+
+  if (result.ok) {
+    await prisma.task.update({
+      where: { id: task.id },
+      data: {
+        succeededAt: new Date(),
+        attempts: task.attempts + 1,
+      },
+    });
+    return "ok";
+  }
+
+  if (result.reason === "no-key") {
+    return markPermanentlyFailed(task.id, "RESEND_API_KEY not configured");
+  }
+
+  const errMessage =
+    result.error instanceof Error
+      ? result.error.message
+      : typeof result.error === "string"
+        ? result.error
+        : "Resend send failed";
+  return markFailed(task.id, task.attempts, errMessage);
 }
 
 async function markFailed(

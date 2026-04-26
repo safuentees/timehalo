@@ -74,6 +74,7 @@ describe("cron — webhook delivery processor", () => {
       visitorName: "Visitor",
       visitorEmail: "v@test.local",
     });
+    await prisma.task.deleteMany({ where: { type: "emailSend" } });
     return booking;
   }
 
