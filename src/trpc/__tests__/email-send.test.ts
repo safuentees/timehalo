@@ -190,16 +190,16 @@ describe("bookings procedures — email enqueue side effects", () => {
     });
 
     const tasks = await prisma.task.findMany({
-      where: { type: TASK_TYPE_EMAIL_SEND },
+      where: {
+        type: TASK_TYPE_EMAIL_SEND,
+        referenceUid: { endsWith: ":email:booking-created:visitor" },
+      },
       select: { payload: true, referenceUid: true },
     });
     expect(tasks).toHaveLength(1);
     const payload = JSON.parse(tasks[0].payload) as EmailSendPayload;
     expect(payload.template).toBe("booking-created");
     expect(payload.to).toBe("maya@example.com");
-    expect(tasks[0].referenceUid).toMatch(
-      /:email:booking-created:visitor$/,
-    );
   });
 
   it("bookings.cancel enqueues two emails (visitor + host)", async () => {

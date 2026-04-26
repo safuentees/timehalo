@@ -12,9 +12,11 @@ import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
 import {
+  cancelPendingTask,
   findActiveSubscriptionsForEvent,
   scheduleEmailSend,
   scheduleWebhookDelivery,
+  TASK_TYPE_EMAIL_SEND,
 } from "@/lib/tasks";
 import {
   emitBookingEvent,
@@ -443,6 +445,7 @@ const users = router({
 });
 
 const SLOT_MINUTES = 15;
+const REMINDER_LEAD_MS = 60 * 60 * 1000;
 const bookingConfirmationInputSchema = z.object({
   handle: z.string().min(1),
   bookingUid: z.string().min(1),
@@ -643,6 +646,26 @@ const bookings = router({
           referenceUid: `${booking.publicUid}:email:booking-created:visitor`,
         });
 
+        const reminderAt = new Date(
+          booking.slotStart.getTime() - REMINDER_LEAD_MS,
+        );
+        if (reminderAt.getTime() > Date.now()) {
+          await scheduleEmailSend({
+            payload: {
+              to: input.visitorEmail,
+              template: "booking-reminder",
+              props: {
+                hostName,
+                visitorName: input.visitorName,
+                slotStartIso: booking.slotStart.toISOString(),
+                confirmationUrl,
+              },
+            },
+            referenceUid: `${booking.publicUid}:email:booking-reminder:visitor`,
+            scheduledAt: reminderAt,
+          });
+        }
+
         emitBookingEvent({
           type: "created",
           bookingPublicUid: booking.publicUid,
@@ -806,6 +829,11 @@ const bookings = router({
             });
           }
           span.setAttribute("webhooksScheduled", subscriptions.length);
+
+          await cancelPendingTask({
+            referenceUid: `${result.publicUid}:email:booking-reminder:visitor`,
+            type: TASK_TYPE_EMAIL_SEND,
+          });
 
           const hostUser = await prisma.user.findUnique({
             where: { id: ctx.user.id },
@@ -1144,6 +1172,30 @@ const bookings = router({
               },
               referenceUid: `${created.publicUid}:email:booking-rescheduled:visitor:${operationId}`,
             });
+
+            await cancelPendingTask({
+              referenceUid: `${original.publicUid}:email:booking-reminder:visitor`,
+              type: TASK_TYPE_EMAIL_SEND,
+            });
+            const newReminderAt = new Date(
+              newSlotStart.getTime() - REMINDER_LEAD_MS,
+            );
+            if (newReminderAt.getTime() > Date.now()) {
+              await scheduleEmailSend({
+                payload: {
+                  to: original.visitorEmail,
+                  template: "booking-reminder",
+                  props: {
+                    hostName,
+                    visitorName: original.visitorName,
+                    slotStartIso: newSlotStart.toISOString(),
+                    confirmationUrl,
+                  },
+                },
+                referenceUid: `${created.publicUid}:email:booking-reminder:visitor`,
+                scheduledAt: newReminderAt,
+              });
+            }
 
             emitBookingEvent({
               type: "cancelled",
