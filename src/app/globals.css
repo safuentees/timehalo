@@ -2223,24 +2223,37 @@
    - 220ms / 280ms is short enough not to feel like a laggy app. Long
      transitions on snappy user actions are the #1 chisel anti-pattern. */
 
+/* Root contains all persistent chrome (sidebar, topbar, body bg) plus
+   the page content. We OPT IN the page content via .bru-host-content
+   below, which lifts it out of root. Root then has animation:none, so
+   the chrome never gets snapshotted into a transition — no double
+   strokes, no ghosted icons, no edge artifacts at the topbar seam. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  /* Anchor the scale to the top of the snapshot. Default origin is
-     center, which shrinks the root inward from all sides — including
-     pulling the page top DOWN by ~1% mid-transition. That tiny gap
-     between the named topbar and the scaling page fills with body bg,
-     which matches the topbar bg, so the topbar visually grows by
-     ~2% for the animation's duration. Anchoring top keeps the
-     topbar/page seam sharp. */
+  animation: none !important;
+}
+
+/* Animated region — only the page-content slot inside the dashboard
+   layout. transform-origin: top center keeps the seam with the topbar
+   sharp; scaling pulls inward from the bottom and sides. Surrounding
+   1% inset shows the body bg (var(--bru-paper)), which matches the
+   page bg, so the scale reads as depth without exposing a contrasting
+   frame. */
+.bru-host-content {
+  view-transition-name: bru-host-content;
+}
+
+::view-transition-old(bru-host-content),
+::view-transition-new(bru-host-content) {
   transform-origin: top center;
 }
 
-::view-transition-old(root) {
+::view-transition-old(bru-host-content) {
   animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
              bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
-::view-transition-new(root) {
+::view-transition-new(bru-host-content) {
   animation: bru-vt-fade-in 220ms cubic-bezier(0, 0, .2, 1) 60ms both,
              bru-vt-scale-in 280ms cubic-bezier(.2, .8, .2, 1) both;
 }
@@ -2262,38 +2275,12 @@
   from { transform: scale(0.98); }
 }
 
-/* Don't snapshot persistent host chrome — sidebar and topbar exist
-   identically in the old and new pages. Following the Next.js docs
-   pattern (Step 3, "Anchoring the header"):
-     - `animation: none` on the group: no enter/exit animation
-     - `z-index: 100` on the group: stay above the root snapshot
-     - `display: none` on the OLD pseudo: only the new snapshot
-       renders, so the topbar's border-bottom isn't painted twice
-       (which was making the seam appear darker mid-transition)
-     - `animation: none` on the NEW pseudo: keeps it at full opacity
-       throughout instead of fading in
-   `bru-app-topbar` is the persistent dashboard topbar specifically —
-   distinct from the page-internal `.bru-topbar` banners on /h/[handle]
-   and /booked, which we DO want crossfaded with the rest of the page. */
-.bru-app-sidebar {
-  view-transition-name: bru-host-sidebar;
-}
-.bru-app-topbar {
-  view-transition-name: bru-host-topbar;
-}
-::view-transition-group(bru-host-sidebar),
-::view-transition-group(bru-host-topbar) {
-  animation: none !important;
-  z-index: 100;
-}
-::view-transition-old(bru-host-sidebar),
-::view-transition-old(bru-host-topbar) {
-  display: none;
-}
-::view-transition-new(bru-host-sidebar),
-::view-transition-new(bru-host-topbar) {
-  animation: none !important;
-}
+/* Persistent chrome (sidebar, topbar) doesn't need view-transition-name
+   anymore — it's part of `root`, and root has animation:none, so the
+   chrome stays static for free. The previous opt-out approach was
+   leaving the topbar with double-rendered icons + a doubled
+   border-bottom mid-transition; opting in only the page content
+   avoids the issue at the source. */
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
