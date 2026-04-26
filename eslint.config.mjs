@@ -13,6 +13,9 @@ const eslintConfig = defineConfig([
     "design_handoff_brutalist_writing/**",
     "design_handoff_halftone_lab/**",
     "src/generated/**",
+    ".claude/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

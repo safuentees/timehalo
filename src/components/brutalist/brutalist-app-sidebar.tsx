@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
+import { useMounted } from "@/hooks/use-mounted";
 import {
   Sidebar,
   SidebarContent,
@@ -53,10 +53,7 @@ function NavBullet({ active }: { active: boolean }) {
 
 export function BrutalistAppSidebar() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
   const activePath = mounted ? pathname : null;
 
   return (

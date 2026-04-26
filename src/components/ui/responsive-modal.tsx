@@ -3,12 +3,11 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
+import { useMounted } from "@/hooks/use-mounted";
 import { XIcon } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import {
@@ -57,8 +56,7 @@ export function ResponsiveModal({
   nested = false,
 }: RootProps) {
   const isMobile = useMediaQuery(MOBILE_QUERY);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted) return null;
 

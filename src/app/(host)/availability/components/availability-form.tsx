@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,10 +56,7 @@ export default function AvailabilityForm() {
   const isPending = saveSchedule.isPending;
   const isDirty = form.formState.isDirty;
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
   const buttonDisabled = mounted ? isPending || !isDirty : true;
   const buttonLabel = !mounted
     ? "Saved"
