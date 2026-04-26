@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
+import { createRatelimit, type Duration } from "@/lib/rate-limit";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -74,6 +75,33 @@ const isAuthed = middleware(async (opts) => {
 });
 
 const privateProcedure = publicProcedure.use(isAuthed);
+
+// Rate-limit middleware factory — port of rallly's
+// createRateLimitMiddleware (apps/web/src/trpc/trpc.ts:134-174). The
+// limiter instance is created ONCE per `name` at module load; the
+// returned middleware is stateless and just calls .limit().
+//
+// Bucketing key shape: `${name}:${ctx.ipIdentifier}`. Including the
+// procedure name keeps namespaces clean — `bookings.create` doesn't
+// share a bucket with a future `slots.hold`.
+function createRateLimitMiddleware(
+  name: string,
+  requests: number,
+  duration: Duration,
+) {
+  const ratelimit = createRatelimit(requests, duration);
+
+  return middleware(async ({ ctx, next }) => {
+    const { success } = await ratelimit.limit(`${name}:${ctx.ipIdentifier}`);
+    if (!success) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: "Too many requests. Wait a minute and try again.",
+      });
+    }
+    return next();
+  });
+}
 
 const router = t.router;
 
@@ -259,6 +287,11 @@ const bookings = router({
   // level — Prisma's P2002 maps to TRPCError CONFLICT so the form can
   // show a friendly "that slot was just taken" message.
   create: publicProcedure
+    // 10 requests / minute / IP — matches cal.com's `core` bucket
+    // (packages/lib/rateLimit.ts). Generous enough for a real visitor
+    // who hits validation errors and retries; tight enough to throttle
+    // a curl loop or a runaway script.
+    .use(createRateLimitMiddleware("bookings.create", 10, "1 m"))
     .input(bookingInputSchema)
     .mutation(async ({ input }) => {
       const bookingSelect = {
