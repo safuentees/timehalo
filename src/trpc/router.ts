@@ -10,6 +10,7 @@ import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
 import {
   findActiveSubscriptionsForEvent,
+  scheduleEmailSend,
   scheduleWebhookDelivery,
 } from "@/lib/tasks";
 import {
@@ -381,7 +382,7 @@ const bookings = router({
 
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true },
+        select: { id: true, name: true, handle: true },
       });
       if (!host) {
         throw new TRPCError({
@@ -561,6 +562,30 @@ const bookings = router({
           });
         }
         span.setAttribute("webhooksScheduled", subscriptions.length);
+
+        // Email fan-out — visitor gets booking-created. Host already
+        // has the SSE live queue + dashboard, so no host email on
+        // create (cancel emails both parties since the visitor learns
+        // about it asynchronously). Same pattern as webhook delivery:
+        // queued via Task, processed off-path so a Resend hiccup
+        // can't roll back the booking write.
+        const hostName = host.name ?? host.handle ?? "your host";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        const confirmationUrl = `${appUrl}/h/${input.handle}/booked/${booking.publicUid}`;
+        await scheduleEmailSend({
+          payload: {
+            to: input.visitorEmail,
+            template: "booking-created",
+            props: {
+              hostName,
+              visitorName: input.visitorName,
+              slotStartIso: booking.slotStart.toISOString(),
+              question: input.question ?? null,
+              confirmationUrl,
+            },
+          },
+          referenceUid: `${booking.publicUid}:email:booking-created:visitor`,
+        });
 
         // Live queue fan-out — fires the host's SSE channel (see
         // src/trpc/bus.ts) so any open dashboard tab gets the event
@@ -752,6 +777,47 @@ const bookings = router({
             });
           }
           span.setAttribute("webhooksScheduled", subscriptions.length);
+
+          // Email fan-out — both parties get notified on cancel. The
+          // visitor was waiting for this slot; the host gets a record
+          // outside the SSE/dashboard channel so a cancellation that
+          // happens while the dashboard is closed still surfaces.
+          // Reference uid binds to the cancel operation, not the
+          // booking publicUid, so an eventual re-booking + cancel
+          // doesn't dedup against the prior round.
+          const hostUser = await prisma.user.findUnique({
+            where: { id: ctx.user.id },
+            select: { name: true, handle: true, email: true },
+          });
+          const hostName =
+            hostUser?.name ?? hostUser?.handle ?? "your host";
+          await scheduleEmailSend({
+            payload: {
+              to: result.visitorEmail,
+              template: "booking-cancelled",
+              props: {
+                hostName,
+                visitorName: result.visitorName,
+                slotStartIso: result.slotStart.toISOString(),
+              },
+            },
+            referenceUid: `${result.publicUid}:email:booking-cancelled:visitor:${operationId}`,
+          });
+          if (hostUser?.email) {
+            await scheduleEmailSend({
+              payload: {
+                to: hostUser.email,
+                template: "booking-cancelled-host",
+                props: {
+                  hostName,
+                  visitorName: result.visitorName,
+                  visitorEmail: result.visitorEmail,
+                  slotStartIso: result.slotStart.toISOString(),
+                },
+              },
+              referenceUid: `${result.publicUid}:email:booking-cancelled:host:${operationId}`,
+            });
+          }
 
           emitBookingEvent({
             type: "cancelled",

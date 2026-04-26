@@ -1,0 +1,83 @@
+import "server-only";
+import { renderEmail } from "./render";
+import { resend, EMAIL_FROM } from "./resend";
+import {
+  type TemplateName,
+  type TemplatePropsMap,
+  getSubject,
+  renderTemplateElement,
+} from "./templates";
+
+export type { TemplateName, TemplatePropsMap } from "./templates";
+
+// Branch-prefixed dev subjects so a Vercel preview deploy doesn't
+// look like prod in the inbox. dub uses VERCEL_GIT_COMMIT_REF; we
+// pick up the same env so a preview branch lands as `[branch] subject`.
+function devSubjectPrefix(): string {
+  const isProd = process.env.VERCEL_ENV === "production";
+  const branch = process.env.VERCEL_GIT_COMMIT_REF;
+  if (isProd || !branch) return "";
+  return `[${branch}] `;
+}
+
+// Dev sink — same trick as dub's send-via-resend.ts:30. In dev /
+// preview, every send routes to Resend's dev address so we never
+// surprise a real user with a test send.
+function resolveRecipient(to: string): string {
+  if (process.env.VERCEL_ENV === "production") return to;
+  return "delivered@resend.dev";
+}
+
+export type SendEmailResult =
+  | { ok: true; id: string }
+  | { ok: false; reason: "no-key" | "send-failed"; error?: unknown };
+
+/**
+ * Send a templated email synchronously via Resend.
+ *
+ * Most call sites should NOT use this directly — enqueue a Task row
+ * via `scheduleEmailSend()` instead. The cron processor calls this.
+ *
+ * Graceful skip when RESEND_API_KEY is unset: returns
+ * `{ ok: false, reason: "no-key" }` so the cron can mark the task
+ * succeeded (we don't want to retry forever on a config gap).
+ */
+export async function sendEmail<T extends TemplateName>(opts: {
+  to: string;
+  template: T;
+  props: TemplatePropsMap[T];
+}): Promise<SendEmailResult> {
+  if (!resend) {
+    console.info(
+      "[email] RESEND_API_KEY not set — skipping send (template=%s, to=%s)",
+      opts.template,
+      opts.to,
+    );
+    return { ok: false, reason: "no-key" };
+  }
+
+  const subject = `${devSubjectPrefix()}${getSubject(
+    opts.template,
+    opts.props,
+  )}`;
+  const element = renderTemplateElement(opts.template, opts.props);
+  const { html, text } = await renderEmail(element);
+
+  try {
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: resolveRecipient(opts.to),
+      subject,
+      html,
+      text,
+    });
+    if (result.error) {
+      console.error("[email] Resend returned error:", result.error);
+      return { ok: false, reason: "send-failed", error: result.error };
+    }
+    return { ok: true, id: result.data?.id ?? "unknown" };
+  } catch (error) {
+    console.error("[email] Send threw:", error);
+    return { ok: false, reason: "send-failed", error };
+  }
+}
