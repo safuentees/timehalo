@@ -228,6 +228,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Behind the scaling page snapshot during view transitions. Without
+       this, the body shows shadcn's default `bg-background` (~white in
+       light mode) and the shrinking page reads as a white frame around
+       the content. --bru-paper tracks the theme so dark mode stays
+       dark behind the transition. */
+    background-color: var(--bru-paper);
   }
   html {
     @apply font-sans;
@@ -2233,11 +2239,15 @@
 @keyframes bru-vt-fade-in {
   from { opacity: 0; }
 }
+/* Subtle scale — 0.98, not 0.96. The previous 4% travel read as a full
+   "zoom out and back," which is too much for a sidebar tab swap. Apple's
+   own tab transitions are closer to 1-2% scale; the eye reads it as
+   "the page settled" rather than "the camera pulled back." */
 @keyframes bru-vt-scale-out {
-  to { transform: scale(0.96); }
+  to { transform: scale(0.98); }
 }
 @keyframes bru-vt-scale-in {
-  from { transform: scale(0.96); }
+  from { transform: scale(0.98); }
 }
 
 /* Don't snapshot the host sidebar — it's persistent chrome and would
