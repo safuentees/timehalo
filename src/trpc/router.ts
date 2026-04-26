@@ -261,6 +261,24 @@ const bookings = router({
   create: publicProcedure
     .input(bookingInputSchema)
     .mutation(async ({ input }) => {
+      const bookingSelect = {
+        id: true,
+        publicUid: true,
+        slotStart: true,
+        slotEnd: true,
+      } as const;
+
+      // Idempotency short-circuit. If the visitor's form has already
+      // produced a booking for this UUID, return it as-is without
+      // re-running validation. Skips the "slot is in the past" check
+      // when a retry happens late, and skips a wasteful slot scan.
+      // Mirrors cal.com Booking.idempotencyKey semantics.
+      const existingByKey = await prisma.booking.findUnique({
+        where: { idempotencyKey: input.idempotencyKey },
+        select: bookingSelect,
+      });
+      if (existingByKey) return existingByKey;
+
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
         select: { id: true },
@@ -320,13 +338,9 @@ const bookings = router({
             question: input.question,
             slotStart,
             slotEnd,
+            idempotencyKey: input.idempotencyKey,
           },
-          select: {
-            id: true,
-            publicUid: true,
-            slotStart: true,
-            slotEnd: true,
-          },
+          select: bookingSelect,
         });
         return booking;
       } catch (cause) {
@@ -334,6 +348,29 @@ const bookings = router({
           cause instanceof Prisma.PrismaClientKnownRequestError &&
           cause.code === "P2002"
         ) {
+          // Race protection: between the findUnique above and this
+          // create, a parallel request with the same idempotencyKey
+          // could have landed first. Look it up and return it instead
+          // of throwing CONFLICT. P2002.meta.target is the offending
+          // index — Prisma normalizes this to a string array; the
+          // shape varies by adapter, so accept either string or array
+          // and substring-match for the field name.
+          const target = cause.meta?.target;
+          const targetStr = Array.isArray(target)
+            ? target.join(",")
+            : typeof target === "string"
+              ? target
+              : "";
+          if (targetStr.includes("idempotencyKey")) {
+            const raced = await prisma.booking.findUnique({
+              where: { idempotencyKey: input.idempotencyKey },
+              select: bookingSelect,
+            });
+            if (raced) return raced;
+            // Extreme edge: constraint hit but row not found. Fall
+            // through to a generic error so we don't return undefined.
+          }
+
           throw new TRPCError({
             code: "CONFLICT",
             message: "Someone just grabbed that slot. Pick another.",

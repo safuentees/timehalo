@@ -90,6 +90,13 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  // Client-supplied UUID generated once at form mount. Same key on every
+  // retry of the same submit — second create with the same key is
+  // intercepted by the handler and returns the original booking instead
+  // of throwing. Mirrors cal.com Booking.idempotencyKey
+  // (packages/prisma/schema.prisma:855). Nullable for legacy / future
+  // server-side creates that don't need a per-attempt key.
+  idempotencyKey String? @unique
   createdAt    DateTime @default(now())
 
   @@unique([hostId, slotStart])
