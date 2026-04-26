@@ -15,6 +15,10 @@ export const createPrivateSSRHelper = cache(async () => {
     router: appRouter,
     ctx: {
       user: session.user,
+      // SSR helpers don't go through the HTTP rate-limit middleware,
+      // but the Context type requires this field. "ssr" is a stable
+      // sentinel that won't collide with a real client IP.
+      ipIdentifier: "ssr",
     },
   });
 });
@@ -26,6 +30,7 @@ export const createPublicSSRHelper = cache(async () => {
     router: appRouter,
     ctx: {
       user: session?.user ?? null,
+      ipIdentifier: "ssr",
     },
   });
 });
