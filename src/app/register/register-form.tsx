@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,21 +13,17 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group";
+import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import { useRegister } from "@/lib/mutations/use-register";
+import { trpc } from "@/trpc/hooks";
 
-// Stub availability check. In a real app this would be a debounced
-// tRPC query hitting the DB. Kept client-side here so the demo works
-// without any schema changes.
-const TAKEN_HANDLES = new Set([
-  "admin",
-  "root",
-  "api",
-  "santiago",
-  "me",
-  "test",
-  "alex",
-]);
-
-type Availability = "idle" | "checking" | "available" | "taken" | "invalid";
+type Availability =
+  | "idle"
+  | "checking"
+  | "available"
+  | "taken"
+  | "invalid"
+  | "error";
 
 type Form = {
   email: string;
@@ -34,44 +32,84 @@ type Form = {
 };
 
 export function RegisterForm() {
+  const router = useRouter();
   const {
-    register,
+    register: registerField,
     handleSubmit,
-    watch,
+    control,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     defaultValues: { email: "", password: "", handle: "" },
+    resolver: zodResolver(registerInputSchema),
     mode: "onBlur",
   });
 
-  const handle = watch("handle");
-  const [availability, setAvailability] = useState<Availability>("idle");
+  const watchedHandle = useWatch({ control, name: "handle" });
+  const handle = watchedHandle ?? "";
+  const handleReady = handleSchema.safeParse(handle).success;
+  const handleAvailability = trpc.auth.handleAvailability.useQuery(
+    { handle },
+    {
+      enabled: handleReady,
+      retry: false,
+    },
+  );
 
-  // Debounced availability check — runs 400ms after the user stops typing.
-  useEffect(() => {
-    if (!handle) {
-      setAvailability("idle");
-      return;
-    }
-    if (handle.length < 3) {
-      setAvailability("invalid");
-      return;
-    }
-    setAvailability("checking");
-    const id = setTimeout(() => {
-      setAvailability(TAKEN_HANDLES.has(handle) ? "taken" : "available");
-    }, 400);
-    return () => clearTimeout(id);
-  }, [handle]);
+  const registerMutation = useRegister({
+    onSuccess: async (created, variables) => {
+      const result = await signIn("credentials", {
+        email: created.email,
+        password: variables.password,
+        redirect: false,
+      });
 
-  const onSubmit = handleSubmit(async () => {
-    // Stub — would call a tRPC auth.register mutation in a real build.
-    await new Promise((r) => setTimeout(r, 600));
-    alert(`Would register ${handle}`);
+      if (result?.error) {
+        setError("root", {
+          message:
+            "Account created, but sign-in failed. Sign in from the login page.",
+        });
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    },
+    onError: (error) => {
+      if (error.data?.code !== "CONFLICT") return;
+
+      if (error.message.toLowerCase().includes("email")) {
+        setError("email", { message: error.message });
+        return;
+      }
+
+      setError("handle", { message: error.message });
+    },
   });
 
-  const canSubmit = availability === "available" && !isSubmitting;
+  const availability: Availability = !handle
+    ? "idle"
+    : !handleReady
+      ? "invalid"
+      : handleAvailability.isError
+        ? "error"
+        : handleAvailability.data
+          ? handleAvailability.data.available
+            ? "available"
+            : "taken"
+          : "checking";
+
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      await registerMutation.mutateAsync(values);
+    } catch {
+      // The custom hook and field-level handlers above own user feedback.
+    }
+  });
+
+  const isBusy = isSubmitting || registerMutation.isPending;
+  const canSubmit = availability === "available" && !isBusy;
 
   return (
     <form onSubmit={onSubmit} className="grid gap-5">
@@ -83,9 +121,14 @@ export function RegisterForm() {
           type="email"
           placeholder="you@domain.com"
           autoComplete="email"
-          {...register("email", { required: true })}
+          {...registerField("email")}
           className="text-sm"
         />
+        {errors.email ? (
+          <p className="font-mono text-[10px] tracking-wide text-destructive">
+            {errors.email.message}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-2">
@@ -96,12 +139,12 @@ export function RegisterForm() {
           type="password"
           placeholder="8+ characters"
           autoComplete="new-password"
-          {...register("password", { required: true, minLength: 8 })}
+          {...registerField("password")}
           className="text-sm"
         />
         {errors.password ? (
           <p className="font-mono text-[10px] tracking-wide text-destructive">
-            At least 8 characters.
+            {errors.password.message}
           </p>
         ) : null}
       </div>
@@ -120,12 +163,13 @@ export function RegisterForm() {
             autoCorrect="off"
             spellCheck={false}
             maxLength={30}
+            name="handle"
             value={handle}
             onChange={(e) =>
               setValue(
                 "handle",
                 e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                { shouldValidate: true },
+                { shouldDirty: true, shouldValidate: true },
               )
             }
           />
@@ -134,7 +178,18 @@ export function RegisterForm() {
           </InputGroupAddon>
         </InputGroup>
         <HandleHelp state={availability} />
+        {errors.handle ? (
+          <p className="font-mono text-[10px] tracking-wide text-destructive">
+            {errors.handle.message}
+          </p>
+        ) : null}
       </div>
+
+      {errors.root?.message ? (
+        <p className="font-mono text-xs text-destructive">
+          {errors.root.message}
+        </p>
+      ) : null}
 
       <Button
         type="submit"
@@ -142,7 +197,7 @@ export function RegisterForm() {
         size="sm"
         className="font-mono text-xs tracking-wide"
       >
-        {isSubmitting ? "Creating…" : "Create account"}
+        {isBusy ? "Creating..." : "Create account"}
       </Button>
     </form>
   );
@@ -166,6 +221,8 @@ function AvailabilityBadge({ state }: { state: Availability }) {
       return (
         <InputGroupText className="text-muted-foreground">3+</InputGroupText>
       );
+    case "error":
+      return <InputGroupText className="text-destructive">!</InputGroupText>;
     default:
       return null;
   }
@@ -177,6 +234,8 @@ function HandleHelp({ state }: { state: Availability }) {
       ? "That one's gone. Try another."
       : state === "invalid"
         ? "Minimum 3 characters. Letters, numbers, hyphens only."
+        : state === "error"
+          ? "Could not check this handle. Try again."
         : state === "available"
           ? "Available. You can change it later."
           : "Lowercase letters, numbers, hyphens.";
