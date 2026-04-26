@@ -417,6 +417,13 @@ const bookings = router({
       const operationId = crypto.randomUUID();
       span.setAttribute("operationId", operationId);
 
+      // Attribution from the oh_ref_<handle> cookie set in proxy.ts
+      // when the visitor first landed via a ?ref= link. Server-side
+      // only — never trusted from the input. Mirrors dub.co's clickId
+      // → conversion thread shrunk to single-host scope.
+      const referrer = ctx.cookies.get(`oh_ref_${input.handle}`) ?? null;
+      if (referrer) span.setAttribute("referrer", referrer);
+
       try {
         // $transaction(async tx => ...) — slot collision check +
         // booking write + audit row commit atomically. SQLite
@@ -449,6 +456,7 @@ const bookings = router({
               slotStart,
               slotEnd,
               idempotencyKey: input.idempotencyKey,
+              referrer,
             },
             select: bookingSelect,
           });
@@ -468,6 +476,7 @@ const bookings = router({
                 slotStart: created.slotStart.toISOString(),
                 slotEnd: created.slotEnd.toISOString(),
                 idempotencyKey: input.idempotencyKey,
+                referrer,
               },
               operationId,
             },
