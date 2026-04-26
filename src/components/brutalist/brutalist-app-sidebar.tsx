@@ -64,7 +64,6 @@ export function BrutalistAppSidebar() {
           <HalftoneMark size={32} className="bru-brand-mark" />
           <div className="bru-brand-name">
             <div>OFFICEHOURS</div>
-            <div className="bru-brand-sub">HOST · v0.1</div>
           </div>
         </div>
       </SidebarHeader>

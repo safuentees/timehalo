@@ -98,10 +98,7 @@ export default function HostProfile({
       <div className="bru-topbar">
         <div className="flex items-center gap-3">
           <div className="bru-monogram">OH</div>
-          <div>
-            <div className="bru-topbar-title">/h/{user.handle}</div>
-            <div className="bru-topbar-sub">PUBLIC PROFILE</div>
-          </div>
+          <div className="bru-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
 
@@ -143,20 +140,6 @@ export default function HostProfile({
               {daysWithOpenSlotsThisWeek === 1 ? "day" : "days"} with open slots
               this week
             </span>
-            {nextSlot ? (
-              <>
-                <span className="bru-v1-subtle-sep" aria-hidden>
-                  ·
-                </span>
-                <span>
-                  next free{" "}
-                  <strong>
-                    {fmtDayLabelShort(new Date(nextSlot.start))}{" "}
-                    {fmtTimeCompact(new Date(nextSlot.start))}
-                  </strong>
-                </span>
-              </>
-            ) : null}
           </p>
           </div>
         </header>
@@ -180,7 +163,7 @@ export default function HostProfile({
       </article>
 
       <section className="bru-profile-cta">
-        {nextSlot ? <NextAvailable slot={nextSlot} now={now} /> : null}
+        {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
         {!hasSlots ? (
           <HostEmpty displayName={displayName} kind="closed" />
         ) : !hasOpenSlots ? (
@@ -248,7 +231,7 @@ function HostEmpty({
   );
 }
 
-function NextAvailable({ slot, now }: { slot: Slot; now: Date }) {
+function NextAvailable({ slot }: { slot: Slot }) {
   const startDate = new Date(slot.start);
   return (
     <section className="bru-next-available bru-reveal" aria-label="Next available slot">
@@ -256,7 +239,7 @@ function NextAvailable({ slot, now }: { slot: Slot; now: Date }) {
       <div className="bru-next-available-body">
         <span className="bru-next-available-time">{fmtTime(startDate)}</span>
         <span className="bru-next-available-meta">
-          {fmtDayLabelShort(startDate)} · {fmtRelative(startDate, now)}
+          {fmtDayLabelShort(startDate)}
         </span>
       </div>
     </section>
@@ -274,15 +257,6 @@ function fmtTime(d: Date): string {
   return `${hour12}:${String(d.getMinutes()).padStart(2, "0")} ${suffix}`;
 }
 
-function fmtTimeCompact(d: Date): string {
-  const hour12 = ((d.getHours() + 11) % 12) + 1;
-  const suffix = d.getHours() < 12 ? "AM" : "PM";
-  const minute = d.getMinutes();
-  return minute === 0
-    ? `${hour12}${suffix}`
-    : `${hour12}:${String(minute).padStart(2, "0")}${suffix}`;
-}
-
 function countOpenDaysThisWeek(slots: Slot[], now: Date): number {
   const horizon = new Date(now);
   horizon.setDate(horizon.getDate() + 7);
@@ -294,21 +268,6 @@ function countOpenDaysThisWeek(slots: Slot[], now: Date): number {
     }
   }
   return days.size;
-}
-
-function fmtRelative(d: Date, now: Date): string {
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  );
-  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const diffDays = Math.round(
-    (target.getTime() - startOfToday.getTime()) / 86_400_000,
-  );
-  if (diffDays === 0) return "TODAY";
-  if (diffDays === 1) return "TOMORROW";
-  return `IN ${diffDays} DAYS`;
 }
 
 function isToday(d: Date, now: Date): boolean {

@@ -35,7 +35,7 @@ export function BookingDrawer({
           </ResponsiveModalTitle>
           {startDate ? (
             <ResponsiveModalDescription className="bru-drawer-sub">
-              {fmtSlot(startDate)} · 15 MIN
+              {fmtSlot(startDate)}
             </ResponsiveModalDescription>
           ) : (
             <ResponsiveModalDescription className="sr-only">
@@ -64,5 +64,5 @@ function fmtSlot(d: Date): string {
     hour: "numeric",
     minute: "2-digit",
   });
-  return `${day} · ${time}`;
+  return `${day} ${time}`;
 }
