@@ -72,12 +72,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
       <div className="bru-topbar">
         <div className="flex items-center gap-3">
           <div className="bru-monogram">OH</div>
-          <div>
-            <div className="bru-topbar-title">
-              OFFICE HOURS · /h/{booking.host.handle}
-            </div>
-            <div className="bru-topbar-sub">BOOKING RECEIPT</div>
-          </div>
+          <div className="bru-topbar-title">/h/{booking.host.handle}</div>
         </div>
       </div>
 
@@ -105,9 +100,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             <span className="bru-profile-kicker">WHEN</span>
             <div className="bru-confirm-value tabular-nums">{slotDate}</div>
             <div className="bru-confirm-meta tabular-nums">{slotTime}</div>
-            <p className="bru-confirm-note text-pretty">
-              {tzLabel} · {durationMinutes} MIN
-            </p>
+            <p className="bru-confirm-note text-pretty">{tzLabel}</p>
           </article>
 
           <article className="bru-confirm-card bru-reveal">
