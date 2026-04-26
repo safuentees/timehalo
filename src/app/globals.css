@@ -1951,6 +1951,11 @@
   }
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  transform-origin: top center;
+}
+
 ::view-transition-old(root) {
   animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
              bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
