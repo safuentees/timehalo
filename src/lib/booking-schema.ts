@@ -8,6 +8,11 @@ import { z } from "zod";
 export const bookingInputSchema = z.object({
   handle: z.string().min(1),
   slotStart: z.string().datetime(),
+  // Client generates one v4 UUID at form mount and reuses it for every
+  // retry. Server short-circuits the second submission with the same
+  // key and returns the original booking. crypto.randomUUID() is an
+  // RFC 4122 v4 UUID — z.string().uuid() validates that format.
+  idempotencyKey: z.string().uuid(),
   visitorName: z
     .string()
     .trim()
