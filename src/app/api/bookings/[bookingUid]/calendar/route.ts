@@ -1,4 +1,26 @@
+import { createEvent } from "ics";
 import { prisma } from "@/lib/prisma";
+
+// GET /api/bookings/:bookingUid/calendar — returns an RFC 5545 .ics
+// file for a single booking. The visitor's confirmation page button
+// already links here; clicking it downloads `officehours.ics`, which
+// the OS hands off to Apple Calendar / Outlook / Google Calendar with
+// the slot pre-filled.
+//
+// Pattern reference: rallly's apps/web/src/app/api/event/[...route]/route.ts
+// `app.get("/:eventId/ics", ...)` handler. Same shape — fetch the row,
+// call ics.createEvent({...}), return text/calendar with a filename
+// in Content-Disposition.
+//
+// Auth: public-by-design. publicUid is a cuid (cryptographically
+// random); whoever has the URL is treated as authorized to download
+// the calendar attachment. Same model rallly uses.
+//
+// Param name `bookingUid` matches /h/[handle]/booked/[bookingUid] —
+// Next.js requires the same dynamic-segment-position to share a slug
+// across all routes that touch it.
+
+const PRODUCT_ID = "-//Officehours//EN";
 
 export async function GET(
   _request: Request,
@@ -6,15 +28,19 @@ export async function GET(
 ) {
   const { bookingUid } = await params;
 
-  const booking = await prisma.booking.findUnique({
-    where: { publicUid: bookingUid },
+  const booking = await prisma.booking.findFirst({
+    where: { publicUid: bookingUid, deleted: false },
     select: {
       publicUid: true,
+      visitorName: true,
+      visitorEmail: true,
+      question: true,
       slotStart: true,
       slotEnd: true,
       host: {
         select: {
           name: true,
+          email: true,
           handle: true,
         },
       },
@@ -22,68 +48,70 @@ export async function GET(
   });
 
   if (!booking) {
-    return new Response("Booking not found", { status: 404 });
+    return Response.json({ error: "Booking not found" }, { status: 404 });
   }
 
+  const start = booking.slotStart;
+  const end = booking.slotEnd;
   const hostName = booking.host.name ?? booking.host.handle ?? "Host";
-  const calendarBody = buildCalendarFile({
-    uid: booking.publicUid,
+
+  // ics.createEvent expects start/end as [year, month-1-indexed-month,
+  // day, hour, minute] arrays. Using getUTC* + startInputType:"utc"
+  // matches rallly's pattern (apps/web/src/utils/ics.ts:55-90) and
+  // produces a calendar entry that's correct in every timezone.
+  const { error, value } = createEvent({
+    uid: `${booking.publicUid}@officehours.app`,
+    productId: PRODUCT_ID,
     title: `Office hours with ${hostName}`,
-    description: `Booked via Officehours. Reference ${booking.publicUid}.`,
-    slotStart: booking.slotStart,
-    slotEnd: booking.slotEnd,
+    description: booking.question
+      ? `Question: ${booking.question}\n\nReference: ${booking.publicUid}`
+      : `Reference: ${booking.publicUid}`,
+    startInputType: "utc",
+    startOutputType: "utc",
+    start: [
+      start.getUTCFullYear(),
+      start.getUTCMonth() + 1,
+      start.getUTCDate(),
+      start.getUTCHours(),
+      start.getUTCMinutes(),
+    ],
+    end: [
+      end.getUTCFullYear(),
+      end.getUTCMonth() + 1,
+      end.getUTCDate(),
+      end.getUTCHours(),
+      end.getUTCMinutes(),
+    ],
+    organizer: {
+      name: hostName,
+      email: booking.host.email,
+    },
+    attendees: [
+      {
+        name: booking.visitorName,
+        email: booking.visitorEmail,
+        rsvp: false,
+        partstat: "ACCEPTED",
+        role: "REQ-PARTICIPANT",
+      },
+    ],
+    method: "PUBLISH",
+    status: "CONFIRMED",
   });
 
-  return new Response(calendarBody, {
+  if (error || !value) {
+    return Response.json(
+      { error: "Failed to generate calendar file" },
+      { status: 500 },
+    );
+  }
+
+  return new Response(value, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="officehours-${booking.publicUid}.ics"`,
-      "Cache-Control": "private, max-age=0, must-revalidate",
+      "Content-Disposition": 'attachment; filename="officehours.ics"',
+      // Don't cache — booking details could change (cancel, reschedule).
+      "Cache-Control": "no-store",
     },
   });
-}
-
-function buildCalendarFile({
-  uid,
-  title,
-  description,
-  slotStart,
-  slotEnd,
-}: {
-  uid: string;
-  title: string;
-  description: string;
-  slotStart: Date;
-  slotEnd: Date;
-}) {
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Officehours//Booking Receipt//EN",
-    "BEGIN:VEVENT",
-    `UID:${escapeIcsText(uid)}@officehours`,
-    `DTSTAMP:${toIcsUtc(new Date())}`,
-    `DTSTART:${toIcsUtc(slotStart)}`,
-    `DTEND:${toIcsUtc(slotEnd)}`,
-    `SUMMARY:${escapeIcsText(title)}`,
-    `DESCRIPTION:${escapeIcsText(description)}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-    "",
-  ].join("\r\n");
-}
-
-function toIcsUtc(date: Date): string {
-  return date
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}Z$/, "Z");
-}
-
-function escapeIcsText(value: string): string {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
 }
