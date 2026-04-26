@@ -69,3 +69,7 @@ HALFTONE-IDEAS.md
 
 # stray scratch at repo root (real config lives in src/)
 /auth.ts
+.playwright-mcp/
+test-results/
+playwright-report/
+playwright/.cache/
