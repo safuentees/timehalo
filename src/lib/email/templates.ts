@@ -20,6 +20,10 @@ import BookingRescheduledEmail, {
   bookingRescheduledSubject,
   type BookingRescheduledProps,
 } from "./templates/booking-rescheduled";
+import BookingReminderEmail, {
+  bookingReminderSubject,
+  type BookingReminderProps,
+} from "./templates/booking-reminder";
 
 // Template registry — one entry per template, paired with its subject
 // generator. The discriminated union of TemplateName + per-template
@@ -50,6 +54,10 @@ export const TEMPLATES = {
     Component: BookingRescheduledEmail,
     getSubject: bookingRescheduledSubject,
   },
+  "booking-reminder": {
+    Component: BookingReminderEmail,
+    getSubject: bookingReminderSubject,
+  },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
@@ -62,6 +70,7 @@ export type TemplatePropsMap = {
   "booking-cancelled-host": BookingCancelledHostProps;
   "account-deleted": AccountDeletedProps;
   "booking-rescheduled": BookingRescheduledProps;
+  "booking-reminder": BookingReminderProps;
 };
 
 export function renderTemplateElement<T extends TemplateName>(
