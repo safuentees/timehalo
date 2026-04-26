@@ -231,6 +231,19 @@ const bookings = router({
   create: publicProcedure
     .input(bookingInputSchema)
     .mutation(async ({ input }) => {
+      const bookingSelect = {
+        id: true,
+        publicUid: true,
+        slotStart: true,
+        slotEnd: true,
+      } as const;
+
+      const existingByKey = await prisma.booking.findUnique({
+        where: { idempotencyKey: input.idempotencyKey },
+        select: bookingSelect,
+      });
+      if (existingByKey) return existingByKey;
+
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
         select: { id: true },
@@ -286,13 +299,9 @@ const bookings = router({
             question: input.question,
             slotStart,
             slotEnd,
+            idempotencyKey: input.idempotencyKey,
           },
-          select: {
-            id: true,
-            publicUid: true,
-            slotStart: true,
-            slotEnd: true,
-          },
+          select: bookingSelect,
         });
         return booking;
       } catch (cause) {
@@ -300,6 +309,20 @@ const bookings = router({
           cause instanceof Prisma.PrismaClientKnownRequestError &&
           cause.code === "P2002"
         ) {
+          const target = cause.meta?.target;
+          const targetStr = Array.isArray(target)
+            ? target.join(",")
+            : typeof target === "string"
+              ? target
+              : "";
+          if (targetStr.includes("idempotencyKey")) {
+            const raced = await prisma.booking.findUnique({
+              where: { idempotencyKey: input.idempotencyKey },
+              select: bookingSelect,
+            });
+            if (raced) return raced;
+          }
+
           throw new TRPCError({
             code: "CONFLICT",
             message: "Someone just grabbed that slot. Pick another.",

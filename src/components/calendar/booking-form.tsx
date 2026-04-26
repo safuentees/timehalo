@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,8 @@ export function BookingForm({ handle, slotStart }: Props) {
     mode: "onBlur",
   });
 
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+
   const book = useBookingCreate({
     onSuccess: (booking) => {
       form.reset();
@@ -41,6 +44,7 @@ export function BookingForm({ handle, slotStart }: Props) {
     book.mutate({
       handle,
       slotStart,
+      idempotencyKey,
       visitorName: values.visitorName,
       visitorEmail: values.visitorEmail,
       question: values.question,

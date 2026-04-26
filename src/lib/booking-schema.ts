@@ -3,6 +3,7 @@ import { z } from "zod";
 export const bookingInputSchema = z.object({
   handle: z.string().min(1),
   slotStart: z.string().datetime(),
+  idempotencyKey: z.string().uuid(),
   visitorName: z
     .string()
     .trim()

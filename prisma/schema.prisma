@@ -85,6 +85,7 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  idempotencyKey String? @unique
   createdAt    DateTime @default(now())
 
   @@unique([hostId, slotStart])
