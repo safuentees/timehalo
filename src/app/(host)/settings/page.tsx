@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
+import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 
 // Settings stub — Phase 2 covers timezone, password change, account
 // deletion, and webhook tokens. For now it's a marker so the route
@@ -11,7 +12,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="bru-main">
-      <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
+      <BrutalistPageShell>
         <BrutalistPageHeader title="Account" />
         <p className="mt-8 text-[14px] leading-[1.55] opacity-65 max-w-prose">
           Timezone, password, danger zone. Lands here once a story
@@ -31,7 +32,7 @@ export default async function SettingsPage() {
           </a>
           .
         </p>
-      </div>
+      </BrutalistPageShell>
     </main>
   );
 }

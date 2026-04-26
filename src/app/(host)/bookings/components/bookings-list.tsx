@@ -13,6 +13,7 @@ import {
 import { bookingDensityWindow, startOfToday } from "@/lib/availability";
 import { HalftoneMasthead } from "@/app/h/[handle]/components/halftone-masthead";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
+import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 
 type Tab = "upcoming" | "past";
 
@@ -34,7 +35,7 @@ export function BookingsList() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10">
+    <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
 
       {/* Density strip — Tier C #7 from HALFTONE-IDEAS.md. Booking
@@ -85,7 +86,7 @@ export function BookingsList() {
           </ul>
         )}
       </div>
-    </div>
+    </BrutalistPageShell>
   );
 }
 
