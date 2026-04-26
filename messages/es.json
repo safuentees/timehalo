@@ -9,7 +9,12 @@
     "saving": "Guardando…",
     "saved": "Guardado",
     "useBrowser": "Usar navegador",
-    "yourTimezone": "Tu zona horaria"
+    "yourTimezone": "Tu zona horaria",
+    "themeLegend": "Apariencia",
+    "themeDescription": "Sigue el sistema por defecto. Anula por dispositivo cuando quieras un aspecto fijo.",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro"
   },
   "DangerZone": {
     "label": "Zona de peligro",

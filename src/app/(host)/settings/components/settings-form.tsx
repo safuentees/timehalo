@@ -20,6 +20,7 @@ import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import { timezoneSchema, DEFAULT_TIMEZONE } from "@/lib/timezone";
 import { TimezoneFields } from "./timezone-fields";
 import { LanguageFields } from "./language-fields";
+import { ThemeFields } from "./theme-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 
 const schema = z.object({
@@ -88,6 +89,10 @@ export default function SettingsForm() {
 
           <div className="mt-12 border-t-2 border-bru-line pt-10">
             <LanguageFields />
+          </div>
+
+          <div className="mt-12 border-t-2 border-bru-line pt-10">
+            <ThemeFields />
           </div>
 
           <section className="mt-16 border-t-2 border-bru-line-strong pt-10">

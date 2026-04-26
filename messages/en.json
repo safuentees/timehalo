@@ -9,7 +9,12 @@
     "saving": "Saving…",
     "saved": "Saved",
     "useBrowser": "Use browser",
-    "yourTimezone": "Your timezone"
+    "yourTimezone": "Your timezone",
+    "themeLegend": "Appearance",
+    "themeDescription": "Match the OS by default. Override per device when you want a fixed look.",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark"
   },
   "DangerZone": {
     "label": "Danger zone",
