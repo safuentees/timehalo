@@ -2263,11 +2263,15 @@
 }
 
 /* Don't snapshot persistent host chrome — sidebar and topbar exist
-   identically in the old and new pages, so the default `root` snapshot
-   crossfades them against themselves and produces a brief "double
-   element" ghost mid-transition. Naming each element pulls it out of
-   the root snapshot; we then suppress its own animation so it just
-   stays put.
+   identically in the old and new pages. Following the Next.js docs
+   pattern (Step 3, "Anchoring the header"):
+     - `animation: none` on the group: no enter/exit animation
+     - `z-index: 100` on the group: stay above the root snapshot
+     - `display: none` on the OLD pseudo: only the new snapshot
+       renders, so the topbar's border-bottom isn't painted twice
+       (which was making the seam appear darker mid-transition)
+     - `animation: none` on the NEW pseudo: keeps it at full opacity
+       throughout instead of fading in
    `bru-app-topbar` is the persistent dashboard topbar specifically —
    distinct from the page-internal `.bru-topbar` banners on /h/[handle]
    and /booked, which we DO want crossfaded with the rest of the page. */
@@ -2278,10 +2282,15 @@
   view-transition-name: bru-host-topbar;
 }
 ::view-transition-group(bru-host-sidebar),
+::view-transition-group(bru-host-topbar) {
+  animation: none !important;
+  z-index: 100;
+}
 ::view-transition-old(bru-host-sidebar),
+::view-transition-old(bru-host-topbar) {
+  display: none;
+}
 ::view-transition-new(bru-host-sidebar),
-::view-transition-group(bru-host-topbar),
-::view-transition-old(bru-host-topbar),
 ::view-transition-new(bru-host-topbar) {
   animation: none !important;
 }
