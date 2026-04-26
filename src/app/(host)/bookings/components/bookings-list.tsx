@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -26,8 +26,10 @@ export function BookingsList() {
 
   return (
     <BrutalistPageShell>
-      <BrutalistPageHeader title="Your bookings" />
-      {liveQueueEnabled ? <LiveQueue /> : null}
+      <BrutalistPageHeader
+        title="Your bookings"
+        aside={liveQueueEnabled ? <LiveQueue /> : null}
+      />
 
       <div className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong">
         <SegButton
@@ -154,9 +156,17 @@ function BookingRow({
 
 function LiveQueue() {
   const utils = trpc.useUtils();
-  const [status, setStatus] = useState<"connecting" | "live" | "off">(
-    "connecting",
-  );
+  const [status, setStatus] = useState<
+    "hidden" | "connecting" | "live" | "off"
+  >("hidden");
+  const [pulseKey, setPulseKey] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setStatus((s) => (s === "hidden" ? "connecting" : s));
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
 
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
@@ -168,16 +178,21 @@ function LiveQueue() {
         toast(`Cancelled: ${event.visitorName}`);
       }
       utils.bookings.listForHost.invalidate();
+      setPulseKey((k) => k + 1);
     },
   });
 
-  return <LiveIndicator status={status} />;
+  if (status === "hidden") return null;
+
+  return <LiveDot status={status} pulseKey={pulseKey} />;
 }
 
-function LiveIndicator({
+function LiveDot({
   status,
+  pulseKey,
 }: {
   status: "connecting" | "live" | "off";
+  pulseKey: number;
 }) {
   const tone =
     status === "live"
@@ -185,22 +200,20 @@ function LiveIndicator({
       : status === "connecting"
         ? "bg-amber-500"
         : "bg-neutral-400";
-  const label =
+  const ariaLabel =
     status === "live"
-      ? "LIVE"
+      ? "Live updates connected"
       : status === "connecting"
-        ? "CONNECTING"
-        : "OFFLINE";
+        ? "Connecting to live updates"
+        : "Live updates offline";
+
   return (
-    <p className="mt-3 inline-flex items-center gap-2 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-70">
-      <span
-        aria-hidden
-        className={`inline-block size-1.5 rounded-full ${tone} ${
-          status === "live" ? "animate-pulse" : ""
-        }`}
-      />
-      {label}
-    </p>
+    <span
+      key={pulseKey}
+      role="status"
+      aria-label={ariaLabel}
+      className={`bru-live-dot inline-block size-2 shrink-0 rounded-full ${tone}`}
+    />
   );
 }
 
