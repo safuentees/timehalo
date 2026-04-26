@@ -91,6 +91,12 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  // Attribution captured at booking time from the oh_ref_<handle>
+  // cookie (set by proxy.ts when the visitor lands via a ?ref= link).
+  // Plain string ("twitter", "newsletter", etc.) — no PII. Mirrors
+  // dub.co's per-link attribution thread (apps/web/lib/middleware/
+  // utils/create-response-with-cookies.ts) shrunk to single-host scope.
+  referrer     String?
   // Client-supplied UUID generated once at form mount. Same key on every
   // retry of the same submit — second create with the same key is
   // intercepted by the handler and returns the original booking instead
