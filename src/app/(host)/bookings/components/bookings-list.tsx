@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/empty";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { OnboardingChecklist } from "@/components/brutalist/onboarding-checklist";
 
 type Tab = "upcoming" | "past";
 
@@ -30,6 +31,8 @@ export function BookingsList() {
         title="Your bookings"
         aside={liveQueueEnabled ? <LiveQueue /> : null}
       />
+
+      <OnboardingChecklist />
 
       <div className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong">
         <SegButton
