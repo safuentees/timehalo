@@ -1,7 +1,11 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
+import {
+  httpBatchLink,
+  httpSubscriptionLink,
+  splitLink,
+} from "@trpc/client";
 import { useState } from "react";
 import { trpc } from "@/trpc/hooks";
 
@@ -29,7 +33,18 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      links: [httpBatchLink({ url: "/api/trpc" })],
+      // splitLink routes subscription operations to httpSubscriptionLink
+      // (SSE) and everything else to httpBatchLink (HTTP). Pattern is
+      // straight from tRPC v11 docs (Context7-verified). Without this,
+      // subscription procedures would 404 — the batch link doesn't
+      // know how to talk SSE.
+      links: [
+        splitLink({
+          condition: (op) => op.type === "subscription",
+          true: httpSubscriptionLink({ url: "/api/trpc" }),
+          false: httpBatchLink({ url: "/api/trpc" }),
+        }),
+      ],
     }),
   );
 
