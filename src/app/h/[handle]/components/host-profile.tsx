@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -113,12 +114,19 @@ export default function HostProfile({
     function handlePop() {
       const dateStr = getQueryParam("date");
       const slotIso = getQueryParam("slot");
-      const apply = () => {
-        setSelectedDate(dateStr ? parseDateKey(dateStr) ?? undefined : undefined);
-        setSelectedSlot(
-          slotIso ? slots.find((s) => s.start === slotIso) : undefined,
-        );
-      };
+      // flushSync forces React to commit the state update synchronously
+      // inside the view-transition callback. Without it, setters queue
+      // an async render, the browser snapshots the unchanged DOM, and
+      // no animation runs.
+      const apply = () =>
+        flushSync(() => {
+          setSelectedDate(
+            dateStr ? parseDateKey(dateStr) ?? undefined : undefined,
+          );
+          setSelectedSlot(
+            slotIso ? slots.find((s) => s.start === slotIso) : undefined,
+          );
+        });
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => unknown;
       };
