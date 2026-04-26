@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,14 @@ export function BookingForm({ handle, slotStart }: Props) {
     mode: "onBlur",
   });
 
+  // Generate one idempotency key per form lifetime. A double-click,
+  // a retry on a flaky network, or a back-then-resubmit will all
+  // ship the SAME UUID — the server sees the second create and
+  // returns the original booking instead of creating a duplicate.
+  // Lazy initializer fires once on mount; closing and reopening the
+  // drawer remounts the form and gets a fresh key, which is correct.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+
   const book = useBookingCreate({
     onSuccess: (booking) => {
       form.reset();
@@ -46,6 +55,7 @@ export function BookingForm({ handle, slotStart }: Props) {
     book.mutate({
       handle,
       slotStart,
+      idempotencyKey,
       visitorName: values.visitorName,
       visitorEmail: values.visitorEmail,
       question: values.question,
