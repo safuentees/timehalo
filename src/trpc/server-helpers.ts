@@ -15,6 +15,7 @@ export const createPrivateSSRHelper = cache(async () => {
     router: appRouter,
     ctx: {
       user: session.user,
+      ipIdentifier: "ssr",
     },
   });
 });
@@ -26,6 +27,7 @@ export const createPublicSSRHelper = cache(async () => {
     router: appRouter,
     ctx: {
       user: session?.user ?? null,
+      ipIdentifier: "ssr",
     },
   });
 });

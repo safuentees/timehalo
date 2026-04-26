@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
+import { createRatelimit, type Duration } from "@/lib/rate-limit";
 
 const handleSchema = z
   .string()
@@ -67,6 +68,25 @@ const isAuthed = middleware(async (opts) => {
 });
 
 const privateProcedure = publicProcedure.use(isAuthed);
+
+function createRateLimitMiddleware(
+  name: string,
+  requests: number,
+  duration: Duration,
+) {
+  const ratelimit = createRatelimit(requests, duration);
+
+  return middleware(async ({ ctx, next }) => {
+    const { success } = await ratelimit.limit(`${name}:${ctx.ipIdentifier}`);
+    if (!success) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: "Too many requests. Wait a minute and try again.",
+      });
+    }
+    return next();
+  });
+}
 
 const router = t.router;
 
@@ -229,6 +249,7 @@ const bookingConfirmationInputSchema = z.object({
 
 const bookings = router({
   create: publicProcedure
+    .use(createRateLimitMiddleware("bookings.create", 10, "1 m"))
     .input(bookingInputSchema)
     .mutation(async ({ input }) => {
       const bookingSelect = {
