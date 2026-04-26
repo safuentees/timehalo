@@ -22,29 +22,14 @@ const DENSITY_WINDOW_DAYS = 14;
 
 export function BookingsList() {
   const [tab, setTab] = useState<Tab>("upcoming");
-  const utils = trpc.useUtils();
   const { data } = trpc.bookings.listForHost.useQuery();
-  const [liveStatus, setLiveStatus] = useState<"connecting" | "live" | "off">(
-    "connecting",
-  );
-
-  // Live queue subscription. Whenever the server emits a booking event
-  // for this host, we toast the news + invalidate listForHost so the
-  // dashboard reflects it without a refresh. The subscription closes
-  // automatically when the component unmounts (tRPC handles the
-  // AbortSignal on its end).
-  trpc.bookings.queue.useSubscription(undefined, {
-    onStarted: () => setLiveStatus("live"),
-    onError: () => setLiveStatus("off"),
-    onData: ({ data: event }) => {
-      if (event.type === "created") {
-        toast.success(`New booking from ${event.visitorName}`);
-      } else {
-        toast(`Cancelled: ${event.visitorName}`);
-      }
-      utils.bookings.listForHost.invalidate();
-    },
-  });
+  // Feature flag query — when live-queue is off, we don't even mount
+  // the subscription child component. Server-side gate inside
+  // bookings.queue is the source of truth (a stale client can't
+  // bypass), but skipping the SSE connection on the client when we
+  // know it's off saves a wasted round-trip + a connection slot.
+  const { data: flags } = trpc.users.featureFlags.useQuery();
+  const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
   const upcoming = data?.upcoming ?? [];
@@ -60,7 +45,7 @@ export function BookingsList() {
   return (
     <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
-      <LiveIndicator status={liveStatus} />
+      {liveQueueEnabled ? <LiveQueue /> : null}
 
       {/* Density strip — Tier C #7 from HALFTONE-IDEAS.md. Booking
           volume per day across the next 14 days, encoded as halftone
@@ -196,6 +181,35 @@ function BookingRow({
       </p>
     </article>
   );
+}
+
+// Wraps the SSE subscription + the connection-state pill. Only
+// rendered when the `live-queue` feature flag is on (gated upstream
+// in BookingsList). Putting the subscription in its own component
+// means the React-hooks-order rule is preserved when the flag flips
+// — disabling the flag unmounts the child, tearing down the SSE
+// connection cleanly. No need for the deprecated useSubscription
+// `enabled` flag.
+function LiveQueue() {
+  const utils = trpc.useUtils();
+  const [status, setStatus] = useState<"connecting" | "live" | "off">(
+    "connecting",
+  );
+
+  trpc.bookings.queue.useSubscription(undefined, {
+    onStarted: () => setStatus("live"),
+    onError: () => setStatus("off"),
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(`New booking from ${event.visitorName}`);
+      } else {
+        toast(`Cancelled: ${event.visitorName}`);
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
+
+  return <LiveIndicator status={status} />;
 }
 
 // Small status pill above the density strip — surfaces SSE
