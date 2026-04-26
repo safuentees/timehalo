@@ -103,6 +103,44 @@ model Booking {
   @@index([hostId, slotStart])
 }
 
+// Append-only history of every state change on a booking. Mirrors
+// cal.com BookingAudit (packages/prisma/schema.prisma:2486+) — crucial
+// design choice: NO foreign key to Booking. `bookingUid` is a plain
+// string so audit rows survive booking deletion (GDPR delete, manual
+// cleanup, future soft-delete cron). The actor enum + action enum +
+// JSON snapshot make every row self-contained — you can answer "what
+// did this booking look like at this moment, and who changed it" even
+// after the booking row is gone.
+//
+// `operationId` correlates cascading writes from one user action: the
+// audit row, future webhook delivery rows, future email send rows all
+// share an operationId so logs can group "everything that happened
+// because the visitor clicked submit at 14:32:01."
+model BookingAudit {
+  id          Int                 @id @default(autoincrement())
+  bookingUid  String              // intentionally NOT FK
+  actor       AuditActor
+  action      BookingAuditAction
+  data        Json                // snapshot of the new state
+  operationId String
+  createdAt   DateTime            @default(now())
+
+  @@index([bookingUid])
+  @@index([operationId])
+}
+
+enum AuditActor {
+  VISITOR
+  HOST
+  SYSTEM
+}
+
+enum BookingAuditAction {
+  CREATED
+  CONFIRMED
+  CANCELLED
+}
+
 // A single time window on a specific day of the week. A user can have many
 // ranges per day (e.g. 09:00–12:00 and 14:00–17:00). Days with no ranges
 // are implicitly "off" — the form's `enabled: false` maps to "no rows for
