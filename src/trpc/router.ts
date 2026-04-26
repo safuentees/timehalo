@@ -17,6 +17,10 @@ import {
   iterateBookingEvents,
   type BookingBusEvent,
 } from "@/trpc/bus";
+import {
+  getEnabledFeatures,
+  isFeatureEnabled,
+} from "@/lib/feature-flags";
 
 const handleSchema = z
   .string()
@@ -215,6 +219,10 @@ const users = router({
       where: { id: ctx.user.id },
       select: { id: true, handle: true },
     });
+  }),
+
+  featureFlags: privateProcedure.query(async ({ ctx }) => {
+    return getEnabledFeatures(ctx.user.id);
   }),
 
   getByHandle: publicProcedure
@@ -632,6 +640,9 @@ const bookings = router({
   queue: privateProcedure
     .input(z.object({ lastEventId: z.string().nullish() }).optional())
     .subscription(async function* ({ ctx, signal }) {
+      const enabled = await isFeatureEnabled("live-queue", ctx.user.id);
+      if (!enabled) return;
+
       const iterable = iterateBookingEvents(ctx.user.id, signal!);
       for await (const [event] of iterable) {
         const e = event as BookingBusEvent;

@@ -22,24 +22,9 @@ const DENSITY_WINDOW_DAYS = 14;
 
 export function BookingsList() {
   const [tab, setTab] = useState<Tab>("upcoming");
-  const utils = trpc.useUtils();
   const { data } = trpc.bookings.listForHost.useQuery();
-  const [liveStatus, setLiveStatus] = useState<"connecting" | "live" | "off">(
-    "connecting",
-  );
-
-  trpc.bookings.queue.useSubscription(undefined, {
-    onStarted: () => setLiveStatus("live"),
-    onError: () => setLiveStatus("off"),
-    onData: ({ data: event }) => {
-      if (event.type === "created") {
-        toast.success(`New booking from ${event.visitorName}`);
-      } else {
-        toast(`Cancelled: ${event.visitorName}`);
-      }
-      utils.bookings.listForHost.invalidate();
-    },
-  });
+  const { data: flags } = trpc.users.featureFlags.useQuery();
+  const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
   const upcoming = data?.upcoming ?? [];
@@ -53,7 +38,7 @@ export function BookingsList() {
   return (
     <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
-      <LiveIndicator status={liveStatus} />
+      {liveQueueEnabled ? <LiveQueue /> : null}
 
       {totalUpcoming > 0 ? (
         <DensityStrip density={density} totalUpcoming={totalUpcoming} />
@@ -180,6 +165,28 @@ function BookingRow({
       </p>
     </article>
   );
+}
+
+function LiveQueue() {
+  const utils = trpc.useUtils();
+  const [status, setStatus] = useState<"connecting" | "live" | "off">(
+    "connecting",
+  );
+
+  trpc.bookings.queue.useSubscription(undefined, {
+    onStarted: () => setStatus("live"),
+    onError: () => setStatus("off"),
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(`New booking from ${event.visitorName}`);
+      } else {
+        toast(`Cancelled: ${event.visitorName}`);
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
+
+  return <LiveIndicator status={status} />;
 }
 
 function LiveIndicator({

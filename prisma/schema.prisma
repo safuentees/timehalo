@@ -24,6 +24,7 @@ model User {
   updatedAt            DateTime            @updatedAt
   bookings             Booking[]
   webhooks             WebhookSubscription[]
+  features             UserFeatures[]
 }
 
 model Account {
@@ -119,6 +120,38 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+}
+
+model Feature {
+  slug        String      @id
+  enabled     Boolean     @default(false)
+  description String?
+  type        FeatureType @default(RELEASE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  assignments UserFeatures[]
+
+  @@index([enabled])
+}
+
+model UserFeatures {
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  feature     Feature @relation(fields: [featureSlug], references: [slug], onDelete: Cascade)
+  featureSlug String
+  assignedAt  DateTime @default(now())
+  assignedBy  String?
+
+  @@id([userId, featureSlug])
+  @@index([featureSlug])
+}
+
+enum FeatureType {
+  RELEASE      // staged rollout of a new feature
+  EXPERIMENT   // A/B test gate
+  OPERATIONAL  // structural toggle (caching, batching)
+  KILL_SWITCH  // emergency off-switch for an existing feature
+  PERMISSION   // long-lived gate per role / plan / cohort
 }
 
 model WebhookSubscription {
