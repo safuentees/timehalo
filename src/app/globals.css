@@ -2223,6 +2223,18 @@
    - 220ms / 280ms is short enough not to feel like a laggy app. Long
      transitions on snappy user actions are the #1 chisel anti-pattern. */
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  /* Anchor the scale to the top of the snapshot. Default origin is
+     center, which shrinks the root inward from all sides — including
+     pulling the page top DOWN by ~1% mid-transition. That tiny gap
+     between the named topbar and the scaling page fills with body bg,
+     which matches the topbar bg, so the topbar visually grows by
+     ~2% for the animation's duration. Anchoring top keeps the
+     topbar/page seam sharp. */
+  transform-origin: top center;
+}
+
 ::view-transition-old(root) {
   animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
              bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
