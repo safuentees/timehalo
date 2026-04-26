@@ -102,6 +102,12 @@ model Booking {
   // it. Used for confirmation-page display + future reminder emails
   // localized to the visitor.
   visitorTimezone String?
+  // Reschedule chain — points back at the booking this one replaced.
+  // No FK, plain string (cal.com pattern packages/prisma/schema.prisma:
+  // 855 area). When a visitor reschedules, the previous booking is
+  // soft-deleted and this column links the new row to the old uid so
+  // the audit trail is queryable in either direction.
+  rescheduledFromUid String?
   // Attribution captured at booking time from the oh_ref_<handle>
   // cookie (set by proxy.ts when the visitor lands via a ?ref= link).
   // Plain string ("twitter", "newsletter", etc.) — no PII. Mirrors
@@ -171,6 +177,12 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+  // The OLD booking gets RESCHEDULED_FROM (paired with operationId);
+  // the NEW booking gets RESCHEDULED_TO with the same operationId.
+  // Pairing by operationId makes "show the reschedule chain for
+  // booking X" a one-query answer.
+  RESCHEDULED_FROM
+  RESCHEDULED_TO
 }
 
 // Feature flags. Mirrors cal.com Feature
