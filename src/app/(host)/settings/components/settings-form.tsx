@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import { timezoneSchema, DEFAULT_TIMEZONE } from "@/lib/timezone";
 import { TimezoneFields } from "./timezone-fields";
+import { LanguageFields } from "./language-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 
 // Account settings — first real surface (was a stub). Owns the
@@ -31,6 +33,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function SettingsForm() {
+  const tSettings = useTranslations("Settings");
+  const tDanger = useTranslations("DangerZone");
   const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
@@ -58,28 +62,26 @@ export default function SettingsForm() {
   const mounted = useMounted();
   const buttonDisabled = mounted ? isPending || !isDirty : true;
   const buttonLabel = !mounted
-    ? "Saved"
+    ? tSettings("saved")
     : isPending
-      ? "Saving…"
+      ? tSettings("saving")
       : isDirty
-        ? "Save changes"
-        : "Saved";
+        ? tSettings("save")
+        : tSettings("saved");
 
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <BrutalistPageShell>
-          <BrutalistPageHeader title="Account" />
+          <BrutalistPageHeader title={tSettings("title")} />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
                 <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-                  Timezone
+                  {tSettings("timezoneLegend")}
                 </FieldLegend>
                 <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                  Your weekly hours interpret in this zone. Slot times
-                  shown to visitors convert from this zone to UTC, then
-                  render in their local time.
+                  {tSettings("timezoneDescription")}
                 </FieldDescription>
                 <FieldGroup>
                   <TimezoneFields />
@@ -88,17 +90,19 @@ export default function SettingsForm() {
             </FieldGroup>
           </div>
 
+          <div className="mt-12 border-t-2 border-bru-line pt-10">
+            <LanguageFields />
+          </div>
+
           <section className="mt-16 border-t-2 border-bru-line-strong pt-10">
             <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-              Danger zone
+              {tDanger("label")}
             </p>
             <h2 className="mt-3 text-[20px] font-black tracking-tight">
-              Delete account
+              {tDanger("deleteAccountTitle")}
             </h2>
             <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-              Permanently removes your handle, weekly hours, profile, and
-              any upcoming bookings. Booking history is anonymized and
-              retained for audit. There is no undo.
+              {tDanger("deleteAccountDescription")}
             </p>
             <div className="mt-5">
               <DeleteAccountDialog />
