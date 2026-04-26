@@ -1,6 +1,9 @@
 import "server-only";
 import * as Sentry from "@sentry/nextjs";
 import { env } from "@/env";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("telemetry");
 
 export interface TelemetrySpan {
   setAttribute(key: string, value: string | number | boolean): void;
@@ -75,34 +78,26 @@ async function runWithConsoleSpan<T>(
   try {
     const result = await callback(span);
     const durationMs = Date.now() - startedAt;
-    console.log(
-      JSON.stringify({
-        kind: "telemetry",
-        name: options.name,
-        op: options.op,
-        status: "ok",
-        durationMs,
-        attributes,
-      }),
-    );
+    log.info(options.name, {
+      op: options.op,
+      status: "ok",
+      durationMs,
+      attributes,
+    });
     return result;
   } catch (error) {
     const durationMs = Date.now() - startedAt;
     const errMsg =
       error instanceof Error ? error.message : String(error);
     const errName = error instanceof Error ? error.name : "Unknown";
-    console.error(
-      JSON.stringify({
-        kind: "telemetry",
-        name: options.name,
-        op: options.op,
-        status: "error",
-        durationMs,
-        attributes,
-        errorName: errName,
-        errorMessage: errMsg,
-      }),
-    );
+    log.error(options.name, {
+      op: options.op,
+      status: "error",
+      durationMs,
+      attributes,
+      errorName: errName,
+      errorMessage: errMsg,
+    });
     throw error;
   }
 }

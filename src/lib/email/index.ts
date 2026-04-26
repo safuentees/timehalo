@@ -1,4 +1,5 @@
 import "server-only";
+import { createLogger } from "@/lib/logger";
 import { renderEmail } from "./render";
 import { resend, EMAIL_FROM } from "./resend";
 import {
@@ -7,6 +8,8 @@ import {
   getSubject,
   renderTemplateElement,
 } from "./templates";
+
+const log = createLogger("email");
 
 export type { TemplateName, TemplatePropsMap } from "./templates";
 
@@ -32,11 +35,10 @@ export async function sendEmail<T extends TemplateName>(opts: {
   props: TemplatePropsMap[T];
 }): Promise<SendEmailResult> {
   if (!resend) {
-    console.info(
-      "[email] RESEND_API_KEY not set — skipping send (template=%s, to=%s)",
-      opts.template,
-      opts.to,
-    );
+    log.warn("RESEND_API_KEY not set — skipping send", {
+      template: opts.template,
+      to: opts.to,
+    });
     return { ok: false, reason: "no-key" };
   }
 
@@ -56,12 +58,31 @@ export async function sendEmail<T extends TemplateName>(opts: {
       text,
     });
     if (result.error) {
-      console.error("[email] Resend returned error:", result.error);
+      log.error("resend returned error", {
+        template: opts.template,
+        to: opts.to,
+        error: serializeError(result.error),
+      });
       return { ok: false, reason: "send-failed", error: result.error };
     }
     return { ok: true, id: result.data?.id ?? "unknown" };
   } catch (error) {
-    console.error("[email] Send threw:", error);
+    log.error("resend send threw", {
+      template: opts.template,
+      to: opts.to,
+      error: serializeError(error),
+    });
     return { ok: false, reason: "send-failed", error };
   }
+}
+
+function serializeError(err: unknown): {
+  name?: string;
+  message?: string;
+  raw?: string;
+} {
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message };
+  }
+  return { raw: typeof err === "string" ? err : JSON.stringify(err) };
 }
