@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/empty";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { OnboardingChecklist } from "@/components/brutalist/onboarding-checklist";
 
 type Tab = "upcoming" | "past";
 
@@ -35,6 +36,8 @@ export function BookingsList() {
         title="Your bookings"
         aside={liveQueueEnabled ? <LiveQueue /> : null}
       />
+
+      <OnboardingChecklist />
 
       {/* Segmented control — Apple HIG: small set of mutually-exclusive
           views, persistent visual presence so users can switch back.
