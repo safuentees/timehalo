@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DayOfWeek } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC, TRPCError, tracked } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
@@ -12,6 +12,11 @@ import {
   findActiveSubscriptionsForEvent,
   scheduleWebhookDelivery,
 } from "@/lib/tasks";
+import {
+  emitBookingEvent,
+  iterateBookingEvents,
+  type BookingBusEvent,
+} from "@/trpc/bus";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -56,7 +61,20 @@ const scheduleInputSchema = z.object({
   sun: daySchema,
 });
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  // tRPC v11 SSE config (verified via Context7 against the v11
+  // subscriptions docs). `ping` keeps proxies/load-balancers from
+  // killing idle connections after their default timeout (often 30s).
+  // `reconnectAfterInactivityMs` is a client-side hint — the
+  // subscriber auto-reconnects if no event or ping arrives in the
+  // window. Both numbers are deliberate: ping must be < the smallest
+  // proxy idle timeout you might be behind, reconnect must be > ping
+  // interval so a single missed ping doesn't trigger a reconnect.
+  sse: {
+    ping: { enabled: true, intervalMs: 5_000 },
+    client: { reconnectAfterInactivityMs: 15_000 },
+  },
+});
 
 const middleware = t.middleware;
 
@@ -497,6 +515,19 @@ const bookings = router({
         }
         span.setAttribute("webhooksScheduled", subscriptions.length);
 
+        // Live queue fan-out — fires the host's SSE channel (see
+        // src/trpc/bus.ts) so any open dashboard tab gets the event
+        // in <100ms with no polling. Synchronous emit, no await; the
+        // bus is in-memory.
+        emitBookingEvent({
+          type: "created",
+          bookingPublicUid: booking.publicUid,
+          hostId: host.id,
+          visitorName: input.visitorName,
+          slotStart: booking.slotStart.toISOString(),
+          occurredAt: new Date().toISOString(),
+        });
+
         return booking;
       } catch (cause) {
         // Re-throw TRPCErrors as-is (slot collision from inside the
@@ -675,6 +706,15 @@ const bookings = router({
           }
           span.setAttribute("webhooksScheduled", subscriptions.length);
 
+          emitBookingEvent({
+            type: "cancelled",
+            bookingPublicUid: result.publicUid,
+            hostId: ctx.user.id,
+            visitorName: result.visitorName,
+            slotStart: result.slotStart.toISOString(),
+            occurredAt: new Date().toISOString(),
+          });
+
           return { ok: true as const, publicUid: result.publicUid };
         },
       ),
@@ -705,6 +745,36 @@ const bookings = router({
     const past = rows.filter((b) => b.slotStart < now).reverse();
     return { upcoming, past };
   }),
+
+  // Live queue subscription — yields BookingBusEvent objects whenever
+  // a booking is created or cancelled for this host. Pattern follows
+  // tRPC v11's recommended SSE shape: privateProcedure + async
+  // generator + AbortSignal-driven cleanup + `tracked()` for
+  // reconnect recovery (Context7-verified against the v11
+  // subscriptions docs).
+  //
+  // No `hostId` input — scoped to ctx.user.id from session. The bus
+  // channel is `host:${ctx.user.id}` (see src/trpc/bus.ts).
+  //
+  // `lastEventId` is provided by the SSE protocol on reconnect. We
+  // currently don't replay missed events from a persistent log —
+  // that would require a per-host event store. For now reconnect
+  // just resumes the live stream; clients should refetch
+  // bookings.listForHost on reconnect to reconcile.
+  queue: privateProcedure
+    .input(z.object({ lastEventId: z.string().nullish() }).optional())
+    .subscription(async function* ({ ctx, signal }) {
+      // signal! is non-null inside subscription procedures — tRPC v11
+      // wires the request abort signal automatically.
+      const iterable = iterateBookingEvents(ctx.user.id, signal!);
+      for await (const [event] of iterable) {
+        const e = event as BookingBusEvent;
+        // tracked() ID format `${publicUid}:${type}` — unique per
+        // event, deterministic, lets the SSE client recover lastEventId
+        // semantics if we add a persistent log later.
+        yield tracked(`${e.bookingPublicUid}:${e.type}`, e);
+      }
+    }),
 });
 
 // Webhook events the host can subscribe to. CSV-stored on the
