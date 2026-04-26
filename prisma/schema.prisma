@@ -23,6 +23,7 @@ model User {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   bookings             Booking[]
+  webhooks             WebhookSubscription[]
 }
 
 model Account {
@@ -115,6 +116,40 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+}
+
+model WebhookSubscription {
+  id            Int      @id @default(autoincrement())
+  publicUid     String   @unique @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  subscriberUrl String
+  secret        String   // hex-encoded 32 random bytes; HMAC SHA-256 key
+  events        String   // CSV: "booking.created,booking.confirmed"
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, active])
+}
+
+model Task {
+  id                   Int       @id @default(autoincrement())
+  type                 String    // "webhookDelivery" for now
+  payload              String    // JSON.stringify of { webhookSubscriptionId, event, body }
+  scheduledAt          DateTime  @default(now())
+  succeededAt          DateTime?
+  attempts             Int       @default(0)
+  maxAttempts          Int       @default(3)
+  lastError            String?
+  lastFailedAttemptAt  DateTime?
+  referenceUid         String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([referenceUid, type])
+  @@index([succeededAt])
+  @@index([scheduledAt, succeededAt])
 }
 
 model AvailabilityRange {
