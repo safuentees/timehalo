@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -52,7 +53,11 @@ function NavBullet({ active }: { active: boolean }) {
 
 export function BrutalistAppSidebar() {
   const pathname = usePathname();
-  const activePath = pathname;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const activePath = mounted ? pathname : null;
 
   return (
     <Sidebar
