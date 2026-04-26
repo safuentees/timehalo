@@ -2200,3 +2200,62 @@
     align-items: flex-start;
   }
 }
+
+/* ——— View Transitions API ———
+   Next 16's experimental.viewTransition flag wraps every App Router
+   navigation in `document.startViewTransition()`. The browser snapshots
+   the outgoing and incoming pages and runs the keyframes below to morph
+   between them. Apple-style: outgoing scales down + fades, incoming
+   scales up from 96% with a slight delay. Symmetric so back/forward
+   reads as a reverse of forward/forward without manual direction
+   detection (React 19 stable doesn't ship <ViewTransition>, so we can't
+   branch by transitionType anyway).
+
+   Tunable bits if it ever feels off:
+   - `cubic-bezier(.2,.8,.2,1)` is Apple's "smooth out" — the easeOutExpo
+     family. Steeper start, gentle finish.
+   - 220ms / 280ms is short enough not to feel like a laggy app. Long
+     transitions on snappy user actions are the #1 chisel anti-pattern. */
+
+::view-transition-old(root) {
+  animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
+             bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: bru-vt-fade-in 220ms cubic-bezier(0, 0, .2, 1) 60ms both,
+             bru-vt-scale-in 280ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes bru-vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes bru-vt-fade-in {
+  from { opacity: 0; }
+}
+@keyframes bru-vt-scale-out {
+  to { transform: scale(0.96); }
+}
+@keyframes bru-vt-scale-in {
+  from { transform: scale(0.96); }
+}
+
+/* Don't snapshot the host sidebar — it's persistent chrome and would
+   double-render mid-transition. Naming an element pulls it out of the
+   default `root` snapshot; we then suppress its own animation. */
+.bru-app-sidebar {
+  view-transition-name: bru-host-sidebar;
+}
+::view-transition-group(bru-host-sidebar),
+::view-transition-old(bru-host-sidebar),
+::view-transition-new(bru-host-sidebar) {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
