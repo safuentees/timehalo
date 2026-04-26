@@ -1977,9 +1977,15 @@
 .bru-app-sidebar {
   view-transition-name: bru-host-sidebar;
 }
+.bru-app-topbar {
+  view-transition-name: bru-host-topbar;
+}
 ::view-transition-group(bru-host-sidebar),
 ::view-transition-old(bru-host-sidebar),
-::view-transition-new(bru-host-sidebar) {
+::view-transition-new(bru-host-sidebar),
+::view-transition-group(bru-host-topbar),
+::view-transition-old(bru-host-topbar),
+::view-transition-new(bru-host-topbar) {
   animation: none !important;
 }
 
