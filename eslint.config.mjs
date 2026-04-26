@@ -15,6 +15,12 @@ const eslintConfig = defineConfig([
     "design_handoff_brutalist_writing/**",
     "design_handoff_halftone_lab/**",
     "src/generated/**",
+    // Local worktrees / Claude session artifacts — they contain
+    // their own .next/dev build output that ESLint shouldn't scan.
+    // Adding 59k+ phantom warnings without this.
+    ".claude/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

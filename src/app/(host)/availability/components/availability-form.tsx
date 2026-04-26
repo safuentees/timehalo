@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,12 +62,8 @@ export default function AvailabilityForm() {
 
   // Defer save-button state until after mount — avoids a hydration
   // mismatch between SSR (where RHF doesn't know server values) and
-  // client (where `values` syncs in an effect). Same pattern the old
-  // SettingsForm used.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // client (where `values` syncs in an effect).
+  const mounted = useMounted();
   const buttonDisabled = mounted ? isPending || !isDirty : true;
   const buttonLabel = !mounted
     ? "Saved"
