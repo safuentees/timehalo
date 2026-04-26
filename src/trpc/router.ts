@@ -7,6 +7,7 @@ import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
 import { createRatelimit, type Duration } from "@/lib/rate-limit";
+import { withSpan } from "@/lib/observability";
 
 // Same rule as the client-side handleFieldSchema — kept inline here to
 // avoid importing client code into the server bundle.
@@ -293,7 +294,21 @@ const bookings = router({
     // a curl loop or a runaway script.
     .use(createRateLimitMiddleware("bookings.create", 10, "1 m"))
     .input(bookingInputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "bookings.create",
+          op: "booking.write",
+          attributes: {
+            // Same idempotencyKey + ipIdentifier the limiter buckets
+            // by — lets log lines correlate with the rate-limit
+            // headers and the BookingAudit row's operationId field.
+            idempotencyKey: input.idempotencyKey,
+            ipIdentifier: ctx.ipIdentifier,
+            handle: input.handle,
+          },
+        },
+        async (span) => {
       const bookingSelect = {
         id: true,
         publicUid: true,
@@ -310,7 +325,10 @@ const bookings = router({
         where: { idempotencyKey: input.idempotencyKey },
         select: bookingSelect,
       });
-      if (existingByKey) return existingByKey;
+      if (existingByKey) {
+        span.setAttribute("idempotencyHit", true);
+        return existingByKey;
+      }
 
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
@@ -367,6 +385,7 @@ const bookings = router({
       // the same user action. Lets logs group every side effect of one
       // submit by `operationId`.
       const operationId = crypto.randomUUID();
+      span.setAttribute("operationId", operationId);
 
       try {
         // $transaction(async tx => ...) — booking write and audit row
@@ -408,6 +427,7 @@ const bookings = router({
 
           return created;
         });
+        span.setAttribute("bookingPublicUid", booking.publicUid);
         return booking;
       } catch (cause) {
         if (
@@ -449,7 +469,9 @@ const bookings = router({
           cause,
         });
       }
-    }),
+        },
+      ),
+    ),
 
   getPublicConfirmation: publicProcedure
     .input(bookingConfirmationInputSchema)
