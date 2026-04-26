@@ -1,4 +1,5 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 
 export interface TelemetrySpan {
   setAttribute(key: string, value: string | number | boolean): void;
@@ -27,7 +28,26 @@ export async function withSpan<T>(
   callback: (span: TelemetrySpan) => Promise<T>,
 ): Promise<T> {
   if (isSentryConfigured()) {
-    return runWithConsoleSpan(options, callback);
+    return Sentry.startSpan(
+      {
+        name: options.name,
+        op: options.op,
+        attributes: options.attributes,
+      },
+      async (sentrySpan) => {
+        const span: TelemetrySpan = {
+          setAttribute(key, value) {
+            sentrySpan.setAttribute(key, value);
+          },
+        };
+        try {
+          return await callback(span);
+        } catch (error) {
+          Sentry.captureException(error);
+          throw error;
+        }
+      },
+    );
   }
 
   if (!isProd()) {
