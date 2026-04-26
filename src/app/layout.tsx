@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
@@ -44,6 +46,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // next-intl: resolve the active locale + load its messages once at the
+  // root layout. NextIntlClientProvider wraps the tree so client
+  // components can call `useTranslations()` without re-fetching. The
+  // <html lang> attribute mirrors the resolved locale so screen readers
+  // and search engines see the right language.
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     // ViewTransitions wraps every <Link> push/replace from
     // `next-view-transitions` in `document.startViewTransition()`.
@@ -51,20 +61,22 @@ export default async function RootLayout({
     // `::view-transition-old/new(root)`. Reduced-motion is gated there.
     <ViewTransitions>
       <html
-        lang="en"
+        lang={locale}
         suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       >
         <body className="min-h-full flex flex-col">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TRPCProvider>{children}</TRPCProvider>
-            <Toaster />
-          </ThemeProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TRPCProvider>{children}</TRPCProvider>
+              <Toaster />
+            </ThemeProvider>
+          </NextIntlClientProvider>
         </body>
       </html>
     </ViewTransitions>
