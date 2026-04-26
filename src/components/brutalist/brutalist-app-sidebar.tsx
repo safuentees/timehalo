@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -54,12 +55,24 @@ function NavBullet({ active }: { active: boolean }) {
 }
 
 export function BrutalistAppSidebar() {
-  // usePathname() returns the same value at SSR and on the client (no
-  // rewrites in this app — proxy.ts only redirects), so the active link
-  // is server-rendered. Skipping the previous `mounted` gate means the
-  // active highlight isn't briefly absent on first paint.
+  // Pathname-driven active state must be deferred to post-mount.
+  // Re-applies the fix from commit 28a83c3 — Next 16's hydration
+  // ordering means usePathname() returning the same value on server
+  // and client doesn't matter; the React tree shape can still differ
+  // by a beat, which causes Base UI's Tooltip useId() calls to land
+  // at different positions and produces the hydration warning the
+  // Playwright suite catches on /settings.
+  //
+  // Server + first client paint render with active=false everywhere;
+  // the real active highlight lights up immediately after mount.
+  // Brief absence of the active style is far cheaper than a hydration
+  // bailout that strips event handlers from the entire sidebar.
   const pathname = usePathname();
-  const activePath = pathname;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const activePath = mounted ? pathname : null;
 
   return (
     <Sidebar
