@@ -1,5 +1,6 @@
 import "server-only";
 import * as Sentry from "@sentry/nextjs";
+import { env } from "@/env";
 
 // Selective per-procedure observability — port of cal.com's
 // packages/lib/sentryWrapper.ts. Three runtime modes:
@@ -38,11 +39,11 @@ const noOpSpan: TelemetrySpan = {
 };
 
 function isProd(): boolean {
-  return process.env.NODE_ENV === "production";
+  return env.NODE_ENV === "production";
 }
 
 function isSentryConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
+  return Boolean(env.NEXT_PUBLIC_SENTRY_DSN);
 }
 
 /**
