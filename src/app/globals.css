@@ -2250,15 +2250,27 @@
   from { transform: scale(0.98); }
 }
 
-/* Don't snapshot the host sidebar — it's persistent chrome and would
-   double-render mid-transition. Naming an element pulls it out of the
-   default `root` snapshot; we then suppress its own animation. */
+/* Don't snapshot persistent host chrome — sidebar and topbar exist
+   identically in the old and new pages, so the default `root` snapshot
+   crossfades them against themselves and produces a brief "double
+   element" ghost mid-transition. Naming each element pulls it out of
+   the root snapshot; we then suppress its own animation so it just
+   stays put.
+   `bru-app-topbar` is the persistent dashboard topbar specifically —
+   distinct from the page-internal `.bru-topbar` banners on /h/[handle]
+   and /booked, which we DO want crossfaded with the rest of the page. */
 .bru-app-sidebar {
   view-transition-name: bru-host-sidebar;
 }
+.bru-app-topbar {
+  view-transition-name: bru-host-topbar;
+}
 ::view-transition-group(bru-host-sidebar),
 ::view-transition-old(bru-host-sidebar),
-::view-transition-new(bru-host-sidebar) {
+::view-transition-new(bru-host-sidebar),
+::view-transition-group(bru-host-topbar),
+::view-transition-old(bru-host-topbar),
+::view-transition-new(bru-host-topbar) {
   animation: none !important;
 }
 
