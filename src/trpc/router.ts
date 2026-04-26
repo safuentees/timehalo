@@ -731,6 +731,347 @@ const bookings = router({
       ),
     ),
 
+  reschedule: publicProcedure
+    .use(createRateLimitMiddleware("bookings.reschedule", 10, "1 m"))
+    .input(
+      z.object({
+        oldPublicUid: z.string().min(1),
+        newSlotStart: z.string().datetime(),
+        idempotencyKey: z.string().uuid(),
+        visitorTimezone: timezoneSchema.optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "bookings.reschedule",
+          op: "booking.write",
+          attributes: {
+            oldPublicUid: input.oldPublicUid,
+            idempotencyKey: input.idempotencyKey,
+            ipIdentifier: ctx.ipIdentifier,
+          },
+        },
+        async (span) => {
+          const operationId = crypto.randomUUID();
+          span.setAttribute("operationId", operationId);
+
+          const existingByKey = await prisma.booking.findFirst({
+            where: {
+              idempotencyKey: input.idempotencyKey,
+              deleted: false,
+            },
+            select: {
+              id: true,
+              publicUid: true,
+              slotStart: true,
+              slotEnd: true,
+              hostId: true,
+            },
+          });
+          if (existingByKey) {
+            span.setAttribute("idempotencyHit", true);
+            const host = await prisma.user.findUnique({
+              where: { id: existingByKey.hostId },
+              select: { handle: true },
+            });
+            return {
+              publicUid: existingByKey.publicUid,
+              handle: host?.handle ?? null,
+            };
+          }
+
+          const original = await prisma.booking.findFirst({
+            where: {
+              publicUid: input.oldPublicUid,
+              deleted: false,
+            },
+            select: {
+              id: true,
+              publicUid: true,
+              hostId: true,
+              visitorName: true,
+              visitorEmail: true,
+              question: true,
+              slotStart: true,
+              slotEnd: true,
+              referrer: true,
+              visitorTimezone: true,
+            },
+          });
+          if (!original) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Booking not found or already cancelled",
+            });
+          }
+
+          const host = await prisma.user.findUnique({
+            where: { id: original.hostId },
+            select: {
+              id: true,
+              name: true,
+              handle: true,
+              timezone: true,
+              email: true,
+            },
+          });
+          if (!host || !host.handle) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Host no longer exists",
+            });
+          }
+
+          const newSlotStart = new Date(input.newSlotStart);
+          if (Number.isNaN(newSlotStart.getTime())) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Invalid slot timestamp",
+            });
+          }
+          if (newSlotStart.getTime() <= Date.now()) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "That slot is in the past",
+            });
+          }
+          if (newSlotStart.getTime() === original.slotStart.getTime()) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Pick a different slot to reschedule to",
+            });
+          }
+
+          const ranges = await prisma.availabilityRange.findMany({
+            where: { userId: host.id },
+            select: { dayOfWeek: true, startTime: true, endTime: true },
+            orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+          });
+          const upcoming = generateUpcomingSlots({
+            ranges,
+            from: new Date(),
+            days: 14,
+            stepMinutes: SLOT_MINUTES,
+            hostTimezone: host.timezone,
+          });
+          const isValid = upcoming.some(
+            (s) => s.start === input.newSlotStart,
+          );
+          if (!isValid) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "That slot isn't available anymore",
+            });
+          }
+
+          const newSlotEnd = new Date(
+            newSlotStart.getTime() + SLOT_MINUTES * 60_000,
+          );
+
+          try {
+            const created = await prisma.$transaction(async (tx) => {
+              const existingInTx = await tx.booking.findFirst({
+                where: {
+                  idempotencyKey: input.idempotencyKey,
+                  deleted: false,
+                },
+                select: {
+                  id: true,
+                  publicUid: true,
+                  hostId: true,
+                },
+              });
+              if (existingInTx) {
+                span.setAttribute("idempotencyHitInTx", true);
+                return existingInTx;
+              }
+
+              const slotCollision = await tx.booking.findFirst({
+                where: {
+                  hostId: host.id,
+                  slotStart: newSlotStart,
+                  deleted: false,
+                },
+                select: { id: true },
+              });
+              if (slotCollision) {
+                throw new TRPCError({
+                  code: "CONFLICT",
+                  message:
+                    "Someone just grabbed that slot. Pick another.",
+                });
+              }
+
+              await tx.booking.update({
+                where: { id: original.id },
+                data: {
+                  deleted: true,
+                  deletedAt: new Date(),
+                  idempotencyKey: null,
+                },
+              });
+
+              await tx.bookingAudit.create({
+                data: {
+                  bookingUid: original.publicUid,
+                  actor: "VISITOR",
+                  action: "RESCHEDULED_FROM",
+                  data: {
+                    rescheduledToSlotStart: newSlotStart.toISOString(),
+                    previousSlotStart: original.slotStart.toISOString(),
+                    visitorEmail: original.visitorEmail,
+                  },
+                  operationId,
+                },
+              });
+
+              const newBooking = await tx.booking.create({
+                data: {
+                  hostId: host.id,
+                  visitorName: original.visitorName,
+                  visitorEmail: original.visitorEmail,
+                  question: original.question,
+                  slotStart: newSlotStart,
+                  slotEnd: newSlotEnd,
+                  idempotencyKey: input.idempotencyKey,
+                  referrer: original.referrer,
+                  visitorTimezone:
+                    input.visitorTimezone ?? original.visitorTimezone,
+                  rescheduledFromUid: original.publicUid,
+                },
+                select: {
+                  id: true,
+                  publicUid: true,
+                  hostId: true,
+                  slotStart: true,
+                  slotEnd: true,
+                },
+              });
+
+              await tx.bookingAudit.create({
+                data: {
+                  bookingUid: newBooking.publicUid,
+                  actor: "VISITOR",
+                  action: "RESCHEDULED_TO",
+                  data: {
+                    rescheduledFromUid: original.publicUid,
+                    previousSlotStart: original.slotStart.toISOString(),
+                    newSlotStart: newSlotStart.toISOString(),
+                    visitorEmail: original.visitorEmail,
+                  },
+                  operationId,
+                },
+              });
+
+              return newBooking;
+            });
+            span.setAttribute("newBookingPublicUid", created.publicUid);
+
+            const subscriptions = await findActiveSubscriptionsForEvent(
+              host.id,
+              "booking.rescheduled",
+            );
+            for (const sub of subscriptions) {
+              await scheduleWebhookDelivery({
+                payload: {
+                  webhookSubscriptionId: sub.id,
+                  event: "booking.rescheduled",
+                  body: {
+                    event: "booking.rescheduled",
+                    operationId,
+                    booking: {
+                      publicUid: created.publicUid,
+                      slotStart: newSlotStart.toISOString(),
+                      slotEnd: newSlotEnd.toISOString(),
+                      visitorName: original.visitorName,
+                      visitorEmail: original.visitorEmail,
+                      rescheduledFromUid: original.publicUid,
+                    },
+                    previous: {
+                      publicUid: original.publicUid,
+                      slotStart: original.slotStart.toISOString(),
+                    },
+                    host: { handle: host.handle, id: host.id },
+                    occurredAt: new Date().toISOString(),
+                  },
+                },
+                referenceUid: `${created.publicUid}:booking.rescheduled:${sub.id}`,
+              });
+            }
+            span.setAttribute("webhooksScheduled", subscriptions.length);
+
+            const hostName =
+              host.name ?? host.handle ?? "your host";
+            const appUrl =
+              env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+            const confirmationUrl = `${appUrl}/h/${host.handle}/booked/${created.publicUid}`;
+            await scheduleEmailSend({
+              payload: {
+                to: original.visitorEmail,
+                template: "booking-rescheduled",
+                props: {
+                  hostName,
+                  visitorName: original.visitorName,
+                  oldSlotStartIso: original.slotStart.toISOString(),
+                  newSlotStartIso: newSlotStart.toISOString(),
+                  confirmationUrl,
+                },
+              },
+              referenceUid: `${created.publicUid}:email:booking-rescheduled:visitor:${operationId}`,
+            });
+
+            emitBookingEvent({
+              type: "cancelled",
+              bookingPublicUid: original.publicUid,
+              hostId: host.id,
+              visitorName: original.visitorName,
+              slotStart: original.slotStart.toISOString(),
+              occurredAt: new Date().toISOString(),
+            });
+            emitBookingEvent({
+              type: "created",
+              bookingPublicUid: created.publicUid,
+              hostId: host.id,
+              visitorName: original.visitorName,
+              slotStart: newSlotStart.toISOString(),
+              occurredAt: new Date().toISOString(),
+            });
+
+            return {
+              publicUid: created.publicUid,
+              handle: host.handle,
+            };
+          } catch (cause) {
+            if (cause instanceof TRPCError) throw cause;
+            if (
+              cause instanceof Prisma.PrismaClientKnownRequestError &&
+              cause.code === "P2002"
+            ) {
+              const raced = await prisma.booking.findFirst({
+                where: {
+                  idempotencyKey: input.idempotencyKey,
+                  deleted: false,
+                },
+                select: { publicUid: true, hostId: true },
+              });
+              if (raced) {
+                return {
+                  publicUid: raced.publicUid,
+                  handle: host.handle,
+                };
+              }
+            }
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Could not reschedule the booking. Try again.",
+              cause,
+            });
+          }
+        },
+      ),
+    ),
+
   listForHost: privateProcedure.query(async ({ ctx }) => {
     const now = new Date();
     const rows = await prisma.booking.findMany({
@@ -767,7 +1108,11 @@ const bookings = router({
     }),
 });
 
-const WEBHOOK_EVENTS = ["booking.created", "booking.cancelled"] as const;
+const WEBHOOK_EVENTS = [
+  "booking.created",
+  "booking.cancelled",
+  "booking.rescheduled",
+] as const;
 type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 
 const webhookCreateSchema = z.object({

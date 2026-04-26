@@ -84,6 +84,7 @@ describe("email layer — templates render", () => {
       "booking-cancelled",
       "booking-cancelled-host",
       "booking-created",
+      "booking-rescheduled",
     ]);
   });
 });

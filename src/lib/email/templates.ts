@@ -16,6 +16,10 @@ import AccountDeletedEmail, {
   accountDeletedSubject,
   type AccountDeletedProps,
 } from "./templates/account-deleted";
+import BookingRescheduledEmail, {
+  bookingRescheduledSubject,
+  type BookingRescheduledProps,
+} from "./templates/booking-rescheduled";
 
 export const TEMPLATES = {
   "booking-created": {
@@ -34,6 +38,10 @@ export const TEMPLATES = {
     Component: AccountDeletedEmail,
     getSubject: accountDeletedSubject,
   },
+  "booking-rescheduled": {
+    Component: BookingRescheduledEmail,
+    getSubject: bookingRescheduledSubject,
+  },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
@@ -43,6 +51,7 @@ export type TemplatePropsMap = {
   "booking-cancelled": BookingCancelledProps;
   "booking-cancelled-host": BookingCancelledHostProps;
   "account-deleted": AccountDeletedProps;
+  "booking-rescheduled": BookingRescheduledProps;
 };
 
 export function renderTemplateElement<T extends TemplateName>(

@@ -89,6 +89,7 @@ model Booking {
   slotStart    DateTime
   slotEnd      DateTime
   visitorTimezone String?
+  rescheduledFromUid String?
   referrer     String?
   idempotencyKey String? @unique
   createdAt    DateTime @default(now())
@@ -122,6 +123,8 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+  RESCHEDULED_FROM
+  RESCHEDULED_TO
 }
 
 model Feature {
