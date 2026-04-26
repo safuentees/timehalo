@@ -86,6 +86,11 @@ describe("cron — webhook delivery processor", () => {
       visitorName: "Visitor",
       visitorEmail: "v@test.local",
     });
+    // bookings.create also enqueues a booking-created email task. The
+    // cron processor would pick it up + permanently-fail it (no
+    // RESEND_API_KEY in test env), polluting succeeded/failed counters.
+    // Strip email tasks so this suite stays focused on webhook delivery.
+    await prisma.task.deleteMany({ where: { type: "emailSend" } });
     return booking;
   }
 
