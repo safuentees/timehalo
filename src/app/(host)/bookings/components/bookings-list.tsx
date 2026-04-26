@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -11,14 +11,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { bookingDensityWindow, startOfToday } from "@/lib/availability";
-import { HalftoneMasthead } from "@/app/h/[handle]/components/halftone-masthead";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 
 type Tab = "upcoming" | "past";
-
-const DENSITY_WINDOW_DAYS = 14;
 
 export function BookingsList() {
   const [tab, setTab] = useState<Tab>("upcoming");
@@ -32,27 +28,11 @@ export function BookingsList() {
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
-  const upcoming = data?.upcoming ?? [];
-  const totalUpcoming = upcoming.length;
-
-  // Density across the next 14 calendar days, normalized 0..1 to the
-  // busiest day in the window. Computed client-side from the same query.
-  const density = useMemo(
-    () => bookingDensityWindow(upcoming, startOfToday(), DENSITY_WINDOW_DAYS),
-    [upcoming],
-  );
 
   return (
     <BrutalistPageShell>
       <BrutalistPageHeader title="Your bookings" />
       {liveQueueEnabled ? <LiveQueue /> : null}
-
-      {/* Density strip — Tier C #7 from HALFTONE-IDEAS.md. Booking
-          volume per day across the next 14 days, encoded as halftone
-          density. Shows up only when there's actual upcoming load. */}
-      {totalUpcoming > 0 ? (
-        <DensityStrip density={density} totalUpcoming={totalUpcoming} />
-      ) : null}
 
       {/* Segmented control — Apple HIG: small set of mutually-exclusive
           views, persistent visual presence so users can switch back.
@@ -247,62 +227,6 @@ function LiveIndicator({
       {label}
     </p>
   );
-}
-
-function DensityStrip({
-  density,
-  totalUpcoming,
-}: {
-  density: number[];
-  totalUpcoming: number;
-}) {
-  // Find the busiest day's index for the inline label. Ties go to the
-  // earliest day — the bigger story is "next spike" not "tied for X".
-  let peakIdx = 0;
-  let peakVal = -1;
-  for (let i = 0; i < density.length; i++) {
-    if (density[i] > peakVal) {
-      peakVal = density[i];
-      peakIdx = i;
-    }
-  }
-  const peakDate = new Date();
-  peakDate.setHours(0, 0, 0, 0);
-  peakDate.setDate(peakDate.getDate() + peakIdx);
-  const showsPeak = peakVal > 0;
-
-  return (
-    <section
-      aria-label="Booking volume next 14 days"
-      className="mt-6 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
-    >
-      <header className="flex items-baseline justify-between gap-3 border-b-2 border-bru-line-strong px-3 py-2">
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-70">
-          {totalUpcoming} booked
-        </span>
-        {showsPeak ? (
-          <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase tabular-nums opacity-70">
-            Peak {fmtPeakLabel(peakDate)}
-          </span>
-        ) : null}
-      </header>
-      <div className="relative h-[64px] bg-bru-bg">
-        <HalftoneMasthead
-          density={density}
-          gridX={42}
-          gridY={5}
-          alpha={0.55}
-          maxR={3.2}
-          minR={0.5}
-          className="absolute inset-0"
-        />
-      </div>
-    </section>
-  );
-}
-
-function fmtPeakLabel(d: Date): string {
-  return `${WEEKDAY_SHORT[d.getDay()]} ${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
 function EmptyBookings({ tab }: { tab: Tab }) {
