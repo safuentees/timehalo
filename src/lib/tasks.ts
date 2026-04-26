@@ -1,14 +1,20 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import type {
+  TemplateName,
+  TemplatePropsMap,
+} from "@/lib/email";
 import type { WebhookEvent } from "@/trpc/router";
 
 // Task scheduler — writes a row that the cron processor picks up later.
-// Mirrors cal.com's tasker pattern (packages/features/tasker/repository.ts)
-// in shape, scoped to webhook delivery for now. Generic Task model can
-// hold email-send / reminder-dispatch / reconciliation runs later.
+// Mirrors cal.com's tasker pattern (packages/features/tasker/repository.ts).
+// Two task types live here today: webhookDelivery and emailSend. Both
+// share retry semantics (Task.attempts/maxAttempts) and dedup
+// (@@unique([referenceUid, type])).
 
-const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
+export const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
+export const TASK_TYPE_EMAIL_SEND = "emailSend";
 
 export type WebhookDeliveryPayload = {
   webhookSubscriptionId: number;
@@ -60,6 +66,54 @@ export async function scheduleWebhookDelivery(opts: ScheduleOpts) {
       cause.code === "P2002"
     ) {
       // Already scheduled. Fine.
+      return false;
+    }
+    throw cause;
+  }
+}
+
+// ─── Email send (§10.1 follow-up — A1 from OFFICEHOURS-DEPTH-IDEAS.md) ───
+
+export type EmailSendPayload<T extends TemplateName = TemplateName> = {
+  to: string;
+  template: T;
+  props: TemplatePropsMap[T];
+};
+
+type ScheduleEmailOpts<T extends TemplateName> = {
+  payload: EmailSendPayload<T>;
+  /**
+   * Idempotency key for the email task. Format suggestion:
+   * `<bookingPublicUid>:<template>:<recipient-tag>`. Two enqueues
+   * with the same key → second one no-ops.
+   */
+  referenceUid: string;
+};
+
+/**
+ * Schedule one templated email send. Same shape as
+ * scheduleWebhookDelivery — payload is a JSON-serializable record that
+ * the cron processor picks up and dispatches via `sendEmail()`.
+ *
+ * Returns true on a fresh enqueue, false on dedup (P2002 swallowed).
+ */
+export async function scheduleEmailSend<T extends TemplateName>(
+  opts: ScheduleEmailOpts<T>,
+) {
+  try {
+    await prisma.task.create({
+      data: {
+        type: TASK_TYPE_EMAIL_SEND,
+        payload: JSON.stringify(opts.payload),
+        referenceUid: opts.referenceUid,
+      },
+    });
+    return true;
+  } catch (cause) {
+    if (
+      cause instanceof Prisma.PrismaClientKnownRequestError &&
+      cause.code === "P2002"
+    ) {
       return false;
     }
     throw cause;
