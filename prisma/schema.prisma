@@ -92,6 +92,31 @@ model Booking {
   @@index([hostId, slotStart])
 }
 
+model BookingAudit {
+  id          Int                 @id @default(autoincrement())
+  bookingUid  String              // intentionally NOT FK
+  actor       AuditActor
+  action      BookingAuditAction
+  data        Json                // snapshot of the new state
+  operationId String
+  createdAt   DateTime            @default(now())
+
+  @@index([bookingUid])
+  @@index([operationId])
+}
+
+enum AuditActor {
+  VISITOR
+  HOST
+  SYSTEM
+}
+
+enum BookingAuditAction {
+  CREATED
+  CONFIRMED
+  CANCELLED
+}
+
 model AvailabilityRange {
   id        Int       @id @default(autoincrement())
   userId    String

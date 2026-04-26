@@ -290,18 +290,42 @@ const bookings = router({
 
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
 
+      const operationId = crypto.randomUUID();
+
       try {
-        const booking = await prisma.booking.create({
-          data: {
-            hostId: host.id,
-            visitorName: input.visitorName,
-            visitorEmail: input.visitorEmail,
-            question: input.question,
-            slotStart,
-            slotEnd,
-            idempotencyKey: input.idempotencyKey,
-          },
-          select: bookingSelect,
+        const booking = await prisma.$transaction(async (tx) => {
+          const created = await tx.booking.create({
+            data: {
+              hostId: host.id,
+              visitorName: input.visitorName,
+              visitorEmail: input.visitorEmail,
+              question: input.question,
+              slotStart,
+              slotEnd,
+              idempotencyKey: input.idempotencyKey,
+            },
+            select: bookingSelect,
+          });
+
+          await tx.bookingAudit.create({
+            data: {
+              bookingUid: created.publicUid,
+              actor: "VISITOR",
+              action: "CREATED",
+              data: {
+                hostId: host.id,
+                visitorName: input.visitorName,
+                visitorEmail: input.visitorEmail,
+                question: input.question ?? null,
+                slotStart: created.slotStart.toISOString(),
+                slotEnd: created.slotEnd.toISOString(),
+                idempotencyKey: input.idempotencyKey,
+              },
+              operationId,
+            },
+          });
+
+          return created;
         });
         return booking;
       } catch (cause) {
