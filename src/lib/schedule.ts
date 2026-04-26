@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { DayOfWeek } from "@/generated/prisma/enums";
+import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
 /**
  * Single source of truth for the weekly schedule. Imported by both the
@@ -154,21 +156,32 @@ const JS_DAY_TO_ENUM: Record<number, DayOfWeek> = {
 export type UpcomingSlot = { start: string; end: string };
 
 /**
- * Walk the next `days` calendar days, and for each day's availability ranges
- * emit back-to-back fixed-length slots. Only future slots are returned; past
- * times on the first day are skipped. Returned dates are ISO strings so they
- * survive JSON serialization to the client.
+ * Walk the next `days` calendar days *in the host's timezone*, and for
+ * each day's availability ranges emit back-to-back fixed-length slots.
+ * Only future slots are returned; past times on the first day are
+ * skipped. Returned dates are ISO strings (UTC) so they survive JSON
+ * serialization to the client and the visitor renders them in their
+ * own zone via Intl.DateTimeFormat.
+ *
+ * The host declares "Mondays 09:00–17:00" — that's 09:00 *in their
+ * zone*. fromZonedTime maps each (year, month, date, HH:MM, zone)
+ * tuple to the correct UTC instant, DST-aware. Compare to the
+ * pre-A3 implementation which used Date#setHours (server-local time)
+ * — that worked accidentally when the server ran UTC and broke
+ * silently otherwise.
  */
 export function generateUpcomingSlots({
   ranges,
   from,
   days,
   stepMinutes,
+  hostTimezone = DEFAULT_TIMEZONE,
 }: {
   ranges: DbRow[];
   from: Date;
   days: number;
   stepMinutes: number;
+  hostTimezone?: string;
 }): UpcomingSlot[] {
   const byDay = new Map<DayOfWeek, DbRow[]>();
   for (const r of ranges) {
@@ -185,21 +198,35 @@ export function generateUpcomingSlots({
   // shows the same chip twice to the visitor.
   const seen = new Map<number, UpcomingSlot>();
 
+  // `from` is a UTC instant. We need its calendar date *in the host's
+  // zone* so day-of-week mapping respects the host's local midnight.
+  // toZonedTime returns a Date whose component getters return host-zone
+  // values, then we step day-by-day from there.
+  const hostFrom = toZonedTime(from, hostTimezone);
+
   for (let offset = 0; offset < days; offset++) {
-    const day = new Date(from);
-    day.setDate(from.getDate() + offset);
-    const dayRanges = byDay.get(JS_DAY_TO_ENUM[day.getDay()]) ?? [];
+    const hostDay = new Date(hostFrom);
+    hostDay.setDate(hostFrom.getDate() + offset);
+    const year = hostDay.getFullYear();
+    const month = hostDay.getMonth();
+    const date = hostDay.getDate();
+    // getDay() on a host-zone Date returns the host's local weekday.
+    const dayRanges = byDay.get(JS_DAY_TO_ENUM[hostDay.getDay()]) ?? [];
 
     for (const r of dayRanges) {
       const [sh, sm] = r.startTime.split(":").map(Number);
       const [eh, em] = r.endTime.split(":").map(Number);
 
-      const rangeStart = new Date(day);
-      rangeStart.setHours(sh, sm, 0, 0);
-      const rangeEnd = new Date(day);
-      rangeEnd.setHours(eh, em, 0, 0);
+      // Build wall-clock strings for the host's local time, then map
+      // to UTC. fromZonedTime handles the DST gap/overlap edge cases:
+      // a "spring forward" hour that doesn't exist gets the post-jump
+      // instant, a "fall back" hour gets the first occurrence.
+      const wallStart = makeWallClock(year, month, date, sh, sm);
+      const wallEnd = makeWallClock(year, month, date, eh, em);
+      const rangeStartMs = fromZonedTime(wallStart, hostTimezone).getTime();
+      const rangeEndMs = fromZonedTime(wallEnd, hostTimezone).getTime();
 
-      for (let t = rangeStart.getTime(); t + stepMs <= rangeEnd.getTime(); t += stepMs) {
+      for (let t = rangeStartMs; t + stepMs <= rangeEndMs; t += stepMs) {
         if (t > nowMs && !seen.has(t)) {
           seen.set(t, {
             start: new Date(t).toISOString(),
@@ -213,4 +240,18 @@ export function generateUpcomingSlots({
   return Array.from(seen.values()).sort((a, b) =>
     a.start.localeCompare(b.start),
   );
+}
+
+// fromZonedTime accepts either a Date or an ISO-ish string. Strings
+// are easier to reason about — no implicit zone interpretation. Build
+// "YYYY-MM-DDTHH:MM:00" zero-padded.
+function makeWallClock(
+  year: number,
+  month: number,
+  date: number,
+  hour: number,
+  minute: number,
+): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${year}-${pad(month + 1)}-${pad(date)}T${pad(hour)}:${pad(minute)}:00`;
 }

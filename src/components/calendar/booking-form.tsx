@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
 import { useBookingCreate } from "@/lib/mutations/use-booking-create";
+import { getBrowserTimezone } from "@/lib/timezone";
 import {
   bookingFormSchema,
   type BookingFormValues,
@@ -59,6 +60,11 @@ export function BookingForm({ handle, slotStart }: Props) {
       visitorName: values.visitorName,
       visitorEmail: values.visitorEmail,
       question: values.question,
+      // Capture the visitor's IANA zone at submit time. Server
+      // validates + persists on Booking.visitorTimezone — drives
+      // future reminder/confirmation rendering in the visitor's
+      // local time.
+      visitorTimezone: getBrowserTimezone(),
     });
   }
 
