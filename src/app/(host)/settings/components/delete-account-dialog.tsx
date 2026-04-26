@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,7 @@ import {
 } from "@/components/brutalist/brutalist-input-group";
 
 export function DeleteAccountDialog() {
+  const t = useTranslations("DangerZone");
   const [open, setOpen] = useState(false);
   const { data: me } = trpc.users.me.useQuery();
 
@@ -35,12 +37,14 @@ export function DeleteAccountDialog() {
           size="brutalist"
           className="bru-danger-trigger"
         >
-          Delete account
+          {t("deleteAccountButton")}
         </Button>
       </ResponsiveModalTrigger>
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Delete account</ResponsiveModalTitle>
+          <ResponsiveModalTitle>
+            {t("deleteAccountTitle")}
+          </ResponsiveModalTitle>
         </ResponsiveModalHeader>
         <DeleteForm
           email={me?.email ?? null}
@@ -61,9 +65,10 @@ function DeleteForm({
   handle: string | null;
   onCancel: () => void;
 }) {
+  const t = useTranslations("DangerZone");
   const schema = z.object({
     confirmEmail: z.string().refine((v) => v === email, {
-      message: "Email does not match the account email",
+      message: t("emailMismatch"),
     }),
   });
   type Values = z.infer<typeof schema>;
@@ -100,17 +105,21 @@ function DeleteForm({
         className="px-5 pb-6 flex flex-col gap-5"
       >
         <p className="text-[14px] leading-[1.55] opacity-80">
-          This permanently deletes <strong>@{handle ?? "your handle"}</strong>,
-          your weekly hours, and any upcoming bookings against your page.
-          Booking history is anonymized and retained for audit. There is
-          no undo.
+          {t.rich("dialogIntro", {
+            handle: () => (
+              <strong>@{handle ?? "your handle"}</strong>
+            ),
+          })}
         </p>
         <p className="text-[13px] leading-[1.5] opacity-65">
-          Type your account email{" "}
-          <code className="font-[family-name:var(--bru-mono)] text-[12px]">
-            {email}
-          </code>{" "}
-          to confirm.
+          {t.rich("dialogTypeEmail", {
+            email,
+            code: (chunks) => (
+              <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+                {chunks}
+              </code>
+            ),
+          })}
         </p>
         <Controller<Values>
           name="confirmEmail"
@@ -130,7 +139,9 @@ function DeleteForm({
                   aria-invalid={fieldState.invalid}
                 />
                 <BrutalistInputGroupAddon align="inline-start">
-                  <BrutalistInputGroupText>Email</BrutalistInputGroupText>
+                  <BrutalistInputGroupText>
+                    {t("emailFieldLabel")}
+                  </BrutalistInputGroupText>
                 </BrutalistInputGroupAddon>
               </BrutalistInputGroup>
               <FieldError
@@ -148,7 +159,7 @@ function DeleteForm({
             onClick={onCancel}
             disabled={isPending}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="submit"
@@ -157,7 +168,7 @@ function DeleteForm({
             disabled={!isValid || isPending}
             className="bru-danger-confirm"
           >
-            {isPending ? "Deleting…" : "Delete account"}
+            {isPending ? t("deleting") : t("confirm")}
           </Button>
         </div>
       </form>

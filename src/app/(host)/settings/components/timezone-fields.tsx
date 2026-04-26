@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Controller, useFormContext } from "react-hook-form";
 import { Field, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { getBrowserTimezone } from "@/lib/timezone";
 type FormShape = { timezone: string };
 
 export function TimezoneFields() {
+  const t = useTranslations("Settings");
   const form = useFormContext<FormShape>();
 
   const zones = useMemo(() => {
@@ -30,7 +32,7 @@ export function TimezoneFields() {
             className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
             htmlFor={field.name}
           >
-            Your timezone
+            {t("yourTimezone")}
           </label>
           <div className="mt-3 flex flex-wrap items-stretch gap-2">
             <select
@@ -57,7 +59,7 @@ export function TimezoneFields() {
                 });
               }}
             >
-              Use browser
+              {t("useBrowser")}
             </Button>
           </div>
           <FieldError

@@ -1,0 +1,27 @@
+{
+  "Settings": {
+    "title": "Account",
+    "timezoneLegend": "Timezone",
+    "timezoneDescription": "Your weekly hours interpret in this zone. Slot times shown to visitors convert from this zone to UTC, then render in their local time.",
+    "languageLegend": "Language",
+    "languageDescription": "Switches the labels and copy across the host surface. Visitor-facing pages negotiate from the visitor's browser.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "useBrowser": "Use browser",
+    "yourTimezone": "Your timezone"
+  },
+  "DangerZone": {
+    "label": "Danger zone",
+    "deleteAccountTitle": "Delete account",
+    "deleteAccountDescription": "Permanently removes your handle, weekly hours, profile, and any upcoming bookings. Booking history is anonymized and retained for audit. There is no undo.",
+    "deleteAccountButton": "Delete account",
+    "dialogIntro": "This permanently deletes <handle></handle>, your weekly hours, and any upcoming bookings against your page. Booking history is anonymized and retained for audit. There is no undo.",
+    "dialogTypeEmail": "Type your account email <code>{email}</code> to confirm.",
+    "emailFieldLabel": "Email",
+    "emailMismatch": "Email does not match the account email",
+    "cancel": "Cancel",
+    "confirm": "Delete account",
+    "deleting": "Deleting…"
+  }
+}

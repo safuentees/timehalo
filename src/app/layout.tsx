@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
@@ -44,23 +46,28 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <ViewTransitions>
       <html
-        lang="en"
+        lang={locale}
         suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       >
         <body className="min-h-full flex flex-col">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TRPCProvider>{children}</TRPCProvider>
-            <Toaster />
-          </ThemeProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TRPCProvider>{children}</TRPCProvider>
+              <Toaster />
+            </ThemeProvider>
+          </NextIntlClientProvider>
         </body>
       </html>
     </ViewTransitions>
