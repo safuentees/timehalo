@@ -23,6 +23,7 @@ model User {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   bookings             Booking[]
+  webhooks             WebhookSubscription[]
 }
 
 model Account {
@@ -139,6 +140,66 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+}
+
+// Outbound webhook a host registers — when a booking event fires, the
+// scheduler writes a Task row pointing at this subscription. The secret
+// is generated server-side at create time and shown to the host once
+// (we never display it again — they have to keep it). Mirrors cal.com
+// Webhook (packages/prisma/schema.prisma:1143).
+//
+// `events` is a CSV of event names ("booking.created,booking.confirmed").
+// CSV instead of a join table because cal.com does the same for the
+// same reasons: the cardinality is small, exact-match query is a
+// simple LIKE / contains, and migrations stay simple.
+model WebhookSubscription {
+  id            Int      @id @default(autoincrement())
+  publicUid     String   @unique @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  subscriberUrl String
+  secret        String   // hex-encoded 32 random bytes; HMAC SHA-256 key
+  events        String   // CSV: "booking.created,booking.confirmed"
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, active])
+}
+
+// Generic background job — single shape covers webhook delivery today
+// and (later) email send / reminder dispatch / reconciliation runs.
+// Mirrors cal.com Task (packages/prisma/schema.prisma:1826-1852)
+// almost field-for-field. `payload` is JSON-stringified by the caller
+// so this table doesn't depend on Prisma Json adapter quirks across
+// SQLite / Postgres.
+//
+// A task is "due" when `scheduledAt <= now() AND succeededAt IS NULL
+// AND attempts < maxAttempts`. Permanently failed when `attempts >=
+// maxAttempts AND succeededAt IS NULL` — no separate failedAt column,
+// the attempt counter is the state machine.
+//
+// `@@unique([referenceUid, type])` is the dedup mechanism — if the
+// same delivery gets scheduled twice (race in scheduler, retry on
+// the trigger side), the second insert hits the constraint and the
+// caller can swallow it as "already scheduled."
+model Task {
+  id                   Int       @id @default(autoincrement())
+  type                 String    // "webhookDelivery" for now
+  payload              String    // JSON.stringify of { webhookSubscriptionId, event, body }
+  scheduledAt          DateTime  @default(now())
+  succeededAt          DateTime?
+  attempts             Int       @default(0)
+  maxAttempts          Int       @default(3)
+  lastError            String?
+  lastFailedAttemptAt  DateTime?
+  referenceUid         String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([referenceUid, type])
+  @@index([succeededAt])
+  @@index([scheduledAt, succeededAt])
 }
 
 // A single time window on a specific day of the week. A user can have many
