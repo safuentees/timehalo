@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -21,8 +21,14 @@ import {
   isOpenSlot,
   slotBusynessWindow,
   startOfToday,
+  toKey,
   type Slot,
 } from "@/lib/availability";
+import {
+  getQueryParam,
+  updateQueryParam,
+  updateQueryParams,
+} from "@/lib/url-params";
 import { HalftoneMasthead } from "./halftone-masthead";
 
 function seedFromHandle(handle: string): number {
@@ -74,6 +80,43 @@ export default function HostProfile({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
 
+  useEffect(() => {
+    const dateStr = getQueryParam("date");
+    if (dateStr) {
+      const parsed = parseDateKey(dateStr);
+      if (parsed) setSelectedDate(parsed);
+    }
+    const slotIso = getQueryParam("slot");
+    if (slotIso) {
+      const matching = slots.find((s) => s.start === slotIso);
+      if (matching) setSelectedSlot(matching);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function handlePop() {
+      const dateStr = getQueryParam("date");
+      const slotIso = getQueryParam("slot");
+      const apply = () => {
+        setSelectedDate(dateStr ? parseDateKey(dateStr) ?? undefined : undefined);
+        setSelectedSlot(
+          slotIso ? slots.find((s) => s.start === slotIso) : undefined,
+        );
+      };
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => unknown;
+      };
+      if (typeof doc.startViewTransition === "function") {
+        doc.startViewTransition(apply);
+      } else {
+        apply();
+      }
+    }
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, [slots]);
+
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
@@ -82,12 +125,23 @@ export default function HostProfile({
   function handleSelectDate(date: Date | undefined) {
     setSelectedDate(date);
 
+    let nextSlotForDate: Slot | undefined;
     setSelectedSlot((currentSlot) => {
-      if (!currentSlot || !date) return undefined;
-      return isSameCalendarDay(new Date(currentSlot.start), date)
+      if (!currentSlot || !date) {
+        nextSlotForDate = undefined;
+        return undefined;
+      }
+      const keep = isSameCalendarDay(new Date(currentSlot.start), date)
         ? currentSlot
         : undefined;
+      nextSlotForDate = keep;
+      return keep;
     });
+
+    updateQueryParams(
+      { date: date ? toKey(date) : null, slot: nextSlotForDate?.start ?? null },
+      { pushEntry: false },
+    );
   }
 
   const hasSlots = slots.length > 0;
@@ -194,6 +248,7 @@ export default function HostProfile({
             selectedSlot={selectedSlot}
             onPickSlot={(s) => {
               setSelectedSlot(s);
+              updateQueryParam("slot", s.start, { pushEntry: true });
             }}
           />
         </>
@@ -244,6 +299,12 @@ function NextAvailable({ slot }: { slot: Slot }) {
       </div>
     </section>
   );
+}
+
+function parseDateKey(key: string): Date | undefined {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return undefined;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 }
 
 function fmtDayLabelShort(d: Date): string {
