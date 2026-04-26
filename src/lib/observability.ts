@@ -1,6 +1,9 @@
 import "server-only";
 import * as Sentry from "@sentry/nextjs";
 import { env } from "@/env";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("telemetry");
 
 // Selective per-procedure observability — port of cal.com's
 // packages/lib/sentryWrapper.ts. Three runtime modes:
@@ -121,36 +124,26 @@ async function runWithConsoleSpan<T>(
   try {
     const result = await callback(span);
     const durationMs = Date.now() - startedAt;
-    // One structured line. Easy to grep, easy to ship to a log
-    // aggregator later (Axiom, Datadog, console-pipe-to-logflare).
-    console.log(
-      JSON.stringify({
-        kind: "telemetry",
-        name: options.name,
-        op: options.op,
-        status: "ok",
-        durationMs,
-        attributes,
-      }),
-    );
+    log.info(options.name, {
+      op: options.op,
+      status: "ok",
+      durationMs,
+      attributes,
+    });
     return result;
   } catch (error) {
     const durationMs = Date.now() - startedAt;
     const errMsg =
       error instanceof Error ? error.message : String(error);
     const errName = error instanceof Error ? error.name : "Unknown";
-    console.error(
-      JSON.stringify({
-        kind: "telemetry",
-        name: options.name,
-        op: options.op,
-        status: "error",
-        durationMs,
-        attributes,
-        errorName: errName,
-        errorMessage: errMsg,
-      }),
-    );
+    log.error(options.name, {
+      op: options.op,
+      status: "error",
+      durationMs,
+      attributes,
+      errorName: errName,
+      errorMessage: errMsg,
+    });
     // Always rethrow — span is observation, not interception. tRPC's
     // own error path still surfaces the error to the client.
     throw error;
