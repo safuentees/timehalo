@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { DayOfWeek } from "@/generated/prisma/enums";
+import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -136,11 +138,13 @@ export function generateUpcomingSlots({
   from,
   days,
   stepMinutes,
+  hostTimezone = DEFAULT_TIMEZONE,
 }: {
   ranges: DbRow[];
   from: Date;
   days: number;
   stepMinutes: number;
+  hostTimezone?: string;
 }): UpcomingSlot[] {
   const byDay = new Map<DayOfWeek, DbRow[]>();
   for (const r of ranges) {
@@ -153,21 +157,26 @@ export function generateUpcomingSlots({
   const nowMs = from.getTime();
   const seen = new Map<number, UpcomingSlot>();
 
+  const hostFrom = toZonedTime(from, hostTimezone);
+
   for (let offset = 0; offset < days; offset++) {
-    const day = new Date(from);
-    day.setDate(from.getDate() + offset);
-    const dayRanges = byDay.get(JS_DAY_TO_ENUM[day.getDay()]) ?? [];
+    const hostDay = new Date(hostFrom);
+    hostDay.setDate(hostFrom.getDate() + offset);
+    const year = hostDay.getFullYear();
+    const month = hostDay.getMonth();
+    const date = hostDay.getDate();
+    const dayRanges = byDay.get(JS_DAY_TO_ENUM[hostDay.getDay()]) ?? [];
 
     for (const r of dayRanges) {
       const [sh, sm] = r.startTime.split(":").map(Number);
       const [eh, em] = r.endTime.split(":").map(Number);
 
-      const rangeStart = new Date(day);
-      rangeStart.setHours(sh, sm, 0, 0);
-      const rangeEnd = new Date(day);
-      rangeEnd.setHours(eh, em, 0, 0);
+      const wallStart = makeWallClock(year, month, date, sh, sm);
+      const wallEnd = makeWallClock(year, month, date, eh, em);
+      const rangeStartMs = fromZonedTime(wallStart, hostTimezone).getTime();
+      const rangeEndMs = fromZonedTime(wallEnd, hostTimezone).getTime();
 
-      for (let t = rangeStart.getTime(); t + stepMs <= rangeEnd.getTime(); t += stepMs) {
+      for (let t = rangeStartMs; t + stepMs <= rangeEndMs; t += stepMs) {
         if (t > nowMs && !seen.has(t)) {
           seen.set(t, {
             start: new Date(t).toISOString(),
@@ -181,4 +190,15 @@ export function generateUpcomingSlots({
   return Array.from(seen.values()).sort((a, b) =>
     a.start.localeCompare(b.start),
   );
+}
+
+function makeWallClock(
+  year: number,
+  month: number,
+  date: number,
+  hour: number,
+  minute: number,
+): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${year}-${pad(month + 1)}-${pad(date)}T${pad(hour)}:${pad(minute)}:00`;
 }

@@ -16,6 +16,7 @@ model User {
   passwordHash         String?
   invalidLoginAttempts Int                 @default(0)
   handle               String?             @unique
+  timezone             String              @default("UTC")
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
@@ -87,6 +88,7 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  visitorTimezone String?
   referrer     String?
   idempotencyKey String? @unique
   createdAt    DateTime @default(now())

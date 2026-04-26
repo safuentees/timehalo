@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
 import { useBookingCreate } from "@/lib/mutations/use-booking-create";
+import { getBrowserTimezone } from "@/lib/timezone";
 import {
   bookingFormSchema,
   type BookingFormValues,
@@ -48,6 +49,7 @@ export function BookingForm({ handle, slotStart }: Props) {
       visitorName: values.visitorName,
       visitorEmail: values.visitorEmail,
       question: values.question,
+      visitorTimezone: getBrowserTimezone(),
     });
   }
 

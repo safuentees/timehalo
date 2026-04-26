@@ -23,6 +23,7 @@ import {
   getEnabledFeatures,
   isFeatureEnabled,
 } from "@/lib/feature-flags";
+import { timezoneSchema } from "@/lib/timezone";
 
 const handleSchema = z
   .string()
@@ -163,7 +164,7 @@ const schedule = router({
     .query(async ({ input }) => {
       const user = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true },
+        select: { id: true, timezone: true },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
@@ -178,6 +179,7 @@ const schedule = router({
         from: new Date(),
         days: input.days,
         stepMinutes: 15,
+        hostTimezone: user.timezone,
       });
 
       if (slots.length === 0) {
@@ -221,7 +223,7 @@ const users = router({
   me: privateProcedure.query(async ({ ctx }) => {
     return await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
-      select: { id: true, handle: true },
+      select: { id: true, handle: true, timezone: true },
     });
   }),
 
@@ -234,7 +236,13 @@ const users = router({
     .query(async ({ input }) => {
       const user = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true, name: true, handle: true, image: true }, // no email/hash
+        select: {
+          id: true,
+          name: true,
+          handle: true,
+          image: true,
+          timezone: true,
+        },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
       return user;
@@ -266,6 +274,16 @@ const users = router({
         });
       }
       return { handle: input.handle };
+    }),
+
+  setTimezone: privateProcedure
+    .input(z.object({ timezone: timezoneSchema }))
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { timezone: input.timezone },
+      });
+      return { timezone: input.timezone };
     }),
 });
 
@@ -309,7 +327,7 @@ const bookings = router({
 
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true, name: true, handle: true },
+        select: { id: true, name: true, handle: true, timezone: true },
       });
       if (!host) {
         throw new TRPCError({
@@ -342,6 +360,7 @@ const bookings = router({
         from: new Date(),
         days: 14,
         stepMinutes: SLOT_MINUTES,
+        hostTimezone: host.timezone,
       });
       const isValid = upcoming.some((s) => s.start === input.slotStart);
       if (!isValid) {
@@ -391,6 +410,7 @@ const bookings = router({
               slotEnd,
               idempotencyKey: input.idempotencyKey,
               referrer,
+              visitorTimezone: input.visitorTimezone ?? null,
             },
             select: bookingSelect,
           });

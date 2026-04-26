@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { timezoneSchema } from "@/lib/timezone";
 
 export const bookingInputSchema = z.object({
   handle: z.string().min(1),
@@ -20,6 +21,7 @@ export const bookingInputSchema = z.object({
     .max(500, "Keep it under 500 characters")
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  visitorTimezone: timezoneSchema.optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingInputSchema>;
