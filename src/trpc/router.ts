@@ -7,6 +7,7 @@ import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
 import { createRatelimit, type Duration } from "@/lib/rate-limit";
+import { withSpan } from "@/lib/observability";
 
 const handleSchema = z
   .string()
@@ -251,7 +252,18 @@ const bookings = router({
   create: publicProcedure
     .use(createRateLimitMiddleware("bookings.create", 10, "1 m"))
     .input(bookingInputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "bookings.create",
+          op: "booking.write",
+          attributes: {
+            idempotencyKey: input.idempotencyKey,
+            ipIdentifier: ctx.ipIdentifier,
+            handle: input.handle,
+          },
+        },
+        async (span) => {
       const bookingSelect = {
         id: true,
         publicUid: true,
@@ -263,7 +275,10 @@ const bookings = router({
         where: { idempotencyKey: input.idempotencyKey },
         select: bookingSelect,
       });
-      if (existingByKey) return existingByKey;
+      if (existingByKey) {
+        span.setAttribute("idempotencyHit", true);
+        return existingByKey;
+      }
 
       const host = await prisma.user.findUnique({
         where: { handle: input.handle },
@@ -312,6 +327,7 @@ const bookings = router({
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
 
       const operationId = crypto.randomUUID();
+      span.setAttribute("operationId", operationId);
 
       try {
         const booking = await prisma.$transaction(async (tx) => {
@@ -348,6 +364,7 @@ const bookings = router({
 
           return created;
         });
+        span.setAttribute("bookingPublicUid", booking.publicUid);
         return booking;
       } catch (cause) {
         if (
@@ -380,7 +397,9 @@ const bookings = router({
           cause,
         });
       }
-    }),
+        },
+      ),
+    ),
 
   getPublicConfirmation: publicProcedure
     .input(bookingConfirmationInputSchema)
