@@ -18,6 +18,7 @@ import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import { timezoneSchema, DEFAULT_TIMEZONE } from "@/lib/timezone";
 import { TimezoneFields } from "./timezone-fields";
+import { DeleteAccountDialog } from "./delete-account-dialog";
 
 // Account settings — first real surface (was a stub). Owns the
 // timezone picker; future iterations add password change, account
@@ -86,6 +87,24 @@ export default function SettingsForm() {
               </FieldSet>
             </FieldGroup>
           </div>
+
+          <section className="mt-16 border-t-2 border-bru-line-strong pt-10">
+            <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+              Danger zone
+            </p>
+            <h2 className="mt-3 text-[20px] font-black tracking-tight">
+              Delete account
+            </h2>
+            <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
+              Permanently removes your handle, weekly hours, profile, and
+              any upcoming bookings. Booking history is anonymized and
+              retained for audit. There is no undo.
+            </p>
+            <div className="mt-5">
+              <DeleteAccountDialog />
+            </div>
+          </section>
+
           <div className="bru-dash-save-spacer" aria-hidden />
         </BrutalistPageShell>
 
