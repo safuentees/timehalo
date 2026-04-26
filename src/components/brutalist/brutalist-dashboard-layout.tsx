@@ -31,7 +31,7 @@ export function BrutalistDashboardLayout({
         <BrutalistAppSidebar />
         <SidebarInset className={insetClass}>
           <BrutalistTopbar />
-          {children}
+          <div className="bru-host-content">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
