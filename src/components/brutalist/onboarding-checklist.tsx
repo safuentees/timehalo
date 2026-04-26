@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -198,23 +203,31 @@ function useLocalStorageBool(key: string, initial: boolean) {
 
 function useLocalStorageStringSet(key: string) {
   const subscribe = useMemo(() => subscribeToKey(key), [key]);
-  const value = useSyncExternalStore(
-    subscribe,
-    () => {
-      try {
-        const raw = localStorage.getItem(key);
-        if (raw === null) return EMPTY_SET;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          return new Set(parsed.filter(isStepId)) as ReadonlySet<OnboardingStepId>;
-        }
-        return EMPTY_SET;
-      } catch {
+  const cacheRef = useRef<{
+    raw: string | null | undefined;
+    value: ReadonlySet<OnboardingStepId>;
+  }>({ raw: undefined, value: EMPTY_SET });
+
+  const getSnapshot = useCallback((): ReadonlySet<OnboardingStepId> => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === cacheRef.current.raw) return cacheRef.current.value;
+      if (raw === null) {
+        cacheRef.current = { raw: null, value: EMPTY_SET };
         return EMPTY_SET;
       }
-    },
-    () => EMPTY_SET,
-  );
+      const parsed = JSON.parse(raw);
+      const next: ReadonlySet<OnboardingStepId> = Array.isArray(parsed)
+        ? (new Set(parsed.filter(isStepId)) as ReadonlySet<OnboardingStepId>)
+        : EMPTY_SET;
+      cacheRef.current = { raw, value: next };
+      return next;
+    } catch {
+      return EMPTY_SET;
+    }
+  }, [key]);
+
+  const value = useSyncExternalStore(subscribe, getSnapshot, () => EMPTY_SET);
   const set = useCallback(
     (
       updater: (
