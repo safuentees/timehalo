@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DayOfWeek } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC, TRPCError, tracked } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
@@ -12,6 +12,11 @@ import {
   findActiveSubscriptionsForEvent,
   scheduleWebhookDelivery,
 } from "@/lib/tasks";
+import {
+  emitBookingEvent,
+  iterateBookingEvents,
+  type BookingBusEvent,
+} from "@/trpc/bus";
 
 const handleSchema = z
   .string()
@@ -53,7 +58,12 @@ const scheduleInputSchema = z.object({
   sun: daySchema,
 });
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  sse: {
+    ping: { enabled: true, intervalMs: 5_000 },
+    client: { reconnectAfterInactivityMs: 15_000 },
+  },
+});
 
 const middleware = t.middleware;
 
@@ -414,6 +424,15 @@ const bookings = router({
         }
         span.setAttribute("webhooksScheduled", subscriptions.length);
 
+        emitBookingEvent({
+          type: "created",
+          bookingPublicUid: booking.publicUid,
+          hostId: host.id,
+          visitorName: input.visitorName,
+          slotStart: booking.slotStart.toISOString(),
+          occurredAt: new Date().toISOString(),
+        });
+
         return booking;
       } catch (cause) {
         if (cause instanceof TRPCError) throw cause;
@@ -569,6 +588,15 @@ const bookings = router({
           }
           span.setAttribute("webhooksScheduled", subscriptions.length);
 
+          emitBookingEvent({
+            type: "cancelled",
+            bookingPublicUid: result.publicUid,
+            hostId: ctx.user.id,
+            visitorName: result.visitorName,
+            slotStart: result.slotStart.toISOString(),
+            occurredAt: new Date().toISOString(),
+          });
+
           return { ok: true as const, publicUid: result.publicUid };
         },
       ),
@@ -595,6 +623,16 @@ const bookings = router({
     const past = rows.filter((b) => b.slotStart < now).reverse();
     return { upcoming, past };
   }),
+
+  queue: privateProcedure
+    .input(z.object({ lastEventId: z.string().nullish() }).optional())
+    .subscription(async function* ({ ctx, signal }) {
+      const iterable = iterateBookingEvents(ctx.user.id, signal!);
+      for await (const [event] of iterable) {
+        const e = event as BookingBusEvent;
+        yield tracked(`${e.bookingPublicUid}:${e.type}`, e);
+      }
+    }),
 });
 
 const WEBHOOK_EVENTS = ["booking.created", "booking.cancelled"] as const;
