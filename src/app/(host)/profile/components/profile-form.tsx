@@ -82,7 +82,7 @@ export default function ProfileForm() {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
-          <BrutalistPageHeader kicker="Host · Profile" title="Public profile" />
+          <BrutalistPageHeader title="Public profile" />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>

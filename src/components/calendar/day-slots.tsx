@@ -33,7 +33,7 @@ export function DaySlots({ date, slots, onPick }: Props) {
       aria-label={`Slots on ${date.toDateString()}`}
     >
       {slots.length === 0 ? (
-        <p className="bru-day-slots-empty">closed ·</p>
+        <p className="bru-day-slots-empty">closed</p>
       ) : (
         <>
           {openCount === 0 ? (

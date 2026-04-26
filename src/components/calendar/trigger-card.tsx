@@ -12,8 +12,8 @@ type Props = {
 /**
  * Airbnb-style inline trigger card. Three states:
  *   empty → PICK A DATE
- *   date  → {DATE} · PICK A TIME
- *   full  → {DATE} / {TIME} (✎)
+ *   date  → {DATE} (top) / PICK A TIME (bottom)
+ *   full  → {DATE} (top) / {TIME} (bottom, with ✎)
  *
  * Tapping always calls `onClick`; the parent decides which drawer phase
  * to open based on the current selection state.

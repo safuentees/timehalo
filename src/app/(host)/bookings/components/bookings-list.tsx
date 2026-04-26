@@ -35,7 +35,7 @@ export function BookingsList() {
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10">
-      <BrutalistPageHeader kicker="Host · Bookings" title="Your bookings" />
+      <BrutalistPageHeader title="Your bookings" />
 
       {/* Density strip — Tier C #7 from HALFTONE-IDEAS.md. Booking
           volume per day across the next 14 days, encoded as halftone
@@ -147,7 +147,7 @@ function BookingRow({
     <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+          <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-55">
             {fmtSlotDate(slotStart)}
           </span>
           <h3 className="text-[18px] leading-[1.1] font-black truncate">
@@ -201,8 +201,8 @@ function DensityStrip({
       className="mt-6 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
     >
       <header className="flex items-baseline justify-between gap-3 border-b-2 border-bru-line-strong px-3 py-2">
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
-          Next 14 days · {totalUpcoming} booked
+        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-70">
+          {totalUpcoming} booked
         </span>
         {showsPeak ? (
           <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase tabular-nums opacity-70">
@@ -268,7 +268,7 @@ const MONTH_SHORT = [
 ] as const;
 
 function fmtSlotDate(d: Date): string {
-  return `${WEEKDAY_SHORT[d.getDay()]} · ${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`;
+  return `${WEEKDAY_SHORT[d.getDay()]} ${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
 function fmtSlotTime(d: Date): string {
