@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("cron.cleanup-bookings");
 
 // Cleanup cron — hard-deletes soft-deleted bookings past the
 // retention window. Audit rows survive because BookingAudit has no
@@ -47,6 +50,10 @@ export async function POST(request: Request) {
   });
 
   if (expired.length === 0) {
+    log.info("ran (no expired rows)", {
+      cutoff: cutoff.toISOString(),
+      deleted: 0,
+    });
     return Response.json({
       ran: new Date().toISOString(),
       cutoff: cutoff.toISOString(),
@@ -57,6 +64,12 @@ export async function POST(request: Request) {
   const ids = expired.map((b) => b.id);
   const result = await prisma.booking.deleteMany({
     where: { id: { in: ids } },
+  });
+
+  log.info("ran", {
+    cutoff: cutoff.toISOString(),
+    deleted: result.count,
+    sample: expired.slice(0, 5).map((b) => b.publicUid),
   });
 
   return Response.json({
