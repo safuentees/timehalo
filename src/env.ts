@@ -11,6 +11,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("Officehours <onboarding@resend.dev>"),
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    OFFICEHOURS_ADMIN_HANDLES: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
