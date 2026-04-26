@@ -10,9 +10,9 @@ jobs:
     name: lint + typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
@@ -31,9 +31,9 @@ jobs:
     env:
       DATABASE_URL: file:./prisma/dev.db
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
@@ -52,12 +52,10 @@ jobs:
     env:
       DATABASE_URL: file:./prisma/dev.db
       AUTH_SECRET: ci-test-secret-not-used-in-prod
-      # NextAuth needs at least one provider config to boot. The
-      # credentials provider is internal — no external creds needed.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
@@ -68,18 +66,15 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      # Cache the Playwright browser binary by version so we don't
-      # re-download Chromium (~92MB) on every run.
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
-
+      # Official Playwright CI guidance (verified via Context7 against
+      # playwright.dev/docs/ci): always run `install --with-deps` on
+      # ubuntu-latest. --with-deps fetches OS packages that headless
+      # Chromium needs to start; skipping it can cause flaky launches
+      # on minor runner image changes. We don't cache the browser
+      # binary — the ~15s download is cheaper than the cache-key
+      # bookkeeping needed to keep system-deps + binary in sync.
       - name: Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium --with-deps
+        run: pnpm exec playwright install --with-deps chromium
 
       # Playwright's webServer config in playwright.config.ts boots
       # `pnpm dev` automatically and waits for it.
@@ -88,7 +83,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: playwright-report/
