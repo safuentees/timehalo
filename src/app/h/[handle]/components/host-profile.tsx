@@ -20,8 +20,6 @@ import {
 } from "@/components/calendar";
 import {
   isOpenSlot,
-  slotBusynessWindow,
-  startOfToday,
   toKey,
   type Slot,
 } from "@/lib/availability";
@@ -30,15 +28,6 @@ import {
   updateQueryParam,
   updateQueryParams,
 } from "@/lib/url-params";
-import { HalftoneMasthead } from "./halftone-masthead";
-
-function seedFromHandle(handle: string): number {
-  let h = 5381;
-  for (let i = 0; i < handle.length; i++) {
-    h = ((h << 5) + h + handle.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -124,8 +113,6 @@ export default function HostProfile({
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
-  const mastheadDensity = slotBusynessWindow(slots, startOfToday(), 14);
-
   function handleSelectDate(date: Date | undefined) {
     setSelectedDate(date);
 
@@ -161,13 +148,8 @@ export default function HostProfile({
       </div>
 
       <article className="bru-v1">
-        <header className="bru-v1-hero bru-reveal" style={{ position: "relative" }}>
-          <HalftoneMasthead
-            seed={seedFromHandle(handle)}
-            density={mastheadDensity}
-            className="absolute inset-0"
-          />
-          <div className="relative z-10 flex flex-col gap-3">
+        <header className="bru-v1-hero bru-reveal">
+          <div className="flex flex-col gap-3">
           <div className="bru-v1-kicker">
             <div className="bru-v1-id">
               <Avatar size="sm" className="bru-v1-avatar">
