@@ -24,6 +24,7 @@ model User {
   updatedAt            DateTime            @updatedAt
   bookings             Booking[]
   webhooks             WebhookSubscription[]
+  features             UserFeatures[]
 }
 
 model Account {
@@ -160,6 +161,54 @@ enum BookingAuditAction {
   CREATED
   CONFIRMED
   CANCELLED
+}
+
+// Feature flags. Mirrors cal.com Feature
+// (packages/prisma/schema.prisma:1370-1426) at smaller scale — no
+// teams, no `stale` tracking, no last-used auditing. The slug IS the
+// PK because slugs are stable, human-readable identifiers
+// ("live-queue", "experimental-host-page-v2") that code references
+// directly. enabled=false on a row = killed for everyone.
+//
+// Per-user overrides live in UserFeatures: presence of a row scopes
+// the feature to those users only. Absence with enabled=true = global.
+model Feature {
+  slug        String      @id
+  enabled     Boolean     @default(false)
+  description String?
+  type        FeatureType @default(RELEASE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  assignments UserFeatures[]
+
+  @@index([enabled])
+}
+
+// Join table — one row per (user, feature) assignment. The mere
+// existence of the row IS the assignment; we don't store a per-row
+// `enabled` boolean (cal.com does for finer toggling, but at our scale
+// "delete the row to revoke" is simpler).
+model UserFeatures {
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  feature     Feature @relation(fields: [featureSlug], references: [slug], onDelete: Cascade)
+  featureSlug String
+  assignedAt  DateTime @default(now())
+  assignedBy  String?
+
+  @@id([userId, featureSlug])
+  @@index([featureSlug])
+}
+
+// Categorization for admin UIs (when we have one). Runtime check
+// doesn't branch on type — both kill switches and releases are just
+// "is this slug enabled for this user?" The label is for humans.
+enum FeatureType {
+  RELEASE      // staged rollout of a new feature
+  EXPERIMENT   // A/B test gate
+  OPERATIONAL  // structural toggle (caching, batching)
+  KILL_SWITCH  // emergency off-switch for an existing feature
+  PERMISSION   // long-lived gate per role / plan / cohort
 }
 
 // Outbound webhook a host registers — when a booking event fires, the
