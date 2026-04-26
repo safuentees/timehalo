@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -21,8 +21,14 @@ import {
   isOpenSlot,
   slotBusynessWindow,
   startOfToday,
+  toKey,
   type Slot,
 } from "@/lib/availability";
+import {
+  getQueryParam,
+  updateQueryParam,
+  updateQueryParams,
+} from "@/lib/url-params";
 import { HalftoneMasthead } from "./halftone-masthead";
 
 // Stable per-handle seed so two visitors looking at the same host see
@@ -73,8 +79,58 @@ export default function HostProfile({
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // URL is a mirror of the visitor's selection — start undefined so SSR
+  // and the first client render agree, then hydrate from `?date=`/`?slot=`
+  // in the effect below. cal.com pattern: store is the truth at runtime,
+  // URL is the truth across reload/share/back.
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+
+  // Seed selection from URL once on mount, after hydration. Read once;
+  // popstate handles forward updates, our setters write back.
+  useEffect(() => {
+    const dateStr = getQueryParam("date");
+    if (dateStr) {
+      const parsed = parseDateKey(dateStr);
+      if (parsed) setSelectedDate(parsed);
+    }
+    const slotIso = getQueryParam("slot");
+    if (slotIso) {
+      const matching = slots.find((s) => s.start === slotIso);
+      if (matching) setSelectedSlot(matching);
+    }
+    // Run once — slots prop changes after this should NOT clobber the
+    // visitor's selection. If a fetch returns new slots that no longer
+    // contain the picked one, the drawer handles the empty case.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Browser back/forward → re-read URL → restore state inside a view
+  // transition so the change feels animated, not snappy. This is the
+  // "browser back plays an animation" piece — Next's auto view-transition
+  // wrap only fires on router navigations, not popstate.
+  useEffect(() => {
+    function handlePop() {
+      const dateStr = getQueryParam("date");
+      const slotIso = getQueryParam("slot");
+      const apply = () => {
+        setSelectedDate(dateStr ? parseDateKey(dateStr) ?? undefined : undefined);
+        setSelectedSlot(
+          slotIso ? slots.find((s) => s.start === slotIso) : undefined,
+        );
+      };
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => unknown;
+      };
+      if (typeof doc.startViewTransition === "function") {
+        doc.startViewTransition(apply);
+      } else {
+        apply();
+      }
+    }
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, [slots]);
 
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
@@ -87,12 +143,25 @@ export default function HostProfile({
   function handleSelectDate(date: Date | undefined) {
     setSelectedDate(date);
 
+    let nextSlotForDate: Slot | undefined;
     setSelectedSlot((currentSlot) => {
-      if (!currentSlot || !date) return undefined;
-      return isSameCalendarDay(new Date(currentSlot.start), date)
+      if (!currentSlot || !date) {
+        nextSlotForDate = undefined;
+        return undefined;
+      }
+      const keep = isSameCalendarDay(new Date(currentSlot.start), date)
         ? currentSlot
         : undefined;
+      nextSlotForDate = keep;
+      return keep;
     });
+
+    // Mirror to URL. Date pick is transient (replaceState — no back-stack
+    // entry per click), but if it cleared the slot we wipe that key too.
+    updateQueryParams(
+      { date: date ? toKey(date) : null, slot: nextSlotForDate?.start ?? null },
+      { pushEntry: false },
+    );
   }
 
   const hasSlots = slots.length > 0;
@@ -203,6 +272,10 @@ export default function HostProfile({
             selectedSlot={selectedSlot}
             onPickSlot={(s) => {
               setSelectedSlot(s);
+              // Slot pick is commit-ish — pushState so browser back
+              // returns to "date picked, no slot" instead of skipping
+              // straight back to the page entry.
+              updateQueryParam("slot", s.start, { pushEntry: true });
             }}
           />
         </>
@@ -256,6 +329,15 @@ function NextAvailable({ slot }: { slot: Slot }) {
 }
 
 // ——— Helpers ———
+
+// Parse a "YYYY-MM-DD" key (matches lib/availability `toKey`) as local
+// midnight. Avoids `new Date("2026-04-25")` which parses as UTC and
+// shifts a day in negative-offset zones.
+function parseDateKey(key: string): Date | undefined {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return undefined;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
 
 function fmtDayLabelShort(d: Date): string {
   return `${WEEKDAY_SHORT[d.getDay()]} ${d.getDate()}`;
