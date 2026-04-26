@@ -223,7 +223,12 @@ const users = router({
   me: privateProcedure.query(async ({ ctx }) => {
     return await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
-      select: { id: true, handle: true, timezone: true },
+      select: {
+        id: true,
+        handle: true,
+        timezone: true,
+        email: true,
+      },
     });
   }),
 
@@ -285,6 +290,32 @@ const users = router({
       });
       return { timezone: input.timezone };
     }),
+
+  deleteAccount: privateProcedure.mutation(async ({ ctx }) => {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      select: { email: true, name: true, handle: true },
+    });
+
+    const hostName = user.name ?? user.handle ?? "Officehours user";
+    const operationId = crypto.randomUUID();
+
+    await scheduleEmailSend({
+      payload: {
+        to: user.email,
+        template: "account-deleted",
+        props: {
+          hostName,
+          deletedAtIso: new Date().toISOString(),
+        },
+      },
+      referenceUid: `user:${ctx.user.id}:account-deleted:${operationId}`,
+    });
+
+    await prisma.user.delete({ where: { id: ctx.user.id } });
+
+    return { ok: true as const };
+  }),
 });
 
 const SLOT_MINUTES = 15;

@@ -77,9 +77,10 @@ describe("email layer — templates render", () => {
     expect(html).toContain("maya@example.com");
   });
 
-  it("template registry covers all three templates", () => {
+  it("template registry covers every wired template", () => {
     const keys = Object.keys(TEMPLATES).sort();
     expect(keys).toEqual([
+      "account-deleted",
       "booking-cancelled",
       "booking-cancelled-host",
       "booking-created",

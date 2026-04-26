@@ -1,0 +1,166 @@
+"use client";
+
+import { useState } from "react";
+import { signOut } from "next-auth/react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { trpc } from "@/trpc/hooks";
+import { useDeleteAccount } from "@/lib/mutations/use-delete-account";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError } from "@/components/ui/field";
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalTrigger,
+} from "@/components/ui/responsive-modal";
+import {
+  BrutalistInputGroup,
+  BrutalistInputGroupAddon,
+  BrutalistInputGroupInput,
+  BrutalistInputGroupText,
+} from "@/components/brutalist/brutalist-input-group";
+
+export function DeleteAccountDialog() {
+  const [open, setOpen] = useState(false);
+  const { data: me } = trpc.users.me.useQuery();
+
+  return (
+    <ResponsiveModal open={open} onOpenChange={setOpen}>
+      <ResponsiveModalTrigger asChild>
+        <Button
+          variant="outline"
+          size="brutalist"
+          className="bru-danger-trigger"
+        >
+          Delete account
+        </Button>
+      </ResponsiveModalTrigger>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Delete account</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+        <DeleteForm
+          email={me?.email ?? null}
+          handle={me?.handle ?? null}
+          onCancel={() => setOpen(false)}
+        />
+      </ResponsiveModalContent>
+    </ResponsiveModal>
+  );
+}
+
+function DeleteForm({
+  email,
+  handle,
+  onCancel,
+}: {
+  email: string | null;
+  handle: string | null;
+  onCancel: () => void;
+}) {
+  const schema = z.object({
+    confirmEmail: z.string().refine((v) => v === email, {
+      message: "Email does not match the account email",
+    }),
+  });
+  type Values = z.infer<typeof schema>;
+
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { confirmEmail: "" },
+    mode: "onChange",
+  });
+
+  const deleteAccount = useDeleteAccount({
+    onSuccess: async () => {
+      await signOut({ callbackUrl: "/" });
+    },
+  });
+
+  if (!email) {
+    return (
+      <div className="px-5 pb-6 text-[13px] opacity-65">
+        Loading account…
+      </div>
+    );
+  }
+
+  const isPending = deleteAccount.isPending;
+  const isValid = form.formState.isValid;
+
+  return (
+    <FormProvider {...form}>
+      <form
+        onSubmit={form.handleSubmit(async () => {
+          await deleteAccount.mutateAsync();
+        })}
+        className="px-5 pb-6 flex flex-col gap-5"
+      >
+        <p className="text-[14px] leading-[1.55] opacity-80">
+          This permanently deletes <strong>@{handle ?? "your handle"}</strong>,
+          your weekly hours, and any upcoming bookings against your page.
+          Booking history is anonymized and retained for audit. There is
+          no undo.
+        </p>
+        <p className="text-[13px] leading-[1.5] opacity-65">
+          Type your account email{" "}
+          <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+            {email}
+          </code>{" "}
+          to confirm.
+        </p>
+        <Controller<Values>
+          name="confirmEmail"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <BrutalistInputGroup>
+                <BrutalistInputGroupInput
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  placeholder={email}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  data-1p-ignore
+                  aria-invalid={fieldState.invalid}
+                />
+                <BrutalistInputGroupAddon align="inline-start">
+                  <BrutalistInputGroupText>Email</BrutalistInputGroupText>
+                </BrutalistInputGroupAddon>
+              </BrutalistInputGroup>
+              <FieldError
+                errors={fieldState.error ? [fieldState.error] : undefined}
+                className="bru-field-error"
+              />
+            </Field>
+          )}
+        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="brutalist"
+            onClick={onCancel}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="brutalist"
+            size="brutalist"
+            disabled={!isValid || isPending}
+            className="bru-danger-confirm"
+          >
+            {isPending ? "Deleting…" : "Delete account"}
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
+  );
+}
