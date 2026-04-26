@@ -1,0 +1,27 @@
+{
+  "Settings": {
+    "title": "Cuenta",
+    "timezoneLegend": "Zona horaria",
+    "timezoneDescription": "Tus horas semanales se interpretan en esta zona. Los horarios mostrados a los visitantes se convierten desde esta zona a UTC y luego se muestran en su hora local.",
+    "languageLegend": "Idioma",
+    "languageDescription": "Cambia las etiquetas y los textos de la superficie del anfitrión. Las páginas para visitantes se negocian desde el navegador del visitante.",
+    "save": "Guardar cambios",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "useBrowser": "Usar navegador",
+    "yourTimezone": "Tu zona horaria"
+  },
+  "DangerZone": {
+    "label": "Zona de peligro",
+    "deleteAccountTitle": "Eliminar cuenta",
+    "deleteAccountDescription": "Elimina permanentemente tu identificador, tus horas semanales, tu perfil y cualquier reserva próxima. El historial se anonimiza y se conserva para auditoría. No se puede deshacer.",
+    "deleteAccountButton": "Eliminar cuenta",
+    "dialogIntro": "Esto elimina permanentemente <handle></handle>, tus horas semanales y cualquier reserva próxima contra tu página. El historial se anonimiza y se conserva para auditoría. No se puede deshacer.",
+    "dialogTypeEmail": "Escribe el correo de tu cuenta <code>{email}</code> para confirmar.",
+    "emailFieldLabel": "Correo",
+    "emailMismatch": "El correo no coincide con el de la cuenta",
+    "cancel": "Cancelar",
+    "confirm": "Eliminar cuenta",
+    "deleting": "Eliminando…"
+  }
+}
