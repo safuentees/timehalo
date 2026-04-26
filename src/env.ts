@@ -40,6 +40,15 @@ export const env = createEnv({
      * unset, the in-memory limiter (rallly's pattern) is used.
      */
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    /**
+     * CSV of host handles permitted to access /admin/*. Empty/unset
+     * → no admin access from any account. dub uses workspace-
+     * membership for the same gate; we don't have workspaces yet,
+     * so a static env list is the smaller equivalent. Validate the
+     * handle, not the user id, so rotating the underlying user row
+     * doesn't quietly drop admin access.
+     */
+    OFFICEHOURS_ADMIN_HANDLES: z.string().optional(),
   },
   client: {
     /**
