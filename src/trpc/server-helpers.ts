@@ -19,6 +19,8 @@ export const createPrivateSSRHelper = cache(async () => {
       // but the Context type requires this field. "ssr" is a stable
       // sentinel that won't collide with a real client IP.
       ipIdentifier: "ssr",
+      // No request → no cookies. Empty Map keeps the type stable.
+      cookies: new Map<string, string>(),
     },
   });
 });
@@ -31,6 +33,7 @@ export const createPublicSSRHelper = cache(async () => {
     ctx: {
       user: session?.user ?? null,
       ipIdentifier: "ssr",
+      cookies: new Map<string, string>(),
     },
   });
 });
