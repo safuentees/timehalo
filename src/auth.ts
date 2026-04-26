@@ -23,10 +23,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Email and password are required");
         }
 
-        const { email, password } = credentials as {
+        const { email: rawEmail, password } = credentials as {
           email: string;
           password: string;
         };
+        const email = rawEmail.trim().toLowerCase();
 
         const user = await prisma.user.findUnique({
           where: { email },

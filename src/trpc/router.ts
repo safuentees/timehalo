@@ -7,8 +7,10 @@ import { z } from "zod";
 import type { Context } from "@/trpc/context";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
+import { handleSchema, registerInputSchema } from "@/lib/register-schema";
 import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
+import { hashPassword } from "@/lib/password";
 import {
   findActiveSubscriptionsForEvent,
   scheduleEmailSend,
@@ -24,11 +26,6 @@ import {
   isFeatureEnabled,
 } from "@/lib/feature-flags";
 import { timezoneSchema } from "@/lib/timezone";
-
-const handleSchema = z
-  .string()
-  .min(3, "3+ characters")
-  .regex(/^[a-z0-9-]+$/, "Lowercase, numbers, hyphens");
 
 const DAY_KEY_TO_ENUM = {
   mon: DayOfWeek.MONDAY,
@@ -111,6 +108,50 @@ function createRateLimitMiddleware(
 }
 
 const router = t.router;
+
+const RESERVED_HANDLES = new Set([
+  "admin",
+  "api",
+  "availability",
+  "bookings",
+  "h",
+  "login",
+  "me",
+  "profile",
+  "register",
+  "root",
+  "settings",
+  "www",
+]);
+
+function uniqueConstraintIncludes(cause: unknown, field: "email" | "handle") {
+  if (
+    !(cause instanceof Prisma.PrismaClientKnownRequestError) ||
+    cause.code !== "P2002"
+  ) {
+    return false;
+  }
+
+  const target = cause.meta?.target;
+  if (Array.isArray(target)) {
+    return target.some((item) => item === field);
+  }
+  return typeof target === "string" && target.includes(field);
+}
+
+function handleConflict(message = "That handle is taken. Pick another.") {
+  return new TRPCError({
+    code: "CONFLICT",
+    message,
+  });
+}
+
+function emailConflict() {
+  return new TRPCError({
+    code: "CONFLICT",
+    message: "That email is already registered.",
+  });
+}
 
 export const createCaller = t.createCallerFactory;
 
@@ -216,7 +257,90 @@ const schedule = router({
           status,
         };
       });
+  }),
+});
+
+const auth = router({
+  handleAvailability: publicProcedure
+    .input(z.object({ handle: handleSchema }))
+    .query(async ({ input }) => {
+      if (RESERVED_HANDLES.has(input.handle)) {
+        return { available: false as const };
+      }
+
+      const existing = await prisma.user.findUnique({
+        where: { handle: input.handle },
+        select: { id: true },
+      });
+
+      return { available: existing === null };
     }),
+
+  register: publicProcedure
+    .use(createRateLimitMiddleware("auth.register", 5, "1 m"))
+    .input(registerInputSchema)
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "auth.register",
+          op: "user.write",
+          attributes: {
+            handle: input.handle,
+            ipIdentifier: ctx.ipIdentifier,
+          },
+        },
+        async () => {
+          if (RESERVED_HANDLES.has(input.handle)) {
+            throw handleConflict();
+          }
+
+          const existingEmail = await prisma.user.findUnique({
+            where: { email: input.email },
+            select: { id: true },
+          });
+          if (existingEmail) {
+            throw emailConflict();
+          }
+
+          const existingHandle = await prisma.user.findUnique({
+            where: { handle: input.handle },
+            select: { id: true },
+          });
+          if (existingHandle) {
+            throw handleConflict();
+          }
+
+          const passwordHash = await hashPassword(input.password);
+
+          try {
+            return await prisma.user.create({
+              data: {
+                email: input.email,
+                handle: input.handle,
+                passwordHash,
+              },
+              select: {
+                id: true,
+                email: true,
+                handle: true,
+              },
+            });
+          } catch (cause) {
+            if (uniqueConstraintIncludes(cause, "email")) {
+              throw emailConflict();
+            }
+            if (uniqueConstraintIncludes(cause, "handle")) {
+              throw handleConflict();
+            }
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Could not create your account. Try again.",
+              cause,
+            });
+          }
+        },
+      ),
+    ),
 });
 
 const users = router({
@@ -1178,7 +1302,7 @@ const webhooks = router({
     }),
 });
 
-export const appRouter = router({ schedule, users, bookings, webhooks });
+export const appRouter = router({ schedule, auth, users, bookings, webhooks });
 export { WEBHOOK_EVENTS };
 export type { WebhookEvent };
 
