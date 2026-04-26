@@ -979,6 +979,22 @@
   .bru-v1-status.is-open .bru-v1-status-dot { animation: none; }
 }
 
+/* Live-queue heartbeat — fires on each SSE event via the `key={pulseKey}`
+   remount trick. Single-shot scale beat tied to actual data, not idle
+   decoration. Reduced-motion users get a static dot. */
+.bru-live-dot {
+  animation: bru-live-pulse 520ms cubic-bezier(.4, 0, .2, 1);
+  transform-origin: center;
+}
+@keyframes bru-live-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.55); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bru-live-dot { animation: none; }
+}
+
 .bru-v1-name {
   margin: 4px 0 2px;
   font-weight: 900;
