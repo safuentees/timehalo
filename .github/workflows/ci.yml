@@ -4,11 +4,24 @@ on:
   pull_request:
   push:
     branches: [main]
+  # workflow_dispatch lets you re-run the latest run from the Actions
+  # tab without pushing an empty commit. Useful when a flake clears
+  # itself or an external service comes back up.
+  workflow_dispatch:
+
+# Cancel previous in-progress runs on the same PR / branch when a new
+# commit lands. Saves runner minutes on rapid push sequences.
+# Pattern verified against Context7's GitHub Actions docs +
+# rallly's apps/web/.github/workflows/ci.yml:10-12 (canonical form).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
     name: lint + typecheck
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -28,6 +41,7 @@ jobs:
     name: vitest (server-side contracts)
     runs-on: ubuntu-latest
     needs: check
+    timeout-minutes: 10
     env:
       DATABASE_URL: file:./prisma/dev.db
     steps:
@@ -49,6 +63,9 @@ jobs:
     name: playwright (hydration smoke)
     runs-on: ubuntu-latest
     needs: check
+    # Hard cap so a hung Playwright doesn't pin a runner for 6h.
+    # dub's playwright.yaml uses 20; we have one shard, so 15 is plenty.
+    timeout-minutes: 15
     env:
       DATABASE_URL: file:./prisma/dev.db
       AUTH_SECRET: ci-test-secret-not-used-in-prod
@@ -66,13 +83,10 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
-      # Official Playwright CI guidance (verified via Context7 against
-      # playwright.dev/docs/ci): always run `install --with-deps` on
-      # ubuntu-latest. --with-deps fetches OS packages that headless
-      # Chromium needs to start; skipping it can cause flaky launches
-      # on minor runner image changes. We don't cache the browser
-      # binary — the ~15s download is cheaper than the cache-key
-      # bookkeeping needed to keep system-deps + binary in sync.
+      # Playwright's docs (Context7-verified) recommend
+      # `install --with-deps` on ubuntu-latest. We don't cache the
+      # browser binary — see ci.yml's predecessor for why the
+      # cache-key + system-deps bookkeeping isn't worth ~15s here.
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
@@ -81,8 +95,12 @@ jobs:
       - name: Run Playwright tests
         run: pnpm exec playwright test
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      # Always upload — `always()` includes failure + cancellation.
+      # Lets you `gh run download` and inspect a flaky run's trace
+      # even if the job didn't error out cleanly.
+      # Pattern from cal.com e2e.yml:97 + rallly ci.yml:114.
+      - name: Upload Playwright report
+        if: always()
         uses: actions/upload-artifact@v5
         with:
           name: playwright-report
