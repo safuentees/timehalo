@@ -37,6 +37,20 @@ const menuButtonClass = [
 const groupLabelClass =
   "font-[family:var(--bru-mono)] text-[10px] font-bold tracking-[2.5px] uppercase opacity-55 px-[10px] pb-[8px]";
 
+function sidebarNavId(href: string) {
+  const pathname = href.split(/[?#]/)[0] ?? href;
+  const slug =
+    pathname
+      .split("/")
+      .filter(Boolean)
+      .join("-")
+      .replace(/[^a-z0-9-]/gi, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .toLowerCase() || "home";
+  return `sidebar-nav-${slug}`;
+}
+
 function NavBullet({ active }: { active: boolean }) {
   return (
     <span
@@ -82,6 +96,7 @@ export function BrutalistAppSidebar() {
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
+                      id={sidebarNavId(item.href)}
                       isActive={active}
                       tooltip={item.label}
                       className={menuButtonClass}
@@ -110,6 +125,7 @@ export function BrutalistAppSidebar() {
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
                     <SidebarMenuButton
+                      id={sidebarNavId(item.href)}
                       isActive={active}
                       tooltip={item.label}
                       className={menuButtonClass}
@@ -133,6 +149,7 @@ export function BrutalistAppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
+              id="sidebar-action-sign-out"
               tooltip="Sign out"
               onClick={() => signOut({ redirectTo: "/login" })}
               className="rounded-(--bru-r-xs) font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-150 ease-bru focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
