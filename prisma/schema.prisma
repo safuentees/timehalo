@@ -16,6 +16,11 @@ model User {
   passwordHash         String?
   invalidLoginAttempts Int                 @default(0)
   handle               String?             @unique
+  // IANA timezone for the host's wall-clock interpretation. Drives
+  // how AvailabilityRange.startTime/endTime get mapped to UTC slots.
+  // Default "UTC" is the historical no-op behavior — every host has
+  // an explicit zone after this migration.
+  timezone             String              @default("UTC")
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
@@ -92,6 +97,11 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  // Visitor's IANA timezone captured at booking time. Stays nullable
+  // for forward-compat — old rows or programmatic creates can omit
+  // it. Used for confirmation-page display + future reminder emails
+  // localized to the visitor.
+  visitorTimezone String?
   // Attribution captured at booking time from the oh_ref_<handle>
   // cookie (set by proxy.ts when the visitor lands via a ?ref= link).
   // Plain string ("twitter", "newsletter", etc.) — no PII. Mirrors

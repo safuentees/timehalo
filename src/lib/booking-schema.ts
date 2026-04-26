@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { timezoneSchema } from "@/lib/timezone";
 
 /**
  * Shared booking input schema — used by both the tRPC `bookings.create`
@@ -29,6 +30,12 @@ export const bookingInputSchema = z.object({
     .max(500, "Keep it under 500 characters")
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  // Visitor's IANA timezone, captured client-side at submit time via
+  // Intl.DateTimeFormat().resolvedOptions().timeZone. Optional so
+  // programmatic creates / older client builds still work — when
+  // present we validate + store; when absent the booking row's
+  // visitorTimezone stays null.
+  visitorTimezone: timezoneSchema.optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingInputSchema>;
