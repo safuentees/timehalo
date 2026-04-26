@@ -88,6 +88,12 @@ type ScheduleEmailOpts<T extends TemplateName> = {
    * with the same key → second one no-ops.
    */
   referenceUid: string;
+  /**
+   * Optional future scheduledAt — defaults to now (cron picks up on
+   * next tick). Used by reminder emails (A8) to defer dispatch until
+   * 1 hour before the booking's slotStart.
+   */
+  scheduledAt?: Date;
 };
 
 /**
@@ -106,6 +112,7 @@ export async function scheduleEmailSend<T extends TemplateName>(
         type: TASK_TYPE_EMAIL_SEND,
         payload: JSON.stringify(opts.payload),
         referenceUid: opts.referenceUid,
+        ...(opts.scheduledAt ? { scheduledAt: opts.scheduledAt } : {}),
       },
     });
     return true;
@@ -118,6 +125,33 @@ export async function scheduleEmailSend<T extends TemplateName>(
     }
     throw cause;
   }
+}
+
+/**
+ * Mark a pending Task as superseded — sets succeededAt = now (without
+ * actually running it) so the cron processor skips the row on its next
+ * tick. Used to cancel scheduled reminder emails when the booking is
+ * cancelled or rescheduled.
+ *
+ * Filters on `succeededAt: null` so a reminder that's already fired
+ * doesn't get re-marked. Returns the count of rows updated.
+ */
+export async function cancelPendingTask(opts: {
+  referenceUid: string;
+  type: string;
+}): Promise<number> {
+  const result = await prisma.task.updateMany({
+    where: {
+      referenceUid: opts.referenceUid,
+      type: opts.type,
+      succeededAt: null,
+    },
+    data: {
+      succeededAt: new Date(),
+      lastError: "Cancelled — booking superseded",
+    },
+  });
+  return result.count;
 }
 
 /**
