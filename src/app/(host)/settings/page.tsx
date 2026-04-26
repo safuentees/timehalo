@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   return (
     <main className="bru-main">
       <div className="mx-auto w-full max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
-        <BrutalistPageHeader kicker="Host · Settings" title="Account" />
+        <BrutalistPageHeader title="Account" />
         <p className="mt-8 text-[14px] leading-[1.55] opacity-65 max-w-prose">
           Timezone, password, danger zone. Lands here once a story
           requires it. For now: edit your handle on{" "}
