@@ -8,6 +8,10 @@ import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
 import { createRatelimit, type Duration } from "@/lib/rate-limit";
 import { withSpan } from "@/lib/observability";
+import {
+  findActiveSubscriptionsForEvent,
+  scheduleWebhookDelivery,
+} from "@/lib/tasks";
 
 const handleSchema = z
   .string()
@@ -365,6 +369,39 @@ const bookings = router({
           return created;
         });
         span.setAttribute("bookingPublicUid", booking.publicUid);
+
+        const subscriptions = await findActiveSubscriptionsForEvent(
+          host.id,
+          "booking.created",
+        );
+        for (const sub of subscriptions) {
+          await scheduleWebhookDelivery({
+            payload: {
+              webhookSubscriptionId: sub.id,
+              event: "booking.created",
+              body: {
+                event: "booking.created",
+                operationId,
+                booking: {
+                  publicUid: booking.publicUid,
+                  slotStart: booking.slotStart.toISOString(),
+                  slotEnd: booking.slotEnd.toISOString(),
+                  visitorName: input.visitorName,
+                  visitorEmail: input.visitorEmail,
+                  question: input.question ?? null,
+                },
+                host: {
+                  handle: input.handle,
+                  id: host.id,
+                },
+                createdAt: new Date().toISOString(),
+              },
+            },
+            referenceUid: `${booking.publicUid}:booking.created:${sub.id}`,
+          });
+        }
+        span.setAttribute("webhooksScheduled", subscriptions.length);
+
         return booking;
       } catch (cause) {
         if (
