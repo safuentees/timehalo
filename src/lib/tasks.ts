@@ -51,6 +51,7 @@ export type EmailSendPayload<T extends TemplateName = TemplateName> = {
 type ScheduleEmailOpts<T extends TemplateName> = {
   payload: EmailSendPayload<T>;
   referenceUid: string;
+  scheduledAt?: Date;
 };
 
 export async function scheduleEmailSend<T extends TemplateName>(
@@ -62,6 +63,7 @@ export async function scheduleEmailSend<T extends TemplateName>(
         type: TASK_TYPE_EMAIL_SEND,
         payload: JSON.stringify(opts.payload),
         referenceUid: opts.referenceUid,
+        ...(opts.scheduledAt ? { scheduledAt: opts.scheduledAt } : {}),
       },
     });
     return true;
@@ -74,6 +76,24 @@ export async function scheduleEmailSend<T extends TemplateName>(
     }
     throw cause;
   }
+}
+
+export async function cancelPendingTask(opts: {
+  referenceUid: string;
+  type: string;
+}): Promise<number> {
+  const result = await prisma.task.updateMany({
+    where: {
+      referenceUid: opts.referenceUid,
+      type: opts.type,
+      succeededAt: null,
+    },
+    data: {
+      succeededAt: new Date(),
+      lastError: "Cancelled — booking superseded",
+    },
+  });
+  return result.count;
 }
 
 export async function findActiveSubscriptionsForEvent(
