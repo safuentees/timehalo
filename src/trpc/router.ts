@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { env } from "@/env";
 import { DayOfWeek } from "@/generated/prisma/enums";
 import { Prisma } from "@/generated/prisma/client";
 import { initTRPC, TRPCError, tracked } from "@trpc/server";
@@ -570,7 +571,7 @@ const bookings = router({
         // queued via Task, processed off-path so a Resend hiccup
         // can't roll back the booking write.
         const hostName = host.name ?? host.handle ?? "your host";
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
         const confirmationUrl = `${appUrl}/h/${input.handle}/booked/${booking.publicUid}`;
         await scheduleEmailSend({
           payload: {

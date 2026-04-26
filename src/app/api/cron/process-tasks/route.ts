@@ -33,6 +33,9 @@ function nextRetryAt(attempts: number): Date {
 }
 
 function isAuthorized(request: Request): boolean {
+  // CRON_SECRET stays on raw process.env — Vercel cron + tests both
+  // mutate it post-import, and t3-env snapshots at module load. The
+  // schema in src/env.ts still documents it for ops handoff.
   const expected = process.env.CRON_SECRET;
   if (!expected) {
     // No secret configured — refuse to run rather than silently

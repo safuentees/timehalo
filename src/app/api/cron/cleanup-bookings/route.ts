@@ -18,6 +18,8 @@ const RETENTION_DAYS = 30;
 const MAX_DELETIONS_PER_RUN = 500;
 
 function isAuthorized(request: Request): boolean {
+  // See note in process-tasks/route.ts — CRON_SECRET stays on raw
+  // process.env so test setup + Vercel cron mutations survive.
   const expected = process.env.CRON_SECRET;
   if (!expected) return false;
   return request.headers.get("authorization") === `Bearer ${expected}`;
