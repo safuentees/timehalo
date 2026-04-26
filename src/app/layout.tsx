@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
@@ -44,22 +45,24 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TRPCProvider>{children}</TRPCProvider>
-          <Toaster />
-        </ThemeProvider>
-      </body>
-    </html>
+    <ViewTransitions>
+      <html
+        lang="en"
+        suppressHydrationWarning
+        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      >
+        <body className="min-h-full flex flex-col">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TRPCProvider>{children}</TRPCProvider>
+            <Toaster />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }
