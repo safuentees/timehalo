@@ -16,6 +16,7 @@ export const createPrivateSSRHelper = cache(async () => {
     ctx: {
       user: session.user,
       ipIdentifier: "ssr",
+      cookies: new Map<string, string>(),
     },
   });
 });
@@ -28,6 +29,7 @@ export const createPublicSSRHelper = cache(async () => {
     ctx: {
       user: session?.user ?? null,
       ipIdentifier: "ssr",
+      cookies: new Map<string, string>(),
     },
   });
 });

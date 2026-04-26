@@ -344,6 +344,9 @@ const bookings = router({
       const operationId = crypto.randomUUID();
       span.setAttribute("operationId", operationId);
 
+      const referrer = ctx.cookies.get(`oh_ref_${input.handle}`) ?? null;
+      if (referrer) span.setAttribute("referrer", referrer);
+
       try {
         const booking = await prisma.$transaction(async (tx) => {
           const slotCollision = await tx.booking.findFirst({
@@ -366,6 +369,7 @@ const bookings = router({
               slotStart,
               slotEnd,
               idempotencyKey: input.idempotencyKey,
+              referrer,
             },
             select: bookingSelect,
           });
@@ -383,6 +387,7 @@ const bookings = router({
                 slotStart: created.slotStart.toISOString(),
                 slotEnd: created.slotEnd.toISOString(),
                 idempotencyKey: input.idempotencyKey,
+                referrer,
               },
               operationId,
             },

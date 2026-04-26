@@ -86,6 +86,7 @@ model Booking {
   question     String?
   slotStart    DateTime
   slotEnd      DateTime
+  referrer     String?
   idempotencyKey String? @unique
   createdAt    DateTime @default(now())
   deleted      Boolean  @default(false)
