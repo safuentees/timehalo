@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -31,8 +31,10 @@ export function BookingsList() {
 
   return (
     <BrutalistPageShell>
-      <BrutalistPageHeader title="Your bookings" />
-      {liveQueueEnabled ? <LiveQueue /> : null}
+      <BrutalistPageHeader
+        title="Your bookings"
+        aside={liveQueueEnabled ? <LiveQueue /> : null}
+      />
 
       {/* Segmented control — Apple HIG: small set of mutually-exclusive
           views, persistent visual presence so users can switch back.
@@ -163,18 +165,42 @@ function BookingRow({
   );
 }
 
-// Wraps the SSE subscription + the connection-state pill. Only
-// rendered when the `live-queue` feature flag is on (gated upstream
-// in BookingsList). Putting the subscription in its own component
-// means the React-hooks-order rule is preserved when the flag flips
-// — disabling the flag unmounts the child, tearing down the SSE
-// connection cleanly. No need for the deprecated useSubscription
-// `enabled` flag.
+// SSE subscription wrapper rendered as the `aside` of BrutalistPageHeader.
+// Only mounts when the `live-queue` feature flag is on; flipping the
+// flag off unmounts cleanly, tearing down the subscription with no
+// `enabled` flag plumbing.
+//
+// State machine:
+//  - "hidden" (initial 500ms) — show nothing. Most connections finish
+//    within this window, so users never see a transient state on
+//    reload. If still hidden after 500ms, surface "connecting".
+//  - "live" — solid green dot. Heartbeat animation fires on each
+//    incoming event via the pulseKey remount trick.
+//  - "connecting" — amber dot. Only visible past the 500ms grace.
+//  - "off" — grey dot. Only on actual subscription error.
+//
+// No labels — color carries the state. ARIA describes it for screen
+// readers. Per chisel: labels are a last resort.
 function LiveQueue() {
   const utils = trpc.useUtils();
-  const [status, setStatus] = useState<"connecting" | "live" | "off">(
-    "connecting",
-  );
+  const [status, setStatus] = useState<
+    "hidden" | "connecting" | "live" | "off"
+  >("hidden");
+  // Remount key — bumped on each event so the dot's CSS animation
+  // re-runs, giving a subtle scale heartbeat tied to actual data.
+  const [pulseKey, setPulseKey] = useState(0);
+
+  // Hidden-on-mount avoids flashing a "CONNECTING" state on fast
+  // connections. setTimeout schedules the upgrade to visible-
+  // connecting after 500ms; if `live` arrives first the state is
+  // already past hidden and the timer is a no-op via the closure
+  // check.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setStatus((s) => (s === "hidden" ? "connecting" : s));
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
 
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
@@ -186,23 +212,21 @@ function LiveQueue() {
         toast(`Cancelled: ${event.visitorName}`);
       }
       utils.bookings.listForHost.invalidate();
+      setPulseKey((k) => k + 1);
     },
   });
 
-  return <LiveIndicator status={status} />;
+  if (status === "hidden") return null;
+
+  return <LiveDot status={status} pulseKey={pulseKey} />;
 }
 
-// Small status pill above the density strip — surfaces SSE
-// connection state so the host knows whether their dashboard is live
-// or stale. Three states:
-//  - connecting: yellow dot, "CONNECTING" — initial / transient
-//  - live: green dot with a soft pulse, "LIVE" — connection open
-//  - off: grey dot, "OFFLINE" — error / browser tab backgrounded too
-//    long for the SSE keepalive
-function LiveIndicator({
+function LiveDot({
   status,
+  pulseKey,
 }: {
   status: "connecting" | "live" | "off";
+  pulseKey: number;
 }) {
   const tone =
     status === "live"
@@ -210,22 +234,22 @@ function LiveIndicator({
       : status === "connecting"
         ? "bg-amber-500"
         : "bg-neutral-400";
-  const label =
+  const ariaLabel =
     status === "live"
-      ? "LIVE"
+      ? "Live updates connected"
       : status === "connecting"
-        ? "CONNECTING"
-        : "OFFLINE";
+        ? "Connecting to live updates"
+        : "Live updates offline";
+
   return (
-    <p className="mt-3 inline-flex items-center gap-2 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-70">
-      <span
-        aria-hidden
-        className={`inline-block size-1.5 rounded-full ${tone} ${
-          status === "live" ? "animate-pulse" : ""
-        }`}
-      />
-      {label}
-    </p>
+    <span
+      // `key` re-mounts the span on each event so the CSS animation
+      // re-runs — heartbeat tied to data, not idle decoration.
+      key={pulseKey}
+      role="status"
+      aria-label={ariaLabel}
+      className={`bru-live-dot inline-block size-2 shrink-0 rounded-full ${tone}`}
+    />
   );
 }
 
