@@ -169,6 +169,7 @@ const schedule = router({
       const bookings = await prisma.booking.findMany({
         where: {
           hostId: user.id,
+          deleted: false,
           slotStart: {
             gte: new Date(slots[0].start),
             lte: new Date(slots[slots.length - 1].end),
@@ -275,8 +276,8 @@ const bookings = router({
         slotEnd: true,
       } as const;
 
-      const existingByKey = await prisma.booking.findUnique({
-        where: { idempotencyKey: input.idempotencyKey },
+      const existingByKey = await prisma.booking.findFirst({
+        where: { idempotencyKey: input.idempotencyKey, deleted: false },
         select: bookingSelect,
       });
       if (existingByKey) {
@@ -335,6 +336,17 @@ const bookings = router({
 
       try {
         const booking = await prisma.$transaction(async (tx) => {
+          const slotCollision = await tx.booking.findFirst({
+            where: { hostId: host.id, slotStart, deleted: false },
+            select: { id: true },
+          });
+          if (slotCollision) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "Someone just grabbed that slot. Pick another.",
+            });
+          }
+
           const created = await tx.booking.create({
             data: {
               hostId: host.id,
@@ -404,29 +416,17 @@ const bookings = router({
 
         return booking;
       } catch (cause) {
+        if (cause instanceof TRPCError) throw cause;
+
         if (
           cause instanceof Prisma.PrismaClientKnownRequestError &&
           cause.code === "P2002"
         ) {
-          const target = cause.meta?.target;
-          const targetStr = Array.isArray(target)
-            ? target.join(",")
-            : typeof target === "string"
-              ? target
-              : "";
-          if (targetStr.includes("idempotencyKey")) {
-            const raced = await prisma.booking.findUnique({
-              where: { idempotencyKey: input.idempotencyKey },
-              select: bookingSelect,
-            });
-            if (raced) return raced;
-          }
-
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Someone just grabbed that slot. Pick another.",
-            cause,
+          const raced = await prisma.booking.findFirst({
+            where: { idempotencyKey: input.idempotencyKey, deleted: false },
+            select: bookingSelect,
           });
+          if (raced) return raced;
         }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -444,6 +444,7 @@ const bookings = router({
       const booking = await prisma.booking.findFirst({
         where: {
           publicUid: input.bookingUid,
+          deleted: false,
           host: {
             handle: input.handle,
           },
@@ -472,10 +473,111 @@ const bookings = router({
       return booking;
     }),
 
+  cancel: privateProcedure
+    .input(z.object({ publicUid: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "bookings.cancel",
+          op: "booking.write",
+          attributes: { publicUid: input.publicUid, hostId: ctx.user.id },
+        },
+        async (span) => {
+          const operationId = crypto.randomUUID();
+          span.setAttribute("operationId", operationId);
+
+          const result = await prisma.$transaction(async (tx) => {
+            const target = await tx.booking.findFirst({
+              where: {
+                publicUid: input.publicUid,
+                hostId: ctx.user.id,
+                deleted: false,
+              },
+              select: {
+                id: true,
+                publicUid: true,
+                visitorName: true,
+                visitorEmail: true,
+                question: true,
+                slotStart: true,
+                slotEnd: true,
+                hostId: true,
+                idempotencyKey: true,
+              },
+            });
+            if (!target) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Booking not found or already cancelled",
+              });
+            }
+
+            await tx.booking.update({
+              where: { id: target.id },
+              data: {
+                deleted: true,
+                deletedAt: new Date(),
+                idempotencyKey: null,
+              },
+            });
+
+            await tx.bookingAudit.create({
+              data: {
+                bookingUid: target.publicUid,
+                actor: "HOST",
+                action: "CANCELLED",
+                data: {
+                  hostId: target.hostId,
+                  visitorName: target.visitorName,
+                  visitorEmail: target.visitorEmail,
+                  question: target.question ?? null,
+                  slotStart: target.slotStart.toISOString(),
+                  slotEnd: target.slotEnd.toISOString(),
+                  previousIdempotencyKey: target.idempotencyKey,
+                },
+                operationId,
+              },
+            });
+
+            return target;
+          });
+
+          const subscriptions = await findActiveSubscriptionsForEvent(
+            ctx.user.id,
+            "booking.cancelled",
+          );
+          for (const sub of subscriptions) {
+            await scheduleWebhookDelivery({
+              payload: {
+                webhookSubscriptionId: sub.id,
+                event: "booking.cancelled",
+                body: {
+                  event: "booking.cancelled",
+                  operationId,
+                  booking: {
+                    publicUid: result.publicUid,
+                    slotStart: result.slotStart.toISOString(),
+                    slotEnd: result.slotEnd.toISOString(),
+                    visitorName: result.visitorName,
+                    visitorEmail: result.visitorEmail,
+                  },
+                  cancelledAt: new Date().toISOString(),
+                },
+              },
+              referenceUid: `${result.publicUid}:booking.cancelled:${sub.id}`,
+            });
+          }
+          span.setAttribute("webhooksScheduled", subscriptions.length);
+
+          return { ok: true as const, publicUid: result.publicUid };
+        },
+      ),
+    ),
+
   listForHost: privateProcedure.query(async ({ ctx }) => {
     const now = new Date();
     const rows = await prisma.booking.findMany({
-      where: { hostId: ctx.user.id },
+      where: { hostId: ctx.user.id, deleted: false },
       select: {
         id: true,
         publicUid: true,
@@ -495,7 +597,7 @@ const bookings = router({
   }),
 });
 
-const WEBHOOK_EVENTS = ["booking.created"] as const;
+const WEBHOOK_EVENTS = ["booking.created", "booking.cancelled"] as const;
 type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 
 const webhookCreateSchema = z.object({

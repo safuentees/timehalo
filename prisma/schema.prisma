@@ -88,9 +88,11 @@ model Booking {
   slotEnd      DateTime
   idempotencyKey String? @unique
   createdAt    DateTime @default(now())
+  deleted      Boolean  @default(false)
+  deletedAt    DateTime?
 
-  @@unique([hostId, slotStart])
-  @@index([hostId, slotStart])
+  @@index([hostId, slotStart, deleted])
+  @@index([deleted, deletedAt])
 }
 
 model BookingAudit {
