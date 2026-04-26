@@ -263,7 +263,15 @@ const users = router({
   me: privateProcedure.query(async ({ ctx }) => {
     return await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
-      select: { id: true, handle: true, timezone: true },
+      // email is included so the settings danger-zone confirms against
+      // the live account email rather than re-querying. Private
+      // procedure — only the logged-in user sees their own row.
+      select: {
+        id: true,
+        handle: true,
+        timezone: true,
+        email: true,
+      },
     });
   }),
 
@@ -339,6 +347,51 @@ const users = router({
       });
       return { timezone: input.timezone };
     }),
+
+  // Account deletion. Cascades through every relation onDelete:
+  // Cascade (Account, Session, AvailabilityRange, Booking,
+  // WebhookSubscription, UserFeatures, Authenticator). BookingAudit
+  // explicitly does NOT have a FK to Booking (see schema.prisma) —
+  // audit rows survive deletion and stay queryable by bookingUid.
+  //
+  // Email confirmation is enqueued BEFORE the delete commits. The
+  // email payload is self-contained (template + props serialized as
+  // JSON in the Task row) so it survives the User row's deletion.
+  // If the cron later finds the user gone, the email still sends
+  // because nothing in runEmailSend reads back from User.
+  //
+  // The handler does not call signOut() — that's a client-side
+  // concern (the session cookie lives in the browser, not in this
+  // procedure's view). The DeleteAccountDialog awaits this mutation
+  // then triggers next-auth signOut() on the client.
+  deleteAccount: privateProcedure.mutation(async ({ ctx }) => {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      select: { email: true, name: true, handle: true },
+    });
+
+    const hostName = user.name ?? user.handle ?? "Officehours user";
+    const operationId = crypto.randomUUID();
+
+    await scheduleEmailSend({
+      payload: {
+        to: user.email,
+        template: "account-deleted",
+        props: {
+          hostName,
+          deletedAtIso: new Date().toISOString(),
+        },
+      },
+      // Bind to userId + operationId — re-running the procedure (not
+      // idempotent on the user row, but the email enqueue is) won't
+      // double-send.
+      referenceUid: `user:${ctx.user.id}:account-deleted:${operationId}`,
+    });
+
+    await prisma.user.delete({ where: { id: ctx.user.id } });
+
+    return { ok: true as const };
+  }),
 });
 
 const SLOT_MINUTES = 15;
