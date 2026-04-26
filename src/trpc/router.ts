@@ -195,6 +195,7 @@ const schedule = router({
       const bookings = await prisma.booking.findMany({
         where: {
           hostId: user.id,
+          deleted: false,
           slotStart: {
             gte: new Date(slots[0].start),
             lte: new Date(slots[slots.length - 1].end),
@@ -325,8 +326,15 @@ const bookings = router({
       // re-running validation. Skips the "slot is in the past" check
       // when a retry happens late, and skips a wasteful slot scan.
       // Mirrors cal.com Booking.idempotencyKey semantics.
-      const existingByKey = await prisma.booking.findUnique({
-        where: { idempotencyKey: input.idempotencyKey },
+      //
+      // Note: filter deleted=false. If the booking with this key was
+      // soft-deleted (host cancelled), don't return it as if the
+      // submit succeeded — let the user create a new one. (When
+      // soft-delete fires, idempotencyKey is also nulled out, so the
+      // findUnique below would miss anyway. This filter is belt-and-
+      // suspenders.)
+      const existingByKey = await prisma.booking.findFirst({
+        where: { idempotencyKey: input.idempotencyKey, deleted: false },
         select: bookingSelect,
       });
       if (existingByKey) {
@@ -392,10 +400,28 @@ const bookings = router({
       span.setAttribute("operationId", operationId);
 
       try {
-        // $transaction(async tx => ...) — booking write and audit row
-        // commit atomically. If the audit insert fails, the booking
-        // rolls back, so we can never have an unaudited booking.
+        // $transaction(async tx => ...) — slot collision check +
+        // booking write + audit row commit atomically. SQLite
+        // serializes transactions, so the findFirst-then-create
+        // window is race-free even under concurrent submits to the
+        // same slot.
+        //
+        // Replaces the previous @@unique([hostId, slotStart]) +
+        // P2002 catch — the unique constraint had to go to allow
+        // soft-deleted rebooking. App-level enforcement is what
+        // remains.
         const booking = await prisma.$transaction(async (tx) => {
+          const slotCollision = await tx.booking.findFirst({
+            where: { hostId: host.id, slotStart, deleted: false },
+            select: { id: true },
+          });
+          if (slotCollision) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "Someone just grabbed that slot. Pick another.",
+            });
+          }
+
           const created = await tx.booking.create({
             data: {
               hostId: host.id,
@@ -473,38 +499,24 @@ const bookings = router({
 
         return booking;
       } catch (cause) {
+        // Re-throw TRPCErrors as-is (slot collision from inside the
+        // transaction, etc). The catch is here to wrap unknown
+        // errors and the idempotencyKey race.
+        if (cause instanceof TRPCError) throw cause;
+
         if (
           cause instanceof Prisma.PrismaClientKnownRequestError &&
           cause.code === "P2002"
         ) {
-          // Race protection: between the findUnique above and this
-          // create, a parallel request with the same idempotencyKey
-          // could have landed first. Look it up and return it instead
-          // of throwing CONFLICT. P2002.meta.target is the offending
-          // index — Prisma normalizes this to a string array; the
-          // shape varies by adapter, so accept either string or array
-          // and substring-match for the field name.
-          const target = cause.meta?.target;
-          const targetStr = Array.isArray(target)
-            ? target.join(",")
-            : typeof target === "string"
-              ? target
-              : "";
-          if (targetStr.includes("idempotencyKey")) {
-            const raced = await prisma.booking.findUnique({
-              where: { idempotencyKey: input.idempotencyKey },
-              select: bookingSelect,
-            });
-            if (raced) return raced;
-            // Extreme edge: constraint hit but row not found. Fall
-            // through to a generic error so we don't return undefined.
-          }
-
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Someone just grabbed that slot. Pick another.",
-            cause,
+          // Only constraint left that can fire P2002: idempotencyKey.
+          // Race protection — between the findFirst short-circuit and
+          // the create, a parallel request with the same key landed.
+          // Look it up and return it instead of throwing.
+          const raced = await prisma.booking.findFirst({
+            where: { idempotencyKey: input.idempotencyKey, deleted: false },
+            select: bookingSelect,
           });
+          if (raced) return raced;
         }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -522,6 +534,7 @@ const bookings = router({
       const booking = await prisma.booking.findFirst({
         where: {
           publicUid: input.bookingUid,
+          deleted: false,
           host: {
             handle: input.handle,
           },
@@ -550,6 +563,123 @@ const bookings = router({
       return booking;
     }),
 
+  // Host-side soft-delete. Sets deleted=true, deletedAt=now(), and
+  // nulls out idempotencyKey so the cleanup window can hard-delete
+  // safely AND a future booking can reuse the slot. Writes a
+  // BookingAudit row in the same $transaction so audit can never
+  // miss a state change. Schedules booking.cancelled webhook fan-out
+  // outside the transaction (delivery failure must not roll back the
+  // cancel).
+  cancel: privateProcedure
+    .input(z.object({ publicUid: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) =>
+      withSpan(
+        {
+          name: "bookings.cancel",
+          op: "booking.write",
+          attributes: { publicUid: input.publicUid, hostId: ctx.user.id },
+        },
+        async (span) => {
+          const operationId = crypto.randomUUID();
+          span.setAttribute("operationId", operationId);
+
+          const result = await prisma.$transaction(async (tx) => {
+            // Look up + ownership check in one query. findFirst
+            // (not findUnique) so the deleted=false filter applies.
+            const target = await tx.booking.findFirst({
+              where: {
+                publicUid: input.publicUid,
+                hostId: ctx.user.id,
+                deleted: false,
+              },
+              select: {
+                id: true,
+                publicUid: true,
+                visitorName: true,
+                visitorEmail: true,
+                question: true,
+                slotStart: true,
+                slotEnd: true,
+                hostId: true,
+                idempotencyKey: true,
+              },
+            });
+            if (!target) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Booking not found or already cancelled",
+              });
+            }
+
+            await tx.booking.update({
+              where: { id: target.id },
+              data: {
+                deleted: true,
+                deletedAt: new Date(),
+                // Free the unique index entry so a future booking
+                // can reuse the key. NULL doesn't trip @unique.
+                idempotencyKey: null,
+              },
+            });
+
+            await tx.bookingAudit.create({
+              data: {
+                bookingUid: target.publicUid,
+                actor: "HOST",
+                action: "CANCELLED",
+                data: {
+                  hostId: target.hostId,
+                  visitorName: target.visitorName,
+                  visitorEmail: target.visitorEmail,
+                  question: target.question ?? null,
+                  slotStart: target.slotStart.toISOString(),
+                  slotEnd: target.slotEnd.toISOString(),
+                  // Capture what the previous idempotencyKey was at
+                  // cancel time — useful for forensics.
+                  previousIdempotencyKey: target.idempotencyKey,
+                },
+                operationId,
+              },
+            });
+
+            return target;
+          });
+
+          // Webhook fan-out — same pattern as bookings.create. Outside
+          // the transaction so a delivery-side failure can't roll back
+          // the cancel the host just confirmed.
+          const subscriptions = await findActiveSubscriptionsForEvent(
+            ctx.user.id,
+            "booking.cancelled",
+          );
+          for (const sub of subscriptions) {
+            await scheduleWebhookDelivery({
+              payload: {
+                webhookSubscriptionId: sub.id,
+                event: "booking.cancelled",
+                body: {
+                  event: "booking.cancelled",
+                  operationId,
+                  booking: {
+                    publicUid: result.publicUid,
+                    slotStart: result.slotStart.toISOString(),
+                    slotEnd: result.slotEnd.toISOString(),
+                    visitorName: result.visitorName,
+                    visitorEmail: result.visitorEmail,
+                  },
+                  cancelledAt: new Date().toISOString(),
+                },
+              },
+              referenceUid: `${result.publicUid}:booking.cancelled:${sub.id}`,
+            });
+          }
+          span.setAttribute("webhooksScheduled", subscriptions.length);
+
+          return { ok: true as const, publicUid: result.publicUid };
+        },
+      ),
+    ),
+
   // Host-side: every booking against this host, split by upcoming vs
   // past based on slotStart. No "pending/confirmed" yet — the data
   // model has no status field; per the project guide we don't add it
@@ -557,7 +687,7 @@ const bookings = router({
   listForHost: privateProcedure.query(async ({ ctx }) => {
     const now = new Date();
     const rows = await prisma.booking.findMany({
-      where: { hostId: ctx.user.id },
+      where: { hostId: ctx.user.id, deleted: false },
       select: {
         id: true,
         publicUid: true,
@@ -579,9 +709,8 @@ const bookings = router({
 
 // Webhook events the host can subscribe to. CSV-stored on the
 // WebhookSubscription row; new events go in this list when their
-// state-machine transitions ship (booking.confirmed / cancelled in
-// future commits).
-const WEBHOOK_EVENTS = ["booking.created"] as const;
+// state-machine transitions ship.
+const WEBHOOK_EVENTS = ["booking.created", "booking.cancelled"] as const;
 type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 
 const webhookCreateSchema = z.object({

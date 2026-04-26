@@ -96,12 +96,26 @@ model Booking {
   // intercepted by the handler and returns the original booking instead
   // of throwing. Mirrors cal.com Booking.idempotencyKey
   // (packages/prisma/schema.prisma:855). Nullable for legacy / future
-  // server-side creates that don't need a per-attempt key.
+  // server-side creates that don't need a per-attempt key. Also set to
+  // null on soft-delete so a future booking can reuse the key (NULL
+  // values don't trigger the unique constraint per SQL standard).
   idempotencyKey String? @unique
   createdAt    DateTime @default(now())
+  // Soft-delete columns (rallly's pattern at packages/database/prisma/
+  // models/poll.prisma:30-31). Reads filter `deleted: false`; the
+  // cleanup cron hard-deletes rows past a retention window.
+  deleted      Boolean  @default(false)
+  deletedAt    DateTime?
 
-  @@unique([hostId, slotStart])
-  @@index([hostId, slotStart])
+  // The previous `@@unique([hostId, slotStart])` was dropped — soft-
+  // deleted rows still occupy the slot from the constraint's view,
+  // which would block legitimate rebooking. SQLite has no partial
+  // unique indexes; we enforce "no two ACTIVE bookings at the same
+  // slot" inside the bookings.create transaction (findFirst with
+  // `deleted: false` then create, atomic under SQLite's write lock).
+  // The composite index speeds that read.
+  @@index([hostId, slotStart, deleted])
+  @@index([deleted, deletedAt])
 }
 
 // Append-only history of every state change on a booking. Mirrors
