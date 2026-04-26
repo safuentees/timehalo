@@ -329,18 +329,51 @@ const bookings = router({
 
       const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
 
+      // One UUID per request, shared by the audit row written below
+      // and (eventually) by webhook deliveries / email tasks fired off
+      // the same user action. Lets logs group every side effect of one
+      // submit by `operationId`.
+      const operationId = crypto.randomUUID();
+
       try {
-        const booking = await prisma.booking.create({
-          data: {
-            hostId: host.id,
-            visitorName: input.visitorName,
-            visitorEmail: input.visitorEmail,
-            question: input.question,
-            slotStart,
-            slotEnd,
-            idempotencyKey: input.idempotencyKey,
-          },
-          select: bookingSelect,
+        // $transaction(async tx => ...) — booking write and audit row
+        // commit atomically. If the audit insert fails, the booking
+        // rolls back, so we can never have an unaudited booking.
+        const booking = await prisma.$transaction(async (tx) => {
+          const created = await tx.booking.create({
+            data: {
+              hostId: host.id,
+              visitorName: input.visitorName,
+              visitorEmail: input.visitorEmail,
+              question: input.question,
+              slotStart,
+              slotEnd,
+              idempotencyKey: input.idempotencyKey,
+            },
+            select: bookingSelect,
+          });
+
+          await tx.bookingAudit.create({
+            data: {
+              bookingUid: created.publicUid,
+              actor: "VISITOR",
+              action: "CREATED",
+              // Self-contained snapshot — survives the booking row's
+              // eventual deletion. Dates as ISO strings for portable JSON.
+              data: {
+                hostId: host.id,
+                visitorName: input.visitorName,
+                visitorEmail: input.visitorEmail,
+                question: input.question ?? null,
+                slotStart: created.slotStart.toISOString(),
+                slotEnd: created.slotEnd.toISOString(),
+                idempotencyKey: input.idempotencyKey,
+              },
+              operationId,
+            },
+          });
+
+          return created;
         });
         return booking;
       } catch (cause) {
