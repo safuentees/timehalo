@@ -132,6 +132,12 @@ function createRateLimitMiddleware(
 
 const router = t.router;
 
+// Exposed for tests + future server-action wrappers. tRPC v11's
+// createCallerFactory needs to be called from the same `t` instance
+// the router was built with so the Context type matches; exporting
+// it here keeps the type chain intact for any caller.
+export const createCaller = t.createCallerFactory;
+
 const schedule = router({
   // Returns all AvailabilityRange rows for the logged-in user, sorted
   // by day then start time. Client groups them into the weekly form shape.
@@ -449,6 +455,25 @@ const bookings = router({
         // soft-deleted rebooking. App-level enforcement is what
         // remains.
         const booking = await prisma.$transaction(async (tx) => {
+          // Idempotency re-check INSIDE the transaction. The findUnique
+          // before the validate-and-transact phase is the fast-path
+          // optimization (skip validation when we already know we're a
+          // retry). But three concurrent retries with the same key all
+          // see "no row" in that fast-path lookup, then race into the
+          // transaction together — without this re-check, the loser
+          // would trip the slot-collision branch below and surface
+          // CONFLICT instead of the existing booking. SQLite
+          // serializes commits, so this lookup sees any row a prior
+          // transaction wrote.
+          const existingByKeyInTx = await tx.booking.findFirst({
+            where: { idempotencyKey: input.idempotencyKey, deleted: false },
+            select: bookingSelect,
+          });
+          if (existingByKeyInTx) {
+            span.setAttribute("idempotencyHitInTx", true);
+            return existingByKeyInTx;
+          }
+
           const slotCollision = await tx.booking.findFirst({
             where: { hostId: host.id, slotStart, deleted: false },
             select: { id: true },
