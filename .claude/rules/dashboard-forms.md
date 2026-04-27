@@ -15,6 +15,7 @@ paths:
 - Use `mutateAsync()` and `Promise.allSettled()` for parallel writes.
 - Render inline field conflicts with `form.setError`; let custom mutation hooks own general toast behavior.
 - Wrap page content in `BrutalistPageShell` and lead with `BrutalistPageHeader title="..."`. Both live in `src/components/brutalist/`. The shell owns the canonical width + padding; never hand-roll those values inline.
+- For the form's commit affordance, render `<BrutalistSaveBar />` from `@/components/brutalist/save-bar` immediately after `</BrutalistPageShell>` (still inside the `<form>`). It owns the spacer + sticky island + button + the disabled/label/mount-gating logic. Pass `isPending`, `isDirty` (OR in any seed-from-default flag here), and `labels` — never re-implement the save bar inline. Reference: `src/app/(host)/settings/components/settings-form.tsx`.
 - For "I want this UI to differ between SSR and CSR without hydration mismatch" — use `useMounted()` from `src/hooks/use-mounted.ts`. Never `useState(false) + useEffect(() => setMounted(true), [])` (React 19's compiler ESLint rule blocks it).
 
 ## SSR-safe client branches

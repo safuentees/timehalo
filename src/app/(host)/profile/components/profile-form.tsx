@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetHandle } from "@/lib/mutations/use-set-handle";
-import { Button } from "@/components/ui/button";
 import {
   FieldDescription,
   FieldGroup,
@@ -16,6 +14,7 @@ import {
 } from "@/components/ui/field";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { BrutalistSaveBar } from "@/components/brutalist/save-bar";
 import {
   HandleFields,
   handleFieldSchema,
@@ -59,19 +58,6 @@ export default function ProfileForm() {
     await saveHandle.mutateAsync({ handle: v.handle });
   }
 
-  const isPending = saveHandle.isPending;
-  const isDirty = form.formState.isDirty;
-
-  const mounted = useMounted();
-  const buttonDisabled = mounted ? isPending || !isDirty : true;
-  const buttonLabel = !mounted
-    ? "Saved"
-    : isPending
-      ? "Saving…"
-      : isDirty
-        ? "Save changes"
-        : "Saved";
-
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -93,22 +79,16 @@ export default function ProfileForm() {
               </FieldSet>
             </FieldGroup>
           </div>
-          <div className="bru-dash-save-spacer" aria-hidden />
         </BrutalistPageShell>
-
-        <div className="bru-dash-save-bar" role="region" aria-label="Save changes">
-          <div className="bru-dash-save-bar-inner">
-            <Button
-              type="submit"
-              variant="brutalist"
-              size="brutalist"
-              className="w-full"
-              disabled={buttonDisabled}
-            >
-              {buttonLabel}
-            </Button>
-          </div>
-        </div>
+        <BrutalistSaveBar
+          isPending={saveHandle.isPending}
+          isDirty={form.formState.isDirty}
+          labels={{
+            save: "Save changes",
+            saving: "Saving…",
+            saved: "Saved",
+          }}
+        />
       </form>
     </FormProvider>
   );

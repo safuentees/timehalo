@@ -2,15 +2,14 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
-import { Button } from "@/components/ui/button";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { BrutalistSaveBar } from "@/components/brutalist/save-bar";
 import { timezoneSchema, DEFAULT_TIMEZONE } from "@/lib/timezone";
 import { TimezoneFields } from "./timezone-fields";
 import { LanguageFields } from "./language-fields";
@@ -50,19 +49,6 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
     form.reset({ timezone: v.timezone });
   }
 
-  const isPending = saveTimezone.isPending;
-  const isDirty = form.formState.isDirty;
-
-  const mounted = useMounted();
-  const buttonDisabled = mounted ? isPending || !isDirty : true;
-  const buttonLabel = !mounted
-    ? tSettings("saved")
-    : isPending
-      ? tSettings("saving")
-      : isDirty
-        ? tSettings("save")
-        : tSettings("saved");
-
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -92,22 +78,16 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
             </div>
           </section>
 
-          <div className="bru-dash-save-spacer" aria-hidden />
         </BrutalistPageShell>
-
-        <div className="bru-dash-save-bar" role="region" aria-label="Save changes">
-          <div className="bru-dash-save-bar-inner">
-            <Button
-              type="submit"
-              variant="brutalist"
-              size="brutalist"
-              className="w-full"
-              disabled={buttonDisabled}
-            >
-              {buttonLabel}
-            </Button>
-          </div>
-        </div>
+        <BrutalistSaveBar
+          isPending={saveTimezone.isPending}
+          isDirty={form.formState.isDirty}
+          labels={{
+            save: tSettings("save"),
+            saving: tSettings("saving"),
+            saved: tSettings("saved"),
+          }}
+        />
       </form>
     </FormProvider>
   );
