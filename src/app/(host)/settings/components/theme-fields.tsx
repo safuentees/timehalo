@@ -7,17 +7,25 @@ import { Field } from "@/components/ui/field";
 
 // Three-option theme picker: system / light / dark.
 //
-// Two values from useTheme() matter here, and the next-themes FAQ
+// Three values from useTheme() matter here, and the next-themes FAQ
 // makes the distinction load-bearing:
 //   • theme         — what the user picked ("system" | "light" | "dark")
 //   • resolvedTheme — what's actually rendered ("light" | "dark";
 //                     "system" gets resolved against prefers-color-scheme)
+//   • systemTheme   — what the OS currently prefers ("light" | "dark"),
+//                     regardless of pick. Updates live via matchMedia.
 //
-// The radio reflects `theme` (the durable pick). When that pick is
-// "system", we surface the resolvedTheme as a small hint so the user
-// can verify OS-sync is working — without it, "System" looks identical
-// to "Light" on a light-mode OS, and you can't tell whether the OS
-// listener is even wired up.
+// The radio reflects `theme` (the durable pick). The hint underneath
+// surfaces the live OS state so the user can always see whether
+// prefers-color-scheme is being followed — and, when their pick
+// disagrees with the OS, we offer a one-click jump back to "System".
+//
+// Why the affordance matters: per next-themes' matchMedia listener,
+// OS changes only re-apply to the DOM when `theme === "system"`. If
+// the user previously clicked light/dark (or the pre-c16fd32 topbar
+// toggle did so for them), localStorage["theme"] is stuck on an
+// explicit pick and OS toggling silently does nothing. The hint
+// makes that state visible; the button makes it recoverable.
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -28,15 +36,18 @@ function isThemeValue(v: unknown): v is ThemeValue {
 
 export function ThemeFields() {
   const t = useTranslations("Settings");
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, systemTheme, setTheme } = useTheme();
   // SSR returns no theme info; render the system default until the
   // provider rehydrates so the radio doesn't flicker mid-paint.
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
 
-  const showResolvedHint =
-    mounted && current === "system" && (resolvedTheme === "dark" || resolvedTheme === "light");
+  const osPref =
+    systemTheme === "dark" || systemTheme === "light" ? systemTheme : null;
+  const isSystem = current === "system";
+  const divergesFromOs =
+    !isSystem && osPref !== null && current !== osPref;
 
   return (
     <Field>
@@ -81,17 +92,48 @@ export function ThemeFields() {
           </label>
         ))}
       </fieldset>
-      {showResolvedHint ? (
+      {mounted && osPref ? (
         <p
           aria-live="polite"
           className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
         >
-          Following OS — currently{" "}
-          <span className="opacity-100">
-            {resolvedTheme === "dark"
-              ? t("themeDark").toLowerCase()
-              : t("themeLight").toLowerCase()}
-          </span>
+          {isSystem ? (
+            <>
+              Following OS — currently{" "}
+              <span className="opacity-100">
+                {resolvedTheme === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>
+            </>
+          ) : divergesFromOs ? (
+            <>
+              OS prefers{" "}
+              <span className="opacity-100">
+                {osPref === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>{" "}
+              — your pick overrides it.{" "}
+              <button
+                type="button"
+                onClick={() => setTheme("system")}
+                className="underline underline-offset-2 opacity-100 hover:opacity-80"
+              >
+                Follow OS
+              </button>
+            </>
+          ) : (
+            <>
+              OS prefers{" "}
+              <span className="opacity-100">
+                {osPref === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>{" "}
+              — matches your pick.
+            </>
+          )}
         </p>
       ) : null}
     </Field>
