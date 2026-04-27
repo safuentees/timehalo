@@ -76,7 +76,7 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <BrutalistPageShell>
+        <BrutalistPageShell tight>
           <BrutalistPageHeader title={tSettings("title")} />
           <div className="mt-8">
             <FieldGroup>
