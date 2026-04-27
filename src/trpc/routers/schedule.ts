@@ -1,0 +1,177 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { DayOfWeek } from "@/generated/prisma/enums";
+import { generateUpcomingSlots } from "@/lib/schedule";
+import {
+  fetchHostBusyTimes,
+  subtractBusyTimes,
+} from "@/lib/calendar";
+import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
+
+// Form keys like "mon" map to the Prisma enum values.
+const DAY_KEY_TO_ENUM = {
+  mon: DayOfWeek.MONDAY,
+  tue: DayOfWeek.TUESDAY,
+  wed: DayOfWeek.WEDNESDAY,
+  thu: DayOfWeek.THURSDAY,
+  fri: DayOfWeek.FRIDAY,
+  sat: DayOfWeek.SATURDAY,
+  sun: DayOfWeek.SUNDAY,
+} as const;
+type DayKey = keyof typeof DAY_KEY_TO_ENUM;
+
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+const rangeSchema = z
+  .object({
+    from: z.string().regex(timeRegex, "HH:MM"),
+    to: z.string().regex(timeRegex, "HH:MM"),
+  })
+  .refine((r) => r.from < r.to, {
+    message: "End must be after start",
+    path: ["to"],
+  });
+const daySchema = z.object({
+  enabled: z.boolean(),
+  ranges: z.array(rangeSchema),
+});
+const scheduleInputSchema = z.object({
+  mon: daySchema,
+  tue: daySchema,
+  wed: daySchema,
+  thu: daySchema,
+  fri: daySchema,
+  sat: daySchema,
+  sun: daySchema,
+});
+
+export const schedule = router({
+  // Returns all AvailabilityRange rows for the logged-in user, sorted
+  // by day then start time. Client groups them into the weekly form shape.
+  get: privateProcedure.query(async ({ ctx }) => {
+    return await prisma.availabilityRange.findMany({
+      where: { userId: ctx.user.id },
+      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+    });
+  }),
+
+  // Replaces the user's whole schedule in one transaction:
+  // delete all existing rows, insert the new set built from the form payload.
+  // Days with enabled=false or empty ranges produce zero rows (implicitly off).
+  save: privateProcedure
+    .input(scheduleInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const rows = (Object.entries(input) as [DayKey, typeof input.mon][])
+        .filter(([, day]) => day.enabled && day.ranges.length > 0)
+        .flatMap(([key, day]) =>
+          day.ranges.map((r) => ({
+            userId: ctx.user.id,
+            dayOfWeek: DAY_KEY_TO_ENUM[key],
+            startTime: r.from,
+            endTime: r.to,
+          })),
+        );
+
+      try {
+        await prisma.$transaction([
+          prisma.availabilityRange.deleteMany({
+            where: { userId: ctx.user.id },
+          }),
+          prisma.availabilityRange.createMany({ data: rows }),
+        ]);
+      } catch (cause) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not save your schedule. Try again.",
+          cause,
+        });
+      }
+
+      return { count: rows.length };
+    }),
+
+  // Public endpoint powering /h/[handle]. Look up the user by handle, read
+  // their availability ranges, and generate back-to-back fixed-length slots
+  // starting from "now" for the next N days. Past times on day 0 are skipped.
+  getUpcomingSlots: publicProcedure
+    .input(
+      z.object({
+        handle: z.string(),
+        days: z.number().int().min(1).max(14).default(7),
+      }),
+    )
+    .query(async ({ input }) => {
+      const user = await prisma.user.findUnique({
+        where: { handle: input.handle },
+        select: { id: true, timezone: true },
+      });
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const ranges = await prisma.availabilityRange.findMany({
+        where: { userId: user.id },
+        select: { dayOfWeek: true, startTime: true, endTime: true },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      });
+
+      const allSlots = generateUpcomingSlots({
+        ranges,
+        from: new Date(),
+        days: input.days,
+        stepMinutes: 15,
+        hostTimezone: user.timezone,
+      });
+
+      if (allSlots.length === 0) {
+        return [];
+      }
+
+      // Pull busy ranges from every selected calendar across the
+      // host's connected providers. Any slot overlapping a busy
+      // range gets dropped (B3). When no calendar is connected
+      // fetchHostBusyTimes returns [] and subtractBusyTimes is a
+      // no-op pass-through.
+      const horizonStart = new Date(allSlots[0].start);
+      const horizonEnd = new Date(allSlots[allSlots.length - 1].end);
+      const busy = await fetchHostBusyTimes({
+        hostId: user.id,
+        from: horizonStart,
+        to: horizonEnd,
+      });
+      const slots = subtractBusyTimes(allSlots, busy);
+
+      if (slots.length === 0) {
+        return [];
+      }
+
+      const bookings = await prisma.booking.findMany({
+        where: {
+          hostId: user.id,
+          deleted: false,
+          slotStart: {
+            gte: new Date(slots[0].start),
+            lte: new Date(slots[slots.length - 1].end),
+          },
+        },
+        select: {
+          slotStart: true,
+        },
+      });
+
+      const takenStarts = new Set(
+        bookings.map((booking) => booking.slotStart.getTime()),
+      );
+
+      return slots.map((slot) => {
+        const status: "open" | "taken" = takenStarts.has(
+          new Date(slot.start).getTime(),
+        )
+          ? "taken"
+          : "open";
+
+        return {
+          ...slot,
+          status,
+        };
+      });
+    }),
+});
