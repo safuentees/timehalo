@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/password";
 import { sendEmail } from "@/lib/email";
+import { bootstrapUserWorkspace } from "@/lib/auth-events";
 import type { JWT } from "next-auth/jwt";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -112,7 +113,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  // Bounce back to /login (with `?error=<code>`) instead of next-auth's
+  // unbranded default page or a 404. Reference: cal.com surfaces error
+  // codes on /auth/error the same way.
+  pages: {
+    signIn: "/login",
+    error: "/login",
+    verifyRequest: "/login",
+  },
+  events: {
+    // Mints a Personal Workspace + OWNER Membership for any user that
+    // next-auth auto-creates — magic-link first click for an
+    // unregistered email, GitHub OAuth first sign-in. The credentials
+    // /register path already does this in its own $transaction; this
+    // closes the loop for non-credentials sign-ups so bookings.create
+    // never hits a non-null violation on workspaceId.
+    createUser: async ({ user }) => {
+      try {
+        await bootstrapUserWorkspace({
+          id: user.id!,
+          email: user.email ?? null,
+        });
+      } catch (error) {
+        // Don't block sign-in — the user can repair this via the
+        // workspaces UI. Log so it shows up in operator dashboards.
+        console.error("[auth.createUser] workspace bootstrap failed", error);
+      }
+    },
+  },
   callbacks: {
+    // Default authed landing is /bookings, not /. Without this override
+    // a magic-link click would 404 (we have no app/page.tsx) and the
+    // existing GitHub button's `redirectTo: "/"` would do the same.
+    redirect: async ({ url, baseUrl }) => {
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/bookings`;
+      }
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch {
+        // Malformed URL → fall through to safe default.
+      }
+      return `${baseUrl}/bookings`;
+    },
     jwt: async ({ token, user, trigger }) => {
       if (user) {
         token.name = user.name;
