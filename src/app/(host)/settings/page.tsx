@@ -9,6 +9,7 @@ export default async function SettingsPage() {
     trpc.users.me.prefetch(),
     trpc.workflows.list.prefetch(),
     trpc.calendar.connections.prefetch(),
+    trpc.workspaces.list.prefetch(),
   ]);
 
   const timezones = getRuntimeTimezones();
