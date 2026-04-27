@@ -219,7 +219,17 @@ describe("calendar.connections + disconnect (procedure contracts)", () => {
     }
   });
 
-  it("authUrl rejects when the provider isn't configured (env unset)", async () => {
+  // Skip these two when the operator's local .env has real OAuth
+  // credentials — `@t3-oss/env-nextjs` parses process.env at module
+  // import time, so `vi.stubEnv` after the fact doesn't reach the
+  // cached env object. CI runs with the vars unset and exercises the
+  // unconfigured branch there. Reference: vitest's `test.skipIf`
+  // pattern (Context7 /vitest-dev/vitest).
+  const oauthConfigured = Boolean(
+    process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.MICROSOFT_OAUTH_CLIENT_ID,
+  );
+
+  it.skipIf(oauthConfigured)("authUrl rejects when the provider isn't configured (env unset)", async () => {
     // env.GOOGLE_OAUTH_CLIENT_ID is unset in test — the URL builder
     // returns null and the procedure throws PRECONDITION_FAILED.
     const caller = createCaller(appRouter)(fakeContext({ userId: host.id }));
@@ -228,7 +238,7 @@ describe("calendar.connections + disconnect (procedure contracts)", () => {
     ).rejects.toThrow(/not configured|PRECONDITION_FAILED/i);
   });
 
-  it("listCalendars rejects when the provider isn't configured", async () => {
+  it.skipIf(oauthConfigured)("listCalendars rejects when the provider isn't configured", async () => {
     const cred = await prisma.calendarCredential.create({
       data: {
         userId: host.id,
