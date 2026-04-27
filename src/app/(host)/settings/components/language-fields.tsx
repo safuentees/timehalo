@@ -9,7 +9,7 @@ import {
   isLocale,
   type Locale,
 } from "@/i18n/locales";
-import { Field } from "@/components/ui/field";
+import { SectionHeader } from "./section-header";
 
 // Language picker. Sets the `oh_locale` cookie via a server action,
 // then revalidatePath('/', 'layout') refreshes every server-rendered
@@ -22,18 +22,15 @@ export function LanguageFields() {
   const [pending, start] = useTransition();
 
   return (
-    <Field>
-      <label
-        htmlFor="locale"
-        className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-      >
-        {t("languageLegend")}
-      </label>
-      <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-        {t("languageDescription")}
-      </p>
+    <section>
+      <SectionHeader
+        legendId="language-legend"
+        legend={t("languageLegend")}
+        description={t("languageDescription")}
+      />
       <select
         id="locale"
+        aria-labelledby="language-legend"
         value={current}
         disabled={pending}
         onChange={(e) => {
@@ -43,7 +40,7 @@ export function LanguageFields() {
             await setLocaleAction(next);
           });
         }}
-        className="bru-input mt-3 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
+        className="bru-input mt-5 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>
@@ -51,6 +48,6 @@ export function LanguageFields() {
           </option>
         ))}
       </select>
-    </Field>
+    </section>
   );
 }

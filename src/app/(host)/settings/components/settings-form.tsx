@@ -9,12 +9,6 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
 import { Button } from "@/components/ui/button";
-import {
-  FieldDescription,
-  FieldGroup,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import { timezoneSchema, DEFAULT_TIMEZONE } from "@/lib/timezone";
@@ -78,39 +72,12 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <BrutalistPageShell tight>
           <BrutalistPageHeader title={tSettings("title")} />
-          <div className="mt-8">
-            <FieldGroup>
-              <FieldSet>
-                <FieldLegend className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
-                  {tSettings("timezoneLegend")}
-                </FieldLegend>
-                <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                  {tSettings("timezoneDescription")}
-                </FieldDescription>
-                <FieldGroup>
-                  <TimezoneFields timezones={timezones} />
-                </FieldGroup>
-              </FieldSet>
-            </FieldGroup>
-          </div>
-
-          <div className="mt-12">
+          <div className="mt-8 flex flex-col gap-12">
+            <TimezoneFields timezones={timezones} />
             <LanguageFields />
-          </div>
-
-          <div className="mt-12">
             <ThemeFields />
-          </div>
-
-          <div className="mt-12">
             <WorkflowFields />
-          </div>
-
-          <div className="mt-12">
             <CalendarFields />
-          </div>
-
-          <div className="mt-12">
             <ApiKeysFields />
           </div>
 
