@@ -36,6 +36,18 @@ paths:
 - Metadata/labels/uppercase chrome/tabular numbers: JetBrains Mono via `--font-jetbrains`, also reachable as `font-mono` or `var(--bru-mono)` in raw CSS.
 - No serif. Instrument Serif was removed. If a title needs more weight, use `font-bold` or `font-black` and bigger size — not a different family. Reference: the `/h/[handle]` hero (`bru-v1-name` in globals.css) — Space Grotesk weight 900, `clamp(40px, 12cqi, 64px)`, letter-spacing `-0.04em`, line-height `0.92`.
 
+## Empty states + icons
+
+- Two patterns, picked by surface size:
+  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): one-line muted text in a tight dashed border. Pattern: `<p className="text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">{message}</p>`. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
+  - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `BrutalistEmpty` from `src/components/brutalist/brutalist-empty.tsx`. Renders icon (optional) + bold Space Grotesk title + 13px muted description in a `border-2 border-dashed border-bru-line-strong p-10` frame.
+- Icon convention (whenever an icon sits inside a placeholder/empty state):
+  - Bare lucide line icon — never a muted-grey rounded background tile (that's stock shadcn).
+  - Size: `size-8` (32px) for empties, `size-4` (16px) inline with text.
+  - `strokeWidth={1.5}` — slimmer than lucide's default 2 reads more precise/brutalist.
+  - Color: `text-[color:var(--bru-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--bru-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
+  - No fill, no halo, no ring, no rotation effects — the icon sits in flow.
+
 ## Copy
 
-- No mid-dot separators (`·`). They read as filler — drop the separator AND audit each half against "does this carry data the user can't read elsewhere on this screen." Memory entry: `feedback_no_dot_separator.md`.
+- No mid-dot separators (`·`) in copy. They read as filler — drop the separator AND audit each half against "does this carry data the user can't read elsewhere on this screen." Memory entry: `feedback_no_dot_separator.md`.
