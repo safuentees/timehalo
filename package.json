@@ -15,6 +15,7 @@
     "node": ">=22.17"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@auth/prisma-adapter": "^2.11.2",
     "@base-ui/react": "^1.4.0",
     "@hookform/resolvers": "^5.2.2",

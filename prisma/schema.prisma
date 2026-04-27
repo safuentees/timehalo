@@ -346,10 +346,41 @@ model Workspace {
   owner         User         @relation("OwnedWorkspaces", fields: [ownerId], references: [id], onDelete: Cascade)
   memberships   Membership[]
   invitations   Invitation[]
+  apiKeys       ApiKey[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([ownerId])
+}
+
+// Workspace-scoped API key (B2). Tokens are generated server-side at
+// create time, returned EXACTLY ONCE to the caller, and persisted as
+// SHA-256 hash so a database snapshot doesn't reveal the secret. The
+// 12-char `prefix` is the visible portion (shown in token list UI
+// for easy identification — "oh_abcdefghi"); `tokenHash` is what
+// verifyApiKey compares against in timing-safe fashion.
+//
+// `scopes` is a CSV of WORKSPACE_SCOPES values (src/lib/workspaces.ts).
+// A token can carry a SUBSET of the creator's role scopes, so a tool
+// that only needs to read bookings can be issued a key that can't
+// touch members or webhooks. `revokedAt` is the off-switch — no
+// row delete (preserves audit trail).
+model ApiKey {
+  id           String     @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String     // operator-supplied label, e.g. "ci-deploys"
+  prefix       String     // first 12 chars of the token, indexed for fast lookup
+  tokenHash    String     // sha256 hex of the FULL token
+  scopes       String     // CSV — subset of WORKSPACE_SCOPES
+  createdById  String     // userId who minted the key
+  createdAt    DateTime   @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+  expiresAt    DateTime?
+
+  @@index([workspaceId])
+  @@index([prefix])
 }
 
 model Membership {
