@@ -41,6 +41,7 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Restart `pnpm dev` after `pnpm prisma generate`.
 - Filter `deleted: false` on every Booking read (item 7 invariant).
 - Run `pnpm test:run` before committing user-visible procedure changes.
+- Use the styling tokens from `.claude/rules/brutalist-ui.md`: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
 
 ## Never do
 
@@ -51,6 +52,8 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Put toast logic directly in components when a custom mutation hook should own it.
 - Use `revalidatePath` for normal write flows in this repo.
 - Commit `.env`, `prisma/dev.db`, or generated Prisma output.
+- Use `rounded-md/lg/xl/2xl/3xl/4xl` — those tokens are dropped via `--radius-*: initial` and render at 0px. Use `rounded-sm` or `rounded-full`.
+- Reach for a serif or "title" font — there is none. Bump weight + size on Space Grotesk.
 - Use the `useState(false) + useEffect(() => setMounted(true), [])` pattern. Use `useMounted()` from `src/hooks/use-mounted.ts` instead — React 19's compiler ESLint rule (`react-hooks/set-state-in-effect`) fails CI on the legacy pattern.
 
 ## Commands
