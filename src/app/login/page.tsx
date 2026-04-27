@@ -4,7 +4,28 @@ import { Button } from "@/components/ui/button";
 import CredentialsForm from "./credentials-form";
 import MagicLinkForm from "./magic-link-form";
 
-export default function LoginPage() {
+// next-auth surfaces these via `?error=` when pages.error redirects
+// here. Verification = expired or already-used magic-link token.
+// AccessDenied = signIn callback returned false. Configuration =
+// missing env / provider misconfig (operator-level, rare).
+const ERROR_COPY: Record<string, string> = {
+  Verification: "That sign-in link is expired or already used. Send a new one below.",
+  AccessDenied: "Access denied for that account.",
+  Configuration: "Sign-in is temporarily unavailable. Try again shortly.",
+  OAuthSignin: "Could not start the OAuth flow. Try again.",
+  OAuthCallback: "OAuth provider returned an error. Try again.",
+};
+
+type SearchParams = Promise<{ error?: string }>;
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const { error } = await searchParams;
+  const errorMessage = error ? (ERROR_COPY[error] ?? "Sign-in failed. Try again.") : null;
+
   return (
     <div className="h-screen overflow-hidden bg-background">
       <main className="mx-auto max-w-sm px-8 pt-16 sm:pt-32">
@@ -16,6 +37,15 @@ export default function LoginPage() {
             Sign in to create and manage posts.
           </p>
         </header>
+
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-6 border-l-2 border-destructive bg-destructive/[0.06] px-3 py-2 font-mono text-xs leading-relaxed text-destructive"
+          >
+            {errorMessage}
+          </div>
+        )}
 
         <div className="pt-2 pb-8">
           <CredentialsForm />
@@ -33,7 +63,7 @@ export default function LoginPage() {
           <form
             action={async () => {
               "use server";
-              await signIn("github", { redirectTo: "/" });
+              await signIn("github", { redirectTo: "/bookings" });
             }}
           >
             <Button
