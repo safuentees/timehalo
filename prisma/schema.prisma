@@ -28,6 +28,7 @@ model User {
   features             UserFeatures[]
   ownedWorkspaces      Workspace[]         @relation("OwnedWorkspaces")
   memberships          Membership[]
+  calendarCredentials  CalendarCredential[]
 }
 
 model Account {
@@ -285,4 +286,41 @@ enum MembershipRole {
   ADMIN
   MEMBER
   VIEWER
+}
+
+model CalendarCredential {
+  id                  String              @id @default(cuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider            CalendarProvider
+  externalAccountId   String
+  externalAccountEmail String?
+  accessToken         String
+  refreshToken        String
+  accessTokenExpiresAt DateTime
+  scope               String              // CSV of granted OAuth scopes
+  selectedCalendars   SelectedCalendar[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([userId])
+}
+
+model SelectedCalendar {
+  id                  String              @id @default(cuid())
+  credentialId        String
+  credential          CalendarCredential  @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  externalCalendarId  String
+  summary             String
+  isPrimary           Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+
+  @@unique([credentialId, externalCalendarId])
+  @@index([credentialId])
+}
+
+enum CalendarProvider {
+  GOOGLE
+  MICROSOFT
 }

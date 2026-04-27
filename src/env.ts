@@ -12,6 +12,10 @@ export const env = createEnv({
     EMAIL_FROM: z.string().default("Officehours <onboarding@resend.dev>"),
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
     OFFICEHOURS_ADMIN_HANDLES: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+    MICROSOFT_OAUTH_CLIENT_ID: z.string().optional(),
+    MICROSOFT_OAUTH_CLIENT_SECRET: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
