@@ -4,13 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { BrutalistEmpty } from "@/components/brutalist/brutalist-empty";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
 import { OnboardingChecklist } from "@/components/brutalist/onboarding-checklist";
@@ -288,23 +282,15 @@ function LiveDot({
 
 function EmptyBookings({ tab }: { tab: Tab }) {
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <CalendarIcon />
-        </EmptyMedia>
-        <EmptyTitle>
-          {tab === "upcoming"
-            ? "No upcoming bookings"
-            : "No past bookings"}
-        </EmptyTitle>
-        <EmptyDescription>
-          {tab === "upcoming"
-            ? "Visitors who book a slot will show up here."
-            : "Bookings that have come and gone live in this tab."}
-        </EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <BrutalistEmpty
+      icon={CalendarIcon}
+      title={tab === "upcoming" ? "No upcoming bookings" : "No past bookings"}
+      description={
+        tab === "upcoming"
+          ? "Visitors who book a slot will show up here."
+          : "Bookings that have come and gone live in this tab."
+      }
+    />
   );
 }
 
