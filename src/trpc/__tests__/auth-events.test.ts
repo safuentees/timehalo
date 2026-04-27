@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { bootstrapUserWorkspace, resolveAuthRedirect } from "@/lib/auth-events";
 import { prisma } from "@/lib/prisma";
+import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 
 // Magic-link / OAuth users hit events.createUser, which calls
 // bootstrapUserWorkspace. Without the workspace + OWNER membership,
@@ -39,7 +40,8 @@ describe("bootstrapUserWorkspace", () => {
       where: { ownerId: user.id },
       select: { id: true, slug: true, name: true },
     });
-    expect(ws?.slug).toBe(`personal-${user.id}`);
+    expect(ws?.slug).toBe(personalWorkspaceSlugFor(user.id));
+    expect(ws!.slug.length).toBeLessThanOrEqual(30);
     expect(ws?.name).toBe("Personal");
 
     const mem = await prisma.membership.findFirst({

@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
+import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 
 // Resolve the post-sign-in redirect target. Three guarantees:
 // 1. Returns same-origin URLs the caller asked for (useful when a
@@ -59,7 +60,7 @@ export async function bootstrapUserWorkspace(user: {
     await prisma.$transaction(async (tx) => {
       const ws = await tx.workspace.create({
         data: {
-          slug: `personal-${user.id}`,
+          slug: personalWorkspaceSlugFor(user.id),
           name: "Personal",
           ownerId: user.id,
         },

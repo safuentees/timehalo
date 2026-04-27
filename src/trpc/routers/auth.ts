@@ -6,6 +6,7 @@ import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
 import { handleSchema, registerInputSchema } from "@/lib/register-schema";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
+import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 import {
   createRateLimitMiddleware,
   publicProcedure,
@@ -153,7 +154,9 @@ export const auth = router({
               });
               const workspace = await tx.workspace.create({
                 data: {
-                  slug: slugTaken ? `personal-${user.id}` : input.handle,
+                  slug: slugTaken
+                    ? personalWorkspaceSlugFor(user.id)
+                    : input.handle,
                   name: "Personal",
                   ownerId: user.id,
                 },

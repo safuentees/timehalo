@@ -66,6 +66,29 @@ export function scopesFor(role: MembershipRole): ReadonlyArray<WorkspaceScope> {
 // immediately readable. The schema's @unique constraint catches
 // duplicates; this regex catches malformed input before the DB call.
 export const WORKSPACE_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+export const WORKSPACE_SLUG_MAX = 30;
+
+// Default slug for the auto-created "Personal" workspace minted at
+// signup (auth.register) and at next-auth's events.createUser. The
+// naive shape was `personal-${userId}` — at 9 chars + a 25-char cuid
+// the result is 34 chars, which overflows WORKSPACE_SLUG_MAX. Any
+// subsequent slug-keyed procedure call (e.g. workspaces.apiKeys.list
+// ({ slug })) then fails the zod schema with "Too big: expected
+// string to have <=30 characters" and the API keys section can't
+// load.
+//
+// Truncating the cuid suffix to 21 chars yields exactly 30 — cuid v2
+// is all lowercase alnum so the trailing char is always alphanumeric
+// (not hyphen), matching WORKSPACE_SLUG_REGEX's last-char anchor.
+// Globally unique because cuid prefixes carry the timestamp + counter
+// already; collision probability across 21 chars of cuid is
+// astronomically low.
+const PERSONAL_PREFIX = "personal-";
+const PERSONAL_SUFFIX_LEN = WORKSPACE_SLUG_MAX - PERSONAL_PREFIX.length;
+
+export function personalWorkspaceSlugFor(userId: string): string {
+  return `${PERSONAL_PREFIX}${userId.slice(0, PERSONAL_SUFFIX_LEN)}`;
+}
 
 export const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
