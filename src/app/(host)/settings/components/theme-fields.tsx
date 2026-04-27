@@ -14,13 +14,16 @@ function isThemeValue(v: unknown): v is ThemeValue {
 
 export function ThemeFields() {
   const t = useTranslations("Settings");
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, systemTheme, setTheme } = useTheme();
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
 
-  const showResolvedHint =
-    mounted && current === "system" && (resolvedTheme === "dark" || resolvedTheme === "light");
+  const osPref =
+    systemTheme === "dark" || systemTheme === "light" ? systemTheme : null;
+  const isSystem = current === "system";
+  const divergesFromOs =
+    !isSystem && osPref !== null && current !== osPref;
 
   return (
     <Field>
@@ -65,17 +68,48 @@ export function ThemeFields() {
           </label>
         ))}
       </fieldset>
-      {showResolvedHint ? (
+      {mounted && osPref ? (
         <p
           aria-live="polite"
           className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
         >
-          Following OS — currently{" "}
-          <span className="opacity-100">
-            {resolvedTheme === "dark"
-              ? t("themeDark").toLowerCase()
-              : t("themeLight").toLowerCase()}
-          </span>
+          {isSystem ? (
+            <>
+              Following OS — currently{" "}
+              <span className="opacity-100">
+                {resolvedTheme === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>
+            </>
+          ) : divergesFromOs ? (
+            <>
+              OS prefers{" "}
+              <span className="opacity-100">
+                {osPref === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>{" "}
+              — your pick overrides it.{" "}
+              <button
+                type="button"
+                onClick={() => setTheme("system")}
+                className="underline underline-offset-2 opacity-100 hover:opacity-80"
+              >
+                Follow OS
+              </button>
+            </>
+          ) : (
+            <>
+              OS prefers{" "}
+              <span className="opacity-100">
+                {osPref === "dark"
+                  ? t("themeDark").toLowerCase()
+                  : t("themeLight").toLowerCase()}
+              </span>{" "}
+              — matches your pick.
+            </>
+          )}
         </p>
       ) : null}
     </Field>
