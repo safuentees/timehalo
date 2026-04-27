@@ -37,6 +37,9 @@ model User {
   // Calendar OAuth credentials (B3). Per-user, per-provider; cascade
   // delete with the user.
   calendarCredentials  CalendarCredential[]
+  // Automation rules (B4) — user-configurable triggers that
+  // generalize A8's hardcoded reminder pattern.
+  workflows            Workflow[]
 }
 
 model Account {
@@ -497,4 +500,66 @@ model SelectedCalendar {
 enum CalendarProvider {
   GOOGLE
   MICROSOFT
+}
+
+// Automation rule (B4). cal.com's pattern (Workflow + WorkflowStep)
+// shrunk to a single row per rule — Officehours doesn't have event
+// types yet, so the rule fans out to every booking against the host.
+//
+// Three axes:
+//   • trigger: which booking event fires the rule.
+//     BEFORE_EVENT  — N minutes before slotStart.
+//     EVENT_CREATED — when bookings.create lands.
+//     EVENT_CANCELLED / EVENT_RESCHEDULED — when those mutations
+//       fire respectively.
+//   • offsetMinutes: only meaningful for BEFORE_EVENT. Positive
+//     values fire BEFORE the slot. Constrained to 0–10080 (one
+//     week) to keep the cron horizon bounded.
+//   • action: what to dispatch. Translates to an existing emailSend
+//     or webhookDelivery Task — the workflow engine doesn't add a
+//     new Task type.
+//
+// `template` is the email template name when action is EMAIL_*.
+// Currently free-text validated against the registry's TemplateName
+// union at dispatch time — invalid template = workflow fails on
+// dispatch, not on save (so adding a new template doesn't break
+// rows that reference it).
+//
+// Booking / webhook / audit surfaces stay user-centric for now —
+// matches B1's deferral chain.
+model Workflow {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  trigger        WorkflowTrigger
+  // Only meaningful when trigger == BEFORE_EVENT. Positive minutes
+  // before slotStart. Other triggers ignore this field.
+  offsetMinutes  Int              @default(0)
+  action         WorkflowAction
+  // Email template name (TemplateName) when action is EMAIL_*.
+  // Optional for WEBHOOK_FIRE.
+  template       String?
+  // Webhook event name when action is WEBHOOK_FIRE. Optional for
+  // EMAIL_*. Future: a separate webhookEvent enum constraint.
+  webhookEvent   String?
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([userId, active])
+  @@index([trigger, active])
+}
+
+enum WorkflowTrigger {
+  BEFORE_EVENT
+  EVENT_CREATED
+  EVENT_CANCELLED
+  EVENT_RESCHEDULED
+}
+
+enum WorkflowAction {
+  EMAIL_VISITOR
+  EMAIL_HOST
+  WEBHOOK_FIRE
 }
