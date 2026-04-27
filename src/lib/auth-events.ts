@@ -1,6 +1,33 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 
+// Resolve the post-sign-in redirect target. Three guarantees:
+// 1. Returns same-origin URLs the caller asked for (useful when a
+//    deep-link triggers sign-in mid-navigation).
+// 2. Rewrites foreign-origin URLs to /bookings (no open redirect).
+// 3. Rewrites the auth-landing paths (/, /login, /register) to
+//    /bookings — without this, a magic-link initiated from /login
+//    carries `callbackUrl=/login` and would loop the user back to
+//    the sign-in page.
+export function resolveAuthRedirect(input: { url: string; baseUrl: string }): string {
+  const { url, baseUrl } = input;
+  let target: string;
+  if (url.startsWith("/")) {
+    target = `${baseUrl}${url}`;
+  } else {
+    try {
+      target = new URL(url).origin === baseUrl ? url : `${baseUrl}/bookings`;
+    } catch {
+      target = `${baseUrl}/bookings`;
+    }
+  }
+  const path = new URL(target).pathname;
+  if (path === "/" || path === "/login" || path === "/register") {
+    return `${baseUrl}/bookings`;
+  }
+  return target;
+}
+
 // Bootstrap a default Workspace + OWNER Membership for a user that
 // next-auth itself creates (magic-link first click, GitHub OAuth
 // first sign-in). Mirrors what auth.register's transaction does for
