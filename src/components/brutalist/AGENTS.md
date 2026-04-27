@@ -11,4 +11,5 @@
 - Radius: `--bru-r-xs` (2px), `--bru-r-sm` (6px). No `--bru-r-md` — it was dropped during the radius collapse.
 - Fonts: `--font-grotesk` (Space Grotesk, body + headings), `--bru-mono` / `--font-jetbrains` (JetBrains Mono, labels + accents). No serif.
 - Title pattern: see `bru-v1-name` in globals.css — Space Grotesk weight 900, `clamp()` size, tight letter-spacing.
+- Empty state: use `BrutalistEmpty` (this dir) for primary-surface empties; the inline dashed `<p>` pattern for sub-section empties.
 - Full rules: `.claude/rules/brutalist-ui.md`.

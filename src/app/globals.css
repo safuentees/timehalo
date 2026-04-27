@@ -1483,15 +1483,9 @@
   height: 16px;
 }
 
-/* Empty state — strip shadcn's default bg/radius, keep dashed brutalist box. */
+/* Empty state — outer spacing only; BrutalistEmpty owns the box now. */
 .bru-profile-empty {
   padding: 8px 0 32px;
-}
-.bru-profile-empty [data-slot="empty"] {
-  background: transparent;
-  border: 2px dashed var(--bru-line-dashed);
-  border-radius: var(--bru-r-sm);
-  padding: 56px 24px;
 }
 
 /* End rule */
