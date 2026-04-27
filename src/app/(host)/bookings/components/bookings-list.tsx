@@ -189,8 +189,6 @@ function LiveQueue() {
     },
   });
 
-  if (status === "hidden") return null;
-
   return <LiveDot status={status} pulseKey={pulseKey} />;
 }
 
@@ -198,17 +196,21 @@ function LiveDot({
   status,
   pulseKey,
 }: {
-  status: "connecting" | "live" | "off";
+  status: "hidden" | "connecting" | "live" | "off";
   pulseKey: number;
 }) {
+  const isHidden = status === "hidden";
   const tone =
     status === "live"
       ? "bg-emerald-500"
       : status === "connecting"
         ? "bg-amber-500"
-        : "bg-neutral-400";
-  const ariaLabel =
-    status === "live"
+        : status === "off"
+          ? "bg-neutral-400"
+          : "bg-transparent";
+  const ariaLabel = isHidden
+    ? undefined
+    : status === "live"
       ? "Live updates connected"
       : status === "connecting"
         ? "Connecting to live updates"
@@ -217,9 +219,14 @@ function LiveDot({
   return (
     <span
       key={pulseKey}
-      role="status"
+      role={isHidden ? undefined : "status"}
+      aria-hidden={isHidden ? true : undefined}
       aria-label={ariaLabel}
-      className={`bru-live-dot inline-block size-2 shrink-0 rounded-full ${tone}`}
+      className={[
+        "bru-live-dot inline-block size-2 shrink-0 rounded-full",
+        "transition-colors duration-200 ease-bru",
+        tone,
+      ].join(" ")}
     />
   );
 }

@@ -4,7 +4,10 @@ import { BookingsList } from "./components/bookings-list";
 
 export default async function BookingsPage() {
   const trpc = await createPrivateSSRHelper();
-  await trpc.bookings.listForHost.prefetch();
+  await Promise.all([
+    trpc.bookings.listForHost.prefetch(),
+    trpc.users.featureFlags.prefetch(),
+  ]);
 
   return (
     <main className="bru-main">
