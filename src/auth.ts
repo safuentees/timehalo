@@ -4,13 +4,46 @@ import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/password";
+import { sendEmail } from "@/lib/email";
 import type { JWT } from "next-auth/jwt";
 
 const MAX_LOGIN_ATTEMPTS = 5;
+const APP_NAME = "Officehours";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GitHub,
+    // Magic-link sign-in (C4). Uses next-auth's `http-email` provider
+    // type — same VerificationToken table dance as the canonical
+    // Nodemailer provider, but the actual send is delegated to our
+    // existing email layer (A1's Resend wrapper). One transport,
+    // one log surface, one place to extend templates.
+    //
+    // Pattern reference (Context7): next-auth's "Configuring HTTP
+    // Email" doc — http-email provider type + custom
+    // sendVerificationRequest, no nodemailer dep.
+    {
+      id: "magic-link",
+      name: "Email",
+      type: "email",
+      maxAge: 60 * 60 * 24, // 24h link lifetime
+      async sendVerificationRequest({ identifier, url }) {
+        const result = await sendEmail({
+          to: identifier,
+          template: "magic-link-signin",
+          props: { signInUrl: url, appName: APP_NAME },
+        });
+        if (!result.ok) {
+          throw new Error(
+            `Magic link send failed: ${
+              result.reason === "no-key"
+                ? "Resend not configured"
+                : "send-failed"
+            }`,
+          );
+        }
+      },
+    },
     CredentialsProvider({
       id: "credentials",
       name: "Email & Password",
