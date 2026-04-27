@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Link } from "next-view-transitions";
-import { ArrowLeftIcon, CalendarIcon, CheckIcon, CopyIcon } from "lucide-react";
+import { CalendarIcon, CheckIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type BookingConfirmationProps = {
@@ -28,20 +28,15 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   const hostName = booking.host.name ?? booking.host.handle ?? "Host";
   const startDate = new Date(booking.slotStart);
   const endDate = new Date(booking.slotEnd);
-  const slotDate = startDate.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  const slotTime = `${fmtTime(startDate)} — ${fmtTime(endDate)}`;
-  const durationMinutes = Math.max(
-    15,
-    Math.round((endDate.getTime() - startDate.getTime()) / 60_000),
-  );
+  const weekday = startDate.toLocaleDateString(undefined, { weekday: "long" });
+  const monthDay = startDate
+    .toLocaleDateString(undefined, { month: "long", day: "numeric" })
+    .toUpperCase();
+  const slotTime = `${fmtTime(startDate)} – ${fmtTime(endDate)}`;
   const tzLabel = getTimeZoneLabel();
   const summaryText = [
     `Office hours with ${hostName}`,
-    `${slotDate}`,
+    weekday + ", " + monthDay,
     `${slotTime} (${tzLabel})`,
     `Reference ${booking.publicUid}`,
   ].join("\n");
@@ -54,142 +49,121 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           text: summaryText,
           url: window.location.href,
         });
-        setTransientShareState("shared");
+        flashShareState("shared");
         return;
       }
-
-      await navigator.clipboard.writeText(`${summaryText}\n${window.location.href}`);
-      setTransientShareState("copied");
+      await navigator.clipboard.writeText(
+        `${summaryText}\n${window.location.href}`,
+      );
+      flashShareState("copied");
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
-      }
+      if (error instanceof DOMException && error.name === "AbortError") return;
     }
   }
 
+  function flashShareState(next: "shared" | "copied") {
+    setShareState(next);
+    window.setTimeout(() => setShareState("idle"), 1800);
+  }
+
   return (
-    <div className="min-h-dvh">
-      <div className="bru-topbar">
+    <div className="min-h-dvh bg-bru-bg text-bru-content">
+      <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4">
+        <Link
+          href="/"
+          className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase transition-opacity hover:opacity-55"
+        >
+          OH
+        </Link>
+        {booking.host.handle ? (
+          <Link
+            href={`/h/${booking.host.handle}`}
+            className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 transition-opacity hover:opacity-100"
+          >
+            /h/{booking.host.handle}
+          </Link>
+        ) : null}
+      </header>
+
+      <main className="mx-auto w-full max-w-[440px] px-5 pt-10 pb-16 sm:pt-16">
         <div className="flex items-center gap-3">
-          <div className="bru-monogram">OH</div>
-          <div className="bru-topbar-title">/h/{booking.host.handle}</div>
+          <span
+            aria-hidden
+            className="grid size-7 place-items-center rounded-(--bru-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg"
+          >
+            <CheckIcon className="size-4" strokeWidth={3} />
+          </span>
+          <span className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+            Booked
+          </span>
         </div>
-      </div>
 
-      <main className="bru-confirm-main">
-        <section className="bru-confirm-hero bru-reveal">
-          <div className="bru-confirm-mark" aria-hidden>
-            <CheckIcon />
-          </div>
-          <span className="bru-profile-kicker">SLOT LOCKED IN</span>
-          <h1 className="bru-confirm-title text-balance">
-            You&apos;re booked with {hostName}.
-          </h1>
-          <p className="bru-confirm-body text-pretty">
-            Your time is saved. Add it to your calendar now or bookmark this
-            page so the details stay easy to reach on mobile.
+        <div className="mt-10">
+          <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+            {weekday}
           </p>
-          <div className="bru-confirm-ref">
-            <span>REFERENCE</span>
-            <strong>{booking.publicUid}</strong>
+          <p className="mt-2 text-[clamp(40px,12vw,72px)] font-black leading-[0.92] tracking-[-0.04em] uppercase">
+            {monthDay}
+          </p>
+          <p className="mt-4 font-[family-name:var(--bru-mono)] text-[16px] font-bold tabular-nums">
+            {slotTime}
+          </p>
+          <p className="mt-1 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+            {tzLabel}
+          </p>
+        </div>
+
+        <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-bru-line pt-6">
+          <Avatar className="size-10 rounded-(--bru-r-xs)">
+            <AvatarImage
+              src={booking.host.image ?? undefined}
+              alt={hostName}
+              className="rounded-(--bru-r-xs)"
+            />
+            <AvatarFallback className="rounded-(--bru-r-xs) bg-bru-paper font-[family-name:var(--bru-mono)] text-[12px] font-extrabold text-bru-ink">
+              {toInitials(hostName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-bold leading-tight">
+              with {hostName}
+            </p>
+            {booking.host.handle ? (
+              <p className="mt-0.5 truncate font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
+                /h/{booking.host.handle}
+              </p>
+            ) : null}
           </div>
-        </section>
+        </div>
 
-        <section className="bru-confirm-grid">
-          <article className="bru-confirm-card bru-reveal">
-            <span className="bru-profile-kicker">WHEN</span>
-            <div className="bru-confirm-value tabular-nums">{slotDate}</div>
-            <div className="bru-confirm-meta tabular-nums">{slotTime}</div>
-            <p className="bru-confirm-note text-pretty">{tzLabel}</p>
-          </article>
+        <a
+          href={`/api/bookings/${booking.publicUid}/calendar`}
+          className={cn(
+            buttonVariants({ variant: "brutalist", size: "brutalist" }),
+            "mt-8 w-full justify-center gap-2",
+          )}
+        >
+          <CalendarIcon />
+          Add to calendar
+        </a>
 
-          <article className="bru-confirm-card bru-reveal">
-            <span className="bru-profile-kicker">HOST</span>
-            <div className="bru-confirm-host">
-              <Avatar size="lg" className="bru-profile-avatar bru-confirm-avatar">
-                <AvatarImage
-                  src={booking.host.image ?? undefined}
-                  alt={hostName}
-                  className="rounded-(--bru-r-sm)"
-                />
-                <AvatarFallback className="rounded-(--bru-r-sm) bg-(--bru-paper) text-(color:--bru-ink) font-[family-name:var(--bru-mono)] text-[16px] font-extrabold">
-                  {toInitials(hostName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="bru-confirm-host-name text-balance">{hostName}</p>
-                <p className="bru-confirm-note">/h/{booking.host.handle}</p>
-              </div>
-            </div>
-          </article>
-
-          <article className="bru-confirm-card bru-confirm-card-wide bru-reveal">
-            <span className="bru-profile-kicker">WHAT HAPPENS NEXT</span>
-            <ul className="bru-confirm-list text-pretty">
-              <li>This slot is already reserved on the schedule.</li>
-              <li>Save it to your calendar so it does not get buried.</li>
-              <li>
-                If you come back later, this page still works as your booking
-                receipt.
-              </li>
-            </ul>
-          </article>
-
-          <section className="bru-confirm-actions bru-reveal" aria-label="Booking actions">
-            <a
-              href={`/api/bookings/${booking.publicUid}/calendar`}
-              className={cn(
-                buttonVariants({
-                  variant: "brutalist",
-                  size: "brutalist",
-                }),
-                "bru-confirm-action"
-              )}
-            >
-              <CalendarIcon />
-              ADD TO CALENDAR
-            </a>
-
-            <Button
-              type="button"
-              variant="brutalistGhost"
-              size="brutalist"
-              className="bru-confirm-action"
-              onClick={handleShare}
-            >
-              <CopyIcon />
-              {shareState === "idle"
-                ? "SHARE DETAILS"
-                : shareState === "shared"
-                  ? "SHARED"
-                  : "COPIED"}
-            </Button>
-
-            <Link
-              href={`/h/${booking.host.handle}`}
-              className={cn(
-                buttonVariants({
-                  variant: "brutalistGhost",
-                  size: "brutalist",
-                }),
-                "bru-confirm-action"
-              )}
-            >
-              <ArrowLeftIcon />
-              BACK TO HOST PAGE
-            </Link>
-          </section>
-        </section>
+        <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="opacity-55 transition-opacity hover:opacity-100"
+          >
+            {shareState === "idle"
+              ? "Share"
+              : shareState === "shared"
+                ? "Shared"
+                : "Copied"}
+          </button>
+          <span className="truncate opacity-40">#{booking.publicUid}</span>
+        </div>
       </main>
     </div>
   );
-
-  function setTransientShareState(nextState: "shared" | "copied") {
-    setShareState(nextState);
-    window.setTimeout(() => {
-      setShareState("idle");
-    }, 1800);
-  }
 }
 
 function fmtTime(date: Date): string {
