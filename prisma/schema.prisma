@@ -227,6 +227,7 @@ model Workspace {
   memberships   Membership[]
   invitations   Invitation[]
   apiKeys       ApiKey[]
+  subscription  Subscription?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -355,4 +356,39 @@ enum WorkflowAction {
   EMAIL_VISITOR
   EMAIL_HOST
   WEBHOOK_FIRE
+}
+
+model Subscription {
+  id                    String         @id @default(cuid())
+  workspaceId           String         @unique
+  workspace             Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stripeCustomerId      String?        @unique
+  stripeSubscriptionId  String?        @unique
+  plan                  PlanTier       @default(FREE)
+  status                SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([stripeCustomerId])
+}
+
+model StripeEvent {
+  id          String   @id // Stripe's event.id ("evt_…")
+  type        String
+  processedAt DateTime @default(now())
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  TEAM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
 }
