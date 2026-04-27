@@ -30,6 +30,7 @@ import {
 } from "@/lib/feature-flags";
 import { timezoneSchema } from "@/lib/timezone";
 import {
+  WORKSPACE_SCOPES,
   WORKSPACE_SLUG_REGEX,
   INVITATION_EXPIRY_MS,
   generateInvitationToken,
@@ -37,6 +38,7 @@ import {
   scopesFor,
   type WorkspaceScope,
 } from "@/lib/workspaces";
+import { generateApiKey } from "@/lib/api-keys";
 
 const DAY_KEY_TO_ENUM = {
   mon: DayOfWeek.MONDAY,
@@ -1738,6 +1740,115 @@ const workspaces = router({
       }
       return { ok: true as const };
     }),
+
+  apiKeys: router({
+    list: privateProcedure
+      .input(z.object({ slug: workspaceSlugSchema }))
+      .query(async ({ input, ctx }) => {
+        const membership = await requireMembership(
+          input.slug,
+          ctx.user.id,
+          "workspace.read",
+        );
+        return prisma.apiKey.findMany({
+          where: { workspaceId: membership.workspaceId },
+          select: {
+            id: true,
+            name: true,
+            prefix: true,
+            scopes: true,
+            createdAt: true,
+            lastUsedAt: true,
+            revokedAt: true,
+            expiresAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        });
+      }),
+
+    create: privateProcedure
+      .input(
+        z.object({
+          slug: workspaceSlugSchema,
+          name: z.string().trim().min(1).max(60),
+          scopes: z
+            .array(z.enum(WORKSPACE_SCOPES))
+            .min(1, "At least one scope")
+            .max(WORKSPACE_SCOPES.length),
+          expiresAt: z.string().datetime().optional(),
+        }),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const membership = await requireMembership(
+          input.slug,
+          ctx.user.id,
+          "members.write",
+        );
+
+        const callerScopes = new Set(scopesFor(membership.role));
+        for (const s of input.scopes) {
+          if (!callerScopes.has(s)) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: `Token scope ${s} exceeds creator role`,
+            });
+          }
+        }
+
+        const key = generateApiKey();
+        const created = await prisma.apiKey.create({
+          data: {
+            workspaceId: membership.workspaceId,
+            name: input.name,
+            prefix: key.prefix,
+            tokenHash: key.hash,
+            scopes: input.scopes.join(","),
+            createdById: ctx.user.id,
+            expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+          },
+          select: {
+            id: true,
+            name: true,
+            prefix: true,
+            scopes: true,
+            createdAt: true,
+            expiresAt: true,
+          },
+        });
+
+        return { ...created, token: key.token };
+      }),
+
+    revoke: privateProcedure
+      .input(
+        z.object({
+          slug: workspaceSlugSchema,
+          keyId: z.string().min(1),
+        }),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const membership = await requireMembership(
+          input.slug,
+          ctx.user.id,
+          "workspace.write",
+        );
+        const result = await prisma.apiKey.updateMany({
+          where: {
+            id: input.keyId,
+            workspaceId: membership.workspaceId,
+            revokedAt: null,
+          },
+          data: { revokedAt: new Date() },
+        });
+        if (result.count === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "API key not found or already revoked",
+          });
+        }
+        return { ok: true as const };
+      }),
+  }),
 });
 
 const invitations = router({

@@ -224,10 +224,29 @@ model Workspace {
   owner         User         @relation("OwnedWorkspaces", fields: [ownerId], references: [id], onDelete: Cascade)
   memberships   Membership[]
   invitations   Invitation[]
+  apiKeys       ApiKey[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([ownerId])
+}
+
+model ApiKey {
+  id           String     @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String     // operator-supplied label, e.g. "ci-deploys"
+  prefix       String     // first 12 chars of the token, indexed for fast lookup
+  tokenHash    String     // sha256 hex of the FULL token
+  scopes       String     // CSV — subset of WORKSPACE_SCOPES
+  createdById  String     // userId who minted the key
+  createdAt    DateTime   @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+  expiresAt    DateTime?
+
+  @@index([workspaceId])
+  @@index([prefix])
 }
 
 model Membership {
