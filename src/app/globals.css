@@ -68,13 +68,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-*: initial;
+  --radius-sm: 6px;
 }
 
 :root {
@@ -137,7 +132,6 @@
 
   --bru-r-xs: 2px;
   --bru-r-sm: 6px;
-  --bru-r-md: 12px;
 
   --bru-modal-w: 720px;
   --bru-modal-vinset: 56px;
@@ -599,7 +593,7 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   border: 2.5px solid var(--bru-ink);
-  border-radius: var(--bru-r-md);
+  border-radius: var(--bru-r-sm);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
 .bru-modal-head {
@@ -1366,7 +1360,7 @@
   max-height: 96%;
   background: var(--bru-paper);
   color: var(--bru-ink);
-  border-radius: var(--bru-r-md) var(--bru-r-md) 0 0;
+  border-radius: var(--bru-r-sm) var(--bru-r-sm) 0 0;
   outline: none;
   overflow: hidden;
   box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.28);
@@ -1388,7 +1382,7 @@
   background: var(--bru-paper) !important;
   color: var(--bru-ink) !important;
   border: 2px solid var(--bru-ink) !important;
-  border-radius: var(--bru-r-md) !important;
+  border-radius: var(--bru-r-sm) !important;
   box-shadow: none !important;
 }
 .bru-drawer-handle {
