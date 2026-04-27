@@ -91,7 +91,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
       <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <Link
           href="/"
-          className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase transition-opacity hover:opacity-55"
+          className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-bru-content underline-offset-4 transition-[text-decoration] hover:underline"
         >
           OH
         </Link>
@@ -161,7 +161,13 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             href={`/api/bookings/${booking.publicUid}/calendar`}
             className={cn(
               buttonVariants({ variant: "brutalist", size: "brutalist" }),
-              "mt-8 w-full justify-center gap-2 sm:mt-10 sm:h-11 sm:text-[13px] lg:h-12 lg:text-[14px]",
+              // Height bumps only — never override the brutalist variant's
+              // `text-[var(--bru-paper)]` with a `text-[12px]`-style size
+              // class. tailwind-merge collapses both into one `text-*`
+              // group and the color disappears, leaving black text on a
+              // black button at sm/lg breakpoints. See
+              // .claude/rules/dashboard-forms.md "Hover + color contracts".
+              "mt-8 w-full justify-center gap-2 sm:mt-10 sm:h-11 lg:h-12",
             )}
           >
             <CalendarIcon />
