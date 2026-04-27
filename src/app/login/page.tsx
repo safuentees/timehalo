@@ -26,7 +26,7 @@ export default async function LoginPage({
     <div className="h-screen overflow-hidden bg-background">
       <main className="mx-auto max-w-sm px-8 pt-16 sm:pt-32">
         <header className="mb-8">
-          <h1 className="font-heading text-3xl font-normal italic tracking-tight text-foreground leading-none -ml-0.5">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground leading-none -ml-0.5">
             Sign in
           </h1>
           <p className="mt-4 font-mono text-xs tracking-wide text-muted-foreground text-pretty">
