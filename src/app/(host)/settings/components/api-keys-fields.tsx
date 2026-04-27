@@ -36,20 +36,12 @@ export function ApiKeysFields() {
   // exact pattern.
   const [pickedSlug, setPickedSlug] = useState<string | null>(null);
 
-  const activeSlug =
-    workspaces && workspaces.length > 0
-      ? pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
-        ? pickedSlug
-        : workspaces[0].slug
-      : null;
-
   return (
     <section aria-labelledby="api-keys-legend">
       <SectionHeader
         legendId="api-keys-legend"
         legend={t("legend")}
         description={t("description")}
-        action={activeSlug ? <ApiKeyCreateDialog slug={activeSlug} /> : null}
       />
 
       {workspacesLoading ? (
@@ -59,7 +51,11 @@ export function ApiKeysFields() {
       ) : (
         <ApiKeysForWorkspace
           workspaces={workspaces}
-          slug={activeSlug as string}
+          slug={
+            pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
+              ? pickedSlug
+              : workspaces[0].slug
+          }
           onSlugChange={setPickedSlug}
         />
       )}
@@ -142,6 +138,10 @@ function ApiKeysForWorkspace({
             ))}
           </ul>
         )}
+      </div>
+
+      <div className="mt-4">
+        <ApiKeyCreateDialog slug={slug} />
       </div>
     </>
   );

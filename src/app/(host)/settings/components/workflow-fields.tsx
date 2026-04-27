@@ -25,7 +25,6 @@ export function WorkflowFields() {
       <SectionHeader
         legend={t("legend")}
         description={t("description")}
-        action={<WorkflowCreateDialog />}
       />
 
       <div className="mt-5">
@@ -53,6 +52,10 @@ export function WorkflowFields() {
             ))}
           </ul>
         )}
+      </div>
+
+      <div className="mt-4">
+        <WorkflowCreateDialog />
       </div>
     </section>
   );
