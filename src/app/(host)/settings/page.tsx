@@ -1,5 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { getRuntimeTimezones } from "@/lib/timezone";
 import SettingsForm from "./components/settings-form";
 
 export default async function SettingsPage() {
@@ -10,9 +11,11 @@ export default async function SettingsPage() {
     trpc.calendar.connections.prefetch(),
   ]);
 
+  const timezones = getRuntimeTimezones();
+
   return (
     <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-      <SettingsForm />
+      <SettingsForm timezones={timezones} />
     </HydrationBoundary>
   );
 }

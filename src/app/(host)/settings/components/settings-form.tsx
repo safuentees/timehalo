@@ -32,7 +32,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function SettingsForm() {
+export default function SettingsForm({ timezones }: { timezones: string[] }) {
   const tSettings = useTranslations("Settings");
   const tDanger = useTranslations("DangerZone");
   const { data: me } = trpc.users.me.useQuery();
@@ -84,7 +84,7 @@ export default function SettingsForm() {
                   {tSettings("timezoneDescription")}
                 </FieldDescription>
                 <FieldGroup>
-                  <TimezoneFields />
+                  <TimezoneFields timezones={timezones} />
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>

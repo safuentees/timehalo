@@ -54,6 +54,36 @@ export const timezoneSchema = z.string().transform((tz, ctx) => {
   return resolved;
 });
 
+const FALLBACK_TIMEZONES = [
+  "UTC",
+  "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
+  "America/New_York",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Madrid",
+  "Africa/Cairo",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
+
+export function getRuntimeTimezones(): string[] {
+  if (typeof Intl.supportedValuesOf === "function") {
+    try {
+      return Intl.supportedValuesOf("timeZone");
+    } catch {
+    }
+  }
+  return FALLBACK_TIMEZONES;
+}
+
 export function getBrowserTimezone(): string {
   if (typeof Intl === "undefined") return DEFAULT_TIMEZONE;
   try {

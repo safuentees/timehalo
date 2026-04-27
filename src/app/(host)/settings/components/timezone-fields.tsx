@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Controller, useFormContext } from "react-hook-form";
 import { Field, FieldError } from "@/components/ui/field";
@@ -9,19 +8,9 @@ import { getBrowserTimezone } from "@/lib/timezone";
 
 type FormShape = { timezone: string };
 
-export function TimezoneFields() {
+export function TimezoneFields({ timezones }: { timezones: string[] }) {
   const t = useTranslations("Settings");
   const form = useFormContext<FormShape>();
-
-  const zones = useMemo(() => {
-    if (typeof Intl.supportedValuesOf === "function") {
-      try {
-        return Intl.supportedValuesOf("timeZone");
-      } catch {
-      }
-    }
-    return FALLBACK_ZONES;
-  }, []);
 
   return (
     <Controller<FormShape>
@@ -41,7 +30,7 @@ export function TimezoneFields() {
               aria-invalid={fieldState.invalid}
               className="bru-input flex-1 min-w-[260px] font-[family-name:var(--bru-mono)] text-[14px]"
             >
-              {zones.map((z) => (
+              {timezones.map((z) => (
                 <option key={z} value={z}>
                   {z}
                 </option>
@@ -72,22 +61,3 @@ export function TimezoneFields() {
   );
 }
 
-const FALLBACK_ZONES = [
-  "UTC",
-  "America/Los_Angeles",
-  "America/Denver",
-  "America/Chicago",
-  "America/New_York",
-  "America/Sao_Paulo",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Madrid",
-  "Africa/Cairo",
-  "Asia/Dubai",
-  "Asia/Kolkata",
-  "Asia/Singapore",
-  "Asia/Tokyo",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-];
