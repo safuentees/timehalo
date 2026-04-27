@@ -42,6 +42,7 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Filter `deleted: false` on every Booking read (item 7 invariant).
 - Run `pnpm test:run` before committing user-visible procedure changes.
 - Use the styling tokens from `.claude/rules/brutalist-ui.md`: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
+- When a client tree branches on a browser-only signal (`useMediaQuery`, `useTheme`, `useMounted`, ICU data, `localStorage`), pick the SSR default that matches the hook's server snapshot, and resolve runtime-derived lists on the server. See `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
 
 ## Never do
 
@@ -55,6 +56,7 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Use `rounded-md/lg/xl/2xl/3xl/4xl` — those tokens are dropped via `--radius-*: initial` and render at 0px. Use `rounded-sm` or `rounded-full`.
 - Reach for a serif or "title" font — there is none. Bump weight + size on Space Grotesk.
 - Use the `useState(false) + useEffect(() => setMounted(true), [])` pattern. Use `useMounted()` from `src/hooks/use-mounted.ts` instead — React 19's compiler ESLint rule (`react-hooks/set-state-in-effect`) fails CI on the legacy pattern.
+- `if (!mounted) return null` from a client component when that subtree contains user-visible UI (buttons, inputs, links, dialog triggers). Render the SSR-safe default and let the effect upgrade in place — see `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
 
 ## Commands
 
