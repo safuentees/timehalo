@@ -5,18 +5,27 @@ import SettingsForm from "./components/settings-form";
 
 export default async function SettingsPage() {
   const trpc = await createPrivateSSRHelper();
-  await Promise.all([
+
+  // Parallelize the independent queries; `workspaces.list.fetch()`
+  // returns the data AND populates the cache, so we use the result to
+  // chase the dependent `apiKeys.list({ slug })` prefetch.
+  // Without the nested prefetch the API keys section flashes
+  // "Loading…" on first paint while every other section renders from
+  // the hydration cache. Cal.com does the eager-nested-prefetch
+  // pattern (settings/developer/api-keys/page.tsx); Rallly stops at
+  // parent-only and accepts the flash. We follow Cal — settings is
+  // dense enough that a sub-section flashing alone reads as broken.
+  const [workspaces] = await Promise.all([
+    trpc.workspaces.list.fetch(),
     trpc.users.me.prefetch(),
     trpc.workflows.list.prefetch(),
     trpc.calendar.connections.prefetch(),
-    // workspaces.list feeds the API keys section's workspace picker.
-    // Without prefetch the section flashed "Loading…" on first paint
-    // while every other section rendered instantly from the hydration
-    // cache. Same pattern as rallly's settings/api-keys page (server
-    // helpers prefetch → dehydrate → HydrationBoundary). Reference:
-    // tRPC v11 App Router prefetch docs (Context7 /trpc/trpc).
-    trpc.workspaces.list.prefetch(),
   ]);
+
+  const firstSlug = workspaces[0]?.slug;
+  if (firstSlug) {
+    await trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug });
+  }
 
   // Resolve the timezone list on the server so SSR + CSR render the
   // same <option> set. ICU data differs between Node and browsers
