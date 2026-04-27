@@ -39,11 +39,19 @@ export function BookingsList() {
 
       <OnboardingChecklist />
 
-      {/* Segmented control — Apple HIG: small set of mutually-exclusive
-          views, persistent visual presence so users can switch back.
-          overflow-hidden + rounded so child SegButtons clip to the curve
-          (otherwise the inner border-r-2 on each button would overshoot). */}
-      <div className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong">
+      {/* Segmented control — single bordered group, two flat tabs.
+          Apple HIG: small set of mutually-exclusive views, persistent
+          visual presence so users can switch back. role="tablist" /
+          role="tab" makes screen-readers announce the group as tabs;
+          we also keep aria-selected on each button. The count is plain
+          tabular-nums text inside the button (not a nested pill) —
+          vertical-center comes from `inline-flex items-center` on the
+          button itself, no baseline-alignment math needed. */}
+      <div
+        role="tablist"
+        aria-label="Booking timeframe"
+        className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+      >
         <SegButton
           active={tab === "upcoming"}
           count={data?.upcoming.length}
@@ -98,26 +106,30 @@ function SegButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      aria-pressed={active}
       className={[
-        "px-4 py-2 font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+        "inline-flex items-center gap-2.5 px-4 py-2.5",
+        "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
         "border-r-2 border-bru-line-strong last:border-r-0",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",
         active
           ? "bg-bru-content text-bru-bg"
           : "bg-bru-bg text-bru-content hover:bg-bru-tint",
       ].join(" ")}
     >
-      {children}
+      <span className="leading-none">{children}</span>
       {typeof count === "number" ? (
         <span
           className={[
-            "ml-2 inline-flex items-center justify-center min-w-[22px] px-1 py-0.5",
-            "rounded-(--bru-r-xs) text-[10px] tabular-nums",
-            active
-              ? "bg-bru-bg text-bru-content"
-              : "bg-bru-tint text-bru-content",
+            // Typographic count — not a nested pill. Same line-height
+            // as the label, slightly lighter so the LABEL is the
+            // primary signal and the count plays second fiddle.
+            // Brutalist hierarchy: emphasize by de-emphasizing.
+            "tabular-nums text-[11px] font-bold leading-none",
+            active ? "opacity-65" : "opacity-45",
           ].join(" ")}
         >
           {count}
