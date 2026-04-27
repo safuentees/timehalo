@@ -81,13 +81,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-*: initial;
+  --radius-sm: 6px;
 }
 
 :root {
@@ -174,7 +169,6 @@
      sm (6px) cards - ~4px padding = xs (2px) inner inputs/chips. */
   --bru-r-xs: 2px;
   --bru-r-sm: 6px;
-  --bru-r-md: 12px;
 
   /* Desktop modal sizing — matched against the Drawer breakpoint in
      `src/components/ui/responsive-modal.tsx`. Below
@@ -686,7 +680,7 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   border: 2.5px solid var(--bru-ink);
-  border-radius: var(--bru-r-md);
+  border-radius: var(--bru-r-sm);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
 .bru-modal-head {
@@ -1539,7 +1533,7 @@
   background: var(--bru-paper);
   color: var(--bru-ink);
   /* Top corners only — mobile bottom-sheet convention. */
-  border-radius: var(--bru-r-md) var(--bru-r-md) 0 0;
+  border-radius: var(--bru-r-sm) var(--bru-r-sm) 0 0;
   outline: none;
   overflow: hidden;
   box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.28);
@@ -1576,7 +1570,7 @@
   background: var(--bru-paper) !important;
   color: var(--bru-ink) !important;
   border: 2px solid var(--bru-ink) !important;
-  border-radius: var(--bru-r-md) !important;
+  border-radius: var(--bru-r-sm) !important;
   /* No shadow — symmetric by absence. The 2px ink border + paper bg
      ground the modal against the blurred backdrop, and the uniform
      border on all four sides reads cleaner than the offset brutalist
