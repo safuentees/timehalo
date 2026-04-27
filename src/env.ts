@@ -49,6 +49,16 @@ export const env = createEnv({
      * doesn't quietly drop admin access.
      */
     OFFICEHOURS_ADMIN_HANDLES: z.string().optional(),
+    /**
+     * Calendar OAuth (B3). Both providers optional — the adapter
+     * factory returns null when client_id/secret are unset, so the
+     * busy-time merge gracefully no-ops. Set both to wire up Google
+     * Calendar / Microsoft Graph free-busy reads.
+     */
+    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+    MICROSOFT_OAUTH_CLIENT_ID: z.string().optional(),
+    MICROSOFT_OAUTH_CLIENT_SECRET: z.string().optional(),
   },
   client: {
     /**

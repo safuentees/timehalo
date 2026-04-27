@@ -34,6 +34,9 @@ model User {
   // centric; workspaces are an additional layer for collaboration.
   ownedWorkspaces      Workspace[]         @relation("OwnedWorkspaces")
   memberships          Membership[]
+  // Calendar OAuth credentials (B3). Per-user, per-provider; cascade
+  // delete with the user.
+  calendarCredentials  CalendarCredential[]
 }
 
 model Account {
@@ -427,4 +430,71 @@ enum MembershipRole {
   ADMIN
   MEMBER
   VIEWER
+}
+
+// Calendar primitives (B3). cal.com's pattern (Credential +
+// SelectedCalendar + per-provider adapter). Two stages of integration
+// land here: (1) the user OAuths the provider once and we persist a
+// CalendarCredential row with refresh + access tokens; (2) the user
+// picks which of the calendars on that provider to read busy-times
+// from (a single Google account can host many calendars — work,
+// personal, etc.).
+//
+// Tokens are stored as plain text for now. cal.com encrypts them at
+// rest via Prisma middleware; that's a separate hardening pass not
+// in this commit's budget. .env should set CALENDAR_TOKEN_AT_REST_KEY
+// when that lands.
+//
+// Push notifications + the CalendarSubscription state-machine
+// (syncSubscribedAt, syncSubscribedErrorCount, circuit breaker) are
+// deferred — busy-time read is fetched on-demand from the host page
+// for now. Push channels land in a follow-up commit.
+
+model CalendarCredential {
+  id                  String              @id @default(cuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider            CalendarProvider
+  // Stable identifier for the upstream account (Google's `sub`,
+  // Microsoft's `id`). One row per (user, provider, externalAccountId)
+  // — a user can connect the same provider with different accounts.
+  externalAccountId   String
+  // Account-level metadata for UI rendering.
+  externalAccountEmail String?
+  accessToken         String
+  refreshToken        String
+  // Unix-ms expiry of the current access token. Refresh logic in
+  // src/lib/calendar runs when now + 60s >= accessTokenExpiresAt.
+  accessTokenExpiresAt DateTime
+  scope               String              // CSV of granted OAuth scopes
+  selectedCalendars   SelectedCalendar[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([userId])
+}
+
+model SelectedCalendar {
+  id                  String              @id @default(cuid())
+  credentialId        String
+  credential          CalendarCredential  @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  // The provider's calendar identifier. Google uses email-shaped
+  // strings ("primary", "user@example.com"); Microsoft uses GUIDs.
+  externalCalendarId  String
+  // Display name + role for UI. Stored on selection so the picker
+  // doesn't re-fetch the calendar list for every render.
+  summary             String
+  // Whether this is the user's default calendar in the provider —
+  // useful for marking "main" in the UI.
+  isPrimary           Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+
+  @@unique([credentialId, externalCalendarId])
+  @@index([credentialId])
+}
+
+enum CalendarProvider {
+  GOOGLE
+  MICROSOFT
 }
