@@ -77,10 +77,8 @@
     "revoke": "Revoke",
     "revoking": "Revoking…",
     "revokeConfirm": "Revoke this key? Any integration using it will start getting 401s.",
-    "noKeysTitle": "No keys yet",
-    "noKeysDescription": "Mint your first key to authenticate scripts, CI, or third-party tools against this workspace.",
-    "noWorkspaceTitle": "No workspace yet",
-    "noWorkspaceDescription": "API keys are scoped to a workspace. Create one first, then come back to mint a key."
+    "noKeysEmpty": "No keys yet. Mint your first key to authenticate scripts, CI, or third-party tools against this workspace.",
+    "noWorkspaceEmpty": "No workspace yet. API keys are scoped to a workspace — create one first, then come back to mint a key."
   },
   "Calendar": {
     "legend": "Calendar",
