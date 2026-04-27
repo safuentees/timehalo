@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'cd \"$CLAUDE_PROJECT_DIR\" && [ -f scripts/bootstrap.sh ] && ([ ! -d node_modules ] || [ ! -e .env ] || [ ! -d src/generated/prisma ]) && ./scripts/bootstrap.sh >&2 || true'"
+            "command": "bash -c 'cd \"$CLAUDE_PROJECT_DIR\" && [ -x scripts/bootstrap.sh ] && ./scripts/bootstrap.sh >&2 || true'"
           }
         ]
       }
