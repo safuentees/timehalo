@@ -7,13 +7,7 @@ import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { BrutalistEmpty } from "@/components/brutalist/brutalist-empty";
 import {
   AvailabilityDrawer,
   TriggerCard,
@@ -259,15 +253,11 @@ function HostEmpty({
 
   return (
     <div className="bru-profile-empty">
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CalendarIcon />
-          </EmptyMedia>
-          <EmptyTitle>{title}</EmptyTitle>
-          <EmptyDescription>{description}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <BrutalistEmpty
+        icon={CalendarIcon}
+        title={title}
+        description={description}
+      />
     </div>
   );
 }

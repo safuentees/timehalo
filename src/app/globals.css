@@ -1327,12 +1327,6 @@
 .bru-profile-empty {
   padding: 8px 0 32px;
 }
-.bru-profile-empty [data-slot="empty"] {
-  background: transparent;
-  border: 2px dashed var(--bru-line-dashed);
-  border-radius: var(--bru-r-sm);
-  padding: 56px 24px;
-}
 
 .bru-profile-shell .bru-endrule {
   border-top: 1px solid var(--bru-line-strong);
