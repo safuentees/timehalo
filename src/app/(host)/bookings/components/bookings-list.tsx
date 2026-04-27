@@ -37,7 +37,7 @@ export function BookingsList() {
       <div
         role="tablist"
         aria-label="Booking timeframe"
-        className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+        className="mt-6 grid w-fit grid-cols-2 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
       >
         <SegButton
           active={tab === "upcoming"}
@@ -95,7 +95,7 @@ function SegButton({
       aria-selected={active}
       onClick={onClick}
       className={[
-        "inline-flex items-center gap-2.5 px-4 py-2.5",
+        "inline-flex items-center justify-center gap-2.5 px-4 py-2.5",
         "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
         "border-r-2 border-bru-line-strong last:border-r-0",
