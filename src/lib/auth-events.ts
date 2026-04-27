@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
+import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 
 export function resolveAuthRedirect(input: { url: string; baseUrl: string }): string {
   const { url, baseUrl } = input;
@@ -37,7 +38,7 @@ export async function bootstrapUserWorkspace(user: {
     await prisma.$transaction(async (tx) => {
       const ws = await tx.workspace.create({
         data: {
-          slug: `personal-${user.id}`,
+          slug: personalWorkspaceSlugFor(user.id),
           name: "Personal",
           ownerId: user.id,
         },
