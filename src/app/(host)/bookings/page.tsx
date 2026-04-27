@@ -6,7 +6,15 @@ import { BookingsList } from "./components/bookings-list";
 // "came for" is one tap from launch (here: zero, since `/` redirects).
 export default async function BookingsPage() {
   const trpc = await createPrivateSSRHelper();
-  await trpc.bookings.listForHost.prefetch();
+  // Parallel prefetch. featureFlags drives whether <LiveQueue /> mounts
+  // at all — without it, the flag arrives ~50-200ms after first paint
+  // and the live-queue dot's wrapping <div> appears in a second pass,
+  // shifting layout. Prefetching makes the first server render know the
+  // truth so the aside slot is stable from byte one.
+  await Promise.all([
+    trpc.bookings.listForHost.prefetch(),
+    trpc.users.featureFlags.prefetch(),
+  ]);
 
   return (
     <main className="bru-main">

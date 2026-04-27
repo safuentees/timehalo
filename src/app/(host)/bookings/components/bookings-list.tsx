@@ -231,8 +231,12 @@ function LiveQueue() {
     },
   });
 
-  if (status === "hidden") return null;
-
+  // Always render the dot — never return null. The "hidden" state
+  // collapses to a transparent + aria-hidden span that still occupies
+  // the 8×8 + flex-gap slot, so the transition out of hidden is a
+  // pure color crossfade with zero CLS. Returning null here on first
+  // render and then conditionally re-rendering would shift the title
+  // row when the dot first lands.
   return <LiveDot status={status} pulseKey={pulseKey} />;
 }
 
@@ -240,17 +244,23 @@ function LiveDot({
   status,
   pulseKey,
 }: {
-  status: "connecting" | "live" | "off";
+  status: "hidden" | "connecting" | "live" | "off";
   pulseKey: number;
 }) {
+  const isHidden = status === "hidden";
   const tone =
     status === "live"
       ? "bg-emerald-500"
       : status === "connecting"
         ? "bg-amber-500"
-        : "bg-neutral-400";
-  const ariaLabel =
-    status === "live"
+        : status === "off"
+          ? "bg-neutral-400"
+          : "bg-transparent";
+  // No aria during the grace window — assistive tech shouldn't announce
+  // a transient "connecting" that most users never see.
+  const ariaLabel = isHidden
+    ? undefined
+    : status === "live"
       ? "Live updates connected"
       : status === "connecting"
         ? "Connecting to live updates"
@@ -259,11 +269,19 @@ function LiveDot({
   return (
     <span
       // `key` re-mounts the span on each event so the CSS animation
-      // re-runs — heartbeat tied to data, not idle decoration.
+      // re-runs — heartbeat tied to data, not idle decoration. Pulses
+      // during the hidden state are no-ops because the dot is transparent.
       key={pulseKey}
-      role="status"
+      role={isHidden ? undefined : "status"}
+      aria-hidden={isHidden ? true : undefined}
       aria-label={ariaLabel}
-      className={`bru-live-dot inline-block size-2 shrink-0 rounded-full ${tone}`}
+      className={[
+        "bru-live-dot inline-block size-2 shrink-0 rounded-full",
+        // Color crossfade between states — covers the hidden→connecting
+        // and connecting→live transitions without a layout pass.
+        "transition-colors duration-200 ease-bru",
+        tone,
+      ].join(" ")}
     />
   );
 }
