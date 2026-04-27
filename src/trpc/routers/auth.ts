@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
 import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import {
   createRateLimitMiddleware,
   publicProcedure,
@@ -114,6 +115,9 @@ export const auth = router({
                   email: input.email,
                   handle: input.handle,
                   passwordHash,
+                  availabilityRanges: {
+                    createMany: { data: [...DEFAULT_AVAILABILITY_ROWS] },
+                  },
                 },
                 select: {
                   id: true,

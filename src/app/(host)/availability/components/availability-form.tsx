@@ -55,14 +55,17 @@ export default function AvailabilityForm() {
 
   const isPending = saveSchedule.isPending;
   const isDirty = form.formState.isDirty;
+  const seededFromDefault = (rows?.length ?? 0) === 0;
 
   const mounted = useMounted();
-  const buttonDisabled = mounted ? isPending || !isDirty : true;
+  const buttonDisabled = mounted
+    ? isPending || (!isDirty && !seededFromDefault)
+    : true;
   const buttonLabel = !mounted
     ? "Saved"
     : isPending
       ? "Saving…"
-      : isDirty
+      : isDirty || seededFromDefault
         ? "Save changes"
         : "Saved";
 

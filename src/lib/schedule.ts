@@ -68,6 +68,18 @@ const ENUM_TO_DAY_KEY: Record<DayOfWeek, DayKey> = {
 
 const DEFAULT_RANGE: RangeValues = { from: "09:00", to: "17:00" };
 
+export const DEFAULT_AVAILABILITY_ROWS: ReadonlyArray<{
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+}> = [
+  { dayOfWeek: DayOfWeek.MONDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.TUESDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.WEDNESDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.THURSDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.FRIDAY, startTime: "09:00", endTime: "17:00" },
+];
+
 export const defaultSchedule: ScheduleValues = {
   mon: { enabled: true, ranges: [DEFAULT_RANGE] },
   tue: { enabled: true, ranges: [DEFAULT_RANGE] },
