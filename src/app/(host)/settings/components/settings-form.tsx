@@ -22,6 +22,7 @@ import { TimezoneFields } from "./timezone-fields";
 import { LanguageFields } from "./language-fields";
 import { ThemeFields } from "./theme-fields";
 import { WorkflowFields } from "./workflow-fields";
+import { CalendarFields } from "./calendar-fields";
 import { ApiKeysFields } from "./api-keys-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 
@@ -99,6 +100,10 @@ export default function SettingsForm() {
 
           <div className="mt-12 border-t-2 border-bru-line pt-10">
             <WorkflowFields />
+          </div>
+
+          <div className="mt-12 border-t-2 border-bru-line pt-10">
+            <CalendarFields />
           </div>
 
           <div className="mt-12 border-t-2 border-bru-line pt-10">
