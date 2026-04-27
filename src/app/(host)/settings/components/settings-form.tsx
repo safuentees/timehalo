@@ -94,27 +94,27 @@ export default function SettingsForm() {
             </FieldGroup>
           </div>
 
-          <div className="mt-12 border-t-2 border-bru-line pt-10">
+          <div className="mt-12">
             <LanguageFields />
           </div>
 
-          <div className="mt-12 border-t-2 border-bru-line pt-10">
+          <div className="mt-12">
             <ThemeFields />
           </div>
 
-          <div className="mt-12 border-t-2 border-bru-line pt-10">
+          <div className="mt-12">
             <WorkflowFields />
           </div>
 
-          <div className="mt-12 border-t-2 border-bru-line pt-10">
+          <div className="mt-12">
             <CalendarFields />
           </div>
 
-          <div className="mt-12 border-t-2 border-bru-line pt-10">
+          <div className="mt-12">
             <ApiKeysFields />
           </div>
 
-          <section className="mt-16 border-t-2 border-bru-line-strong pt-10">
+          <section className="mt-16">
             <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
               {tDanger("label")}
             </p>
