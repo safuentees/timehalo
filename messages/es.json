@@ -77,10 +77,8 @@
     "revoke": "Revocar",
     "revoking": "Revocando…",
     "revokeConfirm": "¿Revocar esta clave? Cualquier integración que la use empezará a recibir 401.",
-    "noKeysTitle": "Aún no hay claves",
-    "noKeysDescription": "Genera tu primera clave para autenticar scripts, CI o herramientas externas contra este espacio de trabajo.",
-    "noWorkspaceTitle": "Aún no hay espacio de trabajo",
-    "noWorkspaceDescription": "Las claves API se asocian a un espacio de trabajo. Crea uno primero y vuelve para generar una clave."
+    "noKeysEmpty": "Aún no hay claves. Genera tu primera para autenticar scripts, CI o herramientas externas contra este espacio de trabajo.",
+    "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave."
   },
   "Calendar": {
     "legend": "Calendario",
