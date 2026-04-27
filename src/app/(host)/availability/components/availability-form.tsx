@@ -1,14 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMounted } from "@/hooks/use-mounted";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { rowsToFormValues } from "@/lib/schedule";
 import { useScheduleSave } from "@/lib/mutations/use-schedule-save";
-import { Button } from "@/components/ui/button";
 import {
   FieldDescription,
   FieldGroup,
@@ -17,6 +15,7 @@ import {
 } from "@/components/ui/field";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { BrutalistSaveBar } from "@/components/brutalist/save-bar";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -57,8 +56,6 @@ export default function AvailabilityForm() {
     await saveSchedule.mutateAsync(v.availability);
   }
 
-  const isPending = saveSchedule.isPending;
-  const isDirty = form.formState.isDirty;
   // First-time visitors land on the form pre-filled from
   // `defaultAvailability` (Mon-Fri 9-5) but RHF reads that as
   // "not dirty" because form values match the seed. The save button
@@ -68,21 +65,6 @@ export default function AvailabilityForm() {
   // is clickable. cal.com's setup-availability screen behaves the
   // same: unconditional save on submit.
   const seededFromDefault = (rows?.length ?? 0) === 0;
-
-  // Defer save-button state until after mount — avoids a hydration
-  // mismatch between SSR (where RHF doesn't know server values) and
-  // client (where `values` syncs in an effect).
-  const mounted = useMounted();
-  const buttonDisabled = mounted
-    ? isPending || (!isDirty && !seededFromDefault)
-    : true;
-  const buttonLabel = !mounted
-    ? "Saved"
-    : isPending
-      ? "Saving…"
-      : isDirty || seededFromDefault
-        ? "Save changes"
-        : "Saved";
 
   return (
     <FormProvider {...form}>
@@ -104,22 +86,16 @@ export default function AvailabilityForm() {
               </FieldSet>
             </FieldGroup>
           </div>
-          <div className="bru-dash-save-spacer" aria-hidden />
         </BrutalistPageShell>
-
-        <div className="bru-dash-save-bar" role="region" aria-label="Save changes">
-          <div className="bru-dash-save-bar-inner">
-            <Button
-              type="submit"
-              variant="brutalist"
-              size="brutalist"
-              className="w-full"
-              disabled={buttonDisabled}
-            >
-              {buttonLabel}
-            </Button>
-          </div>
-        </div>
+        <BrutalistSaveBar
+          isPending={saveSchedule.isPending}
+          isDirty={form.formState.isDirty || seededFromDefault}
+          labels={{
+            save: "Save changes",
+            saving: "Saving…",
+            saved: "Saved",
+          }}
+        />
       </form>
     </FormProvider>
   );
