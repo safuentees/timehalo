@@ -24,6 +24,7 @@ const TEMPLATE_NAMES = new Set<TemplateName>([
   "booking-reminder",
   "account-deleted",
   "workspace-invite",
+  "magic-link-signin",
 ]);
 
 function isKnownTemplate(name: string | null): name is TemplateName {
@@ -231,6 +232,7 @@ function buildTemplateProps(
       };
     case "account-deleted":
     case "workspace-invite":
+    case "magic-link-signin":
       return null;
   }
 }

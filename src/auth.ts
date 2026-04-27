@@ -4,13 +4,37 @@ import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/password";
+import { sendEmail } from "@/lib/email";
 import type { JWT } from "next-auth/jwt";
 
 const MAX_LOGIN_ATTEMPTS = 5;
+const APP_NAME = "Officehours";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GitHub,
+    {
+      id: "magic-link",
+      name: "Email",
+      type: "email",
+      maxAge: 60 * 60 * 24, // 24h link lifetime
+      async sendVerificationRequest({ identifier, url }) {
+        const result = await sendEmail({
+          to: identifier,
+          template: "magic-link-signin",
+          props: { signInUrl: url, appName: APP_NAME },
+        });
+        if (!result.ok) {
+          throw new Error(
+            `Magic link send failed: ${
+              result.reason === "no-key"
+                ? "Resend not configured"
+                : "send-failed"
+            }`,
+          );
+        }
+      },
+    },
     CredentialsProvider({
       id: "credentials",
       name: "Email & Password",

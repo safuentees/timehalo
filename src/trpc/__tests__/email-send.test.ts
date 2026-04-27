@@ -86,6 +86,7 @@ describe("email layer — templates render", () => {
       "booking-created",
       "booking-reminder",
       "booking-rescheduled",
+      "magic-link-signin",
       "workspace-invite",
     ]);
   });

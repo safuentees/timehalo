@@ -28,6 +28,10 @@ import WorkspaceInviteEmail, {
   workspaceInviteSubject,
   type WorkspaceInviteProps,
 } from "./templates/workspace-invite";
+import MagicLinkSigninEmail, {
+  magicLinkSigninSubject,
+  type MagicLinkSigninProps,
+} from "./templates/magic-link-signin";
 
 export const TEMPLATES = {
   "booking-created": {
@@ -58,6 +62,10 @@ export const TEMPLATES = {
     Component: WorkspaceInviteEmail,
     getSubject: workspaceInviteSubject,
   },
+  "magic-link-signin": {
+    Component: MagicLinkSigninEmail,
+    getSubject: magicLinkSigninSubject,
+  },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
@@ -70,6 +78,7 @@ export type TemplatePropsMap = {
   "booking-rescheduled": BookingRescheduledProps;
   "booking-reminder": BookingReminderProps;
   "workspace-invite": WorkspaceInviteProps;
+  "magic-link-signin": MagicLinkSigninProps;
 };
 
 export function renderTemplateElement<T extends TemplateName>(
