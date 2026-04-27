@@ -102,6 +102,15 @@ model Booking {
   publicUid    String   @unique @default(cuid())
   host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
   hostId       String
+  // Workspace this booking belongs to. Denormalized from the host's
+  // primary owned Workspace at create time so booking reads can scope
+  // to a workspace without a User join. Cascading delete with the
+  // Workspace mirrors the existing host cascade — closing a workspace
+  // closes its bookings. Backfill landed in 20260427_workspace_aware_
+  // bookings: every existing host got a Workspace + OWNER Membership
+  // and every Booking row was stamped with the host's workspace.id.
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId  String
   visitorName  String
   visitorEmail String
   question     String?
@@ -149,6 +158,7 @@ model Booking {
   // The composite index speeds that read.
   @@index([hostId, slotStart, deleted])
   @@index([deleted, deletedAt])
+  @@index([workspaceId, slotStart])
 }
 
 // Append-only history of every state change on a booking. Mirrors
@@ -354,6 +364,7 @@ model Workspace {
   invitations   Invitation[]
   apiKeys       ApiKey[]
   subscription  Subscription?
+  bookings      Booking[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

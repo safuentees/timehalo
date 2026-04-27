@@ -108,12 +108,31 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              // Primary workspace — the oldest workspace the host
+              // owns, mirrored onto the booking so reads can scope by
+              // workspace without joining through User. Backfill +
+              // auth.register guarantee the array is non-empty.
+              ownedWorkspaces: {
+                select: { id: true },
+                take: 1,
+                orderBy: { createdAt: "asc" },
+              },
             },
           });
           if (!host) {
             throw new TRPCError({
               code: "NOT_FOUND",
               message: "Host not found",
+            });
+          }
+          const workspaceId = host.ownedWorkspaces[0]?.id;
+          if (!workspaceId) {
+            // Defense in depth — schema + backfill guarantee a
+            // workspace exists. Surface as 500 so a missed migration
+            // alerts instead of silently picking up a default.
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Host has no workspace",
             });
           }
 
@@ -216,6 +235,7 @@ export const bookings = router({
               const created = await tx.booking.create({
                 data: {
                   hostId: host.id,
+                  workspaceId,
                   visitorName: input.visitorName,
                   visitorEmail: input.visitorEmail,
                   question: input.question,
@@ -717,6 +737,9 @@ export const bookings = router({
               id: true,
               publicUid: true,
               hostId: true,
+              // The new booking inherits the original's workspace —
+              // a reschedule stays inside the same collaboration unit.
+              workspaceId: true,
               visitorName: true,
               visitorEmail: true,
               question: true,
@@ -859,6 +882,7 @@ export const bookings = router({
               const newBooking = await tx.booking.create({
                 data: {
                   hostId: host.id,
+                  workspaceId: original.workspaceId,
                   visitorName: original.visitorName,
                   visitorEmail: original.visitorEmail,
                   question: original.question,
