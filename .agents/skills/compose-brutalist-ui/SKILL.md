@@ -25,7 +25,9 @@ Use this skill for layout and composition work on brutalist pages and wrappers. 
 
 - Build mobile-first.
 - Prefer container-query-aware layouts for brutalist pages inside dashboard chrome.
-- Use the repo's paper-and-ink palette, mono accents, sharp borders, and uppercase display style.
+- Paper-and-ink palette, thick obvious borders, mono accents, uppercase display.
+- Radius: `rounded-sm` (6px) for structural surfaces; `rounded-full` for pills/avatars; `rounded-none` for intentional sharp. No `rounded-md/lg/xl/2xl/3xl/4xl` — tokens dropped.
+- Fonts: Space Grotesk (`font-sans` and `font-heading` both resolve to it) for body + titles, JetBrains Mono (`font-mono`) for accents. No serif. For title weight use `font-bold`/`font-black`, not a different family.
 - Rework anything that looks like stock shadcn before finishing.
 
 ## Finish

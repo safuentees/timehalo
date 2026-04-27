@@ -5,4 +5,11 @@
 - Preserve slot structure, accessibility behavior, and existing exports.
 - Brutalist-specific styling belongs in `../brutalist/`, not by forking the primitive.
 - In InputGroup components, keep the input element before addons in DOM order.
-- Open first: `field.tsx`, `input-group.tsx`, `item.tsx`, `empty.tsx`, `avatar.tsx`.
+
+## Styling tokens
+
+- Radius: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills/avatars/circles, `rounded-none` for intentional sharp edges. Do not use `rounded-md/lg/xl/2xl/3xl/4xl` — those tokens are dropped in `@theme` and render as 0px.
+- Fonts: `font-sans`/`font-heading` both resolve to Space Grotesk; `font-mono` to JetBrains Mono. There is no serif font in this project.
+- Full styling guidance: `.claude/rules/brutalist-ui.md`.
+
+Open first: `field.tsx`, `input-group.tsx`, `item.tsx`, `empty.tsx`, `avatar.tsx`.
