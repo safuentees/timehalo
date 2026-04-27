@@ -6,7 +6,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Worktree / fresh-clone setup
 
-If `node_modules`, `.env`, or `src/generated/prisma` are missing, run `./scripts/bootstrap.sh` before anything else. It is idempotent: symlinks `.env` from the main worktree, copies `dev.db`, runs `pnpm install --prefer-offline`, and `pnpm prisma generate`. A Claude `SessionStart` hook in `.claude/settings.json` runs this automatically — do not re-run it if it already executed this session.
+One command spins up a worktree:
+
+- `./scripts/new-worktree.sh <branch> [--from main]` — creates the worktree under `.claude/worktrees/<branch>/` and bootstraps it.
+- `./scripts/bootstrap.sh` — idempotent setup; runs every step (env link, db copy, `pnpm install`, `prisma generate`, `prisma migrate deploy`) but skips fast when state hashes match. `--force` ignores the cache. SessionStart hook runs it automatically on every session.
+
+Hashes live in `.bootstrap-state/` (gitignored). If anything looks stale, run `./scripts/bootstrap.sh --force`.
 
 # trpc-lab Shared Agent Guide
 
@@ -60,7 +65,9 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 
 ## Open First
 
-- `src/trpc/router.ts` — the whole tRPC tree (single-file)
+- `src/trpc/router.ts` — slim merge file. Re-exports `appRouter`, `createCaller`, `AppRouter`, `WEBHOOK_EVENTS`, `WebhookEvent`. Keep this public surface stable.
+- `src/trpc/routers/` — per-domain subrouters (one file each: `bookings.ts`, `workspaces.ts`, etc.). Add new domains here, then wire into `router.ts`.
+- `src/trpc/trpc.ts` — `t` instance, `router`/`middleware`, `publicProcedure`/`privateProcedure`/`adminProcedure`, `createRateLimitMiddleware`. All builders + the SSE config live here.
 - `src/trpc/hooks.ts` — global query-invalidation hooks
 - `src/app/(host)/bookings/components/bookings-list.tsx` — canonical authed page
 - `src/lib/schedule.ts` — slot-generation logic shared between server + client

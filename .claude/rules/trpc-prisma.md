@@ -13,4 +13,5 @@ paths:
 - Prefer `findUniqueOrThrow` when the caller assumes the row exists.
 - Use `select` instead of `include`.
 - After `pnpm prisma generate`, restart `pnpm dev` before trusting runtime behavior.
-- Open first: `src/trpc/router.ts`, `src/trpc/hooks.ts`, `src/lib/schedule.ts`, `prisma/schema.prisma`.
+- New domains live as their own file under `src/trpc/routers/<name>.ts`. Import procedure builders from `@/trpc/trpc` (`router`, `publicProcedure`, `privateProcedure`, `adminProcedure`, `createRateLimitMiddleware`). Wire the export into `src/trpc/router.ts` so the merge picks it up.
+- Open first: `src/trpc/router.ts` (merge surface), `src/trpc/routers/` (per-domain), `src/trpc/trpc.ts` (builders), `src/lib/schedule.ts`, `prisma/schema.prisma`.
