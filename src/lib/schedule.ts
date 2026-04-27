@@ -80,6 +80,22 @@ const ENUM_TO_DAY_KEY: Record<DayOfWeek, DayKey> = {
 
 const DEFAULT_RANGE: RangeValues = { from: "09:00", to: "17:00" };
 
+// DB-row form of the Mon-Fri 9-5 default. Seeded into AvailabilityRange
+// when a user is created (auth.register + events.createUser) so the
+// onboarding "draw weekly hours" step is auto-checked from day 1.
+// Mirrors cal.com's pattern in packages/lib/availability.ts.
+export const DEFAULT_AVAILABILITY_ROWS: ReadonlyArray<{
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+}> = [
+  { dayOfWeek: DayOfWeek.MONDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.TUESDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.WEDNESDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.THURSDAY, startTime: "09:00", endTime: "17:00" },
+  { dayOfWeek: DayOfWeek.FRIDAY, startTime: "09:00", endTime: "17:00" },
+];
+
 export const defaultSchedule: ScheduleValues = {
   mon: { enabled: true, ranges: [DEFAULT_RANGE] },
   tue: { enabled: true, ranges: [DEFAULT_RANGE] },
