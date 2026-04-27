@@ -59,17 +59,28 @@ export default function AvailabilityForm() {
 
   const isPending = saveSchedule.isPending;
   const isDirty = form.formState.isDirty;
+  // First-time visitors land on the form pre-filled from
+  // `defaultAvailability` (Mon-Fri 9-5) but RHF reads that as
+  // "not dirty" because form values match the seed. The save button
+  // would stay gated forever — even though the visual default IS the
+  // intent — and the onboarding "draw weekly hours" step would never
+  // auto-check. Treat zero server rows as "needs save" so the button
+  // is clickable. cal.com's setup-availability screen behaves the
+  // same: unconditional save on submit.
+  const seededFromDefault = (rows?.length ?? 0) === 0;
 
   // Defer save-button state until after mount — avoids a hydration
   // mismatch between SSR (where RHF doesn't know server values) and
   // client (where `values` syncs in an effect).
   const mounted = useMounted();
-  const buttonDisabled = mounted ? isPending || !isDirty : true;
+  const buttonDisabled = mounted
+    ? isPending || (!isDirty && !seededFromDefault)
+    : true;
   const buttonLabel = !mounted
     ? "Saved"
     : isPending
       ? "Saving…"
-      : isDirty
+      : isDirty || seededFromDefault
         ? "Save changes"
         : "Saved";
 
