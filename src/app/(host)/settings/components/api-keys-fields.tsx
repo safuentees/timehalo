@@ -235,7 +235,7 @@ function ApiKeyRow({
         {revoked ? null : (
           <Button
             type="button"
-            variant="outline"
+            variant="brutalistGhost"
             size="brutalist"
             onClick={() => {
               if (!window.confirm(t("revokeConfirm"))) return;
