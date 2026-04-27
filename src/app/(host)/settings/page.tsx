@@ -9,6 +9,13 @@ export default async function SettingsPage() {
     trpc.users.me.prefetch(),
     trpc.workflows.list.prefetch(),
     trpc.calendar.connections.prefetch(),
+    // workspaces.list feeds the API keys section's workspace picker.
+    // Without prefetch the section flashed "Loading…" on first paint
+    // while every other section rendered instantly from the hydration
+    // cache. Same pattern as rallly's settings/api-keys page (server
+    // helpers prefetch → dehydrate → HydrationBoundary). Reference:
+    // tRPC v11 App Router prefetch docs (Context7 /trpc/trpc).
+    trpc.workspaces.list.prefetch(),
   ]);
 
   // Resolve the timezone list on the server so SSR + CSR render the
