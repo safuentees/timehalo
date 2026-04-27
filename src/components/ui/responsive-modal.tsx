@@ -7,7 +7,6 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { useMounted } from "@/hooks/use-mounted";
 import { XIcon } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import {
@@ -71,12 +70,16 @@ export function ResponsiveModal({
   children,
   nested = false,
 }: RootProps) {
+  // `useMediaQuery` returns `false` on the server and on the first client
+  // render, then flips to the real value in an effect. Render the Dialog
+  // (desktop) branch in both cases so the trigger button appears in the
+  // SSR HTML and survives hydration unchanged — no null → button flash.
+  // On mobile the swap to Drawer happens silently after mount; the
+  // trigger is a `<button>` either way and the portal content only
+  // renders when `open === true`, so the swap is invisible to the user.
+  // Pattern matches dub.co's modal (always-rendered trigger, controlled
+  // open) and cal.com's CSS-first responsive Dialog.
   const isMobile = useMediaQuery(MOBILE_QUERY);
-  // Defer rendering until we know the breakpoint so the SSR pass and the
-  // first client paint don't disagree on which primitive to mount.
-  const mounted = useMounted();
-
-  if (!mounted) return null;
 
   const Root = isMobile
     ? nested
