@@ -4,7 +4,10 @@ import SettingsForm from "./components/settings-form";
 
 export default async function SettingsPage() {
   const trpc = await createPrivateSSRHelper();
-  await trpc.users.me.prefetch();
+  await Promise.all([
+    trpc.users.me.prefetch(),
+    trpc.calendar.connections.prefetch(),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(trpc.queryClient)}>
