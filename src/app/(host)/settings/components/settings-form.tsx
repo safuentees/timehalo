@@ -22,6 +22,7 @@ import { TimezoneFields } from "./timezone-fields";
 import { LanguageFields } from "./language-fields";
 import { ThemeFields } from "./theme-fields";
 import { WorkflowFields } from "./workflow-fields";
+import { ApiKeysFields } from "./api-keys-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 
 const schema = z.object({
@@ -98,6 +99,10 @@ export default function SettingsForm() {
 
           <div className="mt-12 border-t-2 border-bru-line pt-10">
             <WorkflowFields />
+          </div>
+
+          <div className="mt-12 border-t-2 border-bru-line pt-10">
+            <ApiKeysFields />
           </div>
 
           <section className="mt-16 border-t-2 border-bru-line-strong pt-10">
