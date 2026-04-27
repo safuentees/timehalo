@@ -5,25 +5,64 @@ export type TestHost = { id: string; handle: string; email: string };
 
 export async function createTestHost(handle: string): Promise<TestHost> {
   await prisma.user.deleteMany({ where: { handle } });
-  const host = await prisma.user.create({
-    data: {
-      email: `vitest-${handle}-${Date.now()}@test.local`,
-      handle,
-      availabilityRanges: {
-        create: [
-          { dayOfWeek: "MONDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "TUESDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "WEDNESDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "THURSDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "FRIDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "SATURDAY", startTime: "00:00", endTime: "23:45" },
-          { dayOfWeek: "SUNDAY", startTime: "00:00", endTime: "23:45" },
-        ],
+  const host = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        email: `vitest-${handle}-${Date.now()}@test.local`,
+        handle,
+        availabilityRanges: {
+          create: [
+            { dayOfWeek: "MONDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "TUESDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "WEDNESDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "THURSDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "FRIDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "SATURDAY", startTime: "00:00", endTime: "23:45" },
+            { dayOfWeek: "SUNDAY", startTime: "00:00", endTime: "23:45" },
+          ],
+        },
       },
-    },
-    select: { id: true, handle: true, email: true },
+      select: { id: true, handle: true, email: true },
+    });
+    const slugTaken = await tx.workspace.findUnique({
+      where: { slug: handle },
+      select: { id: true },
+    });
+    const ws = await tx.workspace.create({
+      data: {
+        slug: slugTaken ? `personal-${user.id}` : handle,
+        name: "Personal",
+        ownerId: user.id,
+      },
+      select: { id: true },
+    });
+    await tx.membership.create({
+      data: { workspaceId: ws.id, userId: user.id, role: "OWNER" },
+    });
+    return user;
   });
   return { id: host.id, handle: host.handle!, email: host.email };
+}
+
+export async function createTestWorkspaceForUser(
+  userId: string,
+  slug?: string,
+): Promise<{ id: string; slug: string }> {
+  const finalSlug = slug ?? `vitest-ws-${userId}`;
+  return prisma.$transaction(async (tx) => {
+    const ws = await tx.workspace.create({
+      data: {
+        slug: finalSlug,
+        name: "Test Workspace",
+        ownerId: userId,
+      },
+      select: { id: true, slug: true },
+    });
+    await tx.membership.create({
+      data: { workspaceId: ws.id, userId, role: "OWNER" },
+    });
+    return ws;
+  });
 }
 
 export function tomorrowAt10UTC(): Date {
@@ -98,11 +137,24 @@ export async function createTestBooking(opts: {
   deleted?: boolean;
   deletedAt?: Date | null;
   visitorTimezone?: string | null;
+  workspaceId?: string;
 }): Promise<{ id: number; publicUid: string; slotStart: Date; slotEnd: Date }> {
   const slotEnd = new Date(opts.slotStart.getTime() + 15 * 60_000);
+  let workspaceId = opts.workspaceId;
+  if (!workspaceId) {
+    const existing = await prisma.workspace.findFirst({
+      where: { ownerId: opts.hostId },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+    });
+    workspaceId =
+      existing?.id ??
+      (await createTestWorkspaceForUser(opts.hostId)).id;
+  }
   return prisma.booking.create({
     data: {
       hostId: opts.hostId,
+      workspaceId,
       slotStart: opts.slotStart,
       slotEnd,
       visitorName: opts.visitorName ?? "Test Visitor",

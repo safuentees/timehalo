@@ -87,6 +87,8 @@ model Booking {
   publicUid    String   @unique @default(cuid())
   host         User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
   hostId       String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId  String
   visitorName  String
   visitorEmail String
   question     String?
@@ -102,6 +104,7 @@ model Booking {
 
   @@index([hostId, slotStart, deleted])
   @@index([deleted, deletedAt])
+  @@index([workspaceId, slotStart])
 }
 
 model BookingAudit {
@@ -228,6 +231,7 @@ model Workspace {
   invitations   Invitation[]
   apiKeys       ApiKey[]
   subscription  Subscription?
+  bookings      Booking[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
