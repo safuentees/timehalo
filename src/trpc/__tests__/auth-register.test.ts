@@ -116,6 +116,37 @@ describe("auth.register", () => {
     });
   });
 
+  it("creates a default workspace + OWNER membership in one transaction", async () => {
+    const caller = callRouter(fakeContext());
+    const handle = `${HANDLE_PREFIX}-workspace`;
+    const created = await caller.auth.register({
+      email: `workspace@${EMAIL_DOMAIN}`,
+      password: "correct-horse-battery",
+      handle,
+    });
+
+    // Workspace is owned by the new user, slug derived from the handle.
+    const workspace = await prisma.workspace.findFirstOrThrow({
+      where: { ownerId: created.id },
+      select: { id: true, slug: true, name: true },
+    });
+    expect(workspace.slug).toBe(handle);
+    expect(workspace.name).toBe("Personal");
+
+    // Single OWNER membership ties the user to the workspace.
+    const membership = await prisma.membership.findFirstOrThrow({
+      where: { workspaceId: workspace.id, userId: created.id },
+      select: { role: true },
+    });
+    expect(membership.role).toBe("OWNER");
+
+    // Pair shape — one workspace, one OWNER membership, no orphans.
+    const wsCount = await prisma.workspace.count({
+      where: { ownerId: created.id },
+    });
+    expect(wsCount).toBe(1);
+  });
+
   it("reports handle availability from the database and reserved list", async () => {
     const caller = callRouter(fakeContext());
     await caller.auth.register({
