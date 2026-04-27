@@ -26,6 +26,8 @@ model User {
   bookings             Booking[]
   webhooks             WebhookSubscription[]
   features             UserFeatures[]
+  ownedWorkspaces      Workspace[]         @relation("OwnedWorkspaces")
+  memberships          Membership[]
 }
 
 model Account {
@@ -212,4 +214,56 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+model Workspace {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  name          String
+  ownerId       String
+  owner         User         @relation("OwnedWorkspaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships   Membership[]
+  invitations   Invitation[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([ownerId])
+}
+
+model Membership {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         MembershipRole  @default(MEMBER)
+  assignedAt   DateTime        @default(now())
+  assignedBy   String?
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId, role])
+}
+
+model Invitation {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email        String
+  role         MembershipRole  @default(MEMBER)
+  token        String          @unique
+  invitedBy    String
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([workspaceId])
+  @@index([email])
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
 }

@@ -24,6 +24,10 @@ import BookingReminderEmail, {
   bookingReminderSubject,
   type BookingReminderProps,
 } from "./templates/booking-reminder";
+import WorkspaceInviteEmail, {
+  workspaceInviteSubject,
+  type WorkspaceInviteProps,
+} from "./templates/workspace-invite";
 
 export const TEMPLATES = {
   "booking-created": {
@@ -50,6 +54,10 @@ export const TEMPLATES = {
     Component: BookingReminderEmail,
     getSubject: bookingReminderSubject,
   },
+  "workspace-invite": {
+    Component: WorkspaceInviteEmail,
+    getSubject: workspaceInviteSubject,
+  },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
@@ -61,6 +69,7 @@ export type TemplatePropsMap = {
   "account-deleted": AccountDeletedProps;
   "booking-rescheduled": BookingRescheduledProps;
   "booking-reminder": BookingReminderProps;
+  "workspace-invite": WorkspaceInviteProps;
 };
 
 export function renderTemplateElement<T extends TemplateName>(
