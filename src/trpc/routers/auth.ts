@@ -108,17 +108,39 @@ export const auth = router({
           const passwordHash = await hashPassword(input.password);
 
           try {
-            return await prisma.user.create({
-              data: {
-                email: input.email,
-                handle: input.handle,
-                passwordHash,
-              },
-              select: {
-                id: true,
-                email: true,
-                handle: true,
-              },
+            return await prisma.$transaction(async (tx) => {
+              const user = await tx.user.create({
+                data: {
+                  email: input.email,
+                  handle: input.handle,
+                  passwordHash,
+                },
+                select: {
+                  id: true,
+                  email: true,
+                  handle: true,
+                },
+              });
+              const slugTaken = await tx.workspace.findUnique({
+                where: { slug: input.handle },
+                select: { id: true },
+              });
+              const workspace = await tx.workspace.create({
+                data: {
+                  slug: slugTaken ? `personal-${user.id}` : input.handle,
+                  name: "Personal",
+                  ownerId: user.id,
+                },
+                select: { id: true },
+              });
+              await tx.membership.create({
+                data: {
+                  workspaceId: workspace.id,
+                  userId: user.id,
+                  role: "OWNER",
+                },
+              });
+              return user;
             });
           } catch (cause) {
             if (uniqueConstraintIncludes(cause, "email")) {

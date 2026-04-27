@@ -80,12 +80,24 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              ownedWorkspaces: {
+                select: { id: true },
+                take: 1,
+                orderBy: { createdAt: "asc" },
+              },
             },
           });
           if (!host) {
             throw new TRPCError({
               code: "NOT_FOUND",
               message: "Host not found",
+            });
+          }
+          const workspaceId = host.ownedWorkspaces[0]?.id;
+          if (!workspaceId) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Host has no workspace",
             });
           }
 
@@ -156,6 +168,7 @@ export const bookings = router({
               const created = await tx.booking.create({
                 data: {
                   hostId: host.id,
+                  workspaceId,
                   visitorName: input.visitorName,
                   visitorEmail: input.visitorEmail,
                   question: input.question,
@@ -577,6 +590,7 @@ export const bookings = router({
               id: true,
               publicUid: true,
               hostId: true,
+              workspaceId: true,
               visitorName: true,
               visitorEmail: true,
               question: true,
@@ -716,6 +730,7 @@ export const bookings = router({
               const newBooking = await tx.booking.create({
                 data: {
                   hostId: host.id,
+                  workspaceId: original.workspaceId,
                   visitorName: original.visitorName,
                   visitorEmail: original.visitorEmail,
                   question: original.question,

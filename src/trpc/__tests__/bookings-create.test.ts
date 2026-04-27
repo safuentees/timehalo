@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
+import { createTestHost, tearDownTestHost } from "../../../test/fixtures";
 
 const callRouter = createCaller(appRouter);
 
@@ -28,23 +29,7 @@ describe("bookings.create idempotency", () => {
   let slotIso: string;
 
   beforeAll(async () => {
-    await prisma.user.deleteMany({ where: { handle: TEST_HANDLE } });
-
-    const host = await prisma.user.create({
-      data: {
-        email: `vitest-${Date.now()}@test.local`,
-        handle: TEST_HANDLE,
-        availabilityRanges: {
-          create: [
-            {
-              dayOfWeek: "MONDAY",
-              startTime: "00:00",
-              endTime: "23:45",
-            },
-          ],
-        },
-      },
-    });
+    const host = await createTestHost(TEST_HANDLE);
     hostId = host.id;
     slotIso = nextMondayAt10UTC().toISOString();
   });
@@ -56,11 +41,7 @@ describe("bookings.create idempotency", () => {
   });
 
   afterAll(async () => {
-    await prisma.bookingAudit.deleteMany({});
-    await prisma.task.deleteMany({});
-    await prisma.booking.deleteMany({ where: { hostId } });
-    await prisma.user.deleteMany({ where: { id: hostId } });
-    await prisma.$disconnect();
+    await tearDownTestHost(hostId);
   });
 
   it("returns the same booking when called twice with the same key", async () => {
@@ -152,5 +133,28 @@ describe("bookings.create idempotency", () => {
       where: { action: "CREATED" },
     });
     expect(audits.length).toBe(1);
+  });
+
+  it("writes the host's primary workspaceId on the booking row", async () => {
+    const caller = callRouter(createTestContext());
+    const idempotencyKey = crypto.randomUUID();
+    await caller.bookings.create({
+      handle: TEST_HANDLE,
+      slotStart: slotIso,
+      idempotencyKey,
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+    });
+
+    const row = await prisma.booking.findFirstOrThrow({
+      where: { idempotencyKey },
+      select: { workspaceId: true, hostId: true },
+    });
+    const primary = await prisma.workspace.findFirstOrThrow({
+      where: { ownerId: row.hostId },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(row.workspaceId).toBe(primary.id);
   });
 });
