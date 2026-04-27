@@ -41,7 +41,7 @@ export function BrutalistPrefsProvider({
   const [density, setDensity] = useState<Density>("airy");
   const [motion, setMotion] = useState(true);
 
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme: userTheme, resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -51,9 +51,24 @@ export function BrutalistPrefsProvider({
   const theme = mounted ? resolvedTheme : undefined;
   const isDark = theme === "dark";
 
+  // Tri-state cycle: system → light → dark → system. The previous
+  // implementation read `resolvedTheme` and called setTheme based on
+  // it — which silently pulled the user out of "system" mode the
+  // first time they clicked the topbar toggle, breaking OS-sync
+  // forever after. Use the user-pick `theme` (from useTheme()) for
+  // the cycle so "system" survives a click and is reachable by
+  // clicking past dark.
+  // Reference: next-themes FAQ — `theme` is the pick, `resolvedTheme`
+  // is what's rendered. https://github.com/pacocoursey/next-themes
   const toggleTheme = useCallback(() => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  }, [resolvedTheme, setTheme]);
+    setTheme(
+      userTheme === "system"
+        ? "light"
+        : userTheme === "light"
+          ? "dark"
+          : "system",
+    );
+  }, [userTheme, setTheme]);
 
   const value = useMemo<BrutalistPrefsContextValue>(
     () => ({

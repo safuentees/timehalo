@@ -5,14 +5,19 @@ import { useTranslations } from "next-intl";
 import { useMounted } from "@/hooks/use-mounted";
 import { Field } from "@/components/ui/field";
 
-// Three-option theme picker: system / light / dark. Wires the existing
-// next-themes provider in app/layout.tsx — the brutalist topbar's
-// quick-toggle stays for the inline flip, this is the explicit
-// "I want this preference durable" surface on /settings.
+// Three-option theme picker: system / light / dark.
 //
-// Pattern reference: rallly /apps/web/src/app/[locale]/(space)/
-// settings/preferences/components/theme-preference.tsx — same
-// {system, light, dark} radio shape, brutalist'd.
+// Two values from useTheme() matter here, and the next-themes FAQ
+// makes the distinction load-bearing:
+//   • theme         — what the user picked ("system" | "light" | "dark")
+//   • resolvedTheme — what's actually rendered ("light" | "dark";
+//                     "system" gets resolved against prefers-color-scheme)
+//
+// The radio reflects `theme` (the durable pick). When that pick is
+// "system", we surface the resolvedTheme as a small hint so the user
+// can verify OS-sync is working — without it, "System" looks identical
+// to "Light" on a light-mode OS, and you can't tell whether the OS
+// listener is even wired up.
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -23,12 +28,15 @@ function isThemeValue(v: unknown): v is ThemeValue {
 
 export function ThemeFields() {
   const t = useTranslations("Settings");
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   // SSR returns no theme info; render the system default until the
   // provider rehydrates so the radio doesn't flicker mid-paint.
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
+
+  const showResolvedHint =
+    mounted && current === "system" && (resolvedTheme === "dark" || resolvedTheme === "light");
 
   return (
     <Field>
@@ -73,6 +81,19 @@ export function ThemeFields() {
           </label>
         ))}
       </fieldset>
+      {showResolvedHint ? (
+        <p
+          aria-live="polite"
+          className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
+        >
+          Following OS — currently{" "}
+          <span className="opacity-100">
+            {resolvedTheme === "dark"
+              ? t("themeDark").toLowerCase()
+              : t("themeLight").toLowerCase()}
+          </span>
+        </p>
+      ) : null}
     </Field>
   );
 }
