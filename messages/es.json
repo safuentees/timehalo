@@ -80,6 +80,28 @@
     "noWorkspaceTitle": "Aún no hay espacio de trabajo",
     "noWorkspaceDescription": "Las claves API se asocian a un espacio de trabajo. Crea uno primero y vuelve para generar una clave."
   },
+  "Calendar": {
+    "legend": "Calendario",
+    "description": "Conecta Google u Outlook para que los eventos ocupados bloqueen tu disponibilidad. Cada conexión te deja elegir qué calendarios cuentan.",
+    "providerGOOGLE": "Google",
+    "providerMICROSOFT": "Microsoft",
+    "connectGOOGLE": "Conectar Google",
+    "connectMICROSOFT": "Conectar Outlook",
+    "manage": "Gestionar calendarios",
+    "disconnect": "Desconectar",
+    "selectedCount": "{count, plural, =0 {Ningún calendario seleccionado} one {# calendario seleccionado} other {# calendarios seleccionados}}",
+    "providerNotConfigured": "Proveedor no configurado — define las variables de entorno para activarlo.",
+    "connectSuccess": "Calendario conectado.",
+    "connectErrorWithCode": "Falló la conexión del calendario ({code}).",
+    "pickTitle": "Elige calendarios",
+    "pickDescription": "Los eventos ocupados de los calendarios que selecciones cuentan contra tu disponibilidad. Los no seleccionados se ignoran.",
+    "pickEmpty": "No hay calendarios en esta cuenta.",
+    "primaryBadge": "Principal",
+    "loading": "Cargando calendarios…",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "cancel": "Cancelar"
+  },
   "DangerZone": {
     "label": "Zona de peligro",
     "deleteAccountTitle": "Eliminar cuenta",

@@ -80,6 +80,28 @@
     "noWorkspaceTitle": "No workspace yet",
     "noWorkspaceDescription": "API keys are scoped to a workspace. Create one first, then come back to mint a key."
   },
+  "Calendar": {
+    "legend": "Calendar",
+    "description": "Connect Google or Outlook so busy times block your availability. Each connection lets you pick which calendars count.",
+    "providerGOOGLE": "Google",
+    "providerMICROSOFT": "Microsoft",
+    "connectGOOGLE": "Connect Google",
+    "connectMICROSOFT": "Connect Outlook",
+    "manage": "Manage calendars",
+    "disconnect": "Disconnect",
+    "selectedCount": "{count, plural, =0 {No calendars selected} one {# calendar selected} other {# calendars selected}}",
+    "providerNotConfigured": "Provider not configured — set the env vars to enable.",
+    "connectSuccess": "Calendar connected.",
+    "connectErrorWithCode": "Calendar connect failed ({code}).",
+    "pickTitle": "Pick calendars",
+    "pickDescription": "Busy events on the calendars you select count against your availability. Unselected calendars are ignored.",
+    "pickEmpty": "No calendars on this account.",
+    "primaryBadge": "Primary",
+    "loading": "Loading calendars…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel"
+  },
   "DangerZone": {
     "label": "Danger zone",
     "deleteAccountTitle": "Delete account",
