@@ -8,6 +8,7 @@ import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
+import { SectionHeader } from "./section-header";
 
 export function ApiKeysFields() {
   const t = useTranslations("ApiKeys");
@@ -16,17 +17,21 @@ export function ApiKeysFields() {
 
   const [pickedSlug, setPickedSlug] = useState<string | null>(null);
 
+  const activeSlug =
+    workspaces && workspaces.length > 0
+      ? pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
+        ? pickedSlug
+        : workspaces[0].slug
+      : null;
+
   return (
     <section aria-labelledby="api-keys-legend">
-      <p
-        id="api-keys-legend"
-        className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-      >
-        {t("legend")}
-      </p>
-      <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-        {t("description")}
-      </p>
+      <SectionHeader
+        legendId="api-keys-legend"
+        legend={t("legend")}
+        description={t("description")}
+        action={activeSlug ? <ApiKeyCreateDialog slug={activeSlug} /> : null}
+      />
 
       {workspacesLoading ? (
         <p className="mt-5 text-[13px] opacity-55">{t("loading")}</p>
@@ -35,11 +40,7 @@ export function ApiKeysFields() {
       ) : (
         <ApiKeysForWorkspace
           workspaces={workspaces}
-          slug={
-            pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
-              ? pickedSlug
-              : workspaces[0].slug
-          }
+          slug={activeSlug as string}
           onSlugChange={setPickedSlug}
         />
       )}
@@ -92,14 +93,7 @@ function ApiKeysForWorkspace({
         </div>
       ) : null}
 
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
-          {t("listLabel")}
-        </p>
-        <ApiKeyCreateDialog slug={slug} />
-      </div>
-
-      <div className="mt-3">
+      <div className="mt-5">
         {isLoading ? (
           <p className="text-[13px] opacity-55">{t("loading")}</p>
         ) : !keys || keys.length === 0 ? (

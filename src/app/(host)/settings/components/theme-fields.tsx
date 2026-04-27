@@ -4,8 +4,8 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
-import { Field } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "./section-header";
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -27,20 +27,16 @@ export function ThemeFields() {
     current !== "system" && osPref !== null && current !== osPref;
 
   return (
-    <Field>
-      <p
-        className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-        id="theme-fields-label"
-      >
-        {t("themeLegend")}
-      </p>
-      <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-        {t("themeDescription")}
-      </p>
+    <section>
+      <SectionHeader
+        legendId="theme-legend"
+        legend={t("themeLegend")}
+        description={t("themeDescription")}
+      />
       <div
         role="radiogroup"
-        aria-labelledby="theme-fields-label"
-        className="mt-4 flex flex-wrap gap-2"
+        aria-labelledby="theme-legend"
+        className="mt-5 flex flex-wrap gap-2"
       >
         {THEMES.map((value) => (
           <ThemeCard
@@ -79,7 +75,7 @@ export function ThemeFields() {
           </button>
         </p>
       ) : null}
-    </Field>
+    </section>
   );
 }
 

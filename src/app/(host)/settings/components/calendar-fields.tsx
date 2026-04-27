@@ -9,6 +9,7 @@ import { useCalendarDisconnect } from "@/lib/mutations/use-calendar-disconnect";
 import { Button } from "@/components/ui/button";
 import { getQueryParam, updateQueryParams } from "@/lib/url-params";
 import { CalendarPickDialog } from "./calendar-pick-dialog";
+import { SectionHeader } from "./section-header";
 
 type Provider = "GOOGLE" | "MICROSOFT";
 const PROVIDERS: Provider[] = ["GOOGLE", "MICROSOFT"];
@@ -55,15 +56,11 @@ export function CalendarFields() {
 
   return (
     <section>
-      <p
-        className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-        id="calendar-fields-label"
-      >
-        {t("legend")}
-      </p>
-      <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-        {t("description")}
-      </p>
+      <SectionHeader
+        legendId="calendar-fields-label"
+        legend={t("legend")}
+        description={t("description")}
+      />
 
       {connections && connections.length > 0 ? (
         <ul

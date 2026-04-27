@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
+import { SectionHeader } from "./section-header";
 
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
@@ -13,17 +14,11 @@ export function WorkflowFields() {
 
   return (
     <section>
-      <header className="flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-            {t("legend")}
-          </p>
-          <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-            {t("description")}
-          </p>
-        </div>
-        <WorkflowCreateDialog />
-      </header>
+      <SectionHeader
+        legend={t("legend")}
+        description={t("description")}
+        action={<WorkflowCreateDialog />}
+      />
 
       <div className="mt-5">
         {isLoading ? (
