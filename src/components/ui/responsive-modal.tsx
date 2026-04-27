@@ -7,7 +7,6 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { useMounted } from "@/hooks/use-mounted";
 import { XIcon } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import {
@@ -56,9 +55,6 @@ export function ResponsiveModal({
   nested = false,
 }: RootProps) {
   const isMobile = useMediaQuery(MOBILE_QUERY);
-  const mounted = useMounted();
-
-  if (!mounted) return null;
 
   const Root = isMobile
     ? nested
