@@ -2,6 +2,7 @@ import { signIn } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CredentialsForm from "./credentials-form";
+import MagicLinkForm from "./magic-link-form";
 
 export default function LoginPage() {
   return (
@@ -49,6 +50,10 @@ export default function LoginPage() {
               Continue with GitHub
             </Button>
           </form>
+        </div>
+
+        <div className="pt-6">
+          <MagicLinkForm />
         </div>
 
         <p className="font-mono text-xs text-muted-foreground mt-8">
