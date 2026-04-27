@@ -9,18 +9,16 @@ import { cn } from "@/lib/utils";
 
 // Three-option theme picker: system / light / dark.
 //
-// Three values from useTheme() matter, and the next-themes FAQ makes
-// the distinction load-bearing:
-//   • theme         — what the user picked ("system" | "light" | "dark")
-//   • resolvedTheme — what's actually rendered ("light" | "dark")
-//   • systemTheme   — what the OS currently prefers ("light" | "dark"),
-//                     regardless of pick. Updates live via matchMedia.
+// Two next-themes values matter (FAQ makes the distinction load-bearing):
+//   • theme       — the user's pick ("system" | "light" | "dark")
+//   • systemTheme — what the OS prefers ("light" | "dark"), live via
+//                   matchMedia, regardless of pick.
 //
-// The cards reflect `theme`. Per next-themes' matchMedia listener, OS
-// changes only re-apply to the DOM when `theme === "system"` — so when
-// the pick diverges from the OS we surface the divergence and offer a
-// one-click jump back. References: GitHub Settings → Appearance and
-// Stripe Dashboard → Appearance both use this preview-card pattern.
+// The cards reflect `theme`. When the pick diverges from the OS we
+// surface a one-click jump back — per next-themes' matchMedia listener,
+// OS changes only re-apply to the DOM while `theme === "system"`.
+// Otherwise no after-text: the picked card and the page itself are the
+// affordance. Pattern: GitHub Settings → Appearance + Stripe Dashboard.
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -31,16 +29,15 @@ function isThemeValue(v: unknown): v is ThemeValue {
 
 export function ThemeFields() {
   const t = useTranslations("Settings");
-  const { theme, resolvedTheme, systemTheme, setTheme } = useTheme();
+  const { theme, systemTheme, setTheme } = useTheme();
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
 
   const osPref =
     systemTheme === "dark" || systemTheme === "light" ? systemTheme : null;
-  const isSystem = current === "system";
   const divergesFromOs =
-    !isSystem && osPref !== null && current !== osPref;
+    current !== "system" && osPref !== null && current !== osPref;
 
   return (
     <Field>
@@ -73,48 +70,26 @@ export function ThemeFields() {
           />
         ))}
       </div>
-      {mounted && osPref ? (
+      {mounted && divergesFromOs && osPref ? (
         <p
           aria-live="polite"
-          className="mt-4 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
+          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-65"
         >
-          {isSystem ? (
-            <>
-              Following OS — currently{" "}
-              <span className="opacity-100">
-                {resolvedTheme === "dark"
+          <span>
+            {t("themeOsHint", {
+              pref:
+                osPref === "dark"
                   ? t("themeDark").toLowerCase()
-                  : t("themeLight").toLowerCase()}
-              </span>
-            </>
-          ) : divergesFromOs ? (
-            <>
-              OS prefers{" "}
-              <span className="opacity-100">
-                {osPref === "dark"
-                  ? t("themeDark").toLowerCase()
-                  : t("themeLight").toLowerCase()}
-              </span>{" "}
-              — your pick overrides it.{" "}
-              <button
-                type="button"
-                onClick={() => setTheme("system")}
-                className="underline underline-offset-2 opacity-100 hover:opacity-80"
-              >
-                Follow OS
-              </button>
-            </>
-          ) : (
-            <>
-              OS prefers{" "}
-              <span className="opacity-100">
-                {osPref === "dark"
-                  ? t("themeDark").toLowerCase()
-                  : t("themeLight").toLowerCase()}
-              </span>{" "}
-              — matches your pick.
-            </>
-          )}
+                  : t("themeLight").toLowerCase(),
+            })}
+          </span>
+          <button
+            type="button"
+            onClick={() => setTheme("system")}
+            className="underline underline-offset-2 opacity-100 hover:opacity-80"
+          >
+            {t("themeFollowOs")}
+          </button>
         </p>
       ) : null}
     </Field>
