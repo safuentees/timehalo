@@ -106,7 +106,7 @@ function WorkflowRow({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="brutalistGhost"
           size="brutalist"
           disabled={isUpdating}
           onClick={() => update.mutate({ id, active: !active })}
@@ -115,7 +115,7 @@ function WorkflowRow({
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="brutalistGhost"
           size="brutalist"
           disabled={isDeleting}
           onClick={() => remove.mutate({ id })}

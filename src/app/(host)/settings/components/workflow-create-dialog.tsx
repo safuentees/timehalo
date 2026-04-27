@@ -326,7 +326,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
-            variant="outline"
+            variant="brutalistGhost"
             size="brutalist"
             onClick={onDone}
             disabled={isPending}

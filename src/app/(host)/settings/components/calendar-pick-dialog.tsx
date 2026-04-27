@@ -155,7 +155,7 @@ function CalendarPickBody({
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
           type="button"
-          variant="outline"
+          variant="brutalistGhost"
           size="brutalist"
           onClick={onClose}
           disabled={isPending}
