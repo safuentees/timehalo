@@ -30,6 +30,10 @@ model User {
   bookings             Booking[]
   webhooks             WebhookSubscription[]
   features             UserFeatures[]
+  // Workspace primitives (B1). Existing booking flow stays user-
+  // centric; workspaces are an additional layer for collaboration.
+  ownedWorkspaces      Workspace[]         @relation("OwnedWorkspaces")
+  memberships          Membership[]
 }
 
 model Account {
@@ -317,4 +321,79 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+// Workspace primitives (B1). Pattern reference: cal.com Membership/
+// Team + dub Project/ProjectUsers, scaled down. Three concerns:
+//
+//   1. Workspace: a collaboration unit. Slug is the workspace URL
+//      piece (distinct from User.handle which is the booking URL
+//      piece — booking still resolves through /h/<handle> for now).
+//   2. Membership: user × workspace × role. Cascade delete from
+//      either parent. The (workspaceId, userId) uniqueness keeps a
+//      user from holding two memberships in one workspace.
+//   3. Invitation: email-keyed, token-secured one-shot. Acceptance
+//      converts the row into a Membership and stamps acceptedAt.
+//
+// Booking / Webhook / Audit are NOT yet workspace-scoped — they
+// stay attached to the host User. A follow-up commit migrates those
+// surfaces; this commit is the foundation.
+model Workspace {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  name          String
+  ownerId       String
+  owner         User         @relation("OwnedWorkspaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships   Membership[]
+  invitations   Invitation[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([ownerId])
+}
+
+model Membership {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         MembershipRole  @default(MEMBER)
+  assignedAt   DateTime        @default(now())
+  // The userId of the assigning admin/owner. Nullable for the
+  // OWNER membership minted alongside the workspace itself (no
+  // assigner exists at that moment).
+  assignedBy   String?
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId, role])
+}
+
+model Invitation {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Recipient email — invitation isn't tied to an existing User
+  // until accept lands (rallly's pattern: stranger-by-email,
+  // bound-on-claim).
+  email        String
+  role         MembershipRole  @default(MEMBER)
+  // 32 random bytes, hex-encoded — used in the accept URL.
+  token        String          @unique
+  // userId of the inviter. Required (workspace owner / admin).
+  invitedBy    String
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([workspaceId])
+  @@index([email])
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
 }
