@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
 import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import {
   createRateLimitMiddleware,
   publicProcedure,
@@ -128,6 +129,17 @@ export const auth = router({
                   email: input.email,
                   handle: input.handle,
                   passwordHash,
+                  // Seed Mon-Fri 9-5 default ranges so the host's
+                  // public page is immediately bookable and the
+                  // onboarding "draw weekly hours" step auto-checks.
+                  // Mirrors cal.com (UserRepository.create →
+                  // schedules.create → availability.createMany).
+                  // Without this, the form's pre-filled visual default
+                  // starts isDirty=false → save button gated → ranges
+                  // never persisted.
+                  availabilityRanges: {
+                    createMany: { data: [...DEFAULT_AVAILABILITY_ROWS] },
+                  },
                 },
                 select: {
                   id: true,
