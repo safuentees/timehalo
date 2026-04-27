@@ -13,7 +13,17 @@ function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
+        // Stale after 60s — matches Rallly. Long enough to skip
+        // refetch on intra-page interactions, short enough that
+        // mutations elsewhere don't go unnoticed for too long.
         staleTime: 60 * 1000,
+        // Garbage-collect after 10 minutes (default is 5). Settings
+        // is revisit-heavy: open settings → check something → go back
+        // → return. The default GC dumps the cache too aggressively
+        // for that pattern, forcing a "Loading…" flash on every
+        // re-entry post-5-min idle. 10min covers normal nav rhythm
+        // without holding stale data forever.
+        gcTime: 10 * 60 * 1000,
       },
     },
   });

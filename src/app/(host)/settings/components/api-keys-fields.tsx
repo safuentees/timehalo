@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { KeyIcon, MinusCircleIcon } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
@@ -87,9 +88,18 @@ function ApiKeysForWorkspace({
   onSlugChange: (slug: string) => void;
 }) {
   const t = useTranslations("ApiKeys");
-  const { data: keys, isLoading } = trpc.workspaces.apiKeys.list.useQuery({
-    slug,
-  });
+  // `placeholderData: keepPreviousData` keeps the previously rendered
+  // list visible while the next workspace's keys load. Without it,
+  // switching workspaces in the picker flashes "Loading…" between
+  // every option — not because the query is slow, but because the
+  // component re-mounts the loading branch the moment the input
+  // changes. Cal.com uses the same flag on their out-of-office
+  // pagination list. React Query v5 idiom (was `keepPreviousData:
+  // true` in v4 — now imported from "@tanstack/react-query").
+  const { data: keys, isLoading } = trpc.workspaces.apiKeys.list.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
 
   return (
     <>
