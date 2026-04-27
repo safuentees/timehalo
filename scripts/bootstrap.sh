@@ -36,13 +36,25 @@ node_version_ok() {
 
 # Prisma 7's preinstall blocks 23.x and pre-22.12. Only matters when an
 # install is about to run. Try to auto-switch via nvm/fnm using .nvmrc.
+# The PATH-based discovery (`command -v fnm`) sometimes misses fnm in
+# stripped-down subagent shells (worktree-isolated agents) — fall back
+# to absolute paths in common install locations as a last resort.
 ensure_node_for_install() {
   [ "$(node_version_ok 2>/dev/null)" = "true" ] && return 0
 
-  if command -v fnm >/dev/null 2>&1 && [ -f .nvmrc ]; then
-    log "node $(node -v) unsupported — fnm use (from .nvmrc)"
-    eval "$(fnm env --shell bash)"
-    fnm use >/dev/null 2>&1 || (fnm install && fnm use) >/dev/null 2>&1 || true
+  local FNM_BIN=""
+  if command -v fnm >/dev/null 2>&1; then
+    FNM_BIN="$(command -v fnm)"
+  elif [ -x /opt/homebrew/bin/fnm ]; then
+    FNM_BIN=/opt/homebrew/bin/fnm
+  elif [ -x /usr/local/bin/fnm ]; then
+    FNM_BIN=/usr/local/bin/fnm
+  fi
+
+  if [ -n "$FNM_BIN" ] && [ -f .nvmrc ]; then
+    log "node $(node -v) unsupported — fnm use (from .nvmrc) via $FNM_BIN"
+    eval "$("$FNM_BIN" env --shell bash)"
+    "$FNM_BIN" use >/dev/null 2>&1 || ("$FNM_BIN" install && "$FNM_BIN" use) >/dev/null 2>&1 || true
   fi
 
   if [ "$(node_version_ok 2>/dev/null)" != "true" ] && [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ] && [ -f .nvmrc ]; then
@@ -50,6 +62,32 @@ ensure_node_for_install() {
     # shellcheck disable=SC1091
     . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
     nvm use >/dev/null 2>&1 || (nvm install && nvm use) >/dev/null 2>&1 || true
+  fi
+
+  # Last resort — scan known fnm/nvm install dirs for the .nvmrc-pinned
+  # major and prepend it to PATH directly. Useful when fnm/nvm are
+  # installed but neither is reachable from the subagent shell.
+  if [ "$(node_version_ok 2>/dev/null)" != "true" ] && [ -f .nvmrc ]; then
+    local TARGET_MAJOR
+    TARGET_MAJOR=$(tr -d '\n\r v' < .nvmrc | cut -d. -f1)
+    local CANDIDATES=(
+      "$HOME/.local/share/fnm/node-versions/v${TARGET_MAJOR}"*"/installation/bin"
+      "$HOME/Library/Caches/fnm_multishells"/*"/bin"
+      "$HOME/.nvm/versions/node/v${TARGET_MAJOR}"*"/bin"
+    )
+    for path_glob in "${CANDIDATES[@]}"; do
+      for candidate in $path_glob; do
+        if [ -x "$candidate/node" ]; then
+          local CAND_MAJ
+          CAND_MAJ=$("$candidate/node" -p 'process.versions.node.split(".").map(Number)[0]' 2>/dev/null || echo 0)
+          if [ "$CAND_MAJ" = "$TARGET_MAJOR" ]; then
+            log "node $(node -v) unsupported — prepending $candidate (absolute fallback)"
+            export PATH="$candidate:$PATH"
+            break 2
+          fi
+        fi
+      done
+    done
   fi
 
   [ "$(node_version_ok 2>/dev/null)" = "true" ] \
