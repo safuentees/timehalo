@@ -227,9 +227,9 @@ describe("engine integration — bookings.create dispatches workflows", () => {
   it("BEFORE_EVENT rule schedules the Task at slotStart - offset", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: host.id }));
     const w = await ownerCaller.workflows.create({
-      name: "24h reminder",
+      name: "1h reminder",
       trigger: "BEFORE_EVENT",
-      offsetMinutes: 24 * 60,
+      offsetMinutes: 60,
       action: "EMAIL_VISITOR",
       template: "booking-reminder",
     });
@@ -251,7 +251,7 @@ describe("engine integration — bookings.create dispatches workflows", () => {
       },
       select: { scheduledAt: true },
     });
-    const expected = slotStart.getTime() - 24 * 60 * 60_000;
+    const expected = slotStart.getTime() - 60 * 60_000;
     expect(Math.abs(task.scheduledAt.getTime() - expected)).toBeLessThan(
       2_000,
     );
@@ -326,9 +326,9 @@ describe("engine integration — cancel supersedes workflow tasks", () => {
   it("bookings.cancel marks pending workflow Tasks succeededAt", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: host.id }));
     const w = await ownerCaller.workflows.create({
-      name: "24h reminder",
+      name: "1h reminder",
       trigger: "BEFORE_EVENT",
-      offsetMinutes: 24 * 60,
+      offsetMinutes: 60,
       action: "EMAIL_VISITOR",
       template: "booking-reminder",
     });

@@ -1,6 +1,25 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 
+export function resolveAuthRedirect(input: { url: string; baseUrl: string }): string {
+  const { url, baseUrl } = input;
+  let target: string;
+  if (url.startsWith("/")) {
+    target = `${baseUrl}${url}`;
+  } else {
+    try {
+      target = new URL(url).origin === baseUrl ? url : `${baseUrl}/bookings`;
+    } catch {
+      target = `${baseUrl}/bookings`;
+    }
+  }
+  const path = new URL(target).pathname;
+  if (path === "/" || path === "/login" || path === "/register") {
+    return `${baseUrl}/bookings`;
+  }
+  return target;
+}
+
 export async function bootstrapUserWorkspace(user: {
   id: string;
   email: string | null;
