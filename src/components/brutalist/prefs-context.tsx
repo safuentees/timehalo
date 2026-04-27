@@ -41,7 +41,7 @@ export function BrutalistPrefsProvider({
   const [density, setDensity] = useState<Density>("airy");
   const [motion, setMotion] = useState(true);
 
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme: userTheme, resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -52,8 +52,14 @@ export function BrutalistPrefsProvider({
   const isDark = theme === "dark";
 
   const toggleTheme = useCallback(() => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  }, [resolvedTheme, setTheme]);
+    setTheme(
+      userTheme === "system"
+        ? "light"
+        : userTheme === "light"
+          ? "dark"
+          : "system",
+    );
+  }, [userTheme, setTheme]);
 
   const value = useMemo<BrutalistPrefsContextValue>(
     () => ({

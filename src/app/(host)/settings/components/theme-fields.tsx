@@ -14,10 +14,13 @@ function isThemeValue(v: unknown): v is ThemeValue {
 
 export function ThemeFields() {
   const t = useTranslations("Settings");
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
+
+  const showResolvedHint =
+    mounted && current === "system" && (resolvedTheme === "dark" || resolvedTheme === "light");
 
   return (
     <Field>
@@ -62,6 +65,19 @@ export function ThemeFields() {
           </label>
         ))}
       </fieldset>
+      {showResolvedHint ? (
+        <p
+          aria-live="polite"
+          className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
+        >
+          Following OS — currently{" "}
+          <span className="opacity-100">
+            {resolvedTheme === "dark"
+              ? t("themeDark").toLowerCase()
+              : t("themeLight").toLowerCase()}
+          </span>
+        </p>
+      ) : null}
     </Field>
   );
 }
