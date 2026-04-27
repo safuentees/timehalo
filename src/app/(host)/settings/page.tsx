@@ -5,12 +5,18 @@ import SettingsForm from "./components/settings-form";
 
 export default async function SettingsPage() {
   const trpc = await createPrivateSSRHelper();
-  await Promise.all([
+
+  const [workspaces] = await Promise.all([
+    trpc.workspaces.list.fetch(),
     trpc.users.me.prefetch(),
     trpc.workflows.list.prefetch(),
     trpc.calendar.connections.prefetch(),
-    trpc.workspaces.list.prefetch(),
   ]);
+
+  const firstSlug = workspaces[0]?.slug;
+  if (firstSlug) {
+    await trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug });
+  }
 
   const timezones = getRuntimeTimezones();
 

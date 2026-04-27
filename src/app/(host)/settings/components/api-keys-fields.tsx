@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { KeyIcon, MinusCircleIcon } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
@@ -68,9 +69,10 @@ function ApiKeysForWorkspace({
   onSlugChange: (slug: string) => void;
 }) {
   const t = useTranslations("ApiKeys");
-  const { data: keys, isLoading } = trpc.workspaces.apiKeys.list.useQuery({
-    slug,
-  });
+  const { data: keys, isLoading } = trpc.workspaces.apiKeys.list.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
 
   return (
     <>
