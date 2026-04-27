@@ -2,18 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { KeyIcon, MinusCircleIcon } from "lucide-react";
+import { MinusCircleIcon } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
 
 export function ApiKeysFields() {
@@ -228,30 +221,18 @@ function ApiKeyRow({
 function NoWorkspaceEmpty() {
   const t = useTranslations("ApiKeys");
   return (
-    <Empty className="mt-5 border-2 border-dashed border-bru-line-strong">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <KeyIcon />
-        </EmptyMedia>
-        <EmptyTitle>{t("noWorkspaceTitle")}</EmptyTitle>
-        <EmptyDescription>{t("noWorkspaceDescription")}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <p className="mt-5 text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">
+      {t("noWorkspaceEmpty")}
+    </p>
   );
 }
 
 function NoKeysEmpty() {
   const t = useTranslations("ApiKeys");
   return (
-    <Empty className="border-2 border-dashed border-bru-line-strong">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <KeyIcon />
-        </EmptyMedia>
-        <EmptyTitle>{t("noKeysTitle")}</EmptyTitle>
-        <EmptyDescription>{t("noKeysDescription")}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <p className="text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">
+      {t("noKeysEmpty")}
+    </p>
   );
 }
 
