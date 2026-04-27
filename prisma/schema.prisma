@@ -29,6 +29,7 @@ model User {
   ownedWorkspaces      Workspace[]         @relation("OwnedWorkspaces")
   memberships          Membership[]
   calendarCredentials  CalendarCredential[]
+  workflows            Workflow[]
 }
 
 model Account {
@@ -323,4 +324,35 @@ model SelectedCalendar {
 enum CalendarProvider {
   GOOGLE
   MICROSOFT
+}
+
+model Workflow {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  trigger        WorkflowTrigger
+  offsetMinutes  Int              @default(0)
+  action         WorkflowAction
+  template       String?
+  webhookEvent   String?
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([userId, active])
+  @@index([trigger, active])
+}
+
+enum WorkflowTrigger {
+  BEFORE_EVENT
+  EVENT_CREATED
+  EVENT_CANCELLED
+  EVENT_RESCHEDULED
+}
+
+enum WorkflowAction {
+  EMAIL_VISITOR
+  EMAIL_HOST
+  WEBHOOK_FIRE
 }
