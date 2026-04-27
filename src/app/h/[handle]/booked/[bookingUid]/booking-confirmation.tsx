@@ -9,16 +9,23 @@ import { cn } from "@/lib/utils";
 
 // Post-booking receipt. Apple HIG redesign: communicate the result,
 // don't decorate around it. The date is the focal element — everything
-// else exists to confirm it. Pattern reference: cal.com / Granola
-// confirmation cards (one card, one primary action, host as
-// supporting metadata, reference UID demoted to a footer row).
+// else exists to confirm it.
 //
-// Removed from the previous version:
-//   • body paragraph telling the user what to do (the button does)
-//   • "what happens next" three-bullet card (zero new info)
-//   • "back to host page" CTA (browser back is the affordance)
-//   • 3-card grid layout (read as cluttered on 400px viewports)
-//   • 52px hero check mark (decorative; one symbol earns its size)
+// Mobile-first scale, then expand:
+//   • Column max-w grows 440 → 560 → 680 across breakpoints so the
+//     receipt has presence on a 27" monitor without becoming a wall
+//     on a 6" phone.
+//   • Date type uses clamp(48px, 14vw, 160px) — billboard-scale on
+//     desktop, still readable at 320px width. Same single typographic
+//     system, no breakpoint-specific layout swap.
+//   • Padding scales (px-5 → px-8 → px-12 / py-12 → py-20 → py-28)
+//     so the receipt earns its room instead of floating in vast empty
+//     space on big monitors. Pattern matches cal.com / Granola: keep
+//     the receipt narrow, let the canvas around it fill in.
+//   • A footer band runs across the bottom — gives the page a
+//     finished edge on desktop where the receipt would otherwise
+//     trail off into white. Skipped on mobile (the receipt extends
+//     to the bottom anyway, footer would just push content up).
 
 type BookingConfirmationProps = {
   booking: {
@@ -80,8 +87,8 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   }
 
   return (
-    <div className="min-h-dvh bg-bru-bg text-bru-content">
-      <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4">
+    <div className="flex min-h-dvh flex-col bg-bru-bg text-bru-content">
+      <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <Link
           href="/"
           className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase transition-opacity hover:opacity-55"
@@ -98,83 +105,90 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
         ) : null}
       </header>
 
-      <main className="mx-auto w-full max-w-[440px] px-5 pt-10 pb-16 sm:pt-16">
-        <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid size-7 place-items-center rounded-(--bru-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg"
-          >
-            <CheckIcon className="size-4" strokeWidth={3} />
-          </span>
-          <span className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-            Booked
-          </span>
-        </div>
+      <main className="flex-1">
+        <div className="mx-auto w-full max-w-[440px] px-5 py-12 sm:max-w-[560px] sm:px-8 sm:py-20 lg:max-w-[680px] lg:px-12 lg:py-28">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden
+              className="grid size-7 place-items-center rounded-(--bru-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg sm:size-8"
+            >
+              <CheckIcon className="size-4 sm:size-[18px]" strokeWidth={3} />
+            </span>
+            <span className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 sm:text-[12px]">
+              Booked
+            </span>
+          </div>
 
-        <div className="mt-10">
-          <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-            {weekday}
-          </p>
-          <p className="mt-2 text-[clamp(40px,12vw,72px)] font-black leading-[0.92] tracking-[-0.04em] uppercase">
-            {monthDay}
-          </p>
-          <p className="mt-4 font-[family-name:var(--bru-mono)] text-[16px] font-bold tabular-nums">
-            {slotTime}
-          </p>
-          <p className="mt-1 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
-            {tzLabel}
-          </p>
-        </div>
-
-        <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-bru-line pt-6">
-          <Avatar className="size-10 rounded-(--bru-r-xs)">
-            <AvatarImage
-              src={booking.host.image ?? undefined}
-              alt={hostName}
-              className="rounded-(--bru-r-xs)"
-            />
-            <AvatarFallback className="rounded-(--bru-r-xs) bg-bru-paper font-[family-name:var(--bru-mono)] text-[12px] font-extrabold text-bru-ink">
-              {toInitials(hostName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-bold leading-tight">
-              with {hostName}
+          <div className="mt-10 sm:mt-14 lg:mt-20">
+            <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 sm:text-[13px]">
+              {weekday}
             </p>
-            {booking.host.handle ? (
-              <p className="mt-0.5 truncate font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
-                /h/{booking.host.handle}
+            <p className="mt-2 text-[clamp(48px,14vw,160px)] font-black leading-[0.88] tracking-[-0.045em] uppercase sm:mt-3">
+              {monthDay}
+            </p>
+            <p className="mt-4 font-[family-name:var(--bru-mono)] text-[16px] font-bold tabular-nums sm:mt-6 sm:text-[18px] lg:text-[20px]">
+              {slotTime}
+            </p>
+            <p className="mt-1 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 sm:text-[11px]">
+              {tzLabel}
+            </p>
+          </div>
+
+          <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-bru-line pt-6 sm:mt-14 sm:gap-4 sm:pt-8 lg:mt-20">
+            <Avatar className="size-10 rounded-(--bru-r-xs) sm:size-12">
+              <AvatarImage
+                src={booking.host.image ?? undefined}
+                alt={hostName}
+                className="rounded-(--bru-r-xs)"
+              />
+              <AvatarFallback className="rounded-(--bru-r-xs) bg-bru-paper font-[family-name:var(--bru-mono)] text-[12px] font-extrabold text-bru-ink sm:text-[14px]">
+                {toInitials(hostName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[15px] font-bold leading-tight sm:text-[17px]">
+                with {hostName}
               </p>
-            ) : null}
+              {booking.host.handle ? (
+                <p className="mt-0.5 truncate font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55 sm:text-[11px]">
+                  /h/{booking.host.handle}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <a
+            href={`/api/bookings/${booking.publicUid}/calendar`}
+            className={cn(
+              buttonVariants({ variant: "brutalist", size: "brutalist" }),
+              "mt-8 w-full justify-center gap-2 sm:mt-10 sm:h-11 sm:text-[13px] lg:h-12 lg:text-[14px]",
+            )}
+          >
+            <CalendarIcon />
+            Add to calendar
+          </a>
+
+          <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase sm:mt-8 sm:text-[11px]">
+            <button
+              type="button"
+              onClick={handleShare}
+              className="opacity-55 transition-opacity hover:opacity-100"
+            >
+              {shareState === "idle"
+                ? "Share"
+                : shareState === "shared"
+                  ? "Shared"
+                  : "Copied"}
+            </button>
+            <span className="truncate opacity-40">#{booking.publicUid}</span>
           </div>
         </div>
-
-        <a
-          href={`/api/bookings/${booking.publicUid}/calendar`}
-          className={cn(
-            buttonVariants({ variant: "brutalist", size: "brutalist" }),
-            "mt-8 w-full justify-center gap-2",
-          )}
-        >
-          <CalendarIcon />
-          Add to calendar
-        </a>
-
-        <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase">
-          <button
-            type="button"
-            onClick={handleShare}
-            className="opacity-55 transition-opacity hover:opacity-100"
-          >
-            {shareState === "idle"
-              ? "Share"
-              : shareState === "shared"
-                ? "Shared"
-                : "Copied"}
-          </button>
-          <span className="truncate opacity-40">#{booking.publicUid}</span>
-        </div>
       </main>
+
+      <footer className="hidden items-center justify-between border-t-[1.5px] border-bru-line px-8 py-5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 sm:flex lg:px-12">
+        <span>Officehours</span>
+        <span className="tabular-nums">Receipt {fmtStamp(startDate)}</span>
+      </footer>
     </div>
   );
 }
@@ -184,6 +198,15 @@ function fmtTime(date: Date): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function fmtStamp(date: Date): string {
+  // Compact ISO-style stamp for the desktop footer — gives the receipt
+  // a finished bottom edge without competing with the hero date.
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function getTimeZoneLabel(): string {
