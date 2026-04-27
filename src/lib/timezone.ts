@@ -84,6 +84,45 @@ export const timezoneSchema = z.string().transform((tz, ctx) => {
   return resolved;
 });
 
+// Compact offline fallback for runtimes without `Intl.supportedValuesOf`.
+const FALLBACK_TIMEZONES = [
+  "UTC",
+  "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
+  "America/New_York",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Madrid",
+  "Africa/Cairo",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
+
+/**
+ * Resolve the runtime's full IANA timezone list once. Call from a
+ * server component and pass the result to client components as a prop
+ * — Node's ICU and the browser's ICU disagree on aliases (e.g.
+ * Africa/Asmera vs Africa/Asmara), so computing this in a client
+ * `useMemo` triggers a hydration mismatch.
+ */
+export function getRuntimeTimezones(): string[] {
+  if (typeof Intl.supportedValuesOf === "function") {
+    try {
+      return Intl.supportedValuesOf("timeZone");
+    } catch {
+      // Fall through.
+    }
+  }
+  return FALLBACK_TIMEZONES;
+}
+
 /**
  * Client-only helper. Returns the browser's current zone via
  * Intl.DateTimeFormat. Used by the booking form to capture the

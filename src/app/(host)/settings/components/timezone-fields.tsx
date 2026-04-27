@@ -1,34 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Controller, useFormContext } from "react-hook-form";
 import { Field, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { getBrowserTimezone } from "@/lib/timezone";
 
-// IANA timezone picker. Uses the runtime's full list when available
-// (Node 18+, every modern browser), falls back to a hand-curated
-// short list otherwise. The "Use browser timezone" button copies
+// IANA timezone picker. The zone list is resolved server-side and
+// passed in as a prop — Node ICU and browser ICU disagree on aliases
+// (Africa/Asmera vs Africa/Asmara), so deriving it on the client
+// would diverge from the SSR HTML and trip hydration.
+//
+// The "Use browser timezone" button copies
 // `Intl.DateTimeFormat().resolvedOptions().timeZone` into the field
 // — covers the 90% case where a host's machine is already set right.
 
 type FormShape = { timezone: string };
 
-export function TimezoneFields() {
+export function TimezoneFields({ timezones }: { timezones: string[] }) {
   const t = useTranslations("Settings");
   const form = useFormContext<FormShape>();
-
-  const zones = useMemo(() => {
-    if (typeof Intl.supportedValuesOf === "function") {
-      try {
-        return Intl.supportedValuesOf("timeZone");
-      } catch {
-        // Fall through.
-      }
-    }
-    return FALLBACK_ZONES;
-  }, []);
 
   return (
     <Controller<FormShape>
@@ -48,7 +39,7 @@ export function TimezoneFields() {
               aria-invalid={fieldState.invalid}
               className="bru-input flex-1 min-w-[260px] font-[family-name:var(--bru-mono)] text-[14px]"
             >
-              {zones.map((z) => (
+              {timezones.map((z) => (
                 <option key={z} value={z}>
                   {z}
                 </option>
@@ -79,24 +70,3 @@ export function TimezoneFields() {
   );
 }
 
-// Tiny offline fallback. Older runtimes without
-// Intl.supportedValuesOf still get a working picker.
-const FALLBACK_ZONES = [
-  "UTC",
-  "America/Los_Angeles",
-  "America/Denver",
-  "America/Chicago",
-  "America/New_York",
-  "America/Sao_Paulo",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Europe/Madrid",
-  "Africa/Cairo",
-  "Asia/Dubai",
-  "Asia/Kolkata",
-  "Asia/Singapore",
-  "Asia/Tokyo",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-];
