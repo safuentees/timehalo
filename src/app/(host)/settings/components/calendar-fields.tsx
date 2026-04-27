@@ -110,7 +110,7 @@ export function CalendarFields() {
               <div className="flex flex-wrap gap-2 sm:flex-nowrap">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="brutalistGhost"
                   size="brutalist"
                   onClick={() =>
                     setPickFor({
@@ -123,7 +123,7 @@ export function CalendarFields() {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="brutalistGhost"
                   size="brutalist"
                   onClick={() =>
                     disconnect.mutate({ credentialId: c.id })

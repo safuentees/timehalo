@@ -47,7 +47,7 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             </select>
             <Button
               type="button"
-              variant="outline"
+              variant="brutalistGhost"
               size="brutalist"
               onClick={() => {
                 const detected = getBrowserTimezone();
