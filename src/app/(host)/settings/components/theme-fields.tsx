@@ -2,30 +2,25 @@
 
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import { Monitor, Sun, Moon } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { Field } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 
 // Three-option theme picker: system / light / dark.
 //
-// Three values from useTheme() matter here, and the next-themes FAQ
-// makes the distinction load-bearing:
+// Three values from useTheme() matter, and the next-themes FAQ makes
+// the distinction load-bearing:
 //   • theme         — what the user picked ("system" | "light" | "dark")
-//   • resolvedTheme — what's actually rendered ("light" | "dark";
-//                     "system" gets resolved against prefers-color-scheme)
+//   • resolvedTheme — what's actually rendered ("light" | "dark")
 //   • systemTheme   — what the OS currently prefers ("light" | "dark"),
 //                     regardless of pick. Updates live via matchMedia.
 //
-// The radio reflects `theme` (the durable pick). The hint underneath
-// surfaces the live OS state so the user can always see whether
-// prefers-color-scheme is being followed — and, when their pick
-// disagrees with the OS, we offer a one-click jump back to "System".
-//
-// Why the affordance matters: per next-themes' matchMedia listener,
-// OS changes only re-apply to the DOM when `theme === "system"`. If
-// the user previously clicked light/dark (or the pre-c16fd32 topbar
-// toggle did so for them), localStorage["theme"] is stuck on an
-// explicit pick and OS toggling silently does nothing. The hint
-// makes that state visible; the button makes it recoverable.
+// The cards reflect `theme`. Per next-themes' matchMedia listener, OS
+// changes only re-apply to the DOM when `theme === "system"` — so when
+// the pick diverges from the OS we surface the divergence and offer a
+// one-click jump back. References: GitHub Settings → Appearance and
+// Stripe Dashboard → Appearance both use this preview-card pattern.
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -37,8 +32,6 @@ function isThemeValue(v: unknown): v is ThemeValue {
 export function ThemeFields() {
   const t = useTranslations("Settings");
   const { theme, resolvedTheme, systemTheme, setTheme } = useTheme();
-  // SSR returns no theme info; render the system default until the
-  // provider rehydrates so the radio doesn't flicker mid-paint.
   const mounted = useMounted();
   const current: ThemeValue =
     mounted && isThemeValue(theme) ? theme : "system";
@@ -60,42 +53,30 @@ export function ThemeFields() {
       <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
         {t("themeDescription")}
       </p>
-      <fieldset
+      <div
+        role="radiogroup"
         aria-labelledby="theme-fields-label"
-        className="mt-4 inline-flex flex-wrap gap-0 border-2 border-bru-line-strong"
+        className="mt-4 flex flex-wrap gap-2"
       >
-        {THEMES.map((value, idx) => (
-          <label
+        {THEMES.map((value) => (
+          <ThemeCard
             key={value}
-            className={[
-              "cursor-pointer px-4 py-2",
-              "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-              "transition-colors duration-150 ease-bru",
-              idx > 0 ? "border-l-2 border-bru-line-strong" : "",
-              value === current
-                ? "bg-bru-content text-bru-bg"
-                : "bg-bru-bg text-bru-content hover:bg-bru-tint",
-            ].join(" ")}
-          >
-            <input
-              type="radio"
-              name="theme"
-              value={value}
-              className="sr-only"
-              checked={value === current}
-              onChange={() => setTheme(value)}
-            />
-            {t(`theme${value.charAt(0).toUpperCase()}${value.slice(1)}` as
-              | "themeSystem"
-              | "themeLight"
-              | "themeDark")}
-          </label>
+            value={value}
+            label={t(
+              `theme${value.charAt(0).toUpperCase()}${value.slice(1)}` as
+                | "themeSystem"
+                | "themeLight"
+                | "themeDark",
+            )}
+            selected={value === current}
+            onSelect={() => setTheme(value)}
+          />
         ))}
-      </fieldset>
+      </div>
       {mounted && osPref ? (
         <p
           aria-live="polite"
-          className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
+          className="mt-4 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-55"
         >
           {isSystem ? (
             <>
@@ -137,5 +118,109 @@ export function ThemeFields() {
         </p>
       ) : null}
     </Field>
+  );
+}
+
+// Single preview card. Three things land in the user's eye in order:
+// (1) the swatch — they see what the theme actually looks like, not a
+// generic icon; (2) the icon — quick semantic anchor for scanners; (3)
+// the label — confirms intent. Selected state inverts the card and
+// thickens the border so it reads as "active" without a separate badge.
+function ThemeCard({
+  value,
+  label,
+  selected,
+  onSelect,
+}: {
+  value: ThemeValue;
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const Icon = value === "system" ? Monitor : value === "light" ? Sun : Moon;
+  return (
+    <label
+      className={cn(
+        "group relative flex w-[110px] cursor-pointer flex-col gap-2 p-2 transition-colors duration-150 ease-bru",
+        "border-2",
+        selected
+          ? "border-bru-content bg-bru-content text-bru-bg"
+          : "border-bru-line-strong bg-bru-bg text-bru-content hover:bg-bru-tint",
+        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-bru-content",
+      )}
+    >
+      <input
+        type="radio"
+        name="theme"
+        value={value}
+        className="sr-only"
+        checked={selected}
+        onChange={onSelect}
+      />
+      <ThemeSwatch value={value} />
+      <div className="flex items-center justify-between gap-1.5 px-0.5">
+        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase">
+          {label}
+        </span>
+        <Icon className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
+      </div>
+    </label>
+  );
+}
+
+// Mini preview using HARDCODED hex pairs that mirror :root and .dark
+// tokens in globals.css. Hardcoding (rather than CSS vars) is the
+// point — the swatch must show what each theme looks like regardless of
+// which theme is currently active. If you change the palette tokens in
+// globals.css, mirror the change here.
+const PAPER_LIGHT = "#eee7d5";
+const INK_LIGHT = "#0a0a0a";
+const PAPER_DARK = "#0a0a0a";
+const INK_DARK = "#ede4cf";
+
+function ThemeSwatch({ value }: { value: ThemeValue }) {
+  if (value === "system") {
+    return (
+      <div className="relative h-12 overflow-hidden border border-current/40">
+        <div className="absolute inset-0 grid grid-cols-2">
+          <SwatchHalf paper={PAPER_LIGHT} ink={INK_LIGHT} />
+          <SwatchHalf paper={PAPER_DARK} ink={INK_DARK} />
+        </div>
+      </div>
+    );
+  }
+  const paper = value === "light" ? PAPER_LIGHT : PAPER_DARK;
+  const ink = value === "light" ? INK_LIGHT : INK_DARK;
+  return (
+    <div
+      className="relative h-12 overflow-hidden border border-current/40"
+      style={{ backgroundColor: paper }}
+    >
+      <SwatchMark ink={ink} />
+    </div>
+  );
+}
+
+function SwatchHalf({ paper, ink }: { paper: string; ink: string }) {
+  return (
+    <div
+      className="relative flex items-center justify-center"
+      style={{ backgroundColor: paper }}
+    >
+      <SwatchMark ink={ink} />
+    </div>
+  );
+}
+
+// The "Aa" mark uses Space Grotesk to mirror the actual app body font.
+// Caps + lowercase together make the contrast pair legible at 14px.
+function SwatchMark({ ink }: { ink: string }) {
+  return (
+    <span
+      className="font-sans text-[14px] font-bold leading-none"
+      style={{ color: ink }}
+    >
+      Aa
+    </span>
   );
 }
