@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/password";
 import { sendEmail } from "@/lib/email";
+import { bootstrapUserWorkspace } from "@/lib/auth-events";
 import type { JWT } from "next-auth/jwt";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -103,7 +104,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+    error: "/login",
+    verifyRequest: "/login",
+  },
+  events: {
+    createUser: async ({ user }) => {
+      try {
+        await bootstrapUserWorkspace({
+          id: user.id!,
+          email: user.email ?? null,
+        });
+      } catch (error) {
+        console.error("[auth.createUser] workspace bootstrap failed", error);
+      }
+    },
+  },
   callbacks: {
+    redirect: async ({ url, baseUrl }) => {
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/bookings`;
+      }
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch {
+      }
+      return `${baseUrl}/bookings`;
+    },
     jwt: async ({ token, user, trigger }) => {
       if (user) {
         token.name = user.name;
