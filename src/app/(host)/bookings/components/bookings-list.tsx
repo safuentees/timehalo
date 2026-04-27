@@ -34,7 +34,11 @@ export function BookingsList() {
 
       <OnboardingChecklist />
 
-      <div className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong">
+      <div
+        role="tablist"
+        aria-label="Booking timeframe"
+        className="mt-6 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+      >
         <SegButton
           active={tab === "upcoming"}
           count={data?.upcoming.length}
@@ -87,26 +91,26 @@ function SegButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      aria-pressed={active}
       className={[
-        "px-4 py-2 font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+        "inline-flex items-center gap-2.5 px-4 py-2.5",
+        "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
         "border-r-2 border-bru-line-strong last:border-r-0",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",
         active
           ? "bg-bru-content text-bru-bg"
           : "bg-bru-bg text-bru-content hover:bg-bru-tint",
       ].join(" ")}
     >
-      {children}
+      <span className="leading-none">{children}</span>
       {typeof count === "number" ? (
         <span
           className={[
-            "ml-2 inline-flex items-center justify-center min-w-[22px] px-1 py-0.5",
-            "rounded-(--bru-r-xs) text-[10px] tabular-nums",
-            active
-              ? "bg-bru-bg text-bru-content"
-              : "bg-bru-tint text-bru-content",
+            "tabular-nums text-[11px] font-bold leading-none",
+            active ? "opacity-65" : "opacity-45",
           ].join(" ")}
         >
           {count}
