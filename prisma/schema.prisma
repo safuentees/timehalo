@@ -353,6 +353,7 @@ model Workspace {
   memberships   Membership[]
   invitations   Invitation[]
   apiKeys       ApiKey[]
+  subscription  Subscription?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -562,4 +563,55 @@ enum WorkflowAction {
   EMAIL_VISITOR
   EMAIL_HOST
   WEBHOOK_FIRE
+}
+
+// Workspace billing (C2). One subscription per workspace, mirrored
+// from Stripe via the webhook handler at /api/stripe/webhook. The
+// `plan` field is the source of truth for plan-gating decisions
+// — server-side checks read it and consult PLAN_FEATURES (in
+// src/lib/billing.ts) to decide whether a workspace can do X.
+//
+// Pattern reference: dub /apps/web/app/(ee)/api/stripe/webhook/
+// route.ts:15-92 — event-type switch with signature verification +
+// idempotency on event.id.
+model Subscription {
+  id                    String         @id @default(cuid())
+  workspaceId           String         @unique
+  workspace             Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Stripe customer + subscription identifiers, persisted at first
+  // sync. Nullable so a workspace can exist without ever having
+  // touched the billing surface (free plan default).
+  stripeCustomerId      String?        @unique
+  stripeSubscriptionId  String?        @unique
+  plan                  PlanTier       @default(FREE)
+  status                SubscriptionStatus @default(ACTIVE)
+  // ISO instants; null when not on a paid plan.
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([stripeCustomerId])
+}
+
+// Idempotency log for Stripe webhooks. Stripe retries on 5xx; we
+// dedup by event.id so re-processing the same event never
+// double-applies state. Pattern from dub's webhook handler.
+model StripeEvent {
+  id          String   @id // Stripe's event.id ("evt_…")
+  type        String
+  processedAt DateTime @default(now())
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  TEAM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
 }
