@@ -7,6 +7,7 @@ export default async function SettingsPage() {
   await Promise.all([
     trpc.users.me.prefetch(),
     trpc.workflows.list.prefetch(),
+    trpc.calendar.connections.prefetch(),
   ]);
 
   return (
