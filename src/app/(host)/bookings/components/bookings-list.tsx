@@ -159,8 +159,12 @@ function BookingRow({
         "md:gap-x-8 md:p-6",
       ].join(" ")}
     >
-      <div className="bru-eyebrow text-[11px] tabular-nums sm:text-[12px]">
-        {fmtSlotDate(slotStart)}
+      <div className="bru-eyebrow text-[11px] tabular-nums leading-[1.4] sm:text-[12px]">
+        {fmtSlotDate(slotStart)
+          .split(" ")
+          .map((part, i) => (
+            <div key={i}>{part}</div>
+          ))}
       </div>
 
       <div className="mt-2 flex min-w-0 flex-col gap-1.5 sm:mt-0">
