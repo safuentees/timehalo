@@ -196,6 +196,7 @@
 }
 
 .bru-app {
+  --bru-dashboard-bar-height: 32px;
   --sidebar: var(--bru-frame);
   --sidebar-foreground: var(--bru-ink);
   --sidebar-accent: var(--bru-tint-hover);
@@ -207,7 +208,7 @@
 }
 .bru-app [data-slot="sidebar-container"] {
   border-right-width: 0;
-  top: 12px;
+  top: calc(var(--bru-dashboard-bar-height) + 12px);
   bottom: 12px;
   height: auto;
 }
@@ -221,6 +222,11 @@
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
   container-type: inline-size;
   container-name: bru-root;
+}
+.bru-dashboard-inset {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 .bru-app[data-typeface="serif"] { font-family: "Times New Roman", Times, serif; }
 .bru-app[data-typeface="mono"] { font-family: var(--bru-mono); }
@@ -1829,7 +1835,7 @@
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
   margin: 12px 12px 12px 0;
-  height: calc(100svh - 24px);
+  height: calc(100% - 24px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1846,8 +1852,27 @@
   flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--bru-ink) 25%, transparent) transparent;
   display: flex;
   flex-direction: column;
+}
+.bru-host-content-inner::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.bru-host-content-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+.bru-host-content-inner::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--bru-ink) 25%, transparent);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.bru-host-content-inner::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--bru-ink) 50%, transparent);
 }
 
 ::view-transition-old(bru-host-content) {
