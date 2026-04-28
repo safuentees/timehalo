@@ -295,6 +295,17 @@
    (--bru-frame) — both are the same color, no edge to draw. */
 .bru-app [data-slot="sidebar-container"] {
   border-right-width: 0;
+  /* Match the inner panel's 12px top + bottom gap from the screen
+     edge. The shadcn primitive renders the container as
+     `position: fixed; inset-y-0; h-svh` (top:0, bottom:0,
+     full-viewport height). Override top/bottom to 12px and let the
+     height auto-compute as viewport - 24px so the sidebar floats
+     between the same horizontal edges as bru-host-content's
+     12px margin. Left edge stays at 0 — the sidebar still hugs the
+     screen on that side. */
+  top: 12px;
+  bottom: 12px;
+  height: auto;
 }
 
 .bru-root {
