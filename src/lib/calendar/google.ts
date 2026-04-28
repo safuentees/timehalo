@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/env";
+import { decryptToken, encryptToken } from "./encryption";
 import type { BusyTime, CalendarAdapter, CalendarSummary } from "./types";
 
 const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
@@ -110,7 +111,7 @@ async function refreshGoogleToken(credentialId: string): Promise<string> {
     credential.accessTokenExpiresAt.getTime() - REFRESH_LEEWAY_MS >
     Date.now()
   ) {
-    return credential.accessToken;
+    return decryptToken(credential.accessToken);
   }
 
   const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
@@ -119,7 +120,7 @@ async function refreshGoogleToken(credentialId: string): Promise<string> {
     body: new URLSearchParams({
       client_id: env.GOOGLE_OAUTH_CLIENT_ID,
       client_secret: env.GOOGLE_OAUTH_CLIENT_SECRET,
-      refresh_token: credential.refreshToken,
+      refresh_token: decryptToken(credential.refreshToken),
       grant_type: "refresh_token",
     }).toString(),
   });
@@ -136,10 +137,10 @@ async function refreshGoogleToken(credentialId: string): Promise<string> {
   await prisma.calendarCredential.update({
     where: { id: credentialId },
     data: {
-      accessToken: tokens.access_token,
+      accessToken: encryptToken(tokens.access_token),
       accessTokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
       ...(tokens.refresh_token
-        ? { refreshToken: tokens.refresh_token }
+        ? { refreshToken: encryptToken(tokens.refresh_token) }
         : {}),
     },
   });

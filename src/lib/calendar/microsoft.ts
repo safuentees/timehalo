@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/env";
+import { decryptToken, encryptToken } from "./encryption";
 import type { BusyTime, CalendarAdapter, CalendarSummary } from "./types";
 
 const MS_TOKEN_ENDPOINT =
@@ -117,7 +118,7 @@ async function refreshMicrosoftToken(credentialId: string): Promise<string> {
     credential.accessTokenExpiresAt.getTime() - REFRESH_LEEWAY_MS >
     Date.now()
   ) {
-    return credential.accessToken;
+    return decryptToken(credential.accessToken);
   }
   const res = await fetch(MS_TOKEN_ENDPOINT, {
     method: "POST",
@@ -125,7 +126,7 @@ async function refreshMicrosoftToken(credentialId: string): Promise<string> {
     body: new URLSearchParams({
       client_id: env.MICROSOFT_OAUTH_CLIENT_ID,
       client_secret: env.MICROSOFT_OAUTH_CLIENT_SECRET,
-      refresh_token: credential.refreshToken,
+      refresh_token: decryptToken(credential.refreshToken),
       grant_type: "refresh_token",
       scope: ["offline_access", "Calendars.Read"].join(" "),
     }).toString(),
@@ -143,10 +144,10 @@ async function refreshMicrosoftToken(credentialId: string): Promise<string> {
   await prisma.calendarCredential.update({
     where: { id: credentialId },
     data: {
-      accessToken: tokens.access_token,
+      accessToken: encryptToken(tokens.access_token),
       accessTokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
       ...(tokens.refresh_token
-        ? { refreshToken: tokens.refresh_token }
+        ? { refreshToken: encryptToken(tokens.refresh_token) }
         : {}),
     },
   });

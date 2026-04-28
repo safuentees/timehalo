@@ -16,6 +16,10 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
     MICROSOFT_OAUTH_CLIENT_ID: z.string().optional(),
     MICROSOFT_OAUTH_CLIENT_SECRET: z.string().optional(),
+    CALENDAR_TOKEN_KEY: z
+      .string()
+      .regex(/^[0-9a-fA-F]{64}$/, "must be 64 hex characters (32 bytes)")
+      .optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
