@@ -2134,25 +2134,33 @@
    page bg, so the scale reads as depth without exposing a contrasting
    frame. */
 .bru-host-content {
-  view-transition-name: bru-host-content;
-  /* Inner-window panel (dub.co adaptation, see ui/layout/main-nav.tsx
-     in dub: `rounded-xl bg-white` over a `bg-neutral-200` frame).
-     Paper bg + heavy rounding sit inside .bru-root's frame color, so
-     the gap reads as a margin around a separate window. Left edge
-     stays flush with the sidebar's existing 2px ink border. */
+  /* STATIC frame — paper bg + rounded corners + margin from the
+     surrounding --bru-frame. NOT a view-transition target so the
+     panel doesn't fade between routes; only its children do. */
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
-  /* Top + right + bottom gap; left side hugs the sidebar's right
-     border. Same one-sided rhythm dub uses (`md:pb-2 md:pr-2`).
-     Slightly heavier than dub's 8px because our 18px corner radius
-     reads as more "window-like" with a 12px gap. */
+  /* Top + right + bottom gap; left side hugs the sidebar. Same
+     one-sided rhythm dub uses (`md:pb-2 md:pr-2`). */
   margin: 12px 12px 12px 0;
   /* Grow inside SidebarInset's flex column so the panel fills the
      viewport height down to the bottom margin even when the page
-     content is short. Without this, a sparsely-populated route
-     (e.g. /bookings with three rows) lets the outer frame color
-     bleed in below the panel — see screenshot from 2026-04-28. */
+     content is short. */
   flex: 1 1 0%;
+  /* Children need to inherit the same flex behavior so the inner
+     wrapper can fill the panel vertically. */
+  display: flex;
+  flex-direction: column;
+}
+
+.bru-host-content-inner {
+  /* View-transition target. Transparent — just a flex item that
+     fills the panel and carries the children. Only this snapshot
+     animates between routes; the panel underneath (which holds the
+     paper bg) stays static. */
+  view-transition-name: bru-host-content;
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Fade-only, sequenced. Default View Transitions API behavior is a
