@@ -23,11 +23,19 @@ import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
 // Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
 // attributes set by shadcn's SidebarMenuButton.
+//
+// Collapsed (icon mode): drop the 2px left border. When the rail
+// shrinks to ~32px, even a transparent 2px border-left reserves
+// space inside the button's content box and pushes the icon 1px
+// right of optical center. Active state in icon mode reads via
+// bg tint alone — the left-rail indicator is for the expanded
+// state where the label is the scan target.
 const menuButtonClass = [
   "relative rounded-(--bru-r-xs)",
   "font-sans text-[13.5px] font-medium",
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
+  "group-data-[collapsible=icon]:border-l-0",
   "transition-colors duration-150 ease-bru",
   "hover:bg-[var(--bru-tint-hover)]",
   "data-[active=true]:bg-[var(--bru-tint-active)]",
