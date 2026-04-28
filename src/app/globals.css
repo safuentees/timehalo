@@ -284,6 +284,14 @@
      sidebar + inset paint the same cream surface, the rounded white
      panel inside (bru-host-content) reads as a window over it. */
   --background: var(--bru-frame);
+  /* Paint the wrapper itself the same cream so the 12px gap at the
+     top + bottom of the fixed sidebar (left exposed by the
+     `top:12px; bottom:12px` override on sidebar-container) shows
+     --bru-frame instead of the default body white. Without this the
+     two strips above and below the sidebar render the body bg, which
+     is shadcn's white --background — visible mismatch against the
+     sidebar's cream. */
+  background: var(--bru-frame);
 }
 /* Sidebar / main-content seam: no border. The shadcn primitive
    (sidebar.tsx:237) applies a Tailwind `border-r` to the sidebar
