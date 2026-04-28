@@ -2,8 +2,7 @@
 
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { LogOut, Moon, PanelLeft, Sun } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/sidebar";
 import { HalftoneMark } from "@/components/brand/halftone-mark";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
-import { useBrutalistPrefs } from "./prefs-context";
 
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
 // Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
@@ -160,19 +158,6 @@ export function BrutalistAppSidebar() {
 
       <SidebarFooter className="border-t border-[var(--bru-line-soft)]">
         <FooterControls />
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              id="sidebar-action-sign-out"
-              tooltip="Sign out"
-              onClick={() => signOut({ redirectTo: "/login" })}
-              className="rounded-(--bru-r-xs) font-sans text-[12.5px] opacity-65 hover:opacity-100 transition-opacity duration-150 ease-bru focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2"
-            >
-              <LogOut className="size-3.5 stroke-[1.5]" />
-              <span>Sign out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarFooter>
 
       <SidebarRail />
@@ -180,12 +165,12 @@ export function BrutalistAppSidebar() {
   );
 }
 
-// Sidebar collapse + theme toggle, side-by-side above the Sign-out
-// row. In icon-collapsed state the row stacks vertically so both
-// glyphs still fit inside the icon-rail width.
+// Sidebar collapse trigger. Theme toggle + sign-out parked for now
+// per 2026-04-28 request — they'll come back when the surface is
+// stable. Border is intentionally transparent so the icon sits
+// flush in the footer instead of reading as a button card.
 function FooterControls() {
   const { toggleSidebar, state } = useSidebar();
-  const { toggleTheme } = useBrutalistPrefs();
   return (
     <div className="flex flex-row items-center gap-1 px-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5 group-data-[collapsible=icon]:px-0">
       <Button
@@ -194,20 +179,9 @@ function FooterControls() {
         size="brutalistIcon"
         onClick={toggleSidebar}
         aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
-        className="rounded-(--bru-r-xs)"
+        className="rounded-(--bru-r-xs) border-transparent hover:border-transparent"
       >
         <PanelLeft />
-      </Button>
-      <Button
-        type="button"
-        variant="brutalistGhost"
-        size="brutalistIcon"
-        onClick={toggleTheme}
-        aria-label="Toggle theme"
-        className="rounded-(--bru-r-xs)"
-      >
-        <Sun className="dark:hidden" />
-        <Moon className="hidden dark:block" />
       </Button>
     </div>
   );
