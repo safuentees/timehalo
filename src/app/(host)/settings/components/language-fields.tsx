@@ -17,7 +17,7 @@ export function LanguageFields() {
   const [pending, start] = useTransition();
 
   return (
-    <section>
+    <section aria-labelledby="language-legend">
       <SectionHeader
         legendId="language-legend"
         legend={t("languageLegend")}
