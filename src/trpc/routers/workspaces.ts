@@ -9,11 +9,11 @@ import {
   WORKSPACE_SCOPES,
   WORKSPACE_SLUG_REGEX,
   INVITATION_EXPIRY_MS,
-  generateInvitationToken,
   hasScope,
   scopesFor,
   type WorkspaceScope,
 } from "@/lib/workspaces";
+import { generateInvitationToken } from "@/lib/workspaces-server";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 // Workspace sub-router (B1). Workspaces, memberships, and invitations
