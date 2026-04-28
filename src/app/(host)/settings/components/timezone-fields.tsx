@@ -14,7 +14,7 @@ import {
   getBrowserTimezone,
   timezoneSchema,
 } from "@/lib/timezone";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 
 type FormShape = { timezone: string };
 

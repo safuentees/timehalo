@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
 import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
+import { SectionHeader } from "@/components/brutalist/section-header";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
 const ROLE_OPTIONS = ["OWNER", "ADMIN", "MEMBER", "VIEWER"] as const;
@@ -36,7 +38,7 @@ export default function MembersPanel({ slug }: { slug: string }) {
       <div className="mt-4">
         <Link
           href="/workspaces"
-          className="inline-flex items-center gap-1.5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 transition-opacity hover:opacity-100"
+          className="bru-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
         >
           <ArrowLeftIcon className="size-3" aria-hidden />
           {tWorkspaces("backToList")}
@@ -45,19 +47,16 @@ export default function MembersPanel({ slug }: { slug: string }) {
 
       <div className="mt-8 flex flex-col gap-12">
         <section aria-labelledby="members-legend">
-          <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-            <div className="min-w-0 flex-1">
-              <p id="members-legend" className="bru-legend">
-                {t("legend")}
-              </p>
-              <p className="bru-description mt-3">{t("description")}</p>
-            </div>
-            {canWriteMembers ? (
-              <div className="shrink-0 self-start">
+          <SectionHeader
+            legendId="members-legend"
+            legend={t("legend")}
+            description={t("description")}
+            action={
+              canWriteMembers ? (
                 <InviteMemberDialog slug={slug} canGrantAdmin={isOwner} />
-              </div>
-            ) : null}
-          </header>
+              ) : undefined
+            }
+          />
 
           <div className="mt-5">
             {membersLoading ? (
@@ -86,12 +85,11 @@ export default function MembersPanel({ slug }: { slug: string }) {
         </section>
 
         <section aria-labelledby="invitations-legend">
-          <header>
-            <p id="invitations-legend" className="bru-legend">
-              {t("invitationsLegend")}
-            </p>
-            <p className="bru-description mt-3">{t("invitationsDescription")}</p>
-          </header>
+          <SectionHeader
+            legendId="invitations-legend"
+            legend={t("invitationsLegend")}
+            description={t("invitationsDescription")}
+          />
 
           <div className="mt-5">
             {invitationsLoading ? (
@@ -159,21 +157,18 @@ function MemberRow({
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[15px] leading-[1.2] font-black truncate">{name}</h3>
-          <span className="font-[family-name:var(--bru-mono)] text-[11px] tracking-[1.5px] opacity-55">
+          <span className="bru-eyebrow normal-case tracking-[1.5px] text-[11px]">
             {email}
           </span>
         </div>
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+        <span className="bru-eyebrow tabular-nums">
           {t(`role_${role}`)}
         </span>
       </header>
 
       {editable ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <label
-            htmlFor={`role-${memberId}`}
-            className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55"
-          >
+          <label htmlFor={`role-${memberId}`} className="bru-eyebrow">
             {t("changeRole")}
           </label>
           <select
@@ -193,20 +188,27 @@ function MemberRow({
               </option>
             ))}
           </select>
-          <Button
-            type="button"
-            variant="outline"
-            size="brutalist"
-            onClick={() => {
-              if (!window.confirm(t("removeConfirm", { name }))) return;
-              remove.mutate({ slug, userId });
-            }}
-            disabled={remove.isPending}
-            className="ml-auto"
-          >
-            <MinusCircleIcon />
-            {remove.isPending ? t("removing") : t("remove")}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                size="brutalist"
+                disabled={remove.isPending}
+                className="ml-auto"
+              >
+                <MinusCircleIcon />
+                {remove.isPending ? t("removing") : t("remove")}
+              </Button>
+            }
+            title={t("removeTitle", { name })}
+            description={t("removeDescription")}
+            confirmLabel={t("remove")}
+            pendingLabel={t("removing")}
+            cancelLabel={t("cancel")}
+            pending={remove.isPending}
+            onConfirm={() => remove.mutateAsync({ slug, userId })}
+          />
         </div>
       ) : null}
     </article>
@@ -247,27 +249,30 @@ function InvitationRow({
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[14px] leading-[1.2] font-black truncate">{email}</h3>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
-              {t(`role_${role}`)}
-            </span>
-            <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
-              {t(`status_${status}`)}
-            </span>
+            <span className="bru-eyebrow">{t(`role_${role}`)}</span>
+            <span className="bru-eyebrow">{t(`status_${status}`)}</span>
           </div>
         </div>
         {canRevoke && !accepted ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="brutalist"
-            onClick={() => {
-              if (!window.confirm(t("revokeConfirm", { email }))) return;
-              revoke.mutate({ slug, invitationId });
-            }}
-            disabled={revoke.isPending}
-          >
-            {revoke.isPending ? t("revoking") : t("revoke")}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                size="brutalist"
+                disabled={revoke.isPending}
+              >
+                {revoke.isPending ? t("revoking") : t("revoke")}
+              </Button>
+            }
+            title={t("revokeTitle")}
+            description={t("revokeDescription", { email })}
+            confirmLabel={t("revoke")}
+            pendingLabel={t("revoking")}
+            cancelLabel={t("cancel")}
+            pending={revoke.isPending}
+            onConfirm={() => revoke.mutateAsync({ slug, invitationId })}
+          />
         ) : null}
       </header>
     </article>
