@@ -2172,15 +2172,19 @@
      panel doesn't fade between routes; only its children do. */
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
-  /* Top + right + bottom gap; left side hugs the sidebar. Same
-     one-sided rhythm dub uses (`md:pb-2 md:pr-2`). */
+  /* Top + right + bottom gap; left side hugs the sidebar. Mobile
+     adds margin-left below. */
   margin: 12px 12px 12px 0;
-  /* Grow inside SidebarInset's flex column so the panel fills the
-     viewport height down to the bottom margin even when the page
-     content is short. */
-  flex: 1 1 0%;
-  /* Children need to inherit the same flex behavior so the inner
-     wrapper can fill the panel vertically. */
+  /* Always exactly viewport-height minus the 12px top + 12px bottom
+     margins. svh (small viewport height) over dvh: svh is stable
+     while mobile browser UI shows/hides, so the panel doesn't
+     resize jankily during scroll. The fixed height plus
+     overflow:hidden creates the cookie-cutter — anything inside
+     that exceeds the panel gets clipped to its rounded boundary. */
+  height: calc(100svh - 24px);
+  overflow: hidden;
+  /* Make the panel a flex column so the inner can claim flex:1 +
+     min-height:0 and own the scroll inside the cutter. */
   display: flex;
   flex-direction: column;
 }
@@ -2197,12 +2201,16 @@
 }
 
 .bru-host-content-inner {
-  /* View-transition target. Transparent — just a flex item that
-     fills the panel and carries the children. Only this snapshot
-     animates between routes; the panel underneath (which holds the
-     paper bg) stays static. */
+  /* View-transition target. Owns the scroll surface inside the
+     fixed-height parent: flex:1 fills vertically, min-height:0
+     allows the flex item to shrink below its content size (without
+     this, the inner would push past the panel and the parent's
+     overflow:hidden would clip with no scrollbar), overflow-y:auto
+     gives the user a scrollbar when content exceeds the panel. */
   view-transition-name: bru-host-content;
   flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
