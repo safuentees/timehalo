@@ -1834,6 +1834,12 @@
   flex-direction: column;
 }
 
+@media (max-width: 767px) {
+  .bru-host-content {
+    margin-left: 12px;
+  }
+}
+
 .bru-host-content-inner {
   view-transition-name: bru-host-content;
   flex: 1 1 0%;
