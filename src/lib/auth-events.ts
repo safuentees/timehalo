@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import { personalWorkspaceSlugFor } from "@/lib/workspaces";
+import { DEFAULT_REMINDER_WORKFLOW } from "@/lib/workflows";
 
 // Resolve the post-sign-in redirect target. Three guarantees:
 // 1. Returns same-origin URLs the caller asked for (useful when a
@@ -31,30 +32,35 @@ export function resolveAuthRedirect(input: { url: string; baseUrl: string }): st
 }
 
 // Bootstrap a default Workspace + OWNER Membership + Mon-Fri 9-5
-// availability ranges for a user that next-auth itself creates
-// (magic-link first click, GitHub OAuth first sign-in). Mirrors what
-// auth.register's transaction does for the credentials path. Without
-// the workspace, Unit 1's invariant "every host owns at least one
-// Workspace" breaks. Without the availability ranges, the host's
-// public page renders zero slots and the onboarding "draw weekly
-// hours" step never auto-checks (the form's visual default starts
-// isDirty=false so the save button is gated — same trap users hit).
+// availability ranges + 1h reminder workflow for a user that next-auth
+// itself creates (magic-link first click, GitHub OAuth first sign-in).
+// Mirrors what auth.register's transaction does for the credentials
+// path. Without the workspace, Unit 1's invariant "every host owns at
+// least one Workspace" breaks. Without the availability ranges, the
+// host's public page renders zero slots and the onboarding "draw weekly
+// hours" step never auto-checks. Without the reminder workflow, the
+// /settings → Workflows section is empty for next-auth users (existing
+// users get a default row via the backfill migration; only newly
+// created users need this seed path).
 //
 // Idempotent on each piece:
 // - Skips workspace creation when one already exists.
 // - Skips availability seeding when any rows already exist.
+// - Skips workflow seeding when any rows already exist.
 // Covers half-failed first attempts and double-fires of events.createUser.
 export async function bootstrapUserWorkspace(user: {
   id: string;
   email: string | null;
 }): Promise<void> {
-  const [existingWorkspace, existingRanges] = await Promise.all([
-    prisma.workspace.findFirst({
-      where: { ownerId: user.id },
-      select: { id: true },
-    }),
-    prisma.availabilityRange.count({ where: { userId: user.id } }),
-  ]);
+  const [existingWorkspace, existingRanges, existingWorkflows] =
+    await Promise.all([
+      prisma.workspace.findFirst({
+        where: { ownerId: user.id },
+        select: { id: true },
+      }),
+      prisma.availabilityRange.count({ where: { userId: user.id } }),
+      prisma.workflow.count({ where: { userId: user.id } }),
+    ]);
 
   if (!existingWorkspace) {
     await prisma.$transaction(async (tx) => {
@@ -82,6 +88,15 @@ export async function bootstrapUserWorkspace(user: {
         userId: user.id,
         ...row,
       })),
+    });
+  }
+
+  if (existingWorkflows === 0) {
+    await prisma.workflow.create({
+      data: {
+        userId: user.id,
+        ...DEFAULT_REMINDER_WORKFLOW,
+      },
     });
   }
 }
