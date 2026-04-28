@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
-import { BrutalistTopbar } from "./topbar";
 import { useBrutalistPrefs } from "./prefs-context";
 
 export function BrutalistDashboardLayout({
@@ -30,7 +29,6 @@ export function BrutalistDashboardLayout({
       >
         <BrutalistAppSidebar />
         <SidebarInset className={insetClass}>
-          <BrutalistTopbar />
           <div className="bru-host-content">{children}</div>
         </SidebarInset>
       </SidebarProvider>
