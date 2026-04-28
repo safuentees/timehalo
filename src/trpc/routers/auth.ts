@@ -7,6 +7,7 @@ import { hashPassword } from "@/lib/password";
 import { handleSchema, registerInputSchema } from "@/lib/register-schema";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import { personalWorkspaceSlugFor } from "@/lib/workspaces";
+import { DEFAULT_REMINDER_WORKFLOW } from "@/lib/workflows";
 import {
   createRateLimitMiddleware,
   publicProcedure,
@@ -167,6 +168,18 @@ export const auth = router({
                   workspaceId: workspace.id,
                   userId: user.id,
                   role: "OWNER",
+                },
+              });
+              // Seed the default 1h reminder workflow so the host can
+              // edit it from /settings → Workflows. The
+              // bookings.create + bookings.reschedule paths detect the
+              // workflow's existence and skip their hardcoded reminder
+              // enqueue, so the visitor never receives the reminder
+              // twice. See hasMatchingReminderWorkflow + B4.
+              await tx.workflow.create({
+                data: {
+                  userId: user.id,
+                  ...DEFAULT_REMINDER_WORKFLOW,
                 },
               });
               return user;
