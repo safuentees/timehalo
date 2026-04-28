@@ -8,6 +8,7 @@ import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
 import { SectionHeader } from "./section-header";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
 
 // Settings → Workflows section. Lists user-scoped workflow rules
 // (trigger × action × offset) and exposes the create dialog.
@@ -123,15 +124,25 @@ function WorkflowRow({
         >
           {active ? t("toggleOff") : t("toggleOn")}
         </Button>
-        <Button
-          type="button"
-          variant="brutalistGhost"
-          size="brutalist"
-          disabled={isDeleting}
-          onClick={() => remove.mutate({ id })}
-        >
-          {isDeleting ? t("deleting") : t("delete")}
-        </Button>
+        <ConfirmDialog
+          trigger={
+            <Button
+              type="button"
+              variant="brutalistGhost"
+              size="brutalist"
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("deleting") : t("delete")}
+            </Button>
+          }
+          title={t("deleteTitle")}
+          description={t("deleteDescription")}
+          confirmLabel={t("delete")}
+          pendingLabel={t("deleting")}
+          cancelLabel={t("cancel")}
+          pending={isDeleting}
+          onConfirm={() => remove.mutateAsync({ id })}
+        />
       </div>
     </article>
   );

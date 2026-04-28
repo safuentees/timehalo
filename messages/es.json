@@ -28,6 +28,8 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "deleting": "Eliminando…",
+    "deleteTitle": "¿Eliminar el flujo?",
+    "deleteDescription": "El disparador deja de funcionar de inmediato. Los recordatorios que ya se enviaron no se retiran.",
     "toggleOn": "Activar",
     "toggleOff": "Desactivar",
     "loading": "Cargando flujos…",
@@ -77,7 +79,8 @@
     "statusRevoked": "Revocada",
     "revoke": "Revocar",
     "revoking": "Revocando…",
-    "revokeConfirm": "¿Revocar esta clave? Cualquier integración que la use empezará a recibir 401.",
+    "revokeTitle": "¿Revocar esta clave?",
+    "revokeConfirm": "Cualquier integración que la use empezará a recibir 401.",
     "noKeysEmpty": "Aún no hay claves. Genera tu primera para autenticar scripts, CI o herramientas externas contra este espacio de trabajo.",
     "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave."
   },
