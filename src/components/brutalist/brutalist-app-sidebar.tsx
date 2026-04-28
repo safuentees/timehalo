@@ -15,7 +15,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { HalftoneMark } from "@/components/brand/halftone-mark";
@@ -169,7 +168,6 @@ export function BrutalistAppSidebar() {
         <FooterControls />
       </SidebarFooter>
 
-      <SidebarRail />
     </Sidebar>
   );
 }
