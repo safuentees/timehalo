@@ -66,52 +66,53 @@ export function CalendarFields() {
         <ul
           role="list"
           aria-labelledby="calendar-legend"
-          className="mt-5 border-2 border-bru-line divide-y-2 divide-bru-line"
+          className="mt-5 flex flex-col gap-2.5"
         >
           {connections.map((c) => (
-            <li
-              key={c.id}
-              className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="bru-eyebrow">
-                  {t(`provider${c.provider}` as
-                    | "providerGOOGLE"
-                    | "providerMICROSOFT")}
-                </p>
-                <p className="mt-1 truncate text-[14px] font-semibold">
-                  {c.externalAccountEmail}
-                </p>
-                <p className="mt-1 text-[12px] opacity-65">
+            <li key={c.id}>
+              <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+                <header className="flex min-w-0 flex-col gap-1.5">
+                  <p className="bru-eyebrow">
+                    {t(
+                      `provider${c.provider}` as
+                        | "providerGOOGLE"
+                        | "providerMICROSOFT",
+                    )}
+                  </p>
+                  <h3 className="truncate text-[16px] font-black leading-[1.2]">
+                    {c.externalAccountEmail}
+                  </h3>
+                </header>
+                <p className="mt-2 text-[12px] opacity-65">
                   {t("selectedCount", { count: c._count.selectedCalendars })}
                 </p>
-              </div>
-              <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                <Button
-                  type="button"
-                  variant="brutalistGhost"
-                  size="brutalist"
-                  onClick={() =>
-                    setPickFor({
-                      credentialId: c.id,
-                      email: c.externalAccountEmail,
-                    })
-                  }
-                >
-                  {t("manage")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="brutalistGhost"
-                  size="brutalist"
-                  onClick={() =>
-                    disconnect.mutate({ credentialId: c.id })
-                  }
-                  disabled={disconnect.isPending}
-                >
-                  {t("disconnect")}
-                </Button>
-              </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="brutalistGhost"
+                    size="brutalist"
+                    onClick={() =>
+                      setPickFor({
+                        credentialId: c.id,
+                        email: c.externalAccountEmail,
+                      })
+                    }
+                  >
+                    {t("manage")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="brutalistGhost"
+                    size="brutalist"
+                    onClick={() =>
+                      disconnect.mutate({ credentialId: c.id })
+                    }
+                    disabled={disconnect.isPending}
+                  >
+                    {t("disconnect")}
+                  </Button>
+                </div>
+              </article>
             </li>
           ))}
         </ul>
