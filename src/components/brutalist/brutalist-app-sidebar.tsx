@@ -60,7 +60,14 @@ export function BrutalistAppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="bru-app-sidebar border-r-0"
+      variant="floating"
+      className={[
+        "bru-app-sidebar",
+        "[&_[data-slot=sidebar-inner]]:shadow-none",
+        "[&_[data-slot=sidebar-inner]]:ring-0",
+        "[&_[data-slot=sidebar-inner]]:border-2",
+        "[&_[data-slot=sidebar-inner]]:border-bru-line-strong",
+      ].join(" ")}
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
         <div className="bru-brand">
