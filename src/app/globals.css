@@ -285,11 +285,17 @@
      panel inside (bru-host-content) reads as a window over it. */
   --background: var(--bru-frame);
 }
-/* Sidebar / main-content seam: no border. The sidebar's bg is now
-   `--bru-frame` (matches the outermost layer of bru-root), so the
-   sidebar visually merges with the frame surrounding the rounded
-   bru-host-content panel — eliminates the seam without needing a
-   visible border. */
+/* Sidebar / main-content seam: no border. The shadcn primitive
+   (sidebar.tsx:237) applies a Tailwind `border-r` to the sidebar
+   container in default variant — that resolves to
+   `border-right: 1px solid var(--border)`, and --border in our theme
+   is light-grey (≈ white). It rendered as a faint white separator
+   between sidebar and inset. Override the right border to 0 so the
+   sidebar (--bru-frame) merges seamlessly with the inset
+   (--bru-frame) — both are the same color, no edge to draw. */
+.bru-app [data-slot="sidebar-container"] {
+  border-right-width: 0;
+}
 
 .bru-root {
   position: relative;
