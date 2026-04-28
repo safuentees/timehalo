@@ -43,6 +43,10 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Run `pnpm test:run` before committing user-visible procedure changes.
 - Use the styling tokens from `.claude/rules/brutalist-ui.md`: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
 - When a client tree branches on a browser-only signal (`useMediaQuery`, `useTheme`, `useMounted`, ICU data, `localStorage`), pick the SSR default that matches the hook's server snapshot, and resolve runtime-derived lists on the server. See `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
+- For section / field chrome inside a hub page, use the `bru-legend` / `bru-description` / `bru-eyebrow` CSS classes (defined in `globals.css`) and the `<SectionHeader>` component. Never inline the eight-class `font-[family-name:var(--bru-mono)] text-[Npx] font-extrabold tracking-[Npx] uppercase opacity-...` strings. See `.claude/rules/brutalist-ui.md` *Typography utilities*.
+- For destructive actions, use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never `window.confirm()`, never fire a destructive mutation on a single click without a confirm. Account-level / irreversible deletions use the typed-confirm pattern instead (`delete-account-dialog.tsx` reference). See `.claude/rules/brutalist-ui.md` *Destructive actions*.
+- Compose dialogs from `<ResponsiveModalHeader/Title/Body/Footer>` primitives in `src/components/ui/responsive-modal.tsx`. For `<form>` bodies, apply the exported `RESPONSIVE_MODAL_BODY_CLASS` constant. See `.claude/rules/dashboard-forms.md` *Dialog composition*.
+- For hub pages with multiple independent sub-sections (e.g. `/settings`), use per-section save (inline Save button, autosave, or dialog flow) — NOT the global `<BrutalistSaveBar>`. The SaveBar lies about its scope on multi-section pages and is reserved for pages that ARE one form. See `.claude/rules/dashboard-forms.md` (the SaveBar rule).
 
 ## Never do
 
@@ -57,6 +61,10 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Reach for a serif or "title" font — there is none. Bump weight + size on Space Grotesk.
 - Use the `useState(false) + useEffect(() => setMounted(true), [])` pattern. Use `useMounted()` from `src/hooks/use-mounted.ts` instead — React 19's compiler ESLint rule (`react-hooks/set-state-in-effect`) fails CI on the legacy pattern.
 - `if (!mounted) return null` from a client component when that subtree contains user-visible UI (buttons, inputs, links, dialog triggers). Render the SSR-safe default and let the effect upgrade in place — see `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
+- Inline the legend/description/eyebrow class strings (`font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55` and friends). Use `bru-legend` / `bru-description` / `bru-eyebrow` from `globals.css`. Audit on 2026-04-27 found 6+ verbatim duplications of the legend string and 7+ of the eyebrow with five competing tracking values — single source of truth lives in the utility class.
+- Use `window.confirm()` for destructive actions. Use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never fire a destructive mutation on a single click with no confirmation.
+- Hand-roll dialog padding/footer strings (`px-5 pb-6 flex flex-col gap-5 sm:px-6`, `flex flex-col gap-2 sm:flex-row sm:justify-end`). Compose `<ResponsiveModalBody>` + `<ResponsiveModalFooter>` from the primitive instead.
+- Put `<BrutalistSaveBar>` on a hub page with multiple independent sub-sections — it claims to commit the whole page but only mutates one section's data. Per-section save instead.
 
 ## Commands
 
