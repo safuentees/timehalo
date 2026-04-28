@@ -51,6 +51,18 @@ export async function createTestHost(handle: string): Promise<TestHost> {
     await tx.membership.create({
       data: { workspaceId: ws.id, userId: user.id, role: "OWNER" },
     });
+    // A3 — seed a PRO Subscription so existing tests sail through the
+    // plan gates added to webhooks.create / workflows.create /
+    // workspaces.apiKeys.create / workspaces.invite. The plan-gating
+    // contract test creates its own FREE workspace explicitly when it
+    // wants to assert the gate fires.
+    await tx.subscription.create({
+      data: {
+        workspaceId: ws.id,
+        plan: "PRO",
+        status: "ACTIVE",
+      },
+    });
     return user;
   });
   return { id: host.id, handle: host.handle!, email: host.email };
@@ -80,6 +92,36 @@ export async function createTestWorkspaceForUser(
       data: { workspaceId: ws.id, userId, role: "OWNER" },
     });
     return ws;
+  });
+}
+
+/**
+ * Upgrade a workspace's Subscription to PRO. Tests that touch
+ * plan-gated procedures (workspaces.invite, apiKeys.create,
+ * webhooks.create, workflows.create) call this right after creating
+ * the workspace so the gate doesn't fire. The plan-gating contract
+ * test creates its own FREE workspaces explicitly.
+ *
+ * Accepts either an `id` or a `slug` — slug is convenient for tests
+ * that don't capture the return value of `caller.workspaces.create`.
+ */
+export async function upgradeWorkspaceToPro(
+  ref: { id: string } | { slug: string },
+) {
+  let workspaceId: string;
+  if ("id" in ref) {
+    workspaceId = ref.id;
+  } else {
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: ref.slug },
+      select: { id: true },
+    });
+    workspaceId = ws.id;
+  }
+  await prisma.subscription.upsert({
+    where: { workspaceId },
+    create: { workspaceId, plan: "PRO", status: "ACTIVE" },
+    update: { plan: "PRO", status: "ACTIVE" },
   });
 }
 

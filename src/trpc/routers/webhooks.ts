@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { WEBHOOK_EVENTS } from "@/lib/webhook-events";
 import { privateProcedure, router } from "@/trpc/trpc";
 
@@ -32,6 +33,12 @@ export const webhooks = router({
   create: privateProcedure
     .input(webhookCreateSchema)
     .mutation(async ({ input, ctx }) => {
+      // A3 — plan-gated feature. PRO+ only. webhooks are user-scoped
+      // today; gate via the user's primary owned workspace's plan
+      // until B1 finishes the workspace migration of webhooks.
+      const plan = await planForUser(ctx.user.id);
+      requireFeature(plan, "webhooks");
+
       // 32 random bytes, hex-encoded — 64 chars. Cryptographically
       // suitable for HMAC SHA-256. randomBytes is sync and Node-only
       // which is fine here (procedure runs server-side).

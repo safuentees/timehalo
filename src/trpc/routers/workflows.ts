@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 // Workflow sub-router (B4). User-configurable automation rules
@@ -55,6 +56,16 @@ export const workflows = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // A3 — plan-gated feature. PRO+ only. Workflows are user-scoped
+      // today; gate via the user's primary owned workspace's plan
+      // until B1 finishes the workspace migration. The default 1h
+      // reminder seeded at register (auth.register) bypasses this
+      // gate (system-internal write directly via prisma) — every
+      // user keeps the seeded default; only ADDITIONAL workflow
+      // creation hits the gate.
+      const plan = await planForUser(ctx.user.id);
+      requireFeature(plan, "workflows");
+
       // Cross-field validation: EMAIL_* needs a template; WEBHOOK_FIRE
       // needs a webhookEvent. Caught here so the engine doesn't have
       // to defend against malformed rows on every dispatch.
