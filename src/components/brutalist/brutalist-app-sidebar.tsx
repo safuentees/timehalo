@@ -156,7 +156,7 @@ export function BrutalistAppSidebar() {
 
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-[var(--bru-line-soft)]">
+      <SidebarFooter>
         <FooterControls />
       </SidebarFooter>
 
