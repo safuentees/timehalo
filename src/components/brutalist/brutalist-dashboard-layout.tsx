@@ -29,14 +29,18 @@ export function BrutalistDashboardLayout({
       >
         <BrutalistAppSidebar />
         <SidebarInset className={insetClass}>
-          {/* Only the page-content slot animates between routes. The
-              sidebar lives in `root`, but `root` is given
-              `animation: none` in globals.css, so persistent chrome
-              never gets snapshotted into a transition — sidestepping the
-              double-render artifacts (icon ghosting, doubled border
-              strokes) that opt-out via view-transition-name was leaving
-              behind. */}
-          <div className="bru-host-content">{children}</div>
+          {/* Two layers:
+              - .bru-host-content owns the static visual frame
+                (paper bg, rounded corners, margin from the cream
+                frame). NO view-transition-name — it stays put across
+                route changes.
+              - .bru-host-content-inner is the view-transition
+                target. Transparent, just a wrapper for children;
+                snapshot animates only the rendered children, the
+                white panel underneath stays solid. */}
+          <div className="bru-host-content">
+            <div className="bru-host-content-inner">{children}</div>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
