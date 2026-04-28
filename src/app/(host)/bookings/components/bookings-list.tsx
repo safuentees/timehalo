@@ -144,46 +144,38 @@ function BookingRow({
   question: string | null;
   slotStart: Date;
 }) {
-  // Mobile (<sm): vertical stack — date band on top, identity in the
-  //   middle, time as a footer accent. The shape the user already
-  //   liked at 400px.
-  // sm+: 3-col grid [date_fixed | identity_fluid | time_auto], items
-  //   baseline-aligned. Date scans down the left edge (Cal.com's
-  //   chronological list pattern), identity column truncates via
-  //   min-w-0, time right-justifies.
+  // Architecture mirrors src/app/(host)/settings/components/workflow-fields.tsx
+  // — same row anatomy across the dashboard:
+  //   <article>
+  //     <header>      name (h3 font-black) | meta (bru-eyebrow)
+  //     <p>           subtitle (bru-eyebrow)
+  //     <p>           body lines (italic note, then mono email)
+  //   </article>
+  // The visitor name is the primary signal (parity with workflow.name);
+  // time is the right-aligned status (parity with workflow active/paused);
+  // date is the subtitle (parity with workflow trigger/action codes).
   return (
-    <article
-      className={[
-        "rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong",
-        "sm:grid sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-baseline sm:gap-x-6 sm:p-5",
-        "md:gap-x-8 md:p-6",
-      ].join(" ")}
-    >
-      <div className="bru-eyebrow text-[11px] tabular-nums leading-[1.4] sm:text-[12px]">
-        {fmtSlotDate(slotStart)
-          .split(" ")
-          .map((part, i) => (
-            <div key={i}>{part}</div>
-          ))}
-      </div>
-
-      <div className="mt-2 flex min-w-0 flex-col gap-1.5 sm:mt-0">
-        <h3 className="text-[16px] leading-[1.2] font-black truncate sm:text-[17px]">
+    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {visitorName}
         </h3>
-        {question ? (
-          <p className="text-[13px] italic opacity-75 leading-relaxed">
-            “{question}”
-          </p>
-        ) : null}
-        <p className="font-[family-name:var(--bru-mono)] text-[12px] tabular-nums opacity-55 truncate">
-          {visitorEmail}
-        </p>
-      </div>
+        <span className="bru-eyebrow tabular-nums">
+          {fmtSlotTime(slotStart)}
+        </span>
+      </header>
 
-      <div className="mt-3 inline-flex items-center self-start font-[family-name:var(--bru-mono)] text-[13px] font-extrabold tabular-nums sm:mt-0 sm:justify-end sm:text-[14px]">
-        {fmtSlotTime(slotStart)}
-      </div>
+      <p className="bru-eyebrow mt-2 tabular-nums">{fmtSlotDate(slotStart)}</p>
+
+      {question ? (
+        <p className="mt-2 text-[13px] italic opacity-75 leading-relaxed">
+          “{question}”
+        </p>
+      ) : null}
+
+      <p className="mt-2 font-[family-name:var(--bru-mono)] text-[12px] tabular-nums opacity-55 truncate">
+        {visitorEmail}
+      </p>
     </article>
   );
 }
