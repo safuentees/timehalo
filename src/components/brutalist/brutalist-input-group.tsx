@@ -51,13 +51,26 @@ function BrutalistInputGroup({
 
 function BrutalistInputGroupAddon({
   className,
+  align,
   ...props
 }: React.ComponentProps<typeof InputGroupAddon>) {
+  // Quieter prefix label: paper bg matches the input surface, the
+  // separation between addon and input comes from a 1.5px ink rule
+  // (right edge for inline-start, left edge for inline-end) instead
+  // of an inverted ink block. Reads as one continuous paper input
+  // with a typographically distinct prefix — matches the rest-of-app
+  // input vocabulary (`.bru-input` is paper-on-ink throughout).
+  const sideRule =
+    align === "inline-end"
+      ? "border-l-[1.5px] border-(--bru-ink)"
+      : "border-r-[1.5px] border-(--bru-ink)";
   return (
     <InputGroupAddon
       data-slot="brutalist-input-group-addon"
+      align={align}
       className={cn(
-        "rounded-none bg-(--bru-ink) px-2.5 py-0",
+        "rounded-none bg-(--bru-paper) px-3 py-0",
+        sideRule,
         className,
       )}
       {...props}
@@ -73,7 +86,10 @@ function BrutalistInputGroupText({
     <InputGroupText
       data-slot="brutalist-input-group-text"
       className={cn(
-        "font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] text-(color:--bru-paper) uppercase",
+        // Match the bru-eyebrow vocabulary used elsewhere (mono caps,
+        // 11px, 1.5px tracking). 55% opacity so the prefix sits as a
+        // quiet label rather than competing with the input value.
+        "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase text-(color:--bru-ink) opacity-55",
         className,
       )}
       {...props}
