@@ -2,11 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Tailwind v4 scans every project file as plain text (not parsed code)
-   when detecting class names. Agent guidance docs include literal class
-   examples (`text-[var(--bru-*)]`, `bg-bru-*`, etc.) that are NOT real
-   utilities — Tailwind would still match the tokens and emit invalid
-   CSS like `color: var(--bru-*);`. Exclude the doc trees so example
+/* Tailwind v4 scans every project file as plain text when detecting
+   class names. Agent guidance docs sometimes include wildcard examples
+   for brutalist CSS-variable utilities that are not real classes;
+   Tailwind can still match those tokens and emit invalid CSS. Exclude
+   the doc trees so example
    strings can't bleed into the generated stylesheet. Paths resolve
    relative to this file (src/app/globals.css). */
 @source not "../../.claude";
@@ -179,6 +179,19 @@
      sm (6px) cards - ~4px padding = xs (2px) inner inputs/chips. */
   --bru-r-xs: 2px;
   --bru-r-sm: 6px;
+  /* Inner-window radius — only used by .bru-host-content for the
+     dub.co-style "page sits in a rounded panel" effect. Deliberately
+     larger than the structural radius scale so the panel reads as a
+     separate window rather than a card. Reference: dub uses
+     `rounded-xl` (12px); we go heavier (18px) so the brutalist 2px
+     ink edges inside the panel still read as sharp by contrast. */
+  --bru-r-window: 18px;
+
+  /* Frame color — visible in the gap between the inner panel and the
+     viewport / sidebar. Slightly darkened paper so the inner panel
+     (still pure paper) stands out as the "window". Color-mix follows
+     paper / ink via lazy var(), so .dark flips automatically. */
+  --bru-frame: color-mix(in srgb, var(--bru-ink) 12%, var(--bru-paper));
 
   /* Desktop modal sizing — matched against the Drawer breakpoint in
      `src/components/ui/responsive-modal.tsx`. Below
@@ -264,19 +277,13 @@
   --sidebar-border: var(--bru-ink);
   --sidebar-ring: var(--bru-ink);
 }
-/* Brutalist border + halftone texture on the Sidebar's inner surface. */
+/* Brutalist border on the Sidebar's outer container. The radial-
+   gradient halftone texture that used to live on the inner surface
+   has been removed — it was decorative noise behind the nav links
+   without any structural purpose, and it competes visually with the
+   inner-window pattern below where the page panel is the focal
+   surface. */
 .bru-app [data-slot="sidebar-container"] { border-right: 2px solid var(--bru-ink); }
-.bru-app [data-slot="sidebar-inner"] { position: relative; }
-.bru-app [data-slot="sidebar-inner"]::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(currentColor 0.8px, transparent 1px);
-  background-size: 9px 9px;
-  opacity: 0.06;
-  pointer-events: none;
-  z-index: 0;
-}
-.bru-app [data-slot="sidebar-inner"] > * { position: relative; z-index: 1; }
 /* Mobile sheet variant — keep the 2px border look when rendered as Sheet. */
 .bru-app [data-mobile="true"][data-slot="sidebar"] { border-right: 2px solid var(--bru-ink); }
 
@@ -284,7 +291,11 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: var(--bru-paper);
+  /* Frame color (was --bru-paper) — visible in the margin gap around
+     the inner panel that .bru-host-content paints below. The inner
+     panel still uses --bru-paper so the working surface keeps the
+     existing paper-and-ink palette. */
+  background: var(--bru-frame);
   color: var(--bru-ink);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
   /* Name the container so children adapt to the inset width (what actually
@@ -294,7 +305,7 @@
 }
 .bru-app[data-typeface="serif"] { font-family: "Times New Roman", Times, serif; }
 .bru-app[data-typeface="mono"] { font-family: var(--bru-mono); }
-.bru-root a { color: inherit; text-decoration: none; }
+:where(.bru-root a) { text-decoration: none; }
 
 /* ——— brand block (used inside SidebarHeader) ——— */
 .bru-brand {
@@ -2128,6 +2139,22 @@
    frame. */
 .bru-host-content {
   view-transition-name: bru-host-content;
+  /* Inner-window panel (dub.co adaptation, see ui/layout/main-nav.tsx
+     in dub: `rounded-xl bg-white` over a `bg-neutral-200` frame).
+     Paper bg + heavy rounding sit inside .bru-root's frame color, so
+     the gap reads as a margin around a separate window. Left edge
+     stays flush with the sidebar's existing 2px ink border. The
+     border-bottom-left + bottom-right radii are mirrored at top so
+     the panel reads as a self-contained card; the bottom radii
+     also apply when content is short enough that bru-root's frame
+     shows beneath the panel. */
+  background: var(--bru-paper);
+  border-radius: var(--bru-r-window);
+  /* Top + right + bottom gap; left side hugs the sidebar's right
+     border. Same one-sided rhythm dub uses (`md:pb-2 md:pr-2`).
+     Slightly heavier than dub's 8px because our 18px corner radius
+     reads as more "window-like" with a 12px gap. */
+  margin: 12px 12px 12px 0;
 }
 
 ::view-transition-old(bru-host-content),
