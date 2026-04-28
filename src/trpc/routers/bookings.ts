@@ -22,6 +22,11 @@ import {
   type WorkflowBookingContext,
 } from "@/lib/workflows";
 import {
+  bumpRecentAssignments,
+  resolveEventTypeForHandle,
+} from "@/lib/event-types";
+import { selectHost } from "@/lib/round-robin";
+import {
   emitBookingEvent,
   iterateBookingEvents,
   type BookingBusEvent,
@@ -138,6 +143,40 @@ export const bookings = router({
 
           const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
 
+          const resolvedEventType = await resolveEventTypeForHandle(
+            input.handle,
+          );
+          let pickedHostId = host.id;
+          if (resolvedEventType && resolvedEventType.hosts.length > 1) {
+            const conflictingHosts = await prisma.booking.findMany({
+              where: {
+                eventTypeId: resolvedEventType.id,
+                slotStart,
+                deleted: false,
+              },
+              select: { hostId: true },
+            });
+            const excludeHostIds = new Set(
+              conflictingHosts.map((b) => b.hostId),
+            );
+            const pick = selectHost({
+              hosts: resolvedEventType.hosts,
+              excludeHostIds,
+            });
+            if (pick.kind === "selected") {
+              pickedHostId = pick.hostId;
+            } else {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  pick.kind === "all-conflicted"
+                    ? "Every host on this event type is already booked at that slot."
+                    : "No hosts configured for this event type.",
+              });
+            }
+          }
+          const eventTypeId = resolvedEventType?.id ?? null;
+
           const operationId = crypto.randomUUID();
           span.setAttribute("operationId", operationId);
 
@@ -156,7 +195,7 @@ export const bookings = router({
               }
 
               const slotCollision = await tx.booking.findFirst({
-                where: { hostId: host.id, slotStart, deleted: false },
+                where: { hostId: pickedHostId, slotStart, deleted: false },
                 select: { id: true },
               });
               if (slotCollision) {
@@ -168,8 +207,9 @@ export const bookings = router({
 
               const created = await tx.booking.create({
                 data: {
-                  hostId: host.id,
+                  hostId: pickedHostId,
                   workspaceId,
+                  eventTypeId,
                   visitorName: input.visitorName,
                   visitorEmail: input.visitorEmail,
                   question: input.question,
@@ -188,7 +228,9 @@ export const bookings = router({
                   actor: "VISITOR",
                   action: "CREATED",
                   data: {
-                    hostId: host.id,
+                    hostId: pickedHostId,
+                    eventTypeId,
+                    handle: input.handle,
                     visitorName: input.visitorName,
                     visitorEmail: input.visitorEmail,
                     question: input.question ?? null,
@@ -204,6 +246,21 @@ export const bookings = router({
               return created;
             });
             span.setAttribute("bookingPublicUid", booking.publicUid);
+
+            if (
+              eventTypeId !== null &&
+              resolvedEventType &&
+              resolvedEventType.hosts.length > 1
+            ) {
+              try {
+                await bumpRecentAssignments({
+                  eventTypeId,
+                  userId: pickedHostId,
+                });
+              } catch (err) {
+                console.error("[bookings.create] bumpRecentAssignments", err);
+              }
+            }
 
             const subscriptions = await findActiveSubscriptionsForEvent(
               host.id,

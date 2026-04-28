@@ -30,6 +30,7 @@ model User {
   memberships          Membership[]
   calendarCredentials  CalendarCredential[]
   workflows            Workflow[]
+  eventTypeHosts       EventTypeHost[]
 }
 
 model Account {
@@ -98,6 +99,8 @@ model Booking {
   rescheduledFromUid String?
   referrer     String?
   idempotencyKey String? @unique
+  eventTypeId  String?
+  eventType    EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
   deleted      Boolean  @default(false)
   deletedAt    DateTime?
@@ -105,6 +108,39 @@ model Booking {
   @@index([hostId, slotStart, deleted])
   @@index([deleted, deletedAt])
   @@index([workspaceId, slotStart])
+  @@index([eventTypeId, slotStart])
+}
+
+model EventType {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  slug         String
+  name         String
+  durationMins Int             @default(15)
+  hosts        EventTypeHost[]
+  bookings     Booking[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+}
+
+model EventTypeHost {
+  id                String    @id @default(cuid())
+  eventTypeId       String
+  eventType         EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isFixed           Boolean   @default(false)
+  priority          Int       @default(2)
+  weight            Int       @default(1)
+  recentAssignments Int       @default(0)
+  createdAt         DateTime  @default(now())
+
+  @@unique([eventTypeId, userId])
+  @@index([userId])
 }
 
 model BookingAudit {
@@ -232,6 +268,7 @@ model Workspace {
   apiKeys       ApiKey[]
   subscription  Subscription?
   bookings      Booking[]
+  eventTypes    EventType[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

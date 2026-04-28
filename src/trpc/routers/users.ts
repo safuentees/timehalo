@@ -46,9 +46,55 @@ export const users = router({
     .input(z.object({ handle: handleSchema }))
     .mutation(async ({ input, ctx }) => {
       try {
-        await prisma.user.update({
-          where: { id: ctx.user.id },
-          data: { handle: input.handle },
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: ctx.user.id },
+            data: { handle: input.handle },
+          });
+          const workspace = await tx.workspace.findFirst({
+            where: { ownerId: ctx.user.id },
+            select: { id: true },
+            orderBy: { createdAt: "asc" },
+          });
+          if (workspace) {
+            const existing = await tx.eventType.findUnique({
+              where: {
+                workspaceId_slug: {
+                  workspaceId: workspace.id,
+                  slug: input.handle,
+                },
+              },
+              select: { id: true },
+            });
+            if (!existing) {
+              const eventType = await tx.eventType.create({
+                data: {
+                  workspaceId: workspace.id,
+                  slug: input.handle,
+                  name: input.handle,
+                  durationMins: 15,
+                },
+                select: { id: true },
+              });
+              await tx.eventTypeHost.upsert({
+                where: {
+                  eventTypeId_userId: {
+                    eventTypeId: eventType.id,
+                    userId: ctx.user.id,
+                  },
+                },
+                create: {
+                  eventTypeId: eventType.id,
+                  userId: ctx.user.id,
+                  isFixed: true,
+                  priority: 2,
+                  weight: 1,
+                  recentAssignments: 0,
+                },
+                update: {},
+              });
+            }
+          }
         });
       } catch (cause) {
         if (

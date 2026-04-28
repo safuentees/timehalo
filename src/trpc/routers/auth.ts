@@ -154,6 +154,25 @@ export const auth = router({
                   ...DEFAULT_REMINDER_WORKFLOW,
                 },
               });
+              const eventType = await tx.eventType.create({
+                data: {
+                  workspaceId: workspace.id,
+                  slug: input.handle,
+                  name: input.handle,
+                  durationMins: 15,
+                },
+                select: { id: true },
+              });
+              await tx.eventTypeHost.create({
+                data: {
+                  eventTypeId: eventType.id,
+                  userId: user.id,
+                  isFixed: true,
+                  priority: 2,
+                  weight: 1,
+                  recentAssignments: 0,
+                },
+              });
               return user;
             });
           } catch (cause) {
