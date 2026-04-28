@@ -11,6 +11,7 @@ import { useDeleteAccount } from "@/lib/mutations/use-delete-account";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
 import {
+  RESPONSIVE_MODAL_BODY_CLASS,
   ResponsiveModal,
   ResponsiveModalContent,
   ResponsiveModalFooter,
@@ -99,7 +100,7 @@ function DeleteForm({
         onSubmit={form.handleSubmit(async () => {
           await deleteAccount.mutateAsync();
         })}
-        className="px-5 pb-6 flex flex-col gap-5"
+        className={RESPONSIVE_MODAL_BODY_CLASS}
       >
         <p className="text-[14px] leading-[1.55] opacity-80">
           {t.rich("dialogIntro", {

@@ -9,6 +9,7 @@ import { useCreateWorkflow } from "@/lib/mutations/use-create-workflow";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
 import {
+  RESPONSIVE_MODAL_BODY_CLASS,
   ResponsiveModal,
   ResponsiveModalContent,
   ResponsiveModalFooter,
@@ -141,7 +142,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="px-5 pb-6 flex flex-col gap-5"
+        className={RESPONSIVE_MODAL_BODY_CLASS}
       >
         <Controller<FormValues, "name">
           name="name"

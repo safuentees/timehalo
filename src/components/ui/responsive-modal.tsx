@@ -329,6 +329,23 @@ export function ResponsiveModalClose({
   );
 }
 
+export const RESPONSIVE_MODAL_BODY_CLASS =
+  "flex flex-col gap-5 px-5 pb-6 sm:px-6";
+
+export function ResponsiveModalBody({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn(RESPONSIVE_MODAL_BODY_CLASS, className)}>
+      {children}
+    </div>
+  );
+}
+
 export function ResponsiveModalFooter({
   children,
   className,

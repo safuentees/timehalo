@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
   ResponsiveModal,
+  ResponsiveModalBody,
   ResponsiveModalContent,
   ResponsiveModalFooter,
   ResponsiveModalHeader,
@@ -74,25 +75,25 @@ function CalendarPickBody({
 
   if (error) {
     return (
-      <div className="px-5 pb-6 text-[13px] opacity-65">
-        {error.message}
-      </div>
+      <ResponsiveModalBody>
+        <p className="text-[13px] opacity-65">{error.message}</p>
+      </ResponsiveModalBody>
     );
   }
 
   if (isLoading || !data) {
     return (
-      <div className="px-5 pb-6 text-[13px] opacity-65">
-        {t("loading")}
-      </div>
+      <ResponsiveModalBody>
+        <p className="text-[13px] opacity-65">{t("loading")}</p>
+      </ResponsiveModalBody>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="px-5 pb-6">
+      <ResponsiveModalBody>
         <BrutalistInlineEmpty>{t("pickEmpty")}</BrutalistInlineEmpty>
-      </div>
+      </ResponsiveModalBody>
     );
   }
 
@@ -121,7 +122,7 @@ function CalendarPickBody({
   const isPending = setSelected.isPending;
 
   return (
-    <div className="px-5 pb-6 flex flex-col gap-5">
+    <ResponsiveModalBody>
       <p className="bru-description">{t("pickDescription")}</p>
       <ul
         role="list"
@@ -172,6 +173,6 @@ function CalendarPickBody({
           {isPending ? t("saving") : t("save")}
         </Button>
       </ResponsiveModalFooter>
-    </div>
+    </ResponsiveModalBody>
   );
 }
