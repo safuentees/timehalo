@@ -233,6 +233,12 @@ type HeaderProps = {
   desktopClassName?: string;
 };
 
+// Default padding so every dialog header sits the same inside its
+// modal frame: 20px sides on mobile, 24px on sm+, 16px below the
+// title (matching the body's 24px gap-5 rhythm starting from there).
+// Consumers may still override.
+const BRU_DIALOG_HEADER = "px-5 pb-4 sm:px-6";
+
 export function ResponsiveModalHeader({
   children,
   className,
@@ -242,13 +248,15 @@ export function ResponsiveModalHeader({
   const { isMobile } = useResponsiveModal();
   if (isMobile) {
     return (
-      <div className={cn(className, mobileClassName)}>
+      <div className={cn(BRU_DIALOG_HEADER, className, mobileClassName)}>
         {children}
       </div>
     );
   }
   return (
-    <DialogHeader className={cn(className, desktopClassName)}>
+    <DialogHeader
+      className={cn(BRU_DIALOG_HEADER, className, desktopClassName)}
+    >
       {children}
     </DialogHeader>
   );
@@ -261,6 +269,14 @@ type TitleProps = {
   desktopClassName?: string;
 };
 
+// Brutalist dialog title default: 20px black-weight uppercase, tight
+// tracking. Bakes the convention in so all four settings dialogs read
+// the same — previous state had three different treatments (one
+// override at 20px, two using the shadcn 16px medium default, one
+// abusing it as a legend). Overrides via className still work via cn
+// merging — pass any text-[…] / font-* / case-* you want and it wins.
+const BRU_DIALOG_TITLE = "text-[20px] font-black uppercase tracking-tight";
+
 export function ResponsiveModalTitle({
   children,
   className,
@@ -270,13 +286,17 @@ export function ResponsiveModalTitle({
   const { isMobile } = useResponsiveModal();
   if (isMobile) {
     return (
-      <DrawerPrimitive.Title className={cn(className, mobileClassName)}>
+      <DrawerPrimitive.Title
+        className={cn(BRU_DIALOG_TITLE, className, mobileClassName)}
+      >
         {children}
       </DrawerPrimitive.Title>
     );
   }
   return (
-    <DialogTitle className={cn(className, desktopClassName)}>
+    <DialogTitle
+      className={cn(BRU_DIALOG_TITLE, className, desktopClassName)}
+    >
       {children}
     </DialogTitle>
   );
