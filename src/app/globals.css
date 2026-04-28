@@ -2143,11 +2143,7 @@
      in dub: `rounded-xl bg-white` over a `bg-neutral-200` frame).
      Paper bg + heavy rounding sit inside .bru-root's frame color, so
      the gap reads as a margin around a separate window. Left edge
-     stays flush with the sidebar's existing 2px ink border. The
-     border-bottom-left + bottom-right radii are mirrored at top so
-     the panel reads as a self-contained card; the bottom radii
-     also apply when content is short enough that bru-root's frame
-     shows beneath the panel. */
+     stays flush with the sidebar's existing 2px ink border. */
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
   /* Top + right + bottom gap; left side hugs the sidebar's right
@@ -2155,6 +2151,12 @@
      Slightly heavier than dub's 8px because our 18px corner radius
      reads as more "window-like" with a 12px gap. */
   margin: 12px 12px 12px 0;
+  /* Grow inside SidebarInset's flex column so the panel fills the
+     viewport height down to the bottom margin even when the page
+     content is short. Without this, a sparsely-populated route
+     (e.g. /bookings with three rows) lets the outer frame color
+     bleed in below the panel — see screenshot from 2026-04-28. */
+  flex: 1 1 0%;
 }
 
 ::view-transition-old(bru-host-content),
