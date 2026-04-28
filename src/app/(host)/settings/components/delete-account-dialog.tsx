@@ -115,7 +115,7 @@ function DeleteForm({
             ),
           })}
         </p>
-        <p className="text-[13px] leading-[1.5] opacity-65">
+        <p className="bru-description">
           {t.rich("dialogTypeEmail", {
             email,
             code: (chunks) => (
