@@ -25,7 +25,7 @@ export function BookingsList() {
   const list = tab === "upcoming" ? (data?.upcoming ?? []) : (data?.past ?? []);
 
   return (
-    <BrutalistPageShell wide>
+    <BrutalistPageShell>
       <BrutalistPageHeader
         title="Your bookings"
         aside={liveQueueEnabled ? <LiveQueue /> : null}
@@ -44,7 +44,7 @@ export function BookingsList() {
       <div
         role="tablist"
         aria-label="Booking timeframe"
-        className="mt-6 grid w-fit grid-cols-2 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
       >
         <SegButton
           active={tab === "upcoming"}

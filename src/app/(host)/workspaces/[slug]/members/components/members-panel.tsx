@@ -41,7 +41,7 @@ export default function MembersPanel({ slug }: { slug: string }) {
   const isOwner = workspace?.callerRole === "OWNER";
 
   return (
-    <BrutalistPageShell tight>
+    <BrutalistPageShell>
       <BrutalistPageHeader title={workspace?.name ?? t("title")} />
 
       <div className="mt-4">
