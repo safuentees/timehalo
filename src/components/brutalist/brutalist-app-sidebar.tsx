@@ -4,7 +4,6 @@ import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { PanelLeft } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -60,7 +59,11 @@ export function BrutalistAppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="bru-app-sidebar"
+      className={[
+        "bru-app-sidebar",
+        "[&_[data-slot=sidebar-gap]]:will-change-[width]",
+        "[&_[data-slot=sidebar-container]]:will-change-[width]",
+      ].join(" ")}
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
         <div className="bru-brand">
@@ -152,17 +155,13 @@ export function BrutalistAppSidebar() {
 function FooterControls() {
   const { toggleSidebar, state } = useSidebar();
   return (
-    <div className="flex flex-row items-center gap-1 px-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5 group-data-[collapsible=icon]:px-0">
-      <Button
-        type="button"
-        variant="brutalistGhost"
-        size="brutalistIcon"
-        onClick={toggleSidebar}
-        aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
-        className="rounded-(--bru-r-xs) border-transparent hover:border-transparent"
-      >
-        <PanelLeft />
-      </Button>
-    </div>
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
+      className="inline-flex size-9 items-center justify-center text-bru-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-ink focus-visible:outline-offset-2 [&_svg]:size-4"
+    >
+      <PanelLeft strokeWidth={1.5} />
+    </button>
   );
 }
