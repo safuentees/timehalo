@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
 

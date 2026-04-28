@@ -7,7 +7,7 @@ import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
 

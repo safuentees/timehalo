@@ -10,7 +10,7 @@ import { WorkflowFields } from "./workflow-fields";
 import { CalendarFields } from "./calendar-fields";
 import { ApiKeysFields } from "./api-keys-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 
 // Account settings page shell — pure layout, no form state. Each
 // section owns its own commit affordance (cal.com / dub.co pattern):
