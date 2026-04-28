@@ -2185,6 +2185,17 @@
   flex-direction: column;
 }
 
+/* Mobile (< 768px, matches src/hooks/use-mobile.ts MOBILE_BREAKPOINT
+   and shadcn's sidebar Sheet cutoff): the sidebar lives off-canvas
+   and the panel no longer has a sidebar to hug on its left side.
+   Match the right-side 12px gap so the panel has consistent
+   breathing room from all four screen edges. */
+@media (max-width: 767px) {
+  .bru-host-content {
+    margin-left: 12px;
+  }
+}
+
 .bru-host-content-inner {
   /* View-transition target. Transparent — just a flex item that
      fills the panel and carries the children. Only this snapshot
