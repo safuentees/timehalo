@@ -109,7 +109,7 @@ export function BrutalistAppSidebar() {
             LIBRARY
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0">
+            <SidebarMenu className="gap-0.5">
               {PRIMARY_NAV.map((item) => {
                 const active = activePath === item.href;
                 return (
@@ -142,7 +142,7 @@ export function BrutalistAppSidebar() {
             WORKSPACE
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0">
+            <SidebarMenu className="gap-0.5">
               {SECONDARY_NAV.map((item) => {
                 const active = activePath === item.href;
                 return (
