@@ -17,10 +17,10 @@ export function BookingsList() {
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
-  const list = tab === "upcoming" ? data?.upcoming ?? [] : data?.past ?? [];
+  const list = tab === "upcoming" ? (data?.upcoming ?? []) : (data?.past ?? []);
 
   return (
-    <BrutalistPageShell>
+    <BrutalistPageShell wide>
       <BrutalistPageHeader
         title="Your bookings"
         aside={liveQueueEnabled ? <LiveQueue /> : null}
@@ -126,31 +126,34 @@ function BookingRow({
   slotStart: Date;
 }) {
   return (
-    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-55">
-            {fmtSlotDate(slotStart)}
-          </span>
-          <h3 className="text-[18px] leading-[1.1] font-black truncate">
-            {visitorName}
-          </h3>
-        </div>
-        <span className="font-[family-name:var(--bru-mono)] text-[15px] font-extrabold tabular-nums">
-          {fmtSlotTime(slotStart)}
-        </span>
-      </header>
+    <article
+      className={[
+        "rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong",
+        "sm:grid sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-baseline sm:gap-x-6 sm:p-5",
+        "md:gap-x-8 md:p-6",
+      ].join(" ")}
+    >
+      <div className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-55 sm:text-[12px]">
+        {fmtSlotDate(slotStart)}
+      </div>
 
-      {question ? (
-        <p className="mt-3 text-[14px] leading-[1.55] opacity-75">
-          “{question}”
+      <div className="mt-2 flex min-w-0 flex-col gap-1.5 sm:mt-0">
+        <h3 className="text-[16px] leading-[1.2] font-black truncate sm:text-[17px]">
+          {visitorName}
+        </h3>
+        {question ? (
+          <p className="text-[13px] italic opacity-75 leading-relaxed">
+            “{question}”
+          </p>
+        ) : null}
+        <p className="font-[family-name:var(--bru-mono)] text-[12px] tabular-nums opacity-55 truncate">
+          {visitorEmail}
         </p>
-      ) : null}
+      </div>
 
-      <p className="mt-3 inline-flex items-center gap-1.5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
-        <MailIcon className="size-3" />
-        {visitorEmail}
-      </p>
+      <div className="mt-3 inline-flex items-center self-start font-[family-name:var(--bru-mono)] text-[13px] font-extrabold tabular-nums sm:mt-0 sm:justify-end sm:text-[14px]">
+        {fmtSlotTime(slotStart)}
+      </div>
     </article>
   );
 }
@@ -239,7 +242,15 @@ function EmptyBookings({ tab }: { tab: Tab }) {
   );
 }
 
-const WEEKDAY_SHORT = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
+const WEEKDAY_SHORT = [
+  "SUN",
+  "MON",
+  "TUE",
+  "WED",
+  "THU",
+  "FRI",
+  "SAT",
+] as const;
 const MONTH_SHORT = [
   "JAN",
   "FEB",
