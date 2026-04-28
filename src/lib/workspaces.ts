@@ -1,6 +1,18 @@
-import "server-only";
 import type { MembershipRole } from "@/generated/prisma/enums";
 
+// Pure shared module — safe to import from server AND client. The
+// `import "server-only"` directive was removed (and moved to
+// `workspaces-server.ts` which holds the one function that actually
+// touches Node APIs) so client components like the workspace + invite
+// dialogs can import the slug regex + slug helper without tripping
+// Next.js's "don't import server-only from client" build error.
+//
+// Per Next.js docs (Context7 /vercel/next.js): server-only should
+// ONLY be on modules with actual server APIs (DB, fs, node-only
+// imports). Pure constants and stateless helpers don't need it and
+// should not have it — that's environment-poisoning protection
+// applied where it matters, not as a blanket directive.
+//
 // Scope-permission-role matrix (B1). One source of truth for "what
 // can a member with role X do inside a workspace?" Pattern reference:
 // dub /apps/web/lib/api/rbac/permissions.ts:1-163 — flat scope list,
@@ -92,11 +104,8 @@ export function personalWorkspaceSlugFor(userId: string): string {
 
 export const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Generate a hex-encoded 32-byte token for invitation links. 64
-// chars; cryptographically suitable for a public-but-unguessable
-// accept URL. Same shape as WebhookSubscription.secret (and same
-// reasoning — opaque single-use capabilities should be wide).
-export async function generateInvitationToken(): Promise<string> {
-  const { randomBytes } = await import("node:crypto");
-  return randomBytes(32).toString("hex");
-}
+// `generateInvitationToken` lives in `./workspaces-server.ts` — it
+// imports `node:crypto` and is the only thing in this domain that
+// needs the server-only marker. Keeping it here would force every
+// client consumer of WORKSPACE_SLUG_REGEX / personalWorkspaceSlugFor
+// to drag in a build error.
