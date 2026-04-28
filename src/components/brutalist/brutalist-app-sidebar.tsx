@@ -25,6 +25,7 @@ const menuButtonClass = [
   "font-sans text-[13.5px] font-medium",
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
+  "group-data-[collapsible=icon]:border-l-0",
   "transition-colors duration-150 ease-bru",
   "hover:bg-[var(--bru-tint-hover)]",
   "data-[active=true]:bg-[var(--bru-tint-active)]",
