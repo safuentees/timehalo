@@ -2,6 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Tailwind v4 scans every project file as plain text (not parsed code)
+   when detecting class names. Agent guidance docs include literal class
+   examples (`text-[var(--bru-*)]`, `bg-bru-*`, etc.) that are NOT real
+   utilities — Tailwind would still match the tokens and emit invalid
+   CSS like `color: var(--bru-*);`. Exclude the doc trees so example
+   strings can't bleed into the generated stylesheet. Paths resolve
+   relative to this file (src/app/globals.css). */
+@source not "../../.claude";
+@source not "../../.agents";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -714,6 +724,35 @@
   font-size: 10.5px; letter-spacing: 2px; font-weight: 700;
   opacity: 0.7; text-transform: uppercase;
 }
+/* ─── Tier 1: brutalist typography roles. Bake the canonical mono/
+   weight/tracking/opacity for each semantic role into a single class
+   so callers stop reaching for the eight-class string verbatim. Audit
+   on 2026-04-27 found 6+ places repeating the legend string and 7+
+   places repeating the eyebrow string with five different tracking
+   values — single source of truth here. ─── */
+.bru-legend {
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.bru-description {
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 65ch;
+  opacity: 0.65;
+}
+.bru-eyebrow {
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
 .bru-input {
   width: 100%;
   background: var(--bru-paper); color: var(--bru-ink);
