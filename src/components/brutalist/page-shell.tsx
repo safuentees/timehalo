@@ -11,28 +11,43 @@ import type { ReactNode } from "react";
 // the breathing room.
 //
 // Density variants:
-//   • default (760px)  — content-light pages: Bookings, Availability,
-//     Profile. The /h/[handle] hero column lives here too.
+//   • default (760px)  — content-light pages: Availability, Profile.
+//     The /h/[handle] hero column lives here too.
 //   • tight   (672px)  — dense single-column forms with many stacked
 //     sections. Settings is the canonical example: 6 sections + danger
 //     zone read as a sprawl at 760px and as a column at 672. Cal.com
 //     runs its settings layout at the equivalent of max-w-3xl (768px),
 //     we sit one notch tighter because we render single-column rather
 //     than label-on-left value-on-right.
+//   • wide              — progressively widens with the viewport
+//     (760 → 768 → 896 → 1024) for primary list surfaces that need
+//     to breathe at desktop without going table-wide. Bookings is
+//     the canonical reference. Mobile width unchanged so the rhythm
+//     at 400px stays intact.
 
 type Props = {
   children: ReactNode;
   /** Use the tighter 672px column for settings-style dense pages. */
   tight?: boolean;
+  /** Progressively widen at md/lg/xl for primary list surfaces. */
+  wide?: boolean;
 };
 
-export function BrutalistPageShell({ children, tight = false }: Props) {
+export function BrutalistPageShell({
+  children,
+  tight = false,
+  wide = false,
+}: Props) {
+  const widthClass = tight
+    ? "max-w-2xl"
+    : wide
+      ? "max-w-[760px] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl"
+      : "max-w-[760px]";
   return (
     <div
-      className={[
-        "mx-auto w-full px-4 py-8 sm:px-6 sm:py-10",
-        tight ? "max-w-2xl" : "max-w-[760px]",
-      ].join(" ")}
+      className={["mx-auto w-full px-4 py-8 sm:px-6 sm:py-10", widthClass].join(
+        " ",
+      )}
     >
       {children}
     </div>
