@@ -133,7 +133,7 @@ function BookingRow({
         "md:gap-x-8 md:p-6",
       ].join(" ")}
     >
-      <div className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-55 sm:text-[12px]">
+      <div className="bru-eyebrow text-[11px] tabular-nums sm:text-[12px]">
         {fmtSlotDate(slotStart)}
       </div>
 

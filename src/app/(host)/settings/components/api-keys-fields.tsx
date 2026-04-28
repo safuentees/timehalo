@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { MinusCircleIcon } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
@@ -125,7 +124,6 @@ function ApiKeyRow({
   name,
   prefix,
   scopes,
-  createdAt,
   revokedAt,
 }: {
   slug: string;
@@ -153,39 +151,10 @@ function ApiKeyRow({
           : "border-bru-line hover:border-bru-line-strong",
       ].join(" ")}
     >
-      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="bru-eyebrow tabular-nums">
-            {t("createdAt", { date: new Date(createdAt) })}
-          </span>
-          <h3 className="text-[16px] leading-[1.2] font-black truncate">
-            {name}
-          </h3>
-        </div>
-        <span className="font-[family-name:var(--bru-mono)] text-[12px] font-extrabold tabular-nums">
-          {prefix}…
-        </span>
-      </header>
-
-      <ul
-        role="list"
-        className="mt-3 flex flex-wrap gap-1.5"
-        aria-label={t("scopesLabel")}
-      >
-        {scopeList.map((s) => (
-          <li
-            key={s}
-            className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase border-2 border-bru-line-strong px-2 py-1"
-          >
-            {s}
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="bru-eyebrow tabular-nums">
-          {revoked ? t("statusRevoked") : t("statusActive")}
-        </span>
+      <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
+          {name}
+        </h3>
         {revoked ? null : (
           <ConfirmDialog
             trigger={
@@ -195,7 +164,6 @@ function ApiKeyRow({
                 size="brutalist"
                 disabled={revokeApiKey.isPending}
               >
-                <MinusCircleIcon />
                 {revokeApiKey.isPending ? t("revoking") : t("revoke")}
               </Button>
             }
@@ -208,7 +176,19 @@ function ApiKeyRow({
             onConfirm={() => revokeApiKey.mutateAsync({ slug, keyId: id })}
           />
         )}
-      </div>
+      </header>
+
+      <p className="mt-2 truncate font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
+        {prefix}…
+      </p>
+      {scopeList.length > 0 ? (
+        <p
+          className="mt-1 truncate bru-eyebrow opacity-45"
+          aria-label={t("scopesLabel")}
+        >
+          {scopeList.join(" / ")}
+        </p>
+      ) : null}
     </article>
   );
 }
