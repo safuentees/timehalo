@@ -10,7 +10,9 @@ import { useCreateApiKey } from "@/lib/mutations/use-create-api-key";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
 import {
+  RESPONSIVE_MODAL_BODY_CLASS,
   ResponsiveModal,
+  ResponsiveModalBody,
   ResponsiveModalContent,
   ResponsiveModalFooter,
   ResponsiveModalHeader,
@@ -134,7 +136,7 @@ function CreateForm({
             scopes: v.scopes,
           });
         })}
-        className="px-5 pb-6 flex flex-col gap-5 sm:px-6"
+        className={RESPONSIVE_MODAL_BODY_CLASS}
       >
         <p className="bru-description">
           {t("createDescription")}
@@ -283,7 +285,7 @@ function RevealedToken({
   }
 
   return (
-    <div className="px-5 pb-6 flex flex-col gap-5 sm:px-6">
+    <ResponsiveModalBody>
       <p className="bru-description">{t("revealedDescription")}</p>
       <Field>
         <label htmlFor="api-key-token" className="bru-legend">
@@ -321,7 +323,7 @@ function RevealedToken({
       <p className="text-[12px] leading-[1.5] opacity-55">
         {t("revealedHint")}
       </p>
-      <div className="flex justify-end">
+      <ResponsiveModalFooter>
         <Button
           type="button"
           variant="brutalistGhost"
@@ -330,7 +332,7 @@ function RevealedToken({
         >
           {t("done")}
         </Button>
-      </div>
-    </div>
+      </ResponsiveModalFooter>
+    </ResponsiveModalBody>
   );
 }
