@@ -202,6 +202,7 @@
   --sidebar-accent-foreground: var(--bru-ink);
   --sidebar-border: var(--bru-ink);
   --sidebar-ring: var(--bru-ink);
+  --background: var(--bru-frame);
 }
 
 .bru-root {
