@@ -18,6 +18,7 @@ import { WorkflowFields } from "./workflow-fields";
 import { CalendarFields } from "./calendar-fields";
 import { ApiKeysFields } from "./api-keys-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
+import { SectionHeader } from "./section-header";
 
 // Account settings — first real surface (was a stub). Owns the
 // timezone picker; future iterations add password change, account
@@ -68,15 +69,11 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
           </div>
 
           <section className="mt-16">
-            <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
-              {tDanger("label")}
-            </p>
-            <h2 className="mt-3 text-[20px] font-black tracking-tight">
-              {tDanger("deleteAccountTitle")}
-            </h2>
-            <p className="mt-3 text-[13px] leading-[1.5] opacity-65 max-w-prose">
-              {tDanger("deleteAccountDescription")}
-            </p>
+            <SectionHeader
+              legend={tDanger("label")}
+              title={tDanger("deleteAccountTitle")}
+              description={tDanger("deleteAccountDescription")}
+            />
             <div className="mt-5">
               <DeleteAccountDialog />
             </div>
