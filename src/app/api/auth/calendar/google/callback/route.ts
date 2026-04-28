@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/env";
 import { exchangeGoogleAuthCode } from "@/lib/calendar";
+import { encryptToken } from "@/lib/calendar/encryption";
 
 // OAuth callback for Google calendar connect. State carries the
 // initiating user id (`<userId>:<random>`) — we verify the session
@@ -40,6 +41,10 @@ export async function GET(request: Request) {
   const redirectUri = `${appUrl}/api/auth/calendar/google/callback`;
   try {
     const tokens = await exchangeGoogleAuthCode({ code, redirectUri });
+    // Encrypt at the persist boundary — every CalendarCredential row
+    // hits the DB with a `v1:` envelope. Reads decrypt on the way out.
+    const encryptedAccess = encryptToken(tokens.accessToken);
+    const encryptedRefresh = encryptToken(tokens.refreshToken);
     await prisma.calendarCredential.upsert({
       where: {
         userId_provider_externalAccountId: {
@@ -53,14 +58,14 @@ export async function GET(request: Request) {
         provider: "GOOGLE",
         externalAccountId: tokens.externalAccountId,
         externalAccountEmail: tokens.externalAccountEmail,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken: encryptedAccess,
+        refreshToken: encryptedRefresh,
         accessTokenExpiresAt: tokens.expiresAt,
         scope: tokens.scope,
       },
       update: {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken: encryptedAccess,
+        refreshToken: encryptedRefresh,
         accessTokenExpiresAt: tokens.expiresAt,
         scope: tokens.scope,
         externalAccountEmail: tokens.externalAccountEmail,
