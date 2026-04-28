@@ -59,6 +59,18 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
     MICROSOFT_OAUTH_CLIENT_ID: z.string().optional(),
     MICROSOFT_OAUTH_CLIENT_SECRET: z.string().optional(),
+    /**
+     * 32-byte AES-256-GCM key (hex-encoded, 64 chars) for encrypting
+     * `CalendarCredential.accessToken` + `refreshToken` at rest.
+     * Optional in dev so a fresh clone boots; the encryption helper
+     * throws clearly when calendar OAuth is in use without it.
+     * Generate with:
+     *   node -e 'console.log(require("crypto").randomBytes(32).toString("hex"))'
+     */
+    CALENDAR_TOKEN_KEY: z
+      .string()
+      .regex(/^[0-9a-fA-F]{64}$/, "must be 64 hex characters (32 bytes)")
+      .optional(),
   },
   client: {
     /**
