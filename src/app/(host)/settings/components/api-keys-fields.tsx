@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
 import { SectionHeader } from "./section-header";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
 
 // Workspace API keys section. Surface flow:
 //
@@ -218,19 +219,26 @@ function ApiKeyRow({
           {revoked ? t("statusRevoked") : t("statusActive")}
         </span>
         {revoked ? null : (
-          <Button
-            type="button"
-            variant="brutalistGhost"
-            size="brutalist"
-            onClick={() => {
-              if (!window.confirm(t("revokeConfirm"))) return;
-              revokeApiKey.mutate({ slug, keyId: id });
-            }}
-            disabled={revokeApiKey.isPending}
-          >
-            <MinusCircleIcon />
-            {revokeApiKey.isPending ? t("revoking") : t("revoke")}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                type="button"
+                variant="brutalistGhost"
+                size="brutalist"
+                disabled={revokeApiKey.isPending}
+              >
+                <MinusCircleIcon />
+                {revokeApiKey.isPending ? t("revoking") : t("revoke")}
+              </Button>
+            }
+            title={t("revokeTitle")}
+            description={t("revokeConfirm")}
+            confirmLabel={t("revoke")}
+            pendingLabel={t("revoking")}
+            cancelLabel={t("cancel")}
+            pending={revokeApiKey.isPending}
+            onConfirm={() => revokeApiKey.mutateAsync({ slug, keyId: id })}
+          />
         )}
       </div>
     </article>
