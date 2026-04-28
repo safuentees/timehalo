@@ -11,10 +11,18 @@ export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth;
   const pathname = req.nextUrl.pathname;
   const isHostPage = pathname.startsWith("/h/");
+  // /invitations/<token> renders the workspace-invite preview without
+  // requiring auth (invitations.preview is a publicProcedure). The
+  // accept button itself prompts for sign-in when needed; letting the
+  // route through unauth means the user sees the invite preview before
+  // having to choose between sign-in and sign-up.
+  const isInvitationLink = pathname.startsWith("/invitations/");
 
   // Public routes — accessible without auth
   const isPublic =
-    ["/login", "/register"].includes(pathname) || isHostPage;
+    ["/login", "/register"].includes(pathname) ||
+    isHostPage ||
+    isInvitationLink;
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));
