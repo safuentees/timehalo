@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
-import { BrutalistTopbar } from "./topbar";
 import { useBrutalistPrefs } from "./prefs-context";
 
 export function BrutalistDashboardLayout({
@@ -30,14 +29,13 @@ export function BrutalistDashboardLayout({
       >
         <BrutalistAppSidebar />
         <SidebarInset className={insetClass}>
-          <BrutalistTopbar />
           {/* Only the page-content slot animates between routes. The
-              sidebar and topbar live in `root`, but `root` is given
+              sidebar lives in `root`, but `root` is given
               `animation: none` in globals.css, so persistent chrome
               never gets snapshotted into a transition — sidestepping the
               double-render artifacts (icon ghosting, doubled border
               strokes) that opt-out via view-transition-name was leaving
-              behind on the topbar. */}
+              behind. */}
           <div className="bru-host-content">{children}</div>
         </SidebarInset>
       </SidebarProvider>
