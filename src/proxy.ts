@@ -8,9 +8,12 @@ export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth;
   const pathname = req.nextUrl.pathname;
   const isHostPage = pathname.startsWith("/h/");
+  const isInvitationLink = pathname.startsWith("/invitations/");
 
   const isPublic =
-    ["/login", "/register"].includes(pathname) || isHostPage;
+    ["/login", "/register"].includes(pathname) ||
+    isHostPage ||
+    isInvitationLink;
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));
