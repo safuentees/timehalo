@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { HalftoneMark } from "@/components/brand/halftone-mark";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
@@ -51,20 +52,6 @@ function sidebarNavId(href: string) {
   return `sidebar-nav-${slug}`;
 }
 
-function NavBullet({ active }: { active: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={[
-        "inline-block size-[6px] shrink-0",
-        "bg-[var(--bru-ink)]",
-        "transition-[opacity,transform] duration-200 ease-bru",
-        active ? "opacity-100 scale-[1.2]" : "opacity-35 group-hover/item:opacity-85",
-      ].join(" ")}
-    />
-  );
-}
-
 export function BrutalistAppSidebar() {
   const pathname = usePathname();
   const mounted = useMounted();
@@ -72,7 +59,7 @@ export function BrutalistAppSidebar() {
 
   return (
     <Sidebar
-      collapsible="offcanvas"
+      collapsible="icon"
       className="bru-app-sidebar border-r-0"
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
@@ -102,7 +89,11 @@ export function BrutalistAppSidebar() {
                       className={menuButtonClass}
                       render={
                         <Link href={item.href}>
-                          <NavBullet active={active} />
+                          <item.icon
+                            aria-hidden
+                            strokeWidth={1.5}
+                            className="size-4 shrink-0"
+                          />
                           <span>{item.label}</span>
                         </Link>
                       }
@@ -131,7 +122,11 @@ export function BrutalistAppSidebar() {
                       className={menuButtonClass}
                       render={
                         <Link href={item.href}>
-                          <NavBullet active={active} />
+                          <item.icon
+                            aria-hidden
+                            strokeWidth={1.5}
+                            className="size-4 shrink-0"
+                          />
                           <span>{item.label}</span>
                         </Link>
                       }
@@ -159,6 +154,10 @@ export function BrutalistAppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarTrigger
+          aria-label="Toggle sidebar"
+          className="mt-1 hidden h-8 w-full justify-start gap-2 rounded-(--bru-r-xs) px-[10px] font-sans text-[12.5px] opacity-65 transition-opacity duration-150 ease-bru hover:bg-[var(--bru-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2 md:flex group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+        />
       </SidebarFooter>
 
       <SidebarRail />
