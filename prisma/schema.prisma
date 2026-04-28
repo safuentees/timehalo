@@ -40,6 +40,11 @@ model User {
   // Automation rules (B4) — user-configurable triggers that
   // generalize A8's hardcoded reminder pattern.
   workflows            Workflow[]
+  // Event-type pool memberships (B2). A user can be a host on many
+  // event types across the workspaces they're a member of. Each
+  // membership row carries the round-robin metadata (priority,
+  // weight, recentAssignments) the selection algorithm consumes.
+  eventTypeHosts       EventTypeHost[]
 }
 
 model Account {
@@ -142,6 +147,15 @@ model Booking {
   // null on soft-delete so a future booking can reuse the key (NULL
   // values don't trigger the unique constraint per SQL standard).
   idempotencyKey String? @unique
+  // Event type the booking was made against (B2). Nullable for
+  // forward-compat with rows created before this column landed. New
+  // bookings always stamp it from the EventType resolved by handle.
+  // No SetNull / Cascade — when an event type is deleted, its
+  // bookings keep their archive value (the EventType row may live on
+  // soft-deleted, future iteration). Index supports
+  // workspaces.apiKeys-style "list bookings for an event type" reads.
+  eventTypeId  String?
+  eventType    EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
   // Soft-delete columns (rallly's pattern at packages/database/prisma/
   // models/poll.prisma:30-31). Reads filter `deleted: false`; the
@@ -159,6 +173,58 @@ model Booking {
   @@index([hostId, slotStart, deleted])
   @@index([deleted, deletedAt])
   @@index([workspaceId, slotStart])
+  @@index([eventTypeId, slotStart])
+}
+
+// Bookable resource (B2). Every workspace has one or more event
+// types. Backfill: every pre-existing User got a singleton EventType
+// keyed off their handle, with themselves as the only fixed host.
+// Multi-host workspaces add additional EventTypeHost rows with
+// isFixed=false and the round-robin metadata (priority, weight)
+// flips on automatically.
+model EventType {
+  id           String          @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Public slug — for the singleton-per-user backfill, this matches
+  // the host's User.handle so existing /h/<handle> URLs keep
+  // resolving without a routing change. Multi-host event types pick
+  // their own slug. @@unique on (workspaceId, slug) so two workspaces
+  // can each have a "consult" event type.
+  slug         String
+  name         String
+  durationMins Int             @default(15)
+  hosts        EventTypeHost[]
+  bookings     Booking[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+}
+
+// Membership of a User in an EventType's host pool. The round-robin
+// algorithm in src/lib/round-robin.ts consumes priority + weight +
+// recentAssignments straight off these rows. isFixed=true marks
+// "must be present" hosts (cal.com's pattern); the remaining
+// not-fixed members form the rotation pool.
+model EventTypeHost {
+  id                String    @id @default(cuid())
+  eventTypeId       String
+  eventType         EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isFixed           Boolean   @default(false)
+  priority          Int       @default(2)
+  weight            Int       @default(1)
+  // Lookback counter for fairness. The booking flow increments it
+  // every time this host is picked; a future cleanup-cron resets it
+  // on a 30d window. Plain integer to avoid timezone math.
+  recentAssignments Int       @default(0)
+  createdAt         DateTime  @default(now())
+
+  @@unique([eventTypeId, userId])
+  @@index([userId])
 }
 
 // Append-only history of every state change on a booking. Mirrors
@@ -365,6 +431,11 @@ model Workspace {
   apiKeys       ApiKey[]
   subscription  Subscription?
   bookings      Booking[]
+  // Event types (B2) — the bookable resource. Each EventType has a
+  // host pool (EventTypeHost rows) that the round-robin algorithm
+  // operates on. Backfill: every existing User got a singleton
+  // EventType with themselves as a fixed host.
+  eventTypes    EventType[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

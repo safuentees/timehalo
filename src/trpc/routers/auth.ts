@@ -182,6 +182,30 @@ export const auth = router({
                   ...DEFAULT_REMINDER_WORKFLOW,
                 },
               });
+              // Seed singleton EventType (B2) — slug = handle, the user
+              // themselves as the only fixed host. /h/<handle> resolves
+              // to this row. Multi-host event types are an explicit
+              // caller-mints-rows action; default new users start in
+              // single-host mode same as before B2.
+              const eventType = await tx.eventType.create({
+                data: {
+                  workspaceId: workspace.id,
+                  slug: input.handle,
+                  name: input.handle,
+                  durationMins: 15,
+                },
+                select: { id: true },
+              });
+              await tx.eventTypeHost.create({
+                data: {
+                  eventTypeId: eventType.id,
+                  userId: user.id,
+                  isFixed: true,
+                  priority: 2,
+                  weight: 1,
+                  recentAssignments: 0,
+                },
+              });
               return user;
             });
           } catch (cause) {
