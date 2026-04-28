@@ -3,8 +3,9 @@
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
+import { LogOut, Moon, PanelLeft, Sun } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -17,10 +18,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { HalftoneMark } from "@/components/brand/halftone-mark";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
+import { useBrutalistPrefs } from "./prefs-context";
 
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
 // Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
@@ -157,6 +159,7 @@ export function BrutalistAppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-[var(--bru-line-soft)]">
+        <FooterControls />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -170,18 +173,42 @@ export function BrutalistAppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        {/* Collapse trigger lives at the bottom of the sidebar so the
-            chrome stays inside the surface. In icon mode it stays
-            visible (footer is part of the icon-width column). On
-            mobile the sheet has its own close mechanics; the topbar
-            keeps a hamburger to open it. */}
-        <SidebarTrigger
-          aria-label="Toggle sidebar"
-          className="mt-1 hidden h-8 w-full justify-start gap-2 rounded-(--bru-r-xs) px-[10px] font-sans text-[12.5px] opacity-65 transition-opacity duration-150 ease-bru hover:bg-[var(--bru-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2 md:flex group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-        />
       </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+// Sidebar collapse + theme toggle, side-by-side above the Sign-out
+// row. In icon-collapsed state the row stacks vertically so both
+// glyphs still fit inside the icon-rail width.
+function FooterControls() {
+  const { toggleSidebar, state } = useSidebar();
+  const { toggleTheme } = useBrutalistPrefs();
+  return (
+    <div className="flex flex-row items-center gap-1 px-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5 group-data-[collapsible=icon]:px-0">
+      <Button
+        type="button"
+        variant="brutalistGhost"
+        size="brutalistIcon"
+        onClick={toggleSidebar}
+        aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
+        className="rounded-(--bru-r-xs)"
+      >
+        <PanelLeft />
+      </Button>
+      <Button
+        type="button"
+        variant="brutalistGhost"
+        size="brutalistIcon"
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        className="rounded-(--bru-r-xs)"
+      >
+        <Sun className="dark:hidden" />
+        <Moon className="hidden dark:block" />
+      </Button>
+    </div>
   );
 }
