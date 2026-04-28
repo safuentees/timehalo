@@ -73,9 +73,9 @@ export function CalendarFields() {
   }
 
   return (
-    <section>
+    <section aria-labelledby="calendar-legend">
       <SectionHeader
-        legendId="calendar-fields-label"
+        legendId="calendar-legend"
         legend={t("legend")}
         description={t("description")}
       />
@@ -83,7 +83,7 @@ export function CalendarFields() {
       {connections && connections.length > 0 ? (
         <ul
           role="list"
-          aria-labelledby="calendar-fields-label"
+          aria-labelledby="calendar-legend"
           className="mt-5 border-2 border-bru-line divide-y-2 divide-bru-line"
         >
           {connections.map((c) => (

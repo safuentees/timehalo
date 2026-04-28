@@ -40,7 +40,7 @@ export function ThemeFields() {
     current !== "system" && osPref !== null && current !== osPref;
 
   return (
-    <section>
+    <section aria-labelledby="theme-legend">
       <SectionHeader
         legendId="theme-legend"
         legend={t("themeLegend")}
