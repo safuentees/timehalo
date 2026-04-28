@@ -17,7 +17,7 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
   const tDanger = useTranslations("DangerZone");
 
   return (
-    <BrutalistPageShell tight>
+    <BrutalistPageShell>
       <BrutalistPageHeader title={tSettings("title")} />
       <div className="mt-8 flex flex-col gap-12">
         <TimezoneFields timezones={timezones} />
