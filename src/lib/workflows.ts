@@ -237,6 +237,31 @@ function buildTemplateProps(
   }
 }
 
+export const DEFAULT_REMINDER_WORKFLOW = {
+  name: "1h reminder",
+  trigger: "BEFORE_EVENT" as const,
+  offsetMinutes: 60,
+  action: "EMAIL_VISITOR" as const,
+  template: "booking-reminder" as const,
+  active: true,
+} as const;
+
+export async function hasMatchingReminderWorkflow(
+  userId: string,
+): Promise<boolean> {
+  const row = await prisma.workflow.findFirst({
+    where: {
+      userId,
+      active: true,
+      trigger: "BEFORE_EVENT",
+      action: "EMAIL_VISITOR",
+      template: DEFAULT_REMINDER_WORKFLOW.template,
+    },
+    select: { id: true },
+  });
+  return row !== null;
+}
+
 export async function cancelPendingWorkflowTasks(
   bookingPublicUid: string,
 ): Promise<number> {

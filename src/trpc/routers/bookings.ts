@@ -18,6 +18,7 @@ import {
 import {
   cancelPendingWorkflowTasks,
   dispatchWorkflows,
+  hasMatchingReminderWorkflow,
   type WorkflowBookingContext,
 } from "@/lib/workflows";
 import {
@@ -254,10 +255,13 @@ export const bookings = router({
               referenceUid: `${booking.publicUid}:email:booking-created:visitor`,
             });
 
+            const useHardcodedReminder = !(await hasMatchingReminderWorkflow(
+              host.id,
+            ));
             const reminderAt = new Date(
               booking.slotStart.getTime() - REMINDER_LEAD_MS,
             );
-            if (reminderAt.getTime() > Date.now()) {
+            if (useHardcodedReminder && reminderAt.getTime() > Date.now()) {
               await scheduleEmailSend({
                 payload: {
                   to: input.visitorEmail,
@@ -828,10 +832,15 @@ export const bookings = router({
               type: TASK_TYPE_EMAIL_SEND,
             });
             await cancelPendingWorkflowTasks(original.publicUid);
+            const useHardcodedReminderResched =
+              !(await hasMatchingReminderWorkflow(host.id));
             const newReminderAt = new Date(
               newSlotStart.getTime() - REMINDER_LEAD_MS,
             );
-            if (newReminderAt.getTime() > Date.now()) {
+            if (
+              useHardcodedReminderResched &&
+              newReminderAt.getTime() > Date.now()
+            ) {
               await scheduleEmailSend({
                 payload: {
                   to: original.visitorEmail,

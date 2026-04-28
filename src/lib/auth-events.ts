@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import { personalWorkspaceSlugFor } from "@/lib/workspaces";
+import { DEFAULT_REMINDER_WORKFLOW } from "@/lib/workflows";
 
 export function resolveAuthRedirect(input: { url: string; baseUrl: string }): string {
   const { url, baseUrl } = input;
@@ -26,13 +27,15 @@ export async function bootstrapUserWorkspace(user: {
   id: string;
   email: string | null;
 }): Promise<void> {
-  const [existingWorkspace, existingRanges] = await Promise.all([
-    prisma.workspace.findFirst({
-      where: { ownerId: user.id },
-      select: { id: true },
-    }),
-    prisma.availabilityRange.count({ where: { userId: user.id } }),
-  ]);
+  const [existingWorkspace, existingRanges, existingWorkflows] =
+    await Promise.all([
+      prisma.workspace.findFirst({
+        where: { ownerId: user.id },
+        select: { id: true },
+      }),
+      prisma.availabilityRange.count({ where: { userId: user.id } }),
+      prisma.workflow.count({ where: { userId: user.id } }),
+    ]);
 
   if (!existingWorkspace) {
     await prisma.$transaction(async (tx) => {
@@ -60,6 +63,15 @@ export async function bootstrapUserWorkspace(user: {
         userId: user.id,
         ...row,
       })),
+    });
+  }
+
+  if (existingWorkflows === 0) {
+    await prisma.workflow.create({
+      data: {
+        userId: user.id,
+        ...DEFAULT_REMINDER_WORKFLOW,
+      },
     });
   }
 }
