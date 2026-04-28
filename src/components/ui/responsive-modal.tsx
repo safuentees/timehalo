@@ -402,6 +402,37 @@ export function ResponsiveModalClose({
   );
 }
 
+// Dialog action footer — the canonical row for cancel/confirm buttons
+// at the bottom of a modal body. Stacks vertically on mobile (each
+// button full-width via the surrounding Button.size flex), aligns
+// inline-end on sm+ so the primary action sits at the bottom-right
+// (the same position the OS-level keyboard "return" affordance lives
+// in iOS/macOS dialogs). Audit on 2026-04-27 found this pattern
+// repeated verbatim in four dialogs — single source of truth here.
+//
+// Consumers pass the buttons as children. No order is enforced;
+// convention is cancel-on-the-left, primary-on-the-right (which
+// becomes top/bottom on mobile after the flex-col stack).
+
+export function ResponsiveModalFooter({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 sm:flex-row sm:justify-end",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 /**
  * Hook escape-hatch for callers that need to branch on the active form
  * factor inside the modal subtree (e.g. swap a layout block when there's

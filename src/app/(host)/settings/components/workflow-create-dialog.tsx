@@ -11,6 +11,7 @@ import { Field, FieldError } from "@/components/ui/field";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
+  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
   ResponsiveModalTrigger,
@@ -334,7 +335,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           )}
         />
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <ResponsiveModalFooter>
           <Button
             type="button"
             variant="brutalistGhost"
@@ -352,7 +353,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           >
             {isPending ? t("creating") : t("create")}
           </Button>
-        </div>
+        </ResponsiveModalFooter>
       </form>
     </FormProvider>
   );
