@@ -208,14 +208,12 @@ function ApiKeyRow({
       </ul>
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <span
-          className={[
-            "bru-eyebrow",
-            revoked ? null : "opacity-100 text-emerald-700 dark:text-emerald-400",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
+        {/* Status pill: text-only, matches the workflow active/inactive
+            convention. The whole row already dims to opacity-60 when
+            revoked (border on the article) — the pill doesn't need a
+            second visual signal. Keeps the brutalist palette palette-pure
+            (no emerald accent, audit §3.1). */}
+        <span className="bru-eyebrow tabular-nums">
           {revoked ? t("statusRevoked") : t("statusActive")}
         </span>
         {revoked ? null : (
