@@ -36,10 +36,29 @@ paths:
 - Metadata/labels/uppercase chrome/tabular numbers: JetBrains Mono via `--font-jetbrains`, also reachable as `font-mono` or `var(--bru-mono)` in raw CSS.
 - No serif. Instrument Serif was removed. If a title needs more weight, use `font-bold` or `font-black` and bigger size — not a different family. Reference: the `/h/[handle]` hero (`bru-v1-name` in globals.css) — Space Grotesk weight 900, `clamp(40px, 12cqi, 64px)`, letter-spacing `-0.04em`, line-height `0.92`.
 
+### Typography utilities — single source of truth for chrome roles
+
+Three semantic CSS classes live in `src/app/globals.css`. Use them; do not inline the equivalent eight-class strings.
+
+- `bru-legend` — section / field label. Mono 11px, font-weight 800, letter-spacing 2.5px, uppercase, opacity 55. Replaces every verbatim `font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55`.
+- `bru-description` — section / field description. 13px, line-height 1.5, max-width 65ch, opacity 65. Replaces `text-[13px] leading-[1.5] opacity-65 max-w-prose`.
+- `bru-eyebrow` — small mono caps metadata badge. Mono 10px, font-weight 800, letter-spacing 2px, uppercase, opacity 55. Replaces `font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55`.
+
+If a callsite needs to override one token (e.g. `tabular-nums` on a date eyebrow, `opacity-100` for an active state, a different size at sm+), compose: `className="bru-eyebrow tabular-nums opacity-100"`. Never re-inline the base.
+
+## List patterns
+
+Two list shapes, picked by the shape of the row:
+
+- **Card-stack** — `<ul role="list" className="flex flex-col gap-2.5">` with `<li>` wrapping an `<article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">`. Use for variable-height items with mixed content (eyebrow + title + body + inline button row). References: `workflow-fields.tsx`, `api-keys-fields.tsx`, `calendar-fields.tsx`.
+- **Divided list** — `<ul className="border-2 border-bru-line divide-y-2 divide-bru-line">` with `<li>` rows that don't carry their own border. Use for compact, uniform rows (single label + control, e.g. a calendar-name + Switch row). Reference: `calendar-pick-dialog.tsx`.
+
+When in doubt, use card-stack — it scales better as items gain affordances.
+
 ## Empty states + icons
 
 - Two patterns, picked by surface size:
-  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): one-line muted text in a tight dashed border. Pattern: `<p className="text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">{message}</p>`. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
+  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): use `<BrutalistInlineEmpty>` from `src/components/brutalist/inline-empty.tsx`. One-line muted text in a tight dashed border. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
   - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `BrutalistEmpty` from `src/components/brutalist/brutalist-empty.tsx`. Renders icon (optional) + bold Space Grotesk title + 13px muted description in a `border-2 border-dashed border-bru-line-strong p-10` frame.
 - Icon convention (whenever an icon sits inside a placeholder/empty state):
   - Bare lucide line icon — never a muted-grey rounded background tile (that's stock shadcn).
@@ -48,6 +67,17 @@ paths:
   - Color: `text-[color:var(--bru-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--bru-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
   - No fill, no halo, no ring, no rotation effects — the icon sits in flow.
 
+## Destructive actions
+
+Three patterns, picked by reversibility:
+
+- **Single-click destructive (mid-stakes, recoverable)**: never. Always pair with a confirm. Use `<ConfirmDialog>` from `src/components/brutalist/confirm-dialog.tsx`. Reference: `workflow-fields.tsx` (delete) + `api-keys-fields.tsx` (revoke).
+- **Typed-confirm (irreversible / account-level)**: render the typed-email or typed-handle confirmation pattern. Reference: `delete-account-dialog.tsx`.
+- **Native `window.confirm`**: never. Breaks the brutalist palette and is mobile-hostile. Audit on 2026-04-27 ripped the last one out.
+
+The `<ConfirmDialog>` API takes `trigger` (the button), `title`, `description`, `confirmLabel`, `cancelLabel`, `pending` (from a mutation hook), and `onConfirm` (awaited; close-on-resolve). Don't roll a one-off dialog for every destructive action.
+
 ## Copy
 
 - No mid-dot separators (`·`) in copy. They read as filler — drop the separator AND audit each half against "does this carry data the user can't read elsewhere on this screen." Memory entry: `feedback_no_dot_separator.md`.
+- No hardcoded English strings in production code paths. Every visible string runs through `useTranslations()` from next-intl. Dates use ICU date format (`{date, date, medium}`) so locale-aware month/day order is correct — never hand-roll a `MONTH_SHORT` array.
