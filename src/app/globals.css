@@ -276,6 +276,14 @@
   --sidebar-accent-foreground: var(--bru-ink);
   --sidebar-border: var(--bru-ink);
   --sidebar-ring: var(--bru-ink);
+  /* SidebarInset hardcodes `bg-background` from the shadcn primitive
+     (sidebar.tsx:310). The default shadcn token is white, which left
+     a visible white seam where the sidebar (--bru-frame, cream) met
+     the inset (--background, white). Re-aliasing --background to
+     --bru-frame within the .bru-app scope makes the seam disappear:
+     sidebar + inset paint the same cream surface, the rounded white
+     panel inside (bru-host-content) reads as a window over it. */
+  --background: var(--bru-frame);
 }
 /* Sidebar / main-content seam: no border. The sidebar's bg is now
    `--bru-frame` (matches the outermost layer of bru-root), so the
