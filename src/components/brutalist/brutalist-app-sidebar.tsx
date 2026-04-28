@@ -4,7 +4,6 @@ import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { PanelLeft } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -76,7 +75,17 @@ export function BrutalistAppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="bru-app-sidebar"
+      // `will-change: width` on the gap + fixed container hints the
+      // browser to promote them to a compositor layer for the 200ms
+      // collapse transition. Without this, the layout reflow during
+      // a thick (2px) brutalist border + position:fixed width
+      // animation can drop frames on slower machines, which reads as
+      // the sidebar "snapping" instead of sliding.
+      className={[
+        "bru-app-sidebar",
+        "[&_[data-slot=sidebar-gap]]:will-change-[width]",
+        "[&_[data-slot=sidebar-container]]:will-change-[width]",
+      ].join(" ")}
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
         <div className="bru-brand">
@@ -165,24 +174,18 @@ export function BrutalistAppSidebar() {
   );
 }
 
-// Sidebar collapse trigger. Theme toggle + sign-out parked for now
-// per 2026-04-28 request — they'll come back when the surface is
-// stable. Border is intentionally transparent so the icon sits
-// flush in the footer instead of reading as a button card.
+// Sidebar collapse trigger. Bare native button — no Button component,
+// no variant baggage, no hover state. Just an icon that toggles.
 function FooterControls() {
   const { toggleSidebar, state } = useSidebar();
   return (
-    <div className="flex flex-row items-center gap-1 px-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5 group-data-[collapsible=icon]:px-0">
-      <Button
-        type="button"
-        variant="brutalistGhost"
-        size="brutalistIcon"
-        onClick={toggleSidebar}
-        aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
-        className="rounded-(--bru-r-xs) border-transparent hover:border-transparent"
-      >
-        <PanelLeft />
-      </Button>
-    </div>
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
+      className="inline-flex size-9 items-center justify-center text-bru-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-ink focus-visible:outline-offset-2 [&_svg]:size-4"
+    >
+      <PanelLeft strokeWidth={1.5} />
+    </button>
   );
 }
