@@ -282,6 +282,56 @@ function buildTemplateProps(
 }
 
 /**
+ * The default reminder shape seeded at user create + checked at
+ * booking time. A user with any active workflow matching this shape
+ * (BEFORE_EVENT + EMAIL_VISITOR + booking-reminder) receives the
+ * reminder via the workflows engine; the bookings.create /
+ * bookings.reschedule paths suppress their hardcoded
+ * `scheduleEmailSend({ template: "booking-reminder" })` so the
+ * visitor never receives the reminder twice.
+ *
+ * Seeded automatically for every new user (auth.register +
+ * bootstrapUserWorkspace). Backfilled for existing users via the
+ * `20260427_seed_default_reminder_workflow_for_existing_users` migration.
+ */
+export const DEFAULT_REMINDER_WORKFLOW = {
+  name: "1h reminder",
+  trigger: "BEFORE_EVENT" as const,
+  offsetMinutes: 60,
+  action: "EMAIL_VISITOR" as const,
+  template: "booking-reminder" as const,
+  active: true,
+} as const;
+
+/**
+ * Returns true when the user has an active workflow matching the
+ * default reminder shape — meaning the workflows engine will already
+ * fire a reminder, so the hardcoded reminder enqueue in
+ * bookings.create / bookings.reschedule should be skipped to avoid a
+ * duplicate Task.
+ *
+ * Filters on the same trigger/action/template as DEFAULT_REMINDER_WORKFLOW.
+ * A user who customizes the offset (e.g. 30 min instead of 60) still
+ * suppresses the hardcoded path — their own rule fires at the custom
+ * offset, which is the whole point of making the workflow editable.
+ */
+export async function hasMatchingReminderWorkflow(
+  userId: string,
+): Promise<boolean> {
+  const row = await prisma.workflow.findFirst({
+    where: {
+      userId,
+      active: true,
+      trigger: "BEFORE_EVENT",
+      action: "EMAIL_VISITOR",
+      template: DEFAULT_REMINDER_WORKFLOW.template,
+    },
+    select: { id: true },
+  });
+  return row !== null;
+}
+
+/**
  * Cancel pending workflow Tasks tied to a booking. Called from
  * bookings.cancel + bookings.reschedule so future BEFORE_EVENT
  * dispatches don't fire after the booking is gone. Pattern:

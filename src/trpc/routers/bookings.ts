@@ -18,6 +18,7 @@ import {
 import {
   cancelPendingWorkflowTasks,
   dispatchWorkflows,
+  hasMatchingReminderWorkflow,
   type WorkflowBookingContext,
 } from "@/lib/workflows";
 import {
@@ -341,10 +342,20 @@ export const bookings = router({
             // already <1h away — sending a reminder for a slot that's
             // imminent or already passed is noise. Cancel/reschedule
             // mark this row as superseded so the cron skips it.
+            //
+            // Suppression — A4: every user is seeded with a default
+            // BEFORE_EVENT + EMAIL_VISITOR + booking-reminder workflow
+            // at register time, and the workflows engine fires it via
+            // dispatchWorkflows below. If that rule (or any user-edited
+            // version of it) is active, skip the hardcoded enqueue so
+            // the visitor doesn't receive the same reminder email twice.
+            const useHardcodedReminder = !(await hasMatchingReminderWorkflow(
+              host.id,
+            ));
             const reminderAt = new Date(
               booking.slotStart.getTime() - REMINDER_LEAD_MS,
             );
-            if (reminderAt.getTime() > Date.now()) {
+            if (useHardcodedReminder && reminderAt.getTime() > Date.now()) {
               await scheduleEmailSend({
                 payload: {
                   to: input.visitorEmail,
@@ -992,10 +1003,18 @@ export const bookings = router({
             // re-runs EVENT_CREATED + BEFORE_EVENT dispatches below
             // so user rules carry over to the new slot.
             await cancelPendingWorkflowTasks(original.publicUid);
+            // Same A4 suppression as bookings.create: only enqueue the
+            // hardcoded reminder when no matching workflow rule exists
+            // for the host. The workflows engine handles it otherwise.
+            const useHardcodedReminderResched =
+              !(await hasMatchingReminderWorkflow(host.id));
             const newReminderAt = new Date(
               newSlotStart.getTime() - REMINDER_LEAD_MS,
             );
-            if (newReminderAt.getTime() > Date.now()) {
+            if (
+              useHardcodedReminderResched &&
+              newReminderAt.getTime() > Date.now()
+            ) {
               await scheduleEmailSend({
                 payload: {
                   to: original.visitorEmail,
