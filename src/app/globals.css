@@ -204,6 +204,9 @@
   --sidebar-ring: var(--bru-ink);
   --background: var(--bru-frame);
 }
+.bru-app [data-slot="sidebar-container"] {
+  border-right-width: 0;
+}
 
 .bru-root {
   position: relative;
