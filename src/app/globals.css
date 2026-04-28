@@ -196,15 +196,13 @@
 }
 
 .bru-app {
-  --sidebar: var(--bru-paper);
+  --sidebar: var(--bru-frame);
   --sidebar-foreground: var(--bru-ink);
   --sidebar-accent: var(--bru-tint-hover);
   --sidebar-accent-foreground: var(--bru-ink);
   --sidebar-border: var(--bru-ink);
   --sidebar-ring: var(--bru-ink);
 }
-.bru-app [data-slot="sidebar-container"] { border-right: 2px solid var(--bru-ink); }
-.bru-app [data-mobile="true"][data-slot="sidebar"] { border-right: 2px solid var(--bru-ink); }
 
 .bru-root {
   position: relative;
@@ -1827,19 +1825,12 @@
   flex: 1 1 0%;
 }
 
-::view-transition-old(bru-host-content),
-::view-transition-new(bru-host-content) {
-  transform-origin: top center;
-}
-
 ::view-transition-old(bru-host-content) {
-  animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
-             bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
+  animation: bru-vt-fade-out 110ms cubic-bezier(.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(bru-host-content) {
-  animation: bru-vt-fade-in 220ms cubic-bezier(0, 0, .2, 1) 60ms both,
-             bru-vt-scale-in 280ms cubic-bezier(.2, .8, .2, 1) both;
+  animation: bru-vt-fade-in 110ms cubic-bezier(0, 0, .2, 1) 110ms both;
 }
 
 @keyframes bru-vt-fade-out {
@@ -1847,12 +1838,6 @@
 }
 @keyframes bru-vt-fade-in {
   from { opacity: 0; }
-}
-@keyframes bru-vt-scale-out {
-  to { transform: scale(0.98); }
-}
-@keyframes bru-vt-scale-in {
-  from { transform: scale(0.98); }
 }
 
 @media (prefers-reduced-motion: reduce) {
