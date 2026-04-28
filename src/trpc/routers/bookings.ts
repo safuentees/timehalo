@@ -22,6 +22,11 @@ import {
   type WorkflowBookingContext,
 } from "@/lib/workflows";
 import {
+  bumpRecentAssignments,
+  resolveEventTypeForHandle,
+} from "@/lib/event-types";
+import { selectHost } from "@/lib/round-robin";
+import {
   emitBookingEvent,
   iterateBookingEvents,
   type BookingBusEvent,
@@ -177,6 +182,51 @@ export const bookings = router({
 
           const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
 
+          // Round-robin pick (B2). Resolve the EventType for the
+          // handle, run selectHost across its host pool. For the
+          // singleton-fixed case (every backfilled user) this returns
+          // the host themselves — same as before. For multi-host event
+          // types, the algorithm picks based on priority + weight +
+          // recent-assignment count. excludeHostIds covers hosts who
+          // already have a booking at this slot (the slot collision
+          // check below short-circuits when the picked host conflicts,
+          // but we exclude them up front to give a different host a
+          // chance instead of throwing a useless CONFLICT for a
+          // multi-host pool).
+          const resolvedEventType = await resolveEventTypeForHandle(
+            input.handle,
+          );
+          let pickedHostId = host.id;
+          if (resolvedEventType && resolvedEventType.hosts.length > 1) {
+            const conflictingHosts = await prisma.booking.findMany({
+              where: {
+                eventTypeId: resolvedEventType.id,
+                slotStart,
+                deleted: false,
+              },
+              select: { hostId: true },
+            });
+            const excludeHostIds = new Set(
+              conflictingHosts.map((b) => b.hostId),
+            );
+            const pick = selectHost({
+              hosts: resolvedEventType.hosts,
+              excludeHostIds,
+            });
+            if (pick.kind === "selected") {
+              pickedHostId = pick.hostId;
+            } else {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  pick.kind === "all-conflicted"
+                    ? "Every host on this event type is already booked at that slot."
+                    : "No hosts configured for this event type.",
+              });
+            }
+          }
+          const eventTypeId = resolvedEventType?.id ?? null;
+
           // One UUID per request, shared by the audit row written below
           // and (eventually) by webhook deliveries / email tasks fired off
           // the same user action. Lets logs group every side effect of one
@@ -223,7 +273,7 @@ export const bookings = router({
               }
 
               const slotCollision = await tx.booking.findFirst({
-                where: { hostId: host.id, slotStart, deleted: false },
+                where: { hostId: pickedHostId, slotStart, deleted: false },
                 select: { id: true },
               });
               if (slotCollision) {
@@ -235,8 +285,9 @@ export const bookings = router({
 
               const created = await tx.booking.create({
                 data: {
-                  hostId: host.id,
+                  hostId: pickedHostId,
                   workspaceId,
+                  eventTypeId,
                   visitorName: input.visitorName,
                   visitorEmail: input.visitorEmail,
                   question: input.question,
@@ -256,8 +307,14 @@ export const bookings = router({
                   action: "CREATED",
                   // Self-contained snapshot — survives the booking row's
                   // eventual deletion. Dates as ISO strings for portable JSON.
+                  // hostId here is the round-robin-resolved host (which
+                  // equals the handle owner for the singleton-fixed case
+                  // every existing user has). eventTypeId captures which
+                  // event type this booking was made against.
                   data: {
-                    hostId: host.id,
+                    hostId: pickedHostId,
+                    eventTypeId,
+                    handle: input.handle,
                     visitorName: input.visitorName,
                     visitorEmail: input.visitorEmail,
                     question: input.question ?? null,
@@ -273,6 +330,28 @@ export const bookings = router({
               return created;
             });
             span.setAttribute("bookingPublicUid", booking.publicUid);
+
+            // Bump the round-robin lookback counter. Fires only for
+            // multi-host event types — the singleton-fixed case
+            // doesn't need fairness tracking. Failure is non-fatal:
+            // booking already committed, the worst case is the next
+            // pick weighs this assignment as if it never happened.
+            if (
+              eventTypeId !== null &&
+              resolvedEventType &&
+              resolvedEventType.hosts.length > 1
+            ) {
+              try {
+                await bumpRecentAssignments({
+                  eventTypeId,
+                  userId: pickedHostId,
+                });
+              } catch (err) {
+                // Same shape as the workflow / webhook fan-out below —
+                // never roll back the booking for an analytics write.
+                console.error("[bookings.create] bumpRecentAssignments", err);
+              }
+            }
 
             // Fan out the booking.created event to active webhooks. This
             // intentionally runs OUTSIDE the $transaction — webhook delivery
