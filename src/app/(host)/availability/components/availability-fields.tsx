@@ -179,15 +179,19 @@ function BlockChip({
     <button
       type="button"
       onClick={onEdit}
-      className="group relative flex w-full flex-col gap-1.5 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
       aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
     >
-      <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
-        {formatDayLabel(block.days)}
+      <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="bru-eyebrow">{formatDayLabel(block.days)}</span>
+        <span className="text-[18px] leading-[1.1] font-black tabular-nums">
+          {formatTimeRange(block.from, block.to)}
+        </span>
       </span>
-      <span className="text-[18px] leading-[1.1] font-black tabular-nums">
-        {formatTimeRange(block.from, block.to)}
-      </span>
+      <ChevronRightIcon
+        className="size-4 shrink-0 opacity-45 transition-opacity group-hover:opacity-100"
+        aria-hidden
+      />
     </button>
   );
 }
@@ -406,16 +410,16 @@ function DayToggle({
       aria-label={longLabel}
       className={`relative flex w-full items-center justify-between gap-3 rounded-(--bru-r-xs) border-[1.5px] border-[var(--bru-ink)] px-4 py-3 text-left font-[family-name:var(--bru-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)] ${
         selected
-          ? "bg-[var(--bru-ink)] text-[var(--bru-paper)]"
-          : "bg-[var(--bru-paper)] text-[var(--bru-ink)] opacity-65 hover:opacity-100"
+          ? "bg-bru-ink text-bru-paper"
+          : "bg-bru-paper text-bru-ink opacity-65 hover:opacity-100"
       }`}
     >
       <span>{label}</span>
       <span
         className={`grid size-5 shrink-0 place-items-center rounded-(--bru-r-xs) border-[1.5px] ${
           selected
-            ? "border-[var(--bru-paper)] bg-[var(--bru-paper)] text-[var(--bru-ink)]"
-            : "border-[var(--bru-ink)] bg-transparent text-transparent"
+            ? "border-bru-paper bg-bru-paper text-bru-ink"
+            : "border-bru-ink bg-transparent text-transparent"
         }`}
         aria-hidden
       >
