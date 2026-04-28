@@ -76,7 +76,20 @@ export function BrutalistAppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="bru-app-sidebar border-r-0"
+      variant="floating"
+      className={[
+        "bru-app-sidebar",
+        // The inner is shadcn's rounded card surface. Drop the soft
+        // shadow + faint ring (stock shadcn vocabulary) and replace
+        // with a thick brutalist border. Inner already carries
+        // `bg-sidebar` (= --bru-paper in our theme) and `size-full`,
+        // so the rounded surface fills the full viewport height
+        // regardless of how many nav items live inside.
+        "[&_[data-slot=sidebar-inner]]:shadow-none",
+        "[&_[data-slot=sidebar-inner]]:ring-0",
+        "[&_[data-slot=sidebar-inner]]:border-2",
+        "[&_[data-slot=sidebar-inner]]:border-bru-line-strong",
+      ].join(" ")}
     >
       <SidebarHeader className="px-4 pt-5 pb-8">
         <div className="bru-brand">
