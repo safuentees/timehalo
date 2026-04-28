@@ -56,9 +56,9 @@ export function ThemeFields() {
       {mounted && divergesFromOs && osPref ? (
         <p
           aria-live="polite"
-          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase opacity-65"
+          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase"
         >
-          <span>
+          <span className="opacity-65">
             {t("themeOsHint", {
               pref:
                 osPref === "dark"
@@ -69,7 +69,7 @@ export function ThemeFields() {
           <button
             type="button"
             onClick={() => setTheme("system")}
-            className="underline underline-offset-2 opacity-100 hover:opacity-80"
+            className="rounded-(--bru-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-bru-tint focus-visible:bg-bru-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-content focus-visible:outline-offset-2"
           >
             {t("themeFollowOs")}
           </button>

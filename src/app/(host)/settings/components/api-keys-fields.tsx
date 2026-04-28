@@ -181,14 +181,7 @@ function ApiKeyRow({
       </ul>
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <span
-          className={[
-            "bru-eyebrow",
-            revoked ? null : "opacity-100 text-emerald-700 dark:text-emerald-400",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
+        <span className="bru-eyebrow tabular-nums">
           {revoked ? t("statusRevoked") : t("statusActive")}
         </span>
         {revoked ? null : (
