@@ -12,6 +12,7 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
+import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 
 type Props = {
   credentialId: string | null;
@@ -88,8 +89,8 @@ function CalendarPickBody({
 
   if (data.length === 0) {
     return (
-      <div className="px-5 pb-6 text-[13px] opacity-65">
-        {t("pickEmpty")}
+      <div className="px-5 pb-6">
+        <BrutalistInlineEmpty>{t("pickEmpty")}</BrutalistInlineEmpty>
       </div>
     );
   }

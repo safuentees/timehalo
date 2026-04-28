@@ -7,6 +7,7 @@ import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
 import { SectionHeader } from "./section-header";
+import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
@@ -24,9 +25,7 @@ export function WorkflowFields() {
         {isLoading ? (
           <p className="text-[13px] opacity-55">{t("loading")}</p>
         ) : !data || data.length === 0 ? (
-          <p className="text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">
-            {t("listEmpty")}
-          </p>
+          <BrutalistInlineEmpty>{t("listEmpty")}</BrutalistInlineEmpty>
         ) : (
           <ul
             role="list"
