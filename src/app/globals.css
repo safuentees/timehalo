@@ -270,22 +270,18 @@
 /* Brutalist-themed shadcn Sidebar wrapper. Scopes sidebar tokens to the
    brutalist palette so <Sidebar> renders in paper/ink without forking. */
 .bru-app {
-  --sidebar: var(--bru-paper);
+  --sidebar: var(--bru-frame);
   --sidebar-foreground: var(--bru-ink);
   --sidebar-accent: var(--bru-tint-hover);
   --sidebar-accent-foreground: var(--bru-ink);
   --sidebar-border: var(--bru-ink);
   --sidebar-ring: var(--bru-ink);
 }
-/* Brutalist border on the Sidebar's outer container. The radial-
-   gradient halftone texture that used to live on the inner surface
-   has been removed — it was decorative noise behind the nav links
-   without any structural purpose, and it competes visually with the
-   inner-window pattern below where the page panel is the focal
-   surface. */
-.bru-app [data-slot="sidebar-container"] { border-right: 2px solid var(--bru-ink); }
-/* Mobile sheet variant — keep the 2px border look when rendered as Sheet. */
-.bru-app [data-mobile="true"][data-slot="sidebar"] { border-right: 2px solid var(--bru-ink); }
+/* Sidebar / main-content seam: no border. The sidebar's bg is now
+   `--bru-frame` (matches the outermost layer of bru-root), so the
+   sidebar visually merges with the frame surrounding the rounded
+   bru-host-content panel — eliminates the seam without needing a
+   visible border. */
 
 .bru-root {
   position: relative;
@@ -2159,19 +2155,19 @@
   flex: 1 1 0%;
 }
 
-::view-transition-old(bru-host-content),
-::view-transition-new(bru-host-content) {
-  transform-origin: top center;
-}
-
+/* Fade-only, sequenced. Default View Transitions API behavior is a
+   cross-fade: old goes opacity 1→0 over the duration, new goes 0→1
+   over the same window — both visible at once, which reads as the
+   "ghost overlap" the user flagged. We sequence instead: old fully
+   fades out, then new fades in via animation-delay equal to the
+   out-duration. Total transition stays short (~220ms) but with no
+   visual overlap between the old and new content. */
 ::view-transition-old(bru-host-content) {
-  animation: bru-vt-fade-out 180ms cubic-bezier(.4, 0, 1, 1) both,
-             bru-vt-scale-out 220ms cubic-bezier(.2, .8, .2, 1) both;
+  animation: bru-vt-fade-out 110ms cubic-bezier(.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(bru-host-content) {
-  animation: bru-vt-fade-in 220ms cubic-bezier(0, 0, .2, 1) 60ms both,
-             bru-vt-scale-in 280ms cubic-bezier(.2, .8, .2, 1) both;
+  animation: bru-vt-fade-in 110ms cubic-bezier(0, 0, .2, 1) 110ms both;
 }
 
 @keyframes bru-vt-fade-out {
@@ -2179,16 +2175,6 @@
 }
 @keyframes bru-vt-fade-in {
   from { opacity: 0; }
-}
-/* Subtle scale — 0.98, not 0.96. The previous 4% travel read as a full
-   "zoom out and back," which is too much for a sidebar tab swap. Apple's
-   own tab transitions are closer to 1-2% scale; the eye reads it as
-   "the page settled" rather than "the camera pulled back." */
-@keyframes bru-vt-scale-out {
-  to { transform: scale(0.98); }
-}
-@keyframes bru-vt-scale-in {
-  from { transform: scale(0.98); }
 }
 
 /* Persistent chrome (sidebar, topbar) doesn't need view-transition-name
