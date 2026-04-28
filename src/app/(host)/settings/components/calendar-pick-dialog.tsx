@@ -38,11 +38,11 @@ export function CalendarPickDialog({
   return (
     <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveModalContent>
-        <ResponsiveModalHeader className="px-5 pt-2 pb-4">
-          <ResponsiveModalTitle className="bru-legend opacity-100">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>
             {t("pickTitle")}
             {externalAccountEmail ? (
-              <span className="ml-2 font-normal opacity-60 normal-case tracking-normal text-[12px]">
+              <span className="ml-2 text-[12px] font-normal normal-case tracking-normal opacity-60">
                 {externalAccountEmail}
               </span>
             ) : null}
