@@ -9,7 +9,7 @@ import {
   isLocale,
   type Locale,
 } from "@/i18n/locales";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 
 // Language picker. Sets the `oh_locale` cookie via a server action,
 // then revalidatePath('/', 'layout') refreshes every server-rendered

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 
 // Three-option theme picker: system / light / dark.
 //

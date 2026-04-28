@@ -14,7 +14,7 @@ import {
   getBrowserTimezone,
   timezoneSchema,
 } from "@/lib/timezone";
-import { SectionHeader } from "./section-header";
+import { SectionHeader } from "@/components/brutalist/section-header";
 
 // IANA timezone picker. Self-contained — owns its own form, mutation,
 // and Save button. Per-section commits match the cal.com / dub.co
