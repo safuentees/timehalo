@@ -220,7 +220,13 @@ function ApiKeyRow({
       </header>
 
       <p className="mt-2 truncate font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
-        {prefix}…
+        {prefix}
+        {/* Three separate periods + tracking — the unicode `…` is a single
+            glyph that letter-spacing can't split, so it renders as three
+            dots crammed together. Three periods are individual glyphs and
+            tracking applies. Tight 3px gives the "continuation" feeling
+            without floating away from the prefix. */}
+        <span aria-hidden className="ml-0.5 tracking-[3px]">...</span>
       </p>
       {scopeList.length > 0 ? (
         <p
