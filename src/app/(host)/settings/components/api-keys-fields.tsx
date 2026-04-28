@@ -179,7 +179,8 @@ function ApiKeyRow({
       </header>
 
       <p className="mt-2 truncate font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
-        {prefix}…
+        {prefix}
+        <span aria-hidden className="ml-0.5 tracking-[3px]">...</span>
       </p>
       {scopeList.length > 0 ? (
         <p
