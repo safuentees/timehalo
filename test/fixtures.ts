@@ -39,6 +39,13 @@ export async function createTestHost(handle: string): Promise<TestHost> {
     await tx.membership.create({
       data: { workspaceId: ws.id, userId: user.id, role: "OWNER" },
     });
+    await tx.subscription.create({
+      data: {
+        workspaceId: ws.id,
+        plan: "PRO",
+        status: "ACTIVE",
+      },
+    });
     return user;
   });
   return { id: host.id, handle: host.handle!, email: host.email };
@@ -62,6 +69,26 @@ export async function createTestWorkspaceForUser(
       data: { workspaceId: ws.id, userId, role: "OWNER" },
     });
     return ws;
+  });
+}
+
+export async function upgradeWorkspaceToPro(
+  ref: { id: string } | { slug: string },
+) {
+  let workspaceId: string;
+  if ("id" in ref) {
+    workspaceId = ref.id;
+  } else {
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: ref.slug },
+      select: { id: true },
+    });
+    workspaceId = ws.id;
+  }
+  await prisma.subscription.upsert({
+    where: { workspaceId },
+    create: { workspaceId, plan: "PRO", status: "ACTIVE" },
+    update: { plan: "PRO", status: "ACTIVE" },
   });
 }
 

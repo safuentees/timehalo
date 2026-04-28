@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 const workflowTriggerSchema = z.enum([
@@ -48,6 +49,9 @@ export const workflows = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const plan = await planForUser(ctx.user.id);
+      requireFeature(plan, "workflows");
+
       if (
         (input.action === "EMAIL_VISITOR" || input.action === "EMAIL_HOST") &&
         !input.template

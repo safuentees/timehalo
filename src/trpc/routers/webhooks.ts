@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { WEBHOOK_EVENTS } from "@/lib/webhook-events";
 import { privateProcedure, router } from "@/trpc/trpc";
 
@@ -29,6 +30,9 @@ export const webhooks = router({
   create: privateProcedure
     .input(webhookCreateSchema)
     .mutation(async ({ input, ctx }) => {
+      const plan = await planForUser(ctx.user.id);
+      requireFeature(plan, "webhooks");
+
       const { randomBytes } = await import("node:crypto");
       const secret = randomBytes(32).toString("hex");
 

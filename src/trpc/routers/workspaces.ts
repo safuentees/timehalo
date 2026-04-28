@@ -14,6 +14,11 @@ import {
   type WorkspaceScope,
 } from "@/lib/workspaces";
 import { generateInvitationToken } from "@/lib/workspaces-server";
+import {
+  memberCap,
+  planForWorkspace,
+  requireFeature,
+} from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 const workspaceSlugSchema = z
@@ -281,6 +286,26 @@ export const workspaces = router({
         });
       }
 
+      const plan = await planForWorkspace(callerMembership.workspaceId);
+      const cap = memberCap(plan);
+      const [memberCount, pendingCount] = await Promise.all([
+        prisma.membership.count({
+          where: { workspaceId: callerMembership.workspaceId },
+        }),
+        prisma.invitation.count({
+          where: {
+            workspaceId: callerMembership.workspaceId,
+            acceptedAt: null,
+          },
+        }),
+      ]);
+      if (memberCount + pendingCount + 1 > cap) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Member cap reached for ${plan} plan (${cap}). Upgrade to add more.`,
+        });
+      }
+
       const token = await generateInvitationToken();
       const invitation = await prisma.invitation.create({
         data: {
@@ -413,6 +438,9 @@ export const workspaces = router({
           ctx.user.id,
           "members.write",
         );
+
+        const plan = await planForWorkspace(membership.workspaceId);
+        requireFeature(plan, "api-keys");
 
         const callerScopes = new Set(scopesFor(membership.role));
         for (const s of input.scopes) {

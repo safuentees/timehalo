@@ -1,6 +1,8 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { TRPCError } from "@trpc/server";
 import type { PlanTier } from "@/generated/prisma/enums";
+import { prisma } from "@/lib/prisma";
 
 export const PLAN_FEATURES = {
   FREE: new Set([
@@ -97,4 +99,40 @@ export function planFromStripePriceId(priceId: string | null): PlanTier {
   if (priceId === process.env.STRIPE_PRICE_PRO) return "PRO";
   if (priceId === process.env.STRIPE_PRICE_TEAM) return "TEAM";
   return "FREE";
+}
+
+export async function planForWorkspace(workspaceId: string): Promise<PlanTier> {
+  const sub = await prisma.subscription.findUnique({
+    where: { workspaceId },
+    select: { plan: true, status: true, currentPeriodEnd: true },
+  });
+  if (!sub) return "FREE";
+  if (sub.status === "CANCELED" && sub.currentPeriodEnd) {
+    if (sub.currentPeriodEnd.getTime() < Date.now()) {
+      return "FREE";
+    }
+  }
+  return sub.plan;
+}
+
+export async function planForUser(userId: string): Promise<PlanTier> {
+  const ws = await prisma.workspace.findFirst({
+    where: { ownerId: userId },
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (!ws) return "FREE";
+  return planForWorkspace(ws.id);
+}
+
+export function requireFeature(
+  plan: PlanTier,
+  feature: PlanFeature,
+): void {
+  if (!hasFeature(plan, feature)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Your plan (${plan}) does not include ${feature}.`,
+    });
+  }
 }

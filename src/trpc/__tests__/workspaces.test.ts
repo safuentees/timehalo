@@ -18,6 +18,7 @@ import {
   createTestUser,
   fakeContext,
   tearDownTestHost,
+  upgradeWorkspaceToPro,
 } from "../../../test/fixtures";
 
 const callRouter = createCaller(appRouter);
@@ -165,6 +166,7 @@ describe("workspaces.invite + invitations.accept", () => {
   it("creates an invitation row + enqueues an email Task", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     const inv = await ownerCaller.workspaces.invite({
       slug: SLUG,
       email: "invitee@example.com",
@@ -185,6 +187,7 @@ describe("workspaces.invite + invitations.accept", () => {
   it("invite rejects ADMIN grant from a non-owner", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
 
     await ownerCaller.workspaces.invite({
       slug: SLUG,
@@ -213,6 +216,7 @@ describe("workspaces.invite + invitations.accept", () => {
   it("accept binds the invitation to the logged-in user as a Membership", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     await ownerCaller.workspaces.invite({
       slug: SLUG,
       email: "invitee@example.com",
@@ -246,6 +250,7 @@ describe("workspaces.invite + invitations.accept", () => {
   it("accept rejects a second use (already accepted)", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     await ownerCaller.workspaces.invite({
       slug: SLUG,
       email: "invitee@example.com",
@@ -265,6 +270,7 @@ describe("workspaces.invite + invitations.accept", () => {
   it("accept rejects an expired invitation", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     await ownerCaller.workspaces.invite({
       slug: SLUG,
       email: "invitee@example.com",
@@ -419,6 +425,7 @@ describe("invitations.preview", () => {
       slug: SLUG,
       name: "Vitest Co",
     });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     await ownerCaller.workspaces.invite({
       slug: SLUG,
       email: "invitee@example.com",

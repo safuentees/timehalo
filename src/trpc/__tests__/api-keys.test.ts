@@ -20,6 +20,7 @@ import {
   createTestUser,
   fakeContext,
   tearDownTestHost,
+  upgradeWorkspaceToPro,
 } from "../../../test/fixtures";
 
 const callRouter = createCaller(appRouter);
@@ -83,6 +84,7 @@ describe("workspaces.apiKeys procedures", () => {
   it("create returns the full token exactly once + persists hash", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Acme" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     const result = await ownerCaller.workspaces.apiKeys.create({
       slug: SLUG,
       name: "ci",
@@ -105,6 +107,7 @@ describe("workspaces.apiKeys procedures", () => {
   it("list never surfaces the secret — only prefix", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Acme" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     await ownerCaller.workspaces.apiKeys.create({
       slug: SLUG,
       name: "ci",
@@ -123,6 +126,7 @@ describe("workspaces.apiKeys procedures", () => {
       slug: SLUG,
       name: "Acme",
     });
+    await upgradeWorkspaceToPro({ id: ws.id });
     await prisma.membership.create({
       data: {
         workspaceId: ws.id,
@@ -143,6 +147,7 @@ describe("workspaces.apiKeys procedures", () => {
   it("revoke flips revokedAt + idempotent (NOT_FOUND on re-revoke)", async () => {
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Acme" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
     const created = await ownerCaller.workspaces.apiKeys.create({
       slug: SLUG,
       name: "ci",
@@ -177,6 +182,7 @@ describe("verifyApiKey", () => {
       slug: SLUG,
       name: "Acme",
     });
+    await upgradeWorkspaceToPro({ id: ws.id });
     workspaceId = ws.id;
   });
   beforeEach(async () => {
@@ -245,6 +251,7 @@ describe("/api/v1/whoami", () => {
     owner = await createTestUser("vitest-w-owner");
     const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
     await ownerCaller.workspaces.create({ slug: SLUG, name: "Acme" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
   });
   afterAll(async () => {
     await purge(SLUG);
