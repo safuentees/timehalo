@@ -1824,6 +1824,7 @@
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
   margin: 12px 12px 12px 0;
+  flex: 1 1 0%;
 }
 
 ::view-transition-old(bru-host-content),
