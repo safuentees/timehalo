@@ -402,6 +402,31 @@ export function ResponsiveModalClose({
   );
 }
 
+// Canonical dialog body padding + vertical rhythm. Use the constant
+// directly when the body is a <form> (the common shape — the form
+// must own the className) or pair with <ResponsiveModalBody> when
+// the body is a non-form container.
+//
+// Audit on 2026-04-27 found this string in five places with sm:px-6
+// drift (only api-key-create-dialog had the responsive bump, others
+// stayed at px-5 across breakpoints). Single source of truth here.
+export const RESPONSIVE_MODAL_BODY_CLASS =
+  "flex flex-col gap-5 px-5 pb-6 sm:px-6";
+
+export function ResponsiveModalBody({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn(RESPONSIVE_MODAL_BODY_CLASS, className)}>
+      {children}
+    </div>
+  );
+}
+
 // Dialog action footer — the canonical row for cancel/confirm buttons
 // at the bottom of a modal body. Stacks vertically on mobile (each
 // button full-width via the surrounding Button.size flex), aligns
