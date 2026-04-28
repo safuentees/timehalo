@@ -206,6 +206,9 @@
 }
 .bru-app [data-slot="sidebar-container"] {
   border-right-width: 0;
+  top: 12px;
+  bottom: 12px;
+  height: auto;
 }
 
 .bru-root {
