@@ -181,6 +181,8 @@ type HeaderProps = {
   desktopClassName?: string;
 };
 
+const BRU_DIALOG_HEADER = "px-5 pb-4 sm:px-6";
+
 export function ResponsiveModalHeader({
   children,
   className,
@@ -190,13 +192,15 @@ export function ResponsiveModalHeader({
   const { isMobile } = useResponsiveModal();
   if (isMobile) {
     return (
-      <div className={cn(className, mobileClassName)}>
+      <div className={cn(BRU_DIALOG_HEADER, className, mobileClassName)}>
         {children}
       </div>
     );
   }
   return (
-    <DialogHeader className={cn(className, desktopClassName)}>
+    <DialogHeader
+      className={cn(BRU_DIALOG_HEADER, className, desktopClassName)}
+    >
       {children}
     </DialogHeader>
   );
@@ -209,6 +213,8 @@ type TitleProps = {
   desktopClassName?: string;
 };
 
+const BRU_DIALOG_TITLE = "text-[20px] font-black uppercase tracking-tight";
+
 export function ResponsiveModalTitle({
   children,
   className,
@@ -218,13 +224,17 @@ export function ResponsiveModalTitle({
   const { isMobile } = useResponsiveModal();
   if (isMobile) {
     return (
-      <DrawerPrimitive.Title className={cn(className, mobileClassName)}>
+      <DrawerPrimitive.Title
+        className={cn(BRU_DIALOG_TITLE, className, mobileClassName)}
+      >
         {children}
       </DrawerPrimitive.Title>
     );
   }
   return (
-    <DialogTitle className={cn(className, desktopClassName)}>
+    <DialogTitle
+      className={cn(BRU_DIALOG_TITLE, className, desktopClassName)}
+    >
       {children}
     </DialogTitle>
   );

@@ -59,8 +59,8 @@ export function ApiKeyCreateDialog({ slug }: Props) {
         </Button>
       </ResponsiveModalTrigger>
       <ResponsiveModalContent>
-        <ResponsiveModalHeader className="px-5 pb-4 sm:px-6">
-          <ResponsiveModalTitle className="text-[20px] font-black tracking-tight">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>
             {token ? t("createdTitle") : t("createTitle")}
           </ResponsiveModalTitle>
         </ResponsiveModalHeader>
