@@ -1818,11 +1818,19 @@
 }
 
 .bru-host-content {
-  view-transition-name: bru-host-content;
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
   margin: 12px 12px 12px 0;
   flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+}
+
+.bru-host-content-inner {
+  view-transition-name: bru-host-content;
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
 }
 
 ::view-transition-old(bru-host-content) {

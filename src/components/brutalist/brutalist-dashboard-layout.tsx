@@ -29,7 +29,9 @@ export function BrutalistDashboardLayout({
       >
         <BrutalistAppSidebar />
         <SidebarInset className={insetClass}>
-          <div className="bru-host-content">{children}</div>
+          <div className="bru-host-content">
+            <div className="bru-host-content-inner">{children}</div>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
