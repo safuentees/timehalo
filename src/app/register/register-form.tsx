@@ -207,7 +207,9 @@ function AvailabilityBadge({ state }: { state: Availability }) {
   switch (state) {
     case "checking":
       return (
-        <InputGroupText className="text-muted-foreground">…</InputGroupText>
+        <InputGroupText className="text-muted-foreground tracking-[3px]">
+          ...
+        </InputGroupText>
       );
     case "available":
       return (
