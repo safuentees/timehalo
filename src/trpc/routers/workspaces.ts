@@ -9,11 +9,11 @@ import {
   WORKSPACE_SCOPES,
   WORKSPACE_SLUG_REGEX,
   INVITATION_EXPIRY_MS,
-  generateInvitationToken,
   hasScope,
   scopesFor,
   type WorkspaceScope,
 } from "@/lib/workspaces";
+import { generateInvitationToken } from "@/lib/workspaces-server";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 const workspaceSlugSchema = z

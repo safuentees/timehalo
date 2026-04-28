@@ -1,4 +1,3 @@
-import "server-only";
 import type { MembershipRole } from "@/generated/prisma/enums";
 
 export const WORKSPACE_SCOPES = [
@@ -62,7 +61,3 @@ export function personalWorkspaceSlugFor(userId: string): string {
 
 export const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
-export async function generateInvitationToken(): Promise<string> {
-  const { randomBytes } = await import("node:crypto");
-  return randomBytes(32).toString("hex");
-}
