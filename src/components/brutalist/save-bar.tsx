@@ -36,7 +36,7 @@ export function BrutalistSaveBar({
   isPending: boolean;
   isDirty: boolean;
   labels: SaveBarLabels;
-  /** Optional override; defaults to "Save changes" in English-only a11y context. */
+  /** Optional override; defaults to the i18n save label so screen readers announce in-language. */
   ariaLabel?: string;
 }) {
   const mounted = useMounted();
@@ -55,7 +55,7 @@ export function BrutalistSaveBar({
       <div
         className="bru-dash-save-bar"
         role="region"
-        aria-label={ariaLabel ?? "Save changes"}
+        aria-label={ariaLabel ?? labels.save}
       >
         <div className="bru-dash-save-bar-inner">
           <Button

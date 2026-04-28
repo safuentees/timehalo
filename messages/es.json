@@ -52,6 +52,7 @@
   "ApiKeys": {
     "legend": "Claves API",
     "description": "Tokens para scripts e integraciones. Las claves nuevas se muestran una sola vez.",
+    "createdAt": "Creada el {date, date, medium}",
     "loading": "Cargando…",
     "workspaceLabel": "Espacio de trabajo",
     "listLabel": "Claves activas",
@@ -107,6 +108,8 @@
     "deleteAccountTitle": "Eliminar cuenta",
     "deleteAccountDescription": "Elimina permanentemente tu identificador, tus horas semanales, tu perfil y cualquier reserva próxima. El historial se anonimiza y se conserva para auditoría. No se puede deshacer.",
     "deleteAccountButton": "Eliminar cuenta",
+    "loadingAccount": "Cargando cuenta…",
+    "handleFallback": "tu identificador",
     "dialogIntro": "Esto elimina permanentemente <handle></handle>, tus horas semanales y cualquier reserva próxima contra tu página. El historial se anonimiza y se conserva para auditoría. No se puede deshacer.",
     "dialogTypeEmail": "Escribe el correo de tu cuenta <code>{email}</code> para confirmar.",
     "emailFieldLabel": "Correo",

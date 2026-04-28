@@ -52,6 +52,7 @@
   "ApiKeys": {
     "legend": "API keys",
     "description": "Tokens for scripts and integrations. New tokens are shown once.",
+    "createdAt": "Created {date, date, medium}",
     "loading": "Loading…",
     "workspaceLabel": "Workspace",
     "listLabel": "Active keys",
@@ -107,6 +108,8 @@
     "deleteAccountTitle": "Delete account",
     "deleteAccountDescription": "Permanently removes your handle, weekly hours, profile, and any upcoming bookings. Booking history is anonymized and retained for audit. There is no undo.",
     "deleteAccountButton": "Delete account",
+    "loadingAccount": "Loading account…",
+    "handleFallback": "your handle",
     "dialogIntro": "This permanently deletes <handle></handle>, your weekly hours, and any upcoming bookings against your page. Booking history is anonymized and retained for audit. There is no undo.",
     "dialogTypeEmail": "Type your account email <code>{email}</code> to confirm.",
     "emailFieldLabel": "Email",

@@ -182,7 +182,7 @@ function ApiKeyRow({
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex flex-col gap-1.5 min-w-0">
           <span className="bru-eyebrow tabular-nums">
-            {fmtCreated(new Date(createdAt))}
+            {t("createdAt", { date: new Date(createdAt) })}
           </span>
           <h3 className="text-[16px] leading-[1.2] font-black truncate">
             {name}
@@ -251,21 +251,3 @@ function NoKeysEmpty() {
   return <BrutalistInlineEmpty>{t("noKeysEmpty")}</BrutalistInlineEmpty>;
 }
 
-const MONTH_SHORT = [
-  "JAN",
-  "FEB",
-  "MAR",
-  "APR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AUG",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
-] as const;
-
-function fmtCreated(d: Date): string {
-  return `CREATED ${MONTH_SHORT[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
-}
