@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
+  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
@@ -151,7 +152,7 @@ function CalendarPickBody({
           </li>
         ))}
       </ul>
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <ResponsiveModalFooter>
         <Button
           type="button"
           variant="brutalistGhost"
@@ -170,7 +171,7 @@ function CalendarPickBody({
         >
           {isPending ? t("saving") : t("save")}
         </Button>
-      </div>
+      </ResponsiveModalFooter>
     </div>
   );
 }

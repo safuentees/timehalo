@@ -13,6 +13,7 @@ import { Field, FieldError } from "@/components/ui/field";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
+  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
   ResponsiveModalTrigger,
@@ -147,7 +148,7 @@ function DeleteForm({
             </Field>
           )}
         />
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <ResponsiveModalFooter>
           <Button
             type="button"
             variant="brutalistGhost"
@@ -165,7 +166,7 @@ function DeleteForm({
           >
             {isPending ? t("deleting") : t("confirm")}
           </Button>
-        </div>
+        </ResponsiveModalFooter>
       </form>
     </FormProvider>
   );

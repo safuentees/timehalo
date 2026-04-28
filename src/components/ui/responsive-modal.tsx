@@ -329,6 +329,25 @@ export function ResponsiveModalClose({
   );
 }
 
+export function ResponsiveModalFooter({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 sm:flex-row sm:justify-end",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function useResponsiveModalForm() {
   return useResponsiveModal();
 }
