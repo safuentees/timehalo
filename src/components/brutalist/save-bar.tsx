@@ -36,7 +36,7 @@ export function BrutalistSaveBar({
       <div
         className="bru-dash-save-bar"
         role="region"
-        aria-label={ariaLabel ?? "Save changes"}
+        aria-label={ariaLabel ?? labels.save}
       >
         <div className="bru-dash-save-bar-inner">
           <Button

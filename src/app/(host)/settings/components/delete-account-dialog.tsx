@@ -84,7 +84,7 @@ function DeleteForm({
   if (!email) {
     return (
       <div className="px-5 pb-6 text-[13px] opacity-65">
-        Loading account…
+        {t("loadingAccount")}
       </div>
     );
   }
@@ -103,7 +103,7 @@ function DeleteForm({
         <p className="text-[14px] leading-[1.55] opacity-80">
           {t.rich("dialogIntro", {
             handle: () => (
-              <strong>@{handle ?? "your handle"}</strong>
+              <strong>@{handle ?? t("handleFallback")}</strong>
             ),
           })}
         </p>
