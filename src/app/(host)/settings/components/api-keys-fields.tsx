@@ -9,6 +9,7 @@ import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
 import { SectionHeader } from "./section-header";
+import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 
 // Workspace API keys section. Surface flow:
 //
@@ -239,19 +240,15 @@ function ApiKeyRow({
 function NoWorkspaceEmpty() {
   const t = useTranslations("ApiKeys");
   return (
-    <p className="mt-5 text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">
+    <BrutalistInlineEmpty className="mt-5">
       {t("noWorkspaceEmpty")}
-    </p>
+    </BrutalistInlineEmpty>
   );
 }
 
 function NoKeysEmpty() {
   const t = useTranslations("ApiKeys");
-  return (
-    <p className="text-[13px] opacity-55 border-[1.5px] border-dashed border-bru-line p-4 rounded-(--bru-r-xs)">
-      {t("noKeysEmpty")}
-    </p>
-  );
+  return <BrutalistInlineEmpty>{t("noKeysEmpty")}</BrutalistInlineEmpty>;
 }
 
 const MONTH_SHORT = [
