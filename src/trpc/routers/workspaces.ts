@@ -14,6 +14,11 @@ import {
   type WorkspaceScope,
 } from "@/lib/workspaces";
 import { generateInvitationToken } from "@/lib/workspaces-server";
+import {
+  memberCap,
+  planForWorkspace,
+  requireFeature,
+} from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 // Workspace sub-router (B1). Workspaces, memberships, and invitations
@@ -294,6 +299,31 @@ export const workspaces = router({
         });
       }
 
+      // A3 — plan-gated member cap. Pending invitations count toward
+      // the cap (same as cal.com): otherwise an OWNER could blast 5
+      // invites on a 5-member-cap PRO plan, have all 5 accept, and
+      // overflow. Counting both keeps the invariant "members +
+      // pending ≤ memberCap" true at every state.
+      const plan = await planForWorkspace(callerMembership.workspaceId);
+      const cap = memberCap(plan);
+      const [memberCount, pendingCount] = await Promise.all([
+        prisma.membership.count({
+          where: { workspaceId: callerMembership.workspaceId },
+        }),
+        prisma.invitation.count({
+          where: {
+            workspaceId: callerMembership.workspaceId,
+            acceptedAt: null,
+          },
+        }),
+      ]);
+      if (memberCount + pendingCount + 1 > cap) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Member cap reached for ${plan} plan (${cap}). Upgrade to add more.`,
+        });
+      }
+
       const token = await generateInvitationToken();
       const invitation = await prisma.invitation.create({
         data: {
@@ -433,6 +463,10 @@ export const workspaces = router({
           ctx.user.id,
           "members.write",
         );
+
+        // A3 — plan-gated feature. PRO+ only.
+        const plan = await planForWorkspace(membership.workspaceId);
+        requireFeature(plan, "api-keys");
 
         // Token can carry at most the scopes the creator's role
         // grants. ADMIN can't mint a key with workspace.write

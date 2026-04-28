@@ -1,6 +1,8 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { TRPCError } from "@trpc/server";
 import type { PlanTier } from "@/generated/prisma/enums";
+import { prisma } from "@/lib/prisma";
 
 // Plan-feature matrix (C2). One source of truth for "what does
 // plan X grant?" — every server-side check that gates on plan tier
@@ -137,4 +139,64 @@ export function planFromStripePriceId(priceId: string | null): PlanTier {
   if (priceId === process.env.STRIPE_PRICE_PRO) return "PRO";
   if (priceId === process.env.STRIPE_PRICE_TEAM) return "TEAM";
   return "FREE";
+}
+
+// ─── Plan resolution + procedure gates (A3) ──────────────────────────
+//
+// `planForWorkspace` reads the workspace's Subscription row. Missing
+// row = FREE (the default state for any workspace that's never touched
+// the billing surface). Subscription rows persist even when the user
+// downgrades, so the row's `plan` is the source of truth.
+//
+// PAST_DUE keeps the plan grant — Stripe retries dunning for ~3 weeks
+// before flipping to CANCELED, and revoking access on day 1 of a
+// payment glitch is bad UX. CANCELED at period end downgrades back
+// to FREE only after `currentPeriodEnd` passes; until then the user
+// keeps the features they paid for.
+
+export async function planForWorkspace(workspaceId: string): Promise<PlanTier> {
+  const sub = await prisma.subscription.findUnique({
+    where: { workspaceId },
+    select: { plan: true, status: true, currentPeriodEnd: true },
+  });
+  if (!sub) return "FREE";
+  if (sub.status === "CANCELED" && sub.currentPeriodEnd) {
+    if (sub.currentPeriodEnd.getTime() < Date.now()) {
+      return "FREE";
+    }
+  }
+  return sub.plan;
+}
+
+// User-scoped procedures (webhooks.create, workflows.create) gate on
+// the user's primary owned workspace's plan until B1 finishes the
+// workspace migration of those surfaces. Defensive default: FREE if
+// the user somehow has no workspace (auth.register guarantees one,
+// but a soft-deleted workspace edge case shouldn't crash the gate).
+export async function planForUser(userId: string): Promise<PlanTier> {
+  const ws = await prisma.workspace.findFirst({
+    where: { ownerId: userId },
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+  if (!ws) return "FREE";
+  return planForWorkspace(ws.id);
+}
+
+// Throws TRPCError FORBIDDEN when the plan doesn't grant the feature.
+// FORBIDDEN over PRECONDITION_FAILED because the caller's identity
+// has access to the procedure but their plan doesn't grant the
+// resource — same shape as the role-permission gates in workspaces.*
+// (FORBIDDEN for "your role doesn't allow this"). Message names the
+// feature so client UIs can surface a precise upgrade prompt.
+export function requireFeature(
+  plan: PlanTier,
+  feature: PlanFeature,
+): void {
+  if (!hasFeature(plan, feature)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Your plan (${plan}) does not include ${feature}.`,
+    });
+  }
 }
