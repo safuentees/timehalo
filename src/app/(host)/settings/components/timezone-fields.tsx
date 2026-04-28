@@ -24,7 +24,7 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
   const form = useFormContext<FormShape>();
 
   return (
-    <section>
+    <section aria-labelledby="timezone-legend">
       <SectionHeader
         legendId="timezone-legend"
         legend={t("timezoneLegend")}

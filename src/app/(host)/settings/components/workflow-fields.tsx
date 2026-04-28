@@ -21,8 +21,9 @@ export function WorkflowFields() {
   const { data, isLoading } = trpc.workflows.list.useQuery();
 
   return (
-    <section>
+    <section aria-labelledby="workflows-legend">
       <SectionHeader
+        legendId="workflows-legend"
         legend={t("legend")}
         description={t("description")}
       />
@@ -35,7 +36,11 @@ export function WorkflowFields() {
             {t("listEmpty")}
           </p>
         ) : (
-          <ul role="list" className="flex flex-col gap-2.5">
+          <ul
+            role="list"
+            aria-labelledby="workflows-legend"
+            className="flex flex-col gap-2.5"
+          >
             {data.map((w) => (
               <li key={w.id}>
                 <WorkflowRow
