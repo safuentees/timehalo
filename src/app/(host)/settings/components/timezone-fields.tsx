@@ -1,61 +1,102 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { trpc } from "@/trpc/hooks";
+import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
 import { Field, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { getBrowserTimezone } from "@/lib/timezone";
+import {
+  DEFAULT_TIMEZONE,
+  getBrowserTimezone,
+  timezoneSchema,
+} from "@/lib/timezone";
 import { SectionHeader } from "./section-header";
 
-// IANA timezone picker. The zone list is resolved server-side and
-// passed in as a prop — Node ICU and browser ICU disagree on aliases
-// (Africa/Asmera vs Africa/Asmara), so deriving it on the client
-// would diverge from the SSR HTML and trip hydration.
+// IANA timezone picker. Self-contained — owns its own form, mutation,
+// and Save button. Per-section commits match the cal.com / dub.co
+// pattern; the previous global <BrutalistSaveBar> on /settings was
+// theatrical (only saved timezone, but visually claimed to save the
+// whole page). Other sections (language, theme, workflows, calendar,
+// API keys) commit through their own paths.
 //
-// "Use browser" copies Intl.DateTimeFormat().resolvedOptions().timeZone
-// into the field — covers the 90% case where the host's machine is
-// already set right. It lives next to the input (input modifier),
-// not in the section header (which is reserved for primary actions).
+// Zone list resolved server-side and passed as a prop — Node ICU and
+// browser ICU disagree on aliases (Africa/Asmera vs Africa/Asmara),
+// so deriving on the client would diverge from the SSR HTML and trip
+// hydration. See src/app/(host)/settings/page.tsx.
 
 type FormShape = { timezone: string };
 
+const schema = z.object({ timezone: timezoneSchema });
+
 export function TimezoneFields({ timezones }: { timezones: string[] }) {
   const t = useTranslations("Settings");
-  const form = useFormContext<FormShape>();
+  const { data: me } = trpc.users.me.useQuery();
+
+  const values = useMemo<FormShape>(
+    () => ({ timezone: me?.timezone ?? DEFAULT_TIMEZONE }),
+    [me],
+  );
+
+  const form = useForm<FormShape>({
+    resolver: zodResolver(schema),
+    values,
+    resetOptions: { keepDirtyValues: true },
+    mode: "onBlur",
+  });
+
+  const saveTimezone = useSetTimezone();
+
+  async function onSubmit(v: FormShape) {
+    await saveTimezone.mutateAsync({ timezone: v.timezone });
+    form.reset({ timezone: v.timezone });
+  }
+
+  const isPending = saveTimezone.isPending;
+  const isDirty = form.formState.isDirty;
 
   return (
     <section aria-labelledby="timezone-legend">
-      <SectionHeader
-        legendId="timezone-legend"
-        legend={t("timezoneLegend")}
-        description={t("timezoneDescription")}
-      />
-      <Controller<FormShape>
-        name="timezone"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid} className="mt-5">
-            <select
-              {...field}
-              id={field.name}
-              aria-labelledby="timezone-legend"
-              aria-invalid={fieldState.invalid}
-              className="bru-input w-full min-w-[260px] font-[family-name:var(--bru-mono)] text-[14px]"
-            >
-              {timezones.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
-              ))}
-            </select>
-            <FieldError
-              errors={fieldState.error ? [fieldState.error] : undefined}
-              className="bru-field-error"
-            />
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <SectionHeader
+            legendId="timezone-legend"
+            legend={t("timezoneLegend")}
+            description={t("timezoneDescription")}
+          />
+          <Controller<FormShape>
+            name="timezone"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid} className="mt-5">
+                <select
+                  {...field}
+                  id={field.name}
+                  aria-labelledby="timezone-legend"
+                  aria-invalid={fieldState.invalid}
+                  className="bru-input w-full min-w-[260px] font-[family-name:var(--bru-mono)] text-[14px]"
+                >
+                  {timezones.map((z) => (
+                    <option key={z} value={z}>
+                      {z}
+                    </option>
+                  ))}
+                </select>
+                <FieldError
+                  errors={fieldState.error ? [fieldState.error] : undefined}
+                  className="bru-field-error"
+                />
+              </Field>
+            )}
+          />
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="brutalistGhost"
               size="brutalist"
-              className="mt-3 self-start"
               onClick={() => {
                 const detected = getBrowserTimezone();
                 form.setValue("timezone", detected, {
@@ -66,9 +107,18 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             >
               {t("useBrowser")}
             </Button>
-          </Field>
-        )}
-      />
+            <Button
+              type="submit"
+              variant="brutalist"
+              size="brutalist"
+              disabled={isPending || !isDirty}
+              className="ml-auto"
+            >
+              {isPending ? t("saving") : isDirty ? t("save") : t("saved")}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </section>
   );
 }
