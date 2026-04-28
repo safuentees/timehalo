@@ -74,7 +74,7 @@ export function CalendarFields() {
               className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center"
             >
               <div className="min-w-0 flex-1">
-                <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+                <p className="bru-eyebrow">
                   {t(`provider${c.provider}` as
                     | "providerGOOGLE"
                     | "providerMICROSOFT")}

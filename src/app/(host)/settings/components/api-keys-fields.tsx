@@ -68,10 +68,7 @@ function ApiKeysForWorkspace({
     <>
       {workspaces.length > 1 ? (
         <div className="mt-5">
-          <label
-            htmlFor="api-keys-workspace"
-            className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-          >
+          <label htmlFor="api-keys-workspace" className="bru-legend">
             {t("workspaceLabel")}
           </label>
           <select
@@ -156,7 +153,7 @@ function ApiKeyRow({
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase tabular-nums opacity-55">
+          <span className="bru-eyebrow tabular-nums">
             {fmtCreated(new Date(createdAt))}
           </span>
           <h3 className="text-[16px] leading-[1.2] font-black truncate">
@@ -186,9 +183,11 @@ function ApiKeyRow({
       <div className="mt-3 flex items-center justify-between gap-3">
         <span
           className={[
-            "font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase",
-            revoked ? "opacity-55" : "text-emerald-700 dark:text-emerald-400",
-          ].join(" ")}
+            "bru-eyebrow",
+            revoked ? null : "opacity-100 text-emerald-700 dark:text-emerald-400",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           {revoked ? t("statusRevoked") : t("statusActive")}
         </span>

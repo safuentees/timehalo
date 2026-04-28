@@ -116,17 +116,14 @@ function CreateForm({
         })}
         className="px-5 pb-6 flex flex-col gap-5 sm:px-6"
       >
-        <p className="text-[13px] leading-[1.5] opacity-65">
+        <p className="bru-description">
           {t("createDescription")}
         </p>
         <Controller<Values>
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <label
-                className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-                htmlFor={field.name}
-              >
+              <label className="bru-legend" htmlFor={field.name}>
                 {t("nameLabel")}
               </label>
               <input
@@ -150,15 +147,10 @@ function CreateForm({
           name="scopes"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <p
-                id="api-key-scopes-label"
-                className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-              >
+              <p id="api-key-scopes-label" className="bru-legend">
                 {t("scopesLabel")}
               </p>
-              <p className="mt-2 text-[13px] leading-[1.5] opacity-65">
-                {t("scopesDescription")}
-              </p>
+              <p className="bru-description mt-2">{t("scopesDescription")}</p>
               <fieldset
                 aria-labelledby="api-key-scopes-label"
                 className="mt-3 grid grid-cols-1 gap-0 border-2 border-bru-line-strong sm:grid-cols-2"
@@ -264,14 +256,9 @@ function RevealedToken({
 
   return (
     <div className="px-5 pb-6 flex flex-col gap-5 sm:px-6">
-      <p className="text-[13px] leading-[1.5] opacity-75">
-        {t("revealedDescription")}
-      </p>
+      <p className="bru-description">{t("revealedDescription")}</p>
       <Field>
-        <label
-          htmlFor="api-key-token"
-          className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-        >
+        <label htmlFor="api-key-token" className="bru-legend">
           {t("tokenLabel")}
         </label>
         <div className="mt-2 flex flex-wrap items-stretch gap-2">

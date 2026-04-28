@@ -30,7 +30,7 @@ export function CalendarPickDialog({
     <ResponsiveModal open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveModalContent>
         <ResponsiveModalHeader className="px-5 pt-2 pb-4">
-          <ResponsiveModalTitle className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+          <ResponsiveModalTitle className="bru-legend opacity-100">
             {t("pickTitle")}
             {externalAccountEmail ? (
               <span className="ml-2 font-normal opacity-60 normal-case tracking-normal text-[12px]">
@@ -120,9 +120,7 @@ function CalendarPickBody({
 
   return (
     <div className="px-5 pb-6 flex flex-col gap-5">
-      <p className="text-[13px] leading-[1.5] opacity-65">
-        {t("pickDescription")}
-      </p>
+      <p className="bru-description">{t("pickDescription")}</p>
       <ul
         role="list"
         className="border-2 border-bru-line divide-y-2 divide-bru-line"
@@ -137,7 +135,7 @@ function CalendarPickBody({
                 {c.summary}
               </p>
               {c.isPrimary ? (
-                <p className="mt-1 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+                <p className="bru-eyebrow mt-1">
                   {t("primaryBadge")}
                 </p>
               ) : null}

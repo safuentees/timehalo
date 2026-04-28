@@ -94,11 +94,11 @@ function WorkflowRow({
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {name}
         </h3>
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.8px] uppercase opacity-55 tabular-nums">
+        <span className="bru-eyebrow tabular-nums">
           {active ? t("statusActive") : t("statusInactive")}
         </span>
       </header>
-      <p className="mt-2 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
+      <p className="bru-eyebrow mt-2">
         {subtitle}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">

@@ -355,10 +355,7 @@ function FieldLabel({
   children: React.ReactNode;
 }) {
   return (
-    <label
-      htmlFor={htmlFor}
-      className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55"
-    >
+    <label htmlFor={htmlFor} className="bru-legend">
       {children}
     </label>
   );

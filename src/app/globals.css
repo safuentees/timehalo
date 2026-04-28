@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@source not "../../.claude";
+@source not "../../.agents";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -627,6 +630,29 @@
   font-size: 10.5px; letter-spacing: 2px; font-weight: 700;
   opacity: 0.7; text-transform: uppercase;
 }
+.bru-legend {
+  font-family: var(--bru-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.bru-description {
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 65ch;
+  opacity: 0.65;
+}
+.bru-eyebrow {
+  font-family: var(--bru-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
 .bru-input {
   width: 100%;
   background: var(--bru-paper); color: var(--bru-ink);
