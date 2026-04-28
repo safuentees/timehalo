@@ -270,6 +270,7 @@
 /* Brutalist-themed shadcn Sidebar wrapper. Scopes sidebar tokens to the
    brutalist palette so <Sidebar> renders in paper/ink without forking. */
 .bru-app {
+  --bru-dashboard-bar-height: 32px;
   --sidebar: var(--bru-frame);
   --sidebar-foreground: var(--bru-ink);
   --sidebar-accent: var(--bru-tint-hover);
@@ -311,7 +312,7 @@
      between the same horizontal edges as bru-host-content's
      12px margin. Left edge stays at 0 — the sidebar still hugs the
      screen on that side. */
-  top: 12px;
+  top: calc(var(--bru-dashboard-bar-height) + 12px);
   bottom: 12px;
   height: auto;
 }
@@ -331,6 +332,11 @@
      changes when the sidebar collapses), not the viewport. */
   container-type: inline-size;
   container-name: bru-root;
+}
+.bru-dashboard-inset {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 .bru-app[data-typeface="serif"] { font-family: "Times New Roman", Times, serif; }
 .bru-app[data-typeface="mono"] { font-family: var(--bru-mono); }
@@ -2175,13 +2181,10 @@
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
      adds margin-left below. */
   margin: 12px 12px 12px 0;
-  /* Always exactly viewport-height minus the 12px top + 12px bottom
-     margins. svh (small viewport height) over dvh: svh is stable
-     while mobile browser UI shows/hides, so the panel doesn't
-     resize jankily during scroll. The fixed height plus
-     overflow:hidden creates the cookie-cutter — anything inside
-     that exceeds the panel gets clipped to its rounded boundary. */
-  height: calc(100svh - 24px);
+  /* Fill the dashboard space remaining after the top bar, minus the
+     12px top + 12px bottom margins. The parent owns the viewport clamp,
+     so the bar pushes content down without making the document taller. */
+  height: calc(100% - 24px);
   overflow: hidden;
   /* Make the panel a flex column so the inner can claim flex:1 +
      min-height:0 and own the scroll inside the cutter. */
@@ -2205,14 +2208,40 @@
      fixed-height parent: flex:1 fills vertically, min-height:0
      allows the flex item to shrink below its content size (without
      this, the inner would push past the panel and the parent's
-     overflow:hidden would clip with no scrollbar), overflow-y:auto
-     gives the user a scrollbar when content exceeds the panel. */
+     overflow:hidden would clip with no scrollbar). */
   view-transition-name: bru-host-content;
   flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: auto;
+  /* Overlay-style scrollbar. `overflow: overlay` was the old Chromium
+     way to get this and was removed in Chrome 119+ (silent fallback
+     to `auto` is what ate the overlay behaviour). The modern
+     replacement: paint the track transparent so the bar appears to
+     float over content, keep the thumb thin (8px) and tinted from
+     the brutalist ink so it's visible but unobtrusive. macOS Chrome
+     respects the user's "Show scroll bars: When scrolling" pref and
+     fades the thumb when idle, restoring the original feel. */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--bru-ink) 25%, transparent) transparent;
   display: flex;
   flex-direction: column;
+}
+.bru-host-content-inner::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.bru-host-content-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+.bru-host-content-inner::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--bru-ink) 25%, transparent);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.bru-host-content-inner::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--bru-ink) 50%, transparent);
 }
 
 /* Fade-only, sequenced. Default View Transitions API behavior is a
