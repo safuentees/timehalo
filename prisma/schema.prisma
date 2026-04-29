@@ -156,6 +156,18 @@ model Booking {
   // workspaces.apiKeys-style "list bookings for an event type" reads.
   eventTypeId  String?
   eventType    EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  // Two-way calendar write (B2). When the host has a connected
+  // calendar, bookings.create enqueues a Task that POSTs to the
+  // provider; on success, externalCalendarEventId stores the
+  // provider's event id and externalCalendarCredentialId records
+  // which credential was used. bookings.cancel deletes that event;
+  // bookings.reschedule updates it. Both columns nullable —
+  // bookings for hosts without a connected calendar simply skip
+  // the calendar-write side. SetNull on credential delete so the
+  // booking row keeps its history even if the host disconnects.
+  externalCalendarEventId      String?
+  externalCalendarCredentialId String?
+  externalCalendarCredential   CalendarCredential? @relation(fields: [externalCalendarCredentialId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
   // Soft-delete columns (rallly's pattern at packages/database/prisma/
   // models/poll.prisma:30-31). Reads filter `deleted: false`; the
@@ -243,6 +255,17 @@ model EventTypeHost {
 model BookingAudit {
   id          Int                 @id @default(autoincrement())
   bookingUid  String              // intentionally NOT FK
+  // Workspace this audit row belongs to (B1). Denormalized at
+  // write time from `Booking.workspaceId` so workspace-level audit
+  // views are a one-query scan. Nullable + onDelete: SetNull
+  // because audit rows must survive workspace deletion (and the
+  // user-cascade chain User→Workspace→Audit) — same forensic
+  // invariant that keeps `bookingUid` an FK-less plain string.
+  // When the workspace is gone, the column nulls out; the audit
+  // row stays. New audits always carry a non-null workspaceId
+  // (procedure writers set it from Booking.workspaceId).
+  workspaceId String?
+  workspace   Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   actor       AuditActor
   action      BookingAuditAction
   data        Json                // snapshot of the new state
@@ -251,6 +274,7 @@ model BookingAudit {
 
   @@index([bookingUid])
   @@index([operationId])
+  @@index([workspaceId, createdAt])
 }
 
 enum AuditActor {
@@ -332,8 +356,20 @@ enum FeatureType {
 model WebhookSubscription {
   id            Int      @id @default(autoincrement())
   publicUid     String   @unique @default(cuid())
+  // Creator (B1). Kept alongside workspaceId so the audit trail of
+  // "who minted this subscription" survives — but ownership /
+  // access-control flows through workspace membership scope, not
+  // userId. `userId` cascade matches the legacy contract; in
+  // practice deleting the user implies deleting their workspace
+  // memberships first, which already cascades the subscription.
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  // Workspace this webhook is scoped to (B1). Webhooks now live on
+  // a workspace; OWNER/ADMIN with `webhooks.write` can manage
+  // them. Backfilled in 20260429_workspace_aware_webhooks_audit
+  // from each creator's primary owned workspace.
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String
   subscriberUrl String
   secret        String   // hex-encoded 32 random bytes; HMAC SHA-256 key
   events        String   // CSV: "booking.created,booking.confirmed"
@@ -342,6 +378,7 @@ model WebhookSubscription {
   updatedAt     DateTime @updatedAt
 
   @@index([userId, active])
+  @@index([workspaceId, active])
 }
 
 // Generic background job — single shape covers webhook delivery today
@@ -436,6 +473,11 @@ model Workspace {
   // operates on. Backfill: every existing User got a singleton
   // EventType with themselves as a fixed host.
   eventTypes    EventType[]
+  // Webhook subscriptions + audit history (B1). Both surfaces
+  // moved from User-scoped to Workspace-scoped so OWNER/ADMIN can
+  // see what their members configured.
+  webhooks      WebhookSubscription[]
+  bookingAudit  BookingAudit[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -554,6 +596,11 @@ model CalendarCredential {
   accessTokenExpiresAt DateTime
   scope               String              // CSV of granted OAuth scopes
   selectedCalendars   SelectedCalendar[]
+  // Bookings whose event was written to this credential's calendar
+  // (B2 two-way write). When the credential is deleted the FK
+  // SetNull-cascades; the booking keeps its history without a
+  // dangling external pointer.
+  bookings            Booking[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 

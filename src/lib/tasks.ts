@@ -15,6 +15,7 @@ import type { WebhookEvent } from "@/trpc/router";
 
 export const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
 export const TASK_TYPE_EMAIL_SEND = "emailSend";
+export const TASK_TYPE_CALENDAR_WRITE = "calendarWrite";
 
 export type WebhookDeliveryPayload = {
   webhookSubscriptionId: number;
@@ -127,6 +128,52 @@ export async function scheduleEmailSend<T extends TemplateName>(
   }
 }
 
+// ─── Calendar write (B2) ────────────────────────────────────────
+
+export type CalendarWriteAction = "create" | "update" | "delete";
+
+export type CalendarWritePayload = {
+  action: CalendarWriteAction;
+  bookingPublicUid: string;
+};
+
+/**
+ * Schedule a calendar-write Task. Picked up by the cron processor
+ * which resolves the booking → host → CalendarCredential and
+ * dispatches the corresponding adapter call. The booking's
+ * externalCalendarEventId is updated on `create`, deleted on
+ * `delete`. `update` re-syncs the existing event with the booking's
+ * current slot.
+ *
+ * referenceUid format: `<bookingPublicUid>:calendarWrite:<action>`
+ * — uniqueness on (referenceUid, type) means a retry of the same
+ * action is a no-op. A reschedule that fires update twice (idempotency
+ * retry) only writes one Task.
+ */
+export async function scheduleCalendarWrite(opts: {
+  payload: CalendarWritePayload;
+  referenceUid: string;
+}): Promise<boolean> {
+  try {
+    await prisma.task.create({
+      data: {
+        type: TASK_TYPE_CALENDAR_WRITE,
+        payload: JSON.stringify(opts.payload),
+        referenceUid: opts.referenceUid,
+      },
+    });
+    return true;
+  } catch (cause) {
+    if (
+      cause instanceof Prisma.PrismaClientKnownRequestError &&
+      cause.code === "P2002"
+    ) {
+      return false;
+    }
+    throw cause;
+  }
+}
+
 /**
  * Mark a pending Task as superseded — sets succeededAt = now (without
  * actually running it) so the cron processor skips the row on its next
@@ -155,21 +202,27 @@ export async function cancelPendingTask(opts: {
 }
 
 /**
- * Find webhook subscriptions that listen for `event` for a specific
- * user. The scheduler calls this when a state change fires — one
- * Task row per matching subscription gets queued.
+ * Find webhook subscriptions that listen for `event` inside a
+ * specific workspace. The scheduler calls this when a state change
+ * fires — one Task row per matching subscription gets queued.
+ *
+ * Workspace-scoped (B1): webhooks moved from User-owned to
+ * Workspace-owned, so booking events fan out to every active
+ * subscription configured in the workspace, not just those minted
+ * by the booking's host. A workspace OWNER who configures a
+ * webhook now sees deliveries for every member's bookings.
  *
  * `events` is a CSV (see WebhookSubscription comment); we LIKE-match
  * the comma-bounded substring so "booking.created" doesn't false-
  * positive on a (hypothetical) "no-booking.created" suffix.
  */
 export async function findActiveSubscriptionsForEvent(
-  userId: string,
+  workspaceId: string,
   event: WebhookEvent,
 ) {
   return prisma.webhookSubscription.findMany({
     where: {
-      userId,
+      workspaceId,
       active: true,
       events: { contains: event },
     },

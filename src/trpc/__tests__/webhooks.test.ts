@@ -34,6 +34,7 @@ describe("webhooks — subscription management + scheduling", () => {
     it("returns the secret exactly once on creation", async () => {
       const caller = callRouter(fakeContext({ userId: host.id }));
       const result = await caller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
@@ -47,6 +48,7 @@ describe("webhooks — subscription management + scheduling", () => {
       const caller = callRouter(fakeContext({ userId: host.id }));
       await expect(
         caller.webhooks.create({
+          slug: HANDLE,
           subscriberUrl: "not-a-url",
           events: ["booking.created"],
         }),
@@ -57,10 +59,29 @@ describe("webhooks — subscription management + scheduling", () => {
       const caller = callRouter(fakeContext({ userId: host.id }));
       await expect(
         caller.webhooks.create({
+          slug: HANDLE,
           subscriberUrl: "https://example.com/hook",
           events: [],
         }),
       ).rejects.toThrow();
+    });
+
+    it("throws NOT_FOUND when the caller isn't a member of the workspace (B1)", async () => {
+      const stranger = await createTestHost("vitest-webhooks-stranger");
+      try {
+        const strangerCaller = callRouter(
+          fakeContext({ userId: stranger.id }),
+        );
+        await expect(
+          strangerCaller.webhooks.create({
+            slug: HANDLE,
+            subscriberUrl: "https://example.com/hook",
+            events: ["booking.created"],
+          }),
+        ).rejects.toMatchObject({ code: "NOT_FOUND" });
+      } finally {
+        await tearDownTestHost(stranger.id);
+      }
     });
   });
 
@@ -68,59 +89,84 @@ describe("webhooks — subscription management + scheduling", () => {
     it("never returns the secret in list responses", async () => {
       const caller = callRouter(fakeContext({ userId: host.id }));
       await caller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
 
-      const list = await caller.webhooks.list();
+      const list = await caller.webhooks.list({ slug: HANDLE });
       expect(list.length).toBe(1);
       // The list select explicitly excludes `secret`. Type-level
       // protection too — TS would catch a leak.
       expect("secret" in list[0]).toBe(false);
     });
 
-    it("only returns webhooks owned by the calling user", async () => {
+    it("scopes results to the requested workspace (B1)", async () => {
+      // Create a webhook in HANDLE's workspace; assert a stranger
+      // querying their own workspace sees nothing of HANDLE's set.
       const callerA = callRouter(fakeContext({ userId: host.id }));
-      const callerB = callRouter(fakeContext({ userId: "other-user-id" }));
-
       await callerA.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/a",
         events: ["booking.created"],
       });
 
-      const listA = await callerA.webhooks.list();
-      const listB = await callerB.webhooks.list();
-      expect(listA.length).toBe(1);
-      expect(listB.length).toBe(0);
+      const stranger = await createTestHost("vitest-webhooks-list-stranger");
+      try {
+        const callerB = callRouter(fakeContext({ userId: stranger.id }));
+        const listA = await callerA.webhooks.list({ slug: HANDLE });
+        const listB = await callerB.webhooks.list({ slug: stranger.handle });
+        expect(listA.length).toBe(1);
+        expect(listB.length).toBe(0);
+        // Stranger trying to list HANDLE's workspace fails NOT_FOUND.
+        await expect(
+          callerB.webhooks.list({ slug: HANDLE }),
+        ).rejects.toMatchObject({ code: "NOT_FOUND" });
+      } finally {
+        await tearDownTestHost(stranger.id);
+      }
     });
   });
 
   describe("webhooks.delete", () => {
-    it("removes a webhook owned by the user", async () => {
+    it("removes a webhook the caller has scope to manage", async () => {
       const caller = callRouter(fakeContext({ userId: host.id }));
       const created = await caller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
 
-      await caller.webhooks.delete({ publicUid: created.publicUid });
-      expect((await caller.webhooks.list()).length).toBe(0);
+      await caller.webhooks.delete({
+        slug: HANDLE,
+        publicUid: created.publicUid,
+      });
+      expect((await caller.webhooks.list({ slug: HANDLE })).length).toBe(0);
     });
 
-    it("throws NOT_FOUND for a webhook the caller doesn't own", async () => {
+    it("throws NOT_FOUND for a stranger trying to delete inside another workspace (B1)", async () => {
       const callerA = callRouter(fakeContext({ userId: host.id }));
       const created = await callerA.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
 
-      const callerB = callRouter(fakeContext({ userId: "other-user-id" }));
-      await expect(
-        callerB.webhooks.delete({ publicUid: created.publicUid }),
-      ).rejects.toMatchObject({ code: "NOT_FOUND" });
+      const stranger = await createTestHost("vitest-webhooks-delete-stranger");
+      try {
+        const callerB = callRouter(fakeContext({ userId: stranger.id }));
+        await expect(
+          callerB.webhooks.delete({
+            slug: HANDLE,
+            publicUid: created.publicUid,
+          }),
+        ).rejects.toMatchObject({ code: "NOT_FOUND" });
 
-      // Webhook is still there — imposter couldn't delete it.
-      expect((await callerA.webhooks.list()).length).toBe(1);
+        // Webhook is still there — stranger couldn't delete it.
+        expect((await callerA.webhooks.list({ slug: HANDLE })).length).toBe(1);
+      } finally {
+        await tearDownTestHost(stranger.id);
+      }
     });
   });
 
@@ -128,6 +174,7 @@ describe("webhooks — subscription management + scheduling", () => {
     it("writes a Task row when an active matching webhook exists", async () => {
       const hostCaller = callRouter(fakeContext({ userId: host.id }));
       await hostCaller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
@@ -171,6 +218,7 @@ describe("webhooks — subscription management + scheduling", () => {
     it("does NOT schedule a Task for a webhook that's inactive", async () => {
       const hostCaller = callRouter(fakeContext({ userId: host.id }));
       const created = await hostCaller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });
@@ -199,6 +247,7 @@ describe("webhooks — subscription management + scheduling", () => {
     it("idempotency retry does NOT double-schedule the Task", async () => {
       const hostCaller = callRouter(fakeContext({ userId: host.id }));
       await hostCaller.webhooks.create({
+        slug: HANDLE,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });

@@ -13,9 +13,12 @@
 
 import { router } from "@/trpc/trpc";
 import { admin } from "./routers/admin";
+import { audit } from "./routers/audit";
 import { auth } from "./routers/auth";
+import { billing } from "./routers/billing";
 import { bookings } from "./routers/bookings";
 import { calendar } from "./routers/calendar";
+import { eventTypes } from "./routers/event-types";
 import { invitations } from "./routers/invitations";
 import { schedule } from "./routers/schedule";
 import { users } from "./routers/users";
@@ -32,7 +35,10 @@ export const appRouter = router({
   workspaces,
   invitations,
   admin,
+  audit,
+  billing,
   calendar,
+  eventTypes,
   workflows,
 });
 
