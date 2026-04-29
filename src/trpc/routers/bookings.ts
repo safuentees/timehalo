@@ -11,6 +11,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import {
   cancelPendingTask,
   findActiveSubscriptionsForEvent,
+  scheduleCalendarWrite,
   scheduleEmailSend,
   scheduleWebhookDelivery,
   TASK_TYPE_EMAIL_SEND,
@@ -225,6 +226,7 @@ export const bookings = router({
               await tx.bookingAudit.create({
                 data: {
                   bookingUid: created.publicUid,
+                  workspaceId,
                   actor: "VISITOR",
                   action: "CREATED",
                   data: {
@@ -263,7 +265,7 @@ export const bookings = router({
             }
 
             const subscriptions = await findActiveSubscriptionsForEvent(
-              host.id,
+              workspaceId,
               "booking.created",
             );
             for (const sub of subscriptions) {
@@ -355,6 +357,14 @@ export const bookings = router({
             await dispatchWorkflows({
               trigger: "BEFORE_EVENT",
               booking: workflowCtx,
+            });
+
+            await scheduleCalendarWrite({
+              payload: {
+                action: "create",
+                bookingPublicUid: booking.publicUid,
+              },
+              referenceUid: `${booking.publicUid}:calendarWrite:create`,
             });
 
             emitBookingEvent({
@@ -479,7 +489,7 @@ export const bookings = router({
         });
       }
 
-      const [audit, pendingTasks] = await Promise.all([
+      const [audit, pendingTasks, deliveries] = await Promise.all([
         prisma.bookingAudit.findMany({
           where: { bookingUid: booking.publicUid },
           orderBy: { createdAt: "asc" },
@@ -507,6 +517,21 @@ export const bookings = router({
             lastError: true,
           },
         }),
+        prisma.task.findMany({
+          where: {
+            referenceUid: { startsWith: `${booking.publicUid}:` },
+            succeededAt: { not: null },
+          },
+          orderBy: { succeededAt: "desc" },
+          select: {
+            id: true,
+            type: true,
+            referenceUid: true,
+            scheduledAt: true,
+            succeededAt: true,
+            attempts: true,
+          },
+        }),
       ]);
 
       let rescheduledFrom: { publicUid: string; slotStart: Date } | null = null;
@@ -518,7 +543,42 @@ export const bookings = router({
         rescheduledFrom = prior;
       }
 
-      return { ...booking, audit, pendingTasks, rescheduledFrom };
+      const [previous, next] = await Promise.all([
+        prisma.booking.findFirst({
+          where: {
+            hostId: ctx.user.id,
+            deleted: false,
+            OR: [
+              { slotStart: { lt: booking.slotStart } },
+              { slotStart: booking.slotStart, id: { lt: booking.id } },
+            ],
+          },
+          orderBy: [{ slotStart: "desc" }, { id: "desc" }],
+          select: { publicUid: true },
+        }),
+        prisma.booking.findFirst({
+          where: {
+            hostId: ctx.user.id,
+            deleted: false,
+            OR: [
+              { slotStart: { gt: booking.slotStart } },
+              { slotStart: booking.slotStart, id: { gt: booking.id } },
+            ],
+          },
+          orderBy: [{ slotStart: "asc" }, { id: "asc" }],
+          select: { publicUid: true },
+        }),
+      ]);
+
+      return {
+        ...booking,
+        audit,
+        pendingTasks,
+        deliveries,
+        rescheduledFrom,
+        previousUid: previous?.publicUid ?? null,
+        nextUid: next?.publicUid ?? null,
+      };
     }),
 
   cancel: privateProcedure
@@ -550,6 +610,7 @@ export const bookings = router({
                 slotStart: true,
                 slotEnd: true,
                 hostId: true,
+                workspaceId: true,
                 idempotencyKey: true,
               },
             });
@@ -572,6 +633,7 @@ export const bookings = router({
             await tx.bookingAudit.create({
               data: {
                 bookingUid: target.publicUid,
+                workspaceId: target.workspaceId,
                 actor: "HOST",
                 action: "CANCELLED",
                 data: {
@@ -591,7 +653,7 @@ export const bookings = router({
           });
 
           const subscriptions = await findActiveSubscriptionsForEvent(
-            ctx.user.id,
+            result.workspaceId,
             "booking.cancelled",
           );
           for (const sub of subscriptions) {
@@ -672,6 +734,14 @@ export const bookings = router({
               slotEndIso: result.slotEnd.toISOString(),
               operationId,
             },
+          });
+
+          await scheduleCalendarWrite({
+            payload: {
+              action: "delete",
+              bookingPublicUid: result.publicUid,
+            },
+            referenceUid: `${result.publicUid}:calendarWrite:delete:${operationId}`,
           });
 
           emitBookingEvent({
@@ -755,6 +825,8 @@ export const bookings = router({
               slotEnd: true,
               referrer: true,
               visitorTimezone: true,
+              externalCalendarEventId: true,
+              externalCalendarCredentialId: true,
             },
           });
           if (!original) {
@@ -873,6 +945,7 @@ export const bookings = router({
               await tx.bookingAudit.create({
                 data: {
                   bookingUid: original.publicUid,
+                  workspaceId: original.workspaceId,
                   actor: "VISITOR",
                   action: "RESCHEDULED_FROM",
                   data: {
@@ -911,6 +984,7 @@ export const bookings = router({
               await tx.bookingAudit.create({
                 data: {
                   bookingUid: newBooking.publicUid,
+                  workspaceId: original.workspaceId,
                   actor: "VISITOR",
                   action: "RESCHEDULED_TO",
                   data: {
@@ -928,7 +1002,7 @@ export const bookings = router({
             span.setAttribute("newBookingPublicUid", created.publicUid);
 
             const subscriptions = await findActiveSubscriptionsForEvent(
-              host.id,
+              original.workspaceId,
               "booking.rescheduled",
             );
             for (const sub of subscriptions) {
@@ -1031,6 +1105,26 @@ export const bookings = router({
             await dispatchWorkflows({
               trigger: "BEFORE_EVENT",
               booking: reschedCtx,
+            });
+
+            if (
+              original.externalCalendarEventId &&
+              original.externalCalendarCredentialId
+            ) {
+              await scheduleCalendarWrite({
+                payload: {
+                  action: "delete",
+                  bookingPublicUid: original.publicUid,
+                },
+                referenceUid: `${original.publicUid}:calendarWrite:delete:${operationId}`,
+              });
+            }
+            await scheduleCalendarWrite({
+              payload: {
+                action: "create",
+                bookingPublicUid: created.publicUid,
+              },
+              referenceUid: `${created.publicUid}:calendarWrite:create`,
             });
 
             emitBookingEvent({

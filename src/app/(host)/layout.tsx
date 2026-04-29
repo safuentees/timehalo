@@ -4,12 +4,15 @@ import { BrutalistDashboardLayout } from "@/components/brutalist/brutalist-dashb
 
 export default async function DashboardLayout({
   children,
+  modal,
 }: Readonly<{
   children: ReactNode;
+  modal: ReactNode;
 }>) {
   return (
     <BrutalistProviders>
       <BrutalistDashboardLayout>{children}</BrutalistDashboardLayout>
+      {modal}
     </BrutalistProviders>
   );
 }
