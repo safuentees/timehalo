@@ -105,7 +105,10 @@ export function createRatelimit(
   requests: number,
   duration: Duration,
 ): Limiter {
-  // TODO(prod): when UPSTASH_REDIS_REST_URL is set, return the Redis
-  // branch instead. Same return shape — caller code doesn't change.
+  // Memory-only today. The Upstash Redis swap lives behind a real
+  // signal — when prod traffic justifies it, branch on
+  // UPSTASH_REDIS_REST_URL and return a Redis-backed Limiter with
+  // the same return shape so caller code doesn't change. Tracked
+  // as B.PT14 in BACKLOG.md.
   return createMemoryLimiter(requests, duration);
 }
