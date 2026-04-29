@@ -195,6 +195,10 @@
   }
 }
 
+:where(html, body):has(.bru-app) {
+  overflow: hidden;
+}
+
 .bru-app {
   --bru-dashboard-bar-height: 32px;
   --sidebar: var(--bru-frame);
