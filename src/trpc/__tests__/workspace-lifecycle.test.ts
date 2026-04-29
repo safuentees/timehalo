@@ -11,312 +11,524 @@ import { prisma } from "@/lib/prisma";
 import {
   createTestHost,
   createTestUser,
-  createTestWorkspaceForUser,
   fakeContext,
+  purgeTestWorkspaces,
   tearDownTestHost,
+  tomorrowAt10UTC,
 } from "../../../test/fixtures";
 
 // B5 — workspace lifecycle four-pack contract tests:
 //   • update (rename + change slug; CONFLICT on dup; gate on
 //     workspace.write).
 //   • delete (OWNER only; PRECONDITION_FAILED on last owned
-//     workspace; cascades).
-//   • leave (non-OWNER members; OWNER blocked).
+//     workspace; cascades wipe related rows).
+//   • leave (non-OWNER members; OWNER blocked; idempotent NOT_FOUND).
 //   • transferOwnership (OWNER atomic swap; target must be a
-//     member; recipient promotes, caller demotes to ADMIN).
+//     member; recipient promotes, caller demotes to ADMIN; assignedBy
+//     stamped on both rows).
+//
+// Pattern follows .claude/rules/testing.md: shared host via beforeAll,
+// per-test workspace purge via purgeTestWorkspaces, single afterAll
+// teardown. Slug discriminators avoid cross-describe collision.
 
 const callRouter = createCaller(appRouter);
 
+// ─── workspaces.update ───────────────────────────────────────────────
+
+const UPDATE_SLUG_FROM = "vitest-ws-update-from";
+const UPDATE_SLUG_TO = "vitest-ws-update-to";
+const UPDATE_SLUG_OTHER = "vitest-ws-update-other";
+
 describe("workspaces.update (B5)", () => {
   let owner: { id: string; handle: string };
+  let member: { id: string; handle: string };
 
   beforeAll(async () => {
-    owner = await createTestHost("vitest-ws-update");
+    owner = await createTestHost("vitest-ws-update-owner");
+    member = await createTestUser("vitest-ws-update-member");
+  });
+  beforeEach(async () => {
+    await purgeTestWorkspaces([
+      UPDATE_SLUG_FROM,
+      UPDATE_SLUG_TO,
+      UPDATE_SLUG_OTHER,
+    ]);
   });
   afterAll(async () => {
+    await purgeTestWorkspaces([
+      UPDATE_SLUG_FROM,
+      UPDATE_SLUG_TO,
+      UPDATE_SLUG_OTHER,
+    ]);
+    await tearDownTestHost(member.id);
     await tearDownTestHost(owner.id);
   });
 
   it("renames + changes slug atomically", async () => {
     const caller = callRouter(fakeContext({ userId: owner.id }));
-    const ws = await caller.workspaces.create({
-      slug: "to-rename",
-      name: "Original",
+    await caller.workspaces.create({ slug: UPDATE_SLUG_FROM, name: "Original" });
+
+    const updated = await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      name: "Renamed",
+      newSlug: UPDATE_SLUG_TO,
     });
-    try {
-      const updated = await caller.workspaces.update({
-        slug: ws.slug,
-        name: "Renamed",
-        newSlug: "renamed-ws",
-      });
-      expect(updated.slug).toBe("renamed-ws");
-      expect(updated.name).toBe("Renamed");
-    } finally {
-      await prisma.workspace.deleteMany({
-        where: { slug: { in: ["to-rename", "renamed-ws"] } },
-      });
-    }
+    expect(updated.slug).toBe(UPDATE_SLUG_TO);
+    expect(updated.name).toBe("Renamed");
+  });
+
+  it("renames without changing slug (name-only)", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await caller.workspaces.create({ slug: UPDATE_SLUG_FROM, name: "Original" });
+
+    const updated = await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      name: "Just Renamed",
+    });
+    expect(updated.slug).toBe(UPDATE_SLUG_FROM);
+    expect(updated.name).toBe("Just Renamed");
+  });
+
+  it("changes slug without changing name (slug-only)", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await caller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
+      name: "Keep this name",
+    });
+
+    const updated = await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+    expect(updated.slug).toBe(UPDATE_SLUG_TO);
+    expect(updated.name).toBe(ws.name);
+  });
+
+  it("empty input is a safe no-op", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await caller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
+      name: "Steady",
+    });
+
+    const updated = await caller.workspaces.update({ slug: UPDATE_SLUG_FROM });
+    expect(updated.slug).toBe(ws.slug);
+    expect(updated.name).toBe(ws.name);
+  });
+
+  it("the old slug is no longer reachable after a rename", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await caller.workspaces.create({ slug: UPDATE_SLUG_FROM, name: "From" });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+
+    await expect(
+      caller.workspaces.get({ slug: UPDATE_SLUG_FROM }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    const reached = await caller.workspaces.get({ slug: UPDATE_SLUG_TO });
+    expect(reached.callerRole).toBe("OWNER");
   });
 
   it("CONFLICT when newSlug is already taken", async () => {
     const caller = callRouter(fakeContext({ userId: owner.id }));
-    const a = await caller.workspaces.create({ slug: "wsa", name: "A" });
-    const b = await caller.workspaces.create({ slug: "wsb", name: "B" });
-    try {
-      await expect(
-        caller.workspaces.update({ slug: a.slug, newSlug: "wsb" }),
-      ).rejects.toMatchObject({ code: "CONFLICT" });
-    } finally {
-      await prisma.workspace.deleteMany({
-        where: { id: { in: [a.id, b.id] } },
-      });
-    }
+    await caller.workspaces.create({ slug: UPDATE_SLUG_FROM, name: "A" });
+    await caller.workspaces.create({ slug: UPDATE_SLUG_OTHER, name: "B" });
+
+    await expect(
+      caller.workspaces.update({
+        slug: UPDATE_SLUG_FROM,
+        newSlug: UPDATE_SLUG_OTHER,
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
   });
 
   it("FORBIDDEN for MEMBER role", async () => {
-    const caller = callRouter(fakeContext({ userId: owner.id }));
-    const ws = await caller.workspaces.create({
-      slug: "ws-member-test",
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await ownerCaller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
       name: "Member test",
     });
-    const member = await createTestUser("vitest-ws-update-member");
-    try {
-      await prisma.membership.create({
-        data: { workspaceId: ws.id, userId: member.id, role: "MEMBER" },
-      });
-      const memberCaller = callRouter(fakeContext({ userId: member.id }));
-      await expect(
-        memberCaller.workspaces.update({
-          slug: ws.slug,
-          name: "Hijack",
-        }),
-      ).rejects.toMatchObject({ code: "FORBIDDEN" });
-    } finally {
-      await tearDownTestHost(member.id);
-      await prisma.workspace.delete({ where: { id: ws.id } });
-    }
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: member.id, role: "MEMBER" },
+    });
+
+    const memberCaller = callRouter(fakeContext({ userId: member.id }));
+    await expect(
+      memberCaller.workspaces.update({
+        slug: UPDATE_SLUG_FROM,
+        name: "Hijack",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });
 
+// ─── workspaces.delete ───────────────────────────────────────────────
+
+const DELETE_SLUG_EXTRA = "vitest-ws-delete-extra";
+const DELETE_SLUG_CASCADE = "vitest-ws-delete-cascade";
+const DELETE_SLUG_ADMIN = "vitest-ws-delete-admin";
+
 describe("workspaces.delete (B5)", () => {
-  it("deletes a non-primary owned workspace", async () => {
-    const owner = await createTestHost("vitest-ws-delete");
-    try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      const extra = await caller.workspaces.create({
-        slug: "extra-to-delete",
-        name: "Extra",
-      });
-      await caller.workspaces.delete({ slug: extra.slug });
-      const list = await caller.workspaces.list();
-      expect(list.some((w) => w.slug === extra.slug)).toBe(false);
-    } finally {
-      await tearDownTestHost(owner.id);
-    }
+  let owner: { id: string; handle: string };
+  let admin: { id: string; handle: string };
+
+  beforeAll(async () => {
+    owner = await createTestHost("vitest-ws-delete-owner");
+    admin = await createTestUser("vitest-ws-delete-admin-user");
+  });
+  beforeEach(async () => {
+    await purgeTestWorkspaces([
+      DELETE_SLUG_EXTRA,
+      DELETE_SLUG_CASCADE,
+      DELETE_SLUG_ADMIN,
+    ]);
+  });
+  afterAll(async () => {
+    await purgeTestWorkspaces([
+      DELETE_SLUG_EXTRA,
+      DELETE_SLUG_CASCADE,
+      DELETE_SLUG_ADMIN,
+    ]);
+    await tearDownTestHost(admin.id);
+    await tearDownTestHost(owner.id);
+  });
+
+  it("deletes a non-primary owned workspace when the user owns ≥ 2", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await caller.workspaces.create({
+      slug: DELETE_SLUG_EXTRA,
+      name: "Extra",
+    });
+
+    const before = await prisma.workspace.count({
+      where: { ownerId: owner.id },
+    });
+    expect(before).toBeGreaterThanOrEqual(2);
+
+    await caller.workspaces.delete({ slug: DELETE_SLUG_EXTRA });
+
+    const list = await caller.workspaces.list();
+    expect(list.some((w) => w.slug === DELETE_SLUG_EXTRA)).toBe(false);
+    const after = await prisma.workspace.count({
+      where: { ownerId: owner.id },
+    });
+    expect(after).toBe(before - 1);
   });
 
   it("PRECONDITION_FAILED when deleting the user's only owned workspace", async () => {
-    const owner = await createTestHost("vitest-ws-delete-only");
+    // The Personal workspace seeded by createTestHost is the only one
+    // this user owns; deleting it must be blocked.
+    const soloOwner = await createTestHost("vitest-ws-delete-solo");
     try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      // The Personal workspace seeded by createTestHost is the only
-      // one this user owns; deleting it must be blocked.
+      const caller = callRouter(fakeContext({ userId: soloOwner.id }));
       await expect(
-        caller.workspaces.delete({ slug: owner.handle }),
+        caller.workspaces.delete({ slug: soloOwner.handle }),
       ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
     } finally {
-      await tearDownTestHost(owner.id);
+      await tearDownTestHost(soloOwner.id);
     }
+  });
+
+  it("cascades to bookings, memberships, and webhook subscriptions", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await caller.workspaces.create({
+      slug: DELETE_SLUG_CASCADE,
+      name: "Cascade target",
+    });
+
+    // Seed every relation the procedure docstring promises to cascade.
+    // We can't easily seed an api key / event type / subscription
+    // in-line without pulling more fixture surface in; bookings +
+    // memberships + webhook subscriptions are the high-volume relations
+    // most likely to regress on a schema change.
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: admin.id, role: "ADMIN" },
+    });
+    await prisma.booking.create({
+      data: {
+        hostId: owner.id,
+        workspaceId: ws.id,
+        slotStart: tomorrowAt10UTC(),
+        slotEnd: new Date(tomorrowAt10UTC().getTime() + 15 * 60_000),
+        visitorName: "Cascade Visitor",
+        visitorEmail: "cascade@example.com",
+      },
+    });
+    await prisma.webhookSubscription.create({
+      data: {
+        userId: owner.id,
+        workspaceId: ws.id,
+        subscriberUrl: "https://receiver.test/cascade",
+        events: "booking.created",
+        secret: "cascade-secret".padEnd(64, "f"),
+        active: true,
+      },
+    });
+
+    const beforeBookings = await prisma.booking.count({
+      where: { workspaceId: ws.id },
+    });
+    const beforeMemberships = await prisma.membership.count({
+      where: { workspaceId: ws.id },
+    });
+    const beforeWebhooks = await prisma.webhookSubscription.count({
+      where: { workspaceId: ws.id },
+    });
+    expect(beforeBookings).toBeGreaterThan(0);
+    expect(beforeMemberships).toBeGreaterThan(0);
+    expect(beforeWebhooks).toBeGreaterThan(0);
+
+    await caller.workspaces.delete({ slug: DELETE_SLUG_CASCADE });
+
+    expect(
+      await prisma.workspace.findUnique({ where: { id: ws.id } }),
+    ).toBeNull();
+    expect(
+      await prisma.booking.count({ where: { workspaceId: ws.id } }),
+    ).toBe(0);
+    expect(
+      await prisma.membership.count({ where: { workspaceId: ws.id } }),
+    ).toBe(0);
+    expect(
+      await prisma.webhookSubscription.count({ where: { workspaceId: ws.id } }),
+    ).toBe(0);
   });
 
   it("FORBIDDEN for ADMIN role", async () => {
-    const owner = await createTestHost("vitest-ws-delete-admin-owner");
-    const admin = await createTestUser("vitest-ws-delete-admin");
-    try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      const extra = await caller.workspaces.create({
-        slug: "admin-test-ws",
-        name: "Admin test",
-      });
-      await prisma.membership.create({
-        data: { workspaceId: extra.id, userId: admin.id, role: "ADMIN" },
-      });
-      const adminCaller = callRouter(fakeContext({ userId: admin.id }));
-      await expect(
-        adminCaller.workspaces.delete({ slug: extra.slug }),
-      ).rejects.toMatchObject({ code: "FORBIDDEN" });
-    } finally {
-      await tearDownTestHost(admin.id);
-      await tearDownTestHost(owner.id);
-    }
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await ownerCaller.workspaces.create({
+      slug: DELETE_SLUG_ADMIN,
+      name: "Admin test",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: admin.id, role: "ADMIN" },
+    });
+
+    const adminCaller = callRouter(fakeContext({ userId: admin.id }));
+    await expect(
+      adminCaller.workspaces.delete({ slug: DELETE_SLUG_ADMIN }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });
 
+// ─── workspaces.leave ────────────────────────────────────────────────
+
+const LEAVE_SLUG = "vitest-ws-leave";
+
 describe("workspaces.leave (B5)", () => {
+  let owner: { id: string; handle: string };
+  let member: { id: string; handle: string };
+  let stranger: { id: string; handle: string };
+
+  beforeAll(async () => {
+    owner = await createTestHost("vitest-ws-leave-owner");
+    member = await createTestUser("vitest-ws-leave-member");
+    stranger = await createTestUser("vitest-ws-leave-stranger");
+  });
+  beforeEach(async () => {
+    await purgeTestWorkspaces([LEAVE_SLUG]);
+  });
+  afterAll(async () => {
+    await purgeTestWorkspaces([LEAVE_SLUG]);
+    await tearDownTestHost(stranger.id);
+    await tearDownTestHost(member.id);
+    await tearDownTestHost(owner.id);
+  });
+
   it("removes the caller's membership when caller is not the owner", async () => {
-    const owner = await createTestHost("vitest-ws-leave-owner");
-    const member = await createTestUser("vitest-ws-leave-member");
-    try {
-      const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
-      const ws = await ownerCaller.workspaces.create({
-        slug: "leavable",
-        name: "Leavable",
-      });
-      await prisma.membership.create({
-        data: { workspaceId: ws.id, userId: member.id, role: "MEMBER" },
-      });
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await ownerCaller.workspaces.create({
+      slug: LEAVE_SLUG,
+      name: "Leavable",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: member.id, role: "MEMBER" },
+    });
 
-      const memberCaller = callRouter(fakeContext({ userId: member.id }));
-      await memberCaller.workspaces.leave({ slug: ws.slug });
+    const memberCaller = callRouter(fakeContext({ userId: member.id }));
+    await memberCaller.workspaces.leave({ slug: LEAVE_SLUG });
 
-      // Membership row gone.
-      const remaining = await prisma.membership.findFirst({
-        where: { workspaceId: ws.id, userId: member.id },
-        select: { id: true },
-      });
-      expect(remaining).toBeNull();
-      // Workspace + OWNER membership intact.
-      const ownerStillIn = await prisma.membership.findFirst({
-        where: { workspaceId: ws.id, userId: owner.id, role: "OWNER" },
-        select: { id: true },
-      });
-      expect(ownerStillIn).not.toBeNull();
-    } finally {
-      await tearDownTestHost(member.id);
-      await tearDownTestHost(owner.id);
-    }
+    // Membership row gone.
+    const remaining = await prisma.membership.findFirst({
+      where: { workspaceId: ws.id, userId: member.id },
+      select: { id: true },
+    });
+    expect(remaining).toBeNull();
+    // Workspace + OWNER membership intact.
+    const ownerStillIn = await prisma.membership.findFirst({
+      where: { workspaceId: ws.id, userId: owner.id, role: "OWNER" },
+      select: { id: true },
+    });
+    expect(ownerStillIn).not.toBeNull();
+  });
+
+  it("a second leave call by the same user is NOT_FOUND (idempotency)", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await ownerCaller.workspaces.create({
+      slug: LEAVE_SLUG,
+      name: "Leavable",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: member.id, role: "MEMBER" },
+    });
+
+    const memberCaller = callRouter(fakeContext({ userId: member.id }));
+    await memberCaller.workspaces.leave({ slug: LEAVE_SLUG });
+    // Second call — the membership is already gone. requireMembership
+    // returns NOT_FOUND, which is the right "already left" semantics.
+    await expect(
+      memberCaller.workspaces.leave({ slug: LEAVE_SLUG }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("FORBIDDEN when the OWNER tries to leave", async () => {
-    const owner = await createTestHost("vitest-ws-leave-owner-blocked");
-    try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      await expect(
-        caller.workspaces.leave({ slug: owner.handle }),
-      ).rejects.toMatchObject({ code: "FORBIDDEN" });
-    } finally {
-      await tearDownTestHost(owner.id);
-    }
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await expect(
+      caller.workspaces.leave({ slug: owner.handle }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("NOT_FOUND for non-members", async () => {
-    const owner = await createTestHost("vitest-ws-leave-stranger-owner");
-    const stranger = await createTestUser("vitest-ws-leave-stranger");
-    try {
-      const strangerCaller = callRouter(fakeContext({ userId: stranger.id }));
-      await expect(
-        strangerCaller.workspaces.leave({ slug: owner.handle }),
-      ).rejects.toMatchObject({ code: "NOT_FOUND" });
-    } finally {
-      await tearDownTestHost(stranger.id);
-      await tearDownTestHost(owner.id);
-    }
+    const strangerCaller = callRouter(fakeContext({ userId: stranger.id }));
+    await expect(
+      strangerCaller.workspaces.leave({ slug: owner.handle }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
 
+// ─── workspaces.transferOwnership ────────────────────────────────────
+
+const TRANSFER_SLUG = "vitest-ws-transfer";
+const TRANSFER_SLUG_NONOWNER = "vitest-ws-transfer-nonowner";
+
 describe("workspaces.transferOwnership (B5)", () => {
-  it("swaps OWNER ↔ ADMIN atomically + updates Workspace.ownerId", async () => {
-    const oldOwner = await createTestHost("vitest-ws-transfer-old");
-    const newOwner = await createTestUser("vitest-ws-transfer-new");
-    try {
-      const oldCaller = callRouter(fakeContext({ userId: oldOwner.id }));
-      const ws = await oldCaller.workspaces.create({
-        slug: "transferable",
-        name: "Transferable",
-      });
-      await prisma.membership.create({
-        data: { workspaceId: ws.id, userId: newOwner.id, role: "ADMIN" },
-      });
+  let oldOwner: { id: string; handle: string };
+  let newOwner: { id: string; handle: string };
+  let stranger: { id: string; handle: string };
 
-      await oldCaller.workspaces.transferOwnership({
-        slug: ws.slug,
-        newOwnerUserId: newOwner.id,
-      });
+  beforeAll(async () => {
+    oldOwner = await createTestHost("vitest-ws-transfer-old");
+    // newOwner is a full host (with their own Personal workspace) so the
+    // "exercise OWNER scopes after transfer" test can call delete on the
+    // transferred workspace without tripping PRECONDITION_FAILED on
+    // "this is your last owned workspace".
+    newOwner = await createTestHost("vitest-ws-transfer-new");
+    stranger = await createTestUser("vitest-ws-transfer-stranger");
+  });
+  beforeEach(async () => {
+    await purgeTestWorkspaces([TRANSFER_SLUG, TRANSFER_SLUG_NONOWNER]);
+  });
+  afterAll(async () => {
+    await purgeTestWorkspaces([TRANSFER_SLUG, TRANSFER_SLUG_NONOWNER]);
+    await tearDownTestHost(stranger.id);
+    await tearDownTestHost(newOwner.id);
+    await tearDownTestHost(oldOwner.id);
+  });
 
-      // Workspace.ownerId updated.
-      const refreshed = await prisma.workspace.findUniqueOrThrow({
-        where: { id: ws.id },
-        select: { ownerId: true },
-      });
-      expect(refreshed.ownerId).toBe(newOwner.id);
-      // Old owner is now ADMIN.
-      const oldRole = await prisma.membership.findFirstOrThrow({
-        where: { workspaceId: ws.id, userId: oldOwner.id },
-        select: { role: true },
-      });
-      expect(oldRole.role).toBe("ADMIN");
-      // New owner is now OWNER.
-      const newRole = await prisma.membership.findFirstOrThrow({
-        where: { workspaceId: ws.id, userId: newOwner.id },
-        select: { role: true },
-      });
-      expect(newRole.role).toBe("OWNER");
-    } finally {
-      await tearDownTestHost(newOwner.id);
-      await tearDownTestHost(oldOwner.id);
-    }
+  it("swaps OWNER ↔ ADMIN atomically + updates Workspace.ownerId + stamps assignedBy", async () => {
+    const oldCaller = callRouter(fakeContext({ userId: oldOwner.id }));
+    const ws = await oldCaller.workspaces.create({
+      slug: TRANSFER_SLUG,
+      name: "Transferable",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: newOwner.id, role: "ADMIN" },
+    });
+
+    await oldCaller.workspaces.transferOwnership({
+      slug: TRANSFER_SLUG,
+      newOwnerUserId: newOwner.id,
+    });
+
+    // Workspace.ownerId updated.
+    const refreshed = await prisma.workspace.findUniqueOrThrow({
+      where: { id: ws.id },
+      select: { ownerId: true },
+    });
+    expect(refreshed.ownerId).toBe(newOwner.id);
+
+    // Old owner is now ADMIN; assignedBy points at the new owner.
+    const oldRow = await prisma.membership.findFirstOrThrow({
+      where: { workspaceId: ws.id, userId: oldOwner.id },
+      select: { role: true, assignedBy: true },
+    });
+    expect(oldRow.role).toBe("ADMIN");
+    expect(oldRow.assignedBy).toBe(newOwner.id);
+
+    // New owner is now OWNER; assignedBy points at the prior owner.
+    const newRow = await prisma.membership.findFirstOrThrow({
+      where: { workspaceId: ws.id, userId: newOwner.id },
+      select: { role: true, assignedBy: true },
+    });
+    expect(newRow.role).toBe("OWNER");
+    expect(newRow.assignedBy).toBe(oldOwner.id);
+  });
+
+  it("the new owner can immediately exercise OWNER scopes (update + delete)", async () => {
+    const oldCaller = callRouter(fakeContext({ userId: oldOwner.id }));
+    const ws = await oldCaller.workspaces.create({
+      slug: TRANSFER_SLUG,
+      name: "About to be theirs",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: newOwner.id, role: "ADMIN" },
+    });
+    await oldCaller.workspaces.transferOwnership({
+      slug: TRANSFER_SLUG,
+      newOwnerUserId: newOwner.id,
+    });
+
+    // Procedure path — go through the same gates a real caller hits.
+    const newCaller = callRouter(fakeContext({ userId: newOwner.id }));
+    const renamed = await newCaller.workspaces.update({
+      slug: TRANSFER_SLUG,
+      name: "Theirs now",
+    });
+    expect(renamed.name).toBe("Theirs now");
+
+    await newCaller.workspaces.delete({ slug: TRANSFER_SLUG });
+    expect(
+      await prisma.workspace.findUnique({ where: { id: ws.id } }),
+    ).toBeNull();
   });
 
   it("NOT_FOUND when target isn't a member of the workspace", async () => {
-    // Handles capped at 30 chars to satisfy workspaceSlugSchema —
-    // createTestHost stamps slug = handle on the seeded Personal
-    // workspace, and the procedure validates it on input.
-    const owner = await createTestHost("vitest-tx-nomember-own");
-    const stranger = await createTestUser("vitest-tx-nomember-out");
-    try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      await expect(
-        caller.workspaces.transferOwnership({
-          slug: owner.handle,
-          newOwnerUserId: stranger.id,
-        }),
-      ).rejects.toMatchObject({ code: "NOT_FOUND" });
-    } finally {
-      await tearDownTestHost(stranger.id);
-      await tearDownTestHost(owner.id);
-    }
+    const caller = callRouter(fakeContext({ userId: oldOwner.id }));
+    await expect(
+      caller.workspaces.transferOwnership({
+        slug: oldOwner.handle,
+        newOwnerUserId: stranger.id,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("FORBIDDEN for non-owner caller", async () => {
-    const owner = await createTestHost("vitest-tx-nonowner-own");
-    const admin = await createTestUser("vitest-tx-nonowner-adm");
-    try {
-      const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
-      const ws = await ownerCaller.workspaces.create({
-        slug: "ws-transfer-noowner",
-        name: "Test",
-      });
-      await prisma.membership.create({
-        data: { workspaceId: ws.id, userId: admin.id, role: "ADMIN" },
-      });
-      const adminCaller = callRouter(fakeContext({ userId: admin.id }));
-      await expect(
-        adminCaller.workspaces.transferOwnership({
-          slug: ws.slug,
-          newOwnerUserId: admin.id,
-        }),
-      ).rejects.toMatchObject({ code: "FORBIDDEN" });
-    } finally {
-      await tearDownTestHost(admin.id);
-      await tearDownTestHost(owner.id);
-    }
+    const ownerCaller = callRouter(fakeContext({ userId: oldOwner.id }));
+    const ws = await ownerCaller.workspaces.create({
+      slug: TRANSFER_SLUG_NONOWNER,
+      name: "Test",
+    });
+    await prisma.membership.create({
+      data: { workspaceId: ws.id, userId: newOwner.id, role: "ADMIN" },
+    });
+    const adminCaller = callRouter(fakeContext({ userId: newOwner.id }));
+    await expect(
+      adminCaller.workspaces.transferOwnership({
+        slug: TRANSFER_SLUG_NONOWNER,
+        newOwnerUserId: newOwner.id,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("BAD_REQUEST when transferring to self", async () => {
-    const owner = await createTestHost("vitest-ws-transfer-self");
-    try {
-      const caller = callRouter(fakeContext({ userId: owner.id }));
-      await expect(
-        caller.workspaces.transferOwnership({
-          slug: owner.handle,
-          newOwnerUserId: owner.id,
-        }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    } finally {
-      await tearDownTestHost(owner.id);
-    }
+    const caller = callRouter(fakeContext({ userId: oldOwner.id }));
+    await expect(
+      caller.workspaces.transferOwnership({
+        slug: oldOwner.handle,
+        newOwnerUserId: oldOwner.id,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
-
-// Re-import marker so the test runner imports this fixture helper.
-void createTestWorkspaceForUser;
