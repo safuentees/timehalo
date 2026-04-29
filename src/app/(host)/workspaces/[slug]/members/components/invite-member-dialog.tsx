@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useInviteMember } from "@/lib/mutations/use-invite-member";
+import { PlusIcon, MinusIcon } from "lucide-react";
+import { useInviteMany } from "@/lib/mutations/use-invite-many";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
@@ -18,25 +19,42 @@ import {
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
 
-// Invite dialog. Owner can grant ADMIN; admins are restricted to
-// MEMBER/VIEWER (the server enforces this — we just keep the
-// dropdown options narrower so the user doesn't pick a role they'd
-// be rejected on).
+// Bulk invite dialog (B.PT9). Refactored from the single-row dialog
+// to use react-hook-form's useFieldArray so an admin can paste
+// several emails + per-row roles in one submit. The procedure
+// (workspaces.inviteMany) batches them all-or-nothing: any role-
+// rule rejection or plan-cap overflow aborts before any DB write,
+// matching dub.co's POST /api/workspaces/:id/invites shape.
 //
-// FORBIDDEN from the server (e.g. somehow trying to invite an OWNER)
-// surfaces inline via form.setError on the role field.
+// Owner can grant ADMIN; admins are restricted to MEMBER/VIEWER —
+// same gate the server enforces, mirrored here so the dropdown
+// doesn't show a role the user can't grant.
 
 const ROLE_BASE = ["MEMBER", "VIEWER"] as const;
 const ROLE_OWNER_TIER = ["ADMIN", ...ROLE_BASE] as const;
 
-const schema = z.object({
+const inviteRowSchema = z.object({
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   role: z.enum(["ADMIN", "MEMBER", "VIEWER"]),
 });
 
+const schema = z.object({
+  invites: z
+    .array(inviteRowSchema)
+    .min(1, "Add at least one invite")
+    .max(50, "At most 50 invites per batch"),
+});
+
 type FormValues = z.infer<typeof schema>;
 
-const defaultValues: FormValues = { email: "", role: "MEMBER" };
+const defaultRow = (): z.infer<typeof inviteRowSchema> => ({
+  email: "",
+  role: "MEMBER",
+});
+
+const defaultValues = (): FormValues => ({
+  invites: [defaultRow()],
+});
 
 export function InviteMemberDialog({
   slug,
@@ -81,31 +99,37 @@ function InviteForm({
   const t = useTranslations("Members");
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: defaultValues(),
     mode: "onBlur",
   });
+  const { fields, append, remove } = useFieldArray({
+    name: "invites",
+    control: form.control,
+  });
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const invite = useInviteMember({
+  const inviteMany = useInviteMany({
     onSuccess: () => {
-      form.reset(defaultValues);
+      form.reset(defaultValues());
+      setServerError(null);
       onDone();
     },
     onError: (error) => {
       if (error.data?.code === "FORBIDDEN") {
-        form.setError("role", { type: "server", message: error.message });
+        setServerError(error.message);
       }
     },
   });
 
   async function onSubmit(values: FormValues) {
-    await invite.mutateAsync({
+    setServerError(null);
+    await inviteMany.mutateAsync({
       slug,
-      email: values.email,
-      role: values.role,
+      invites: values.invites,
     });
   }
 
-  const isPending = invite.isPending;
+  const isPending = inviteMany.isPending;
   const roleOptions = canGrantAdmin ? ROLE_OWNER_TIER : ROLE_BASE;
 
   return (
@@ -114,51 +138,107 @@ function InviteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className={RESPONSIVE_MODAL_BODY_CLASS}
       >
-        <Controller<FormValues, "email">
-          name="email"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>{t("emailLabel")}</FieldLabel>
-              <input
-                {...field}
-                id={field.name}
-                type="email"
-                placeholder={t("emailPlaceholder")}
-                aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+        <div className="flex flex-col gap-3">
+          {fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="flex items-end gap-2"
+            >
+              <Controller<FormValues, `invites.${number}.email`>
+                name={`invites.${index}.email`}
+                render={({ field: emailField, fieldState }) => (
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="flex-1 min-w-0"
+                  >
+                    {index === 0 ? (
+                      <FieldLabel htmlFor={emailField.name}>
+                        {t("emailLabel")}
+                      </FieldLabel>
+                    ) : null}
+                    <input
+                      {...emailField}
+                      id={emailField.name}
+                      type="email"
+                      placeholder={t("emailPlaceholder")}
+                      aria-invalid={fieldState.invalid}
+                      className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                    />
+                    <FieldError
+                      errors={
+                        fieldState.error ? [fieldState.error] : undefined
+                      }
+                      className="bru-field-error"
+                    />
+                  </Field>
+                )}
               />
-              <FieldError
-                errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
-              />
-            </Field>
-          )}
-        />
 
-        <Controller<FormValues, "role">
-          name="role"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>{t("roleLabel")}</FieldLabel>
-              <select
-                {...field}
-                id={field.name}
-                aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
-              >
-                {roleOptions.map((r) => (
-                  <option key={r} value={r}>
-                    {t(`role_${r}`)}
-                  </option>
-                ))}
-              </select>
-              <FieldError
-                errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+              <Controller<FormValues, `invites.${number}.role`>
+                name={`invites.${index}.role`}
+                render={({ field: roleField }) => (
+                  <Field className="w-[120px] shrink-0">
+                    {index === 0 ? (
+                      <FieldLabel htmlFor={roleField.name}>
+                        {t("roleLabel")}
+                      </FieldLabel>
+                    ) : null}
+                    <select
+                      {...roleField}
+                      id={roleField.name}
+                      className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[12px]"
+                    >
+                      {roleOptions.map((r) => (
+                        <option key={r} value={r}>
+                          {t(`role_${r}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
               />
-            </Field>
-          )}
-        />
+
+              {index > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="brutalistIcon"
+                  onClick={() => remove(index)}
+                  aria-label={t("removeInviteRow")}
+                  disabled={isPending}
+                >
+                  <MinusIcon
+                    aria-hidden
+                    strokeWidth={1.5}
+                    className="size-4"
+                  />
+                </Button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="brutalist"
+          onClick={() => append(defaultRow())}
+          disabled={isPending || fields.length >= 50}
+          className="self-start"
+        >
+          <PlusIcon
+            aria-hidden
+            strokeWidth={1.5}
+            className="size-4"
+          />
+          {t("addInviteRow")}
+        </Button>
+
+        {serverError ? (
+          <p className="bru-description text-[color:var(--bru-content-muted)]">
+            {serverError}
+          </p>
+        ) : null}
 
         <ResponsiveModalFooter>
           <Button
@@ -176,7 +256,11 @@ function InviteForm({
             size="brutalist"
             disabled={isPending}
           >
-            {isPending ? t("sending") : t("sendInvite")}
+            {isPending
+              ? t("sending")
+              : fields.length === 1
+                ? t("sendInvite")
+                : t("sendInvites", { count: fields.length })}
           </Button>
         </ResponsiveModalFooter>
       </form>

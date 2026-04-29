@@ -116,7 +116,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT6 | Global workspace context switcher (cookie-stored) | SHIPPED | _to be filled by commit_ | `oh_active_workspace` cookie + Next 15 server action + `ctx.activeWorkspaceSlug` + `workspaces.list` returns `isActive` per row. Top-bar dropdown clicks set the cookie via the action then `router.refresh()` + navigate. Settings + billing + api-keys + workflows defaults now respect the active row. Falls back to first-by-membership when cookie unset or stale. |
 | B.PT7 | `/workspaces/<slug>/settings` page | SHIPPED | _to be filled by commit_ | Surfaced B.PT5's lifecycle four-pack via four sections (general / transfer / leave / danger). Typed-confirm dialog on delete mirrors `delete-account-dialog.tsx`. |
 | B.PT8 | Resend + edit-pending-invite-role procedures + UI | SHIPPED | _to be filled by commit_ | New `workspaces.resendInvitation` (rotates token + refreshes expiry + re-enqueues email with `:resend:<ts>` referenceUid) and `workspaces.updateInvitationRole` (same role rules as invite). Members-panel InvitationRow gains an inline role select + Resend button alongside the existing Revoke. 5 new vitest cases. |
-| **B.PT9** | **Bulk invite (`workspaces.inviteMany`)** | **OPEN** | — | ~120 LOC, 1 day. |
+| B.PT9 | Bulk invite (`workspaces.inviteMany`) | SHIPPED | _to be filled by commit_ | New `workspaces.inviteMany({ slug, invites: [{email, role}, ...] })` — all-or-nothing batch with one cap-check + per-row role-rule pre-pass + one transaction for all rows. Members-panel invite dialog refactored from single-row to `useFieldArray`. 5 new vitest cases. |
 | **B.PT10** | **Multi-step workflows (`WorkflowStep` chains)** | **OPEN** | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. |
 | **B.PT11** | **SMS / Slack / Discord workflow actions** | **OPEN** | — | ~150 LOC per provider, 1 day each. |
 | B.PT12 | Calendar conflict → round-robin `excludeHostIds` integration | SHIPPED | _to be filled by commit_ | New `findBusyHostIds` helper in `src/lib/calendar/index.ts`; bookings.create's multi-host branch merges its result into excludeHostIds before selectHost. ISO-string overlap (no Date allocation), Promise.allSettled soft-fail per host. 2 new test cases extend round-robin-integration.test.ts. |
@@ -149,11 +149,26 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 ## What's next (auto-derived)
 
-Pick from `OPEN` rows above, in this priority order:
+The OPEN rows that aren't signal-gated are now empty. The remaining
+items in Tier B (B.PT10 multi-step workflows, B.PT11 SMS/Slack/Discord
+workflow actions, B.PT13 distribution fairness lookback) are all
+explicitly "wait for signal" per their notes — multi-step adds 350
+LOC for a 90%-of-value-already-shipped feature, the workflow action
+providers each add per-vendor integration debt with no asking user,
+and the lookback decay needs round-robin usage volume that today's
+single-host-per-event-type hosts don't generate.
 
-1. **B.PT9** — bulk invite. 1 day.
+Tier C items remain SIGNAL-GATED across the board.
 
-Tier C items wait for their gating signal.
+Pick the next move based on a real-world signal:
+
+- "I want to schedule something X minutes after this other thing" →
+  promote B.PT10 from Tier B's signal-gated bucket.
+- "Our customer asked for Slack/SMS on booking" → promote B.PT11 with
+  the named provider in scope.
+- "We measured uneven distribution" → promote B.PT13.
+
+Until a signal arrives, every commit-flagged deferral is closed.
 
 ---
 

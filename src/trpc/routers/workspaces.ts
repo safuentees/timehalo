@@ -564,6 +564,155 @@ export const workspaces = router({
       });
     }),
 
+  // Bulk invite (B.PT9). Same role rules + same plan-cap as the
+  // single-invite procedure, but checks the batch size against the
+  // cap in one go so 4-of-5 don't accidentally land when the 5th
+  // would overflow. All-or-nothing: any per-row rejection (role
+  // rule) aborts before any DB write happens. Each accepted row
+  // gets its own Invitation + Task in the same transaction.
+  //
+  // Pattern reference: dub.co's POST /api/workspaces/:id/invites
+  // (apps/web/ui/workspaces/invite-teammates-form.tsx posts the
+  // teammates array — they likewise loop server-side after the
+  // single batch validation pass).
+  inviteMany: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        invites: z
+          .array(
+            z.object({
+              email: z.string().trim().email().toLowerCase(),
+              role: workspaceMembershipRoleSchema,
+            }),
+          )
+          .min(1, "At least one invite")
+          .max(50, "At most 50 invites per call"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const callerMembership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "members.write",
+      );
+
+      // Up-front role-rule validation across the whole batch. We
+      // reject the whole call on any single bad row rather than
+      // partially commit + return a per-row result; matches the
+      // single-invite procedure's "one rule failure = whole call
+      // bounces" shape and keeps the transaction tight.
+      for (const inv of input.invites) {
+        if (inv.role === "OWNER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Owner can't be granted via invite",
+          });
+        }
+        if (
+          inv.role === "ADMIN" &&
+          callerMembership.role !== "OWNER"
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only the owner can invite ADMINs",
+          });
+        }
+      }
+
+      // Plan-cap check on the BATCH count, not per-row. Pending
+      // invitations count toward the cap (same invariant as
+      // workspaces.invite). Fail fast with a clear error if the
+      // batch would overflow.
+      const plan = await planForWorkspace(callerMembership.workspaceId);
+      const cap = memberCap(plan);
+      const [memberCount, pendingCount] = await Promise.all([
+        prisma.membership.count({
+          where: { workspaceId: callerMembership.workspaceId },
+        }),
+        prisma.invitation.count({
+          where: {
+            workspaceId: callerMembership.workspaceId,
+            acceptedAt: null,
+          },
+        }),
+      ]);
+      if (
+        memberCount + pendingCount + input.invites.length >
+        cap
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Member cap would be exceeded for ${plan} plan (${cap}). Upgrade or reduce the batch.`,
+        });
+      }
+
+      // Pre-mint tokens so each insert + email Task carries a
+      // unique link. generateInvitationToken is async (crypto +
+      // base64url) so we await all in parallel before opening
+      // the transaction.
+      const tokens = await Promise.all(
+        input.invites.map(() => generateInvitationToken()),
+      );
+      const expiresAt = new Date(Date.now() + INVITATION_EXPIRY_MS);
+      const inviter = await prisma.user.findUnique({
+        where: { id: ctx.user.id },
+        select: { name: true, handle: true },
+      });
+      const inviterName =
+        inviter?.name ?? inviter?.handle ?? "An Officehours user";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+      // One transaction: every invitation row commits or none.
+      // Email Tasks fire OUTSIDE the transaction so a delivery-
+      // queue hiccup doesn't roll back the invitations the host
+      // just confirmed (same separation cal.com + the rest of
+      // this app uses for Task fan-out).
+      const created = await prisma.$transaction(
+        input.invites.map((inv, i) =>
+          prisma.invitation.create({
+            data: {
+              workspaceId: callerMembership.workspaceId,
+              email: inv.email,
+              role: inv.role,
+              token: tokens[i],
+              invitedBy: ctx.user.id,
+              expiresAt,
+            },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              expiresAt: true,
+            },
+          }),
+        ),
+      );
+
+      // Fan out email Tasks. Per-row referenceUid keeps the
+      // [referenceUid, type] dedup index honest — each invite
+      // gets its own delivery record.
+      await Promise.all(
+        created.map((inv, i) =>
+          scheduleEmailSend({
+            payload: {
+              to: inv.email,
+              template: "workspace-invite",
+              props: {
+                workspaceName: callerMembership.workspace.name,
+                inviterName,
+                role: inv.role,
+                acceptUrl: `${appUrl}/invitations/${tokens[i]}`,
+              },
+            },
+            referenceUid: `invitation:${inv.id}:email`,
+          }),
+        ),
+      );
+
+      return created;
+    }),
+
   // Resend a pending invitation. Rotates the token (so the previous
   // link stops working) and refreshes the expiry window, then re-
   // enqueues the workspace-invite email. Same scope (members.write)

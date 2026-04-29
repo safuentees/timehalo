@@ -227,6 +227,142 @@ describe("invitations.preview", () => {
   });
 });
 
+// B.PT9 — workspaces.inviteMany. Bulk-invite procedure with all-
+// or-nothing semantics: any role-rule rejection or plan-cap
+// overflow aborts before a single Invitation row commits.
+describe("workspaces.inviteMany (B.PT9)", () => {
+  let owner: { id: string };
+
+  beforeAll(async () => {
+    owner = await createTestUser("vitest-pt9-owner");
+  });
+
+  beforeEach(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await prisma.task.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await tearDownTestHost(owner.id);
+  });
+
+  it("creates one Invitation row + one email Task per invite", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+
+    const result = await ownerCaller.workspaces.inviteMany({
+      slug: SLUG,
+      invites: [
+        { email: "a@example.com", role: "MEMBER" },
+        { email: "b@example.com", role: "VIEWER" },
+        { email: "c@example.com", role: "ADMIN" },
+      ],
+    });
+    expect(result).toHaveLength(3);
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: SLUG },
+      select: { id: true },
+    });
+    const invitations = await prisma.invitation.findMany({
+      where: { workspaceId: ws.id },
+      select: { email: true, role: true },
+    });
+    expect(invitations).toHaveLength(3);
+    const tasks = await prisma.task.findMany({
+      where: { type: "emailSend" },
+      select: { referenceUid: true },
+    });
+    const inviteTasks = tasks.filter(
+      (t) =>
+        t.referenceUid !== null &&
+        t.referenceUid.includes(":email"),
+    );
+    expect(inviteTasks).toHaveLength(3);
+  });
+
+  it("rejects the whole batch when any row would push past the plan cap", async () => {
+    // FREE plan caps at 1 member (the owner). One pending invite
+    // would bring members+pending to 2, which equals the cap-plus-
+    // one-pending bound. A 2-row batch overflows; the procedure
+    // must reject ALL rows (no partial commit).
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    // Skip the pro upgrade — want FREE cap behavior here.
+
+    await expect(
+      ownerCaller.workspaces.inviteMany({
+        slug: SLUG,
+        invites: [
+          { email: "a@example.com", role: "MEMBER" },
+          { email: "b@example.com", role: "MEMBER" },
+        ],
+      }),
+    ).rejects.toThrow(/Member cap|FORBIDDEN/i);
+
+    // Confirm no partial state — zero invitations exist.
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: SLUG },
+      select: { id: true },
+    });
+    const count = await prisma.invitation.count({
+      where: { workspaceId: ws.id },
+    });
+    expect(count).toBe(0);
+  });
+
+  it("rejects the whole batch when ANY row carries an OWNER role", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+
+    await expect(
+      ownerCaller.workspaces.inviteMany({
+        slug: SLUG,
+        invites: [
+          { email: "a@example.com", role: "MEMBER" },
+          { email: "b@example.com", role: "OWNER" },
+        ],
+      }),
+    ).rejects.toThrow(/Owner can't be granted|FORBIDDEN/i);
+  });
+
+  it("rejects ADMIN grant from a non-owner caller", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: SLUG },
+      select: { id: true },
+    });
+    await prisma.membership.updateMany({
+      where: { workspaceId: ws.id, userId: owner.id },
+      data: { role: "ADMIN" },
+    });
+
+    await expect(
+      ownerCaller.workspaces.inviteMany({
+        slug: SLUG,
+        invites: [
+          { email: "a@example.com", role: "MEMBER" },
+          { email: "b@example.com", role: "ADMIN" },
+        ],
+      }),
+    ).rejects.toThrow(/owner can invite ADMIN|FORBIDDEN/i);
+  });
+
+  it("rejects an empty array at the schema layer", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+
+    await expect(
+      ownerCaller.workspaces.inviteMany({ slug: SLUG, invites: [] }),
+    ).rejects.toThrow();
+  });
+});
+
 // B.PT8 — resendInvitation + updateInvitationRole.
 //
 // Both procedures pass the same scope check (members.write) as
