@@ -269,17 +269,22 @@
 
 /* Brutalist-themed shadcn Sidebar wrapper. Scopes sidebar tokens to the
    brutalist palette so <Sidebar> renders in paper/ink without forking. */
-/* Kill the body-level native scrollbar gutter while the dashboard is
-   mounted. The cookie-cutter panel scrolls internally via the Radix
-   ScrollArea, so the document body never needs a scrollbar — but
-   browsers (especially Windows/Linux Chrome + Firefox) reserve one
-   anyway, painting a thin vertical strip at the right edge. In dark
-   mode the body bg is near-black, so the gutter reads as a black
-   stripe against the cream sidebar. `:has(.bru-app)` scopes the rule
-   to dashboard routes only; `/login`, `/register`, `/h/[handle]`
-   keep their normal page-scrolling behavior. */
+/* Kill the body-level native scrollbar AND its reserved gutter while
+   the dashboard is mounted. The cookie-cutter panel scrolls
+   internally via the Radix ScrollArea, so the body never needs a
+   scrollbar — but the global `html { scrollbar-gutter: stable }`
+   rule (above, in @layer base) keeps a slot reserved regardless of
+   overflow, painting html's near-black dark-mode bg as a thin
+   vertical strip on the right.
+   `overflow: hidden` hides any scrollbar that would appear.
+   `scrollbar-gutter: auto` overrides the global `stable` so no slot
+   is reserved either. `:has(.bru-app)` scopes both to dashboard
+   routes; `/login`, `/register`, `/h/[handle]` keep the global
+   stable-gutter behavior so their layouts don't jump on overflow
+   toggles. */
 :where(html, body):has(.bru-app) {
   overflow: hidden;
+  scrollbar-gutter: auto;
 }
 
 .bru-app {
