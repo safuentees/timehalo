@@ -1,0 +1,205 @@
+"use client";
+
+import { useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useCreateEventType } from "@/lib/mutations/use-event-type-mutations";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  RESPONSIVE_MODAL_BODY_CLASS,
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalTrigger,
+} from "@/components/ui/responsive-modal";
+
+const schema = z.object({
+  name: z.string().trim().min(1, "Required").max(60),
+  eventTypeSlug: z
+    .string()
+    .trim()
+    .min(1, "Required")
+    .max(30, "30 characters max")
+    .regex(
+      /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/,
+      "Lowercase letters, digits, hyphens",
+    ),
+  durationMins: z
+    .number({ message: "Enter a number" })
+    .int()
+    .min(5)
+    .max(480),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const defaultValues: FormValues = {
+  name: "",
+  eventTypeSlug: "",
+  durationMins: 15,
+};
+
+export function EventTypeCreateDialog({ slug }: { slug: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <ResponsiveModal open={open} onOpenChange={setOpen}>
+      <ResponsiveModalTrigger asChild>
+        <Button variant="brutalist" size="brutalist">
+          Add event type
+        </Button>
+      </ResponsiveModalTrigger>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>New event type</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+        <CreateForm slug={slug} onDone={() => setOpen(false)} />
+      </ResponsiveModalContent>
+    </ResponsiveModal>
+  );
+}
+
+function CreateForm({
+  slug,
+  onDone,
+}: {
+  slug: string;
+  onDone: () => void;
+}) {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues,
+    mode: "onBlur",
+  });
+
+  const create = useCreateEventType({
+    onSuccess: () => {
+      form.reset(defaultValues);
+      onDone();
+    },
+    onError: (error) => {
+      if (error.data?.code === "CONFLICT") {
+        form.setError("eventTypeSlug", {
+          type: "server",
+          message: error.message,
+        });
+      }
+    },
+  });
+
+  async function onSubmit(values: FormValues) {
+    await create.mutateAsync({
+      slug,
+      eventTypeSlug: values.eventTypeSlug,
+      name: values.name,
+      durationMins: values.durationMins,
+    });
+  }
+
+  const isPending = create.isPending;
+
+  return (
+    <FormProvider {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={RESPONSIVE_MODAL_BODY_CLASS}
+      >
+        <Controller<FormValues, "name">
+          name="name"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <input
+                {...field}
+                id={field.name}
+                type="text"
+                placeholder="30-min consult"
+                aria-invalid={fieldState.invalid}
+                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+              />
+              <FieldError
+                errors={fieldState.error ? [fieldState.error] : undefined}
+                className="bru-field-error"
+              />
+            </Field>
+          )}
+        />
+
+        <Controller<FormValues, "eventTypeSlug">
+          name="eventTypeSlug"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+              <input
+                {...field}
+                id={field.name}
+                type="text"
+                placeholder="consult-30"
+                aria-invalid={fieldState.invalid}
+                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px] lowercase"
+              />
+              <FieldError
+                errors={fieldState.error ? [fieldState.error] : undefined}
+                className="bru-field-error"
+              />
+            </Field>
+          )}
+        />
+
+        <Controller<FormValues, "durationMins">
+          name="durationMins"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Duration (minutes)</FieldLabel>
+              <input
+                id={field.name}
+                name={field.name}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                value={field.value}
+                onChange={(e) => {
+                  const next = e.target.valueAsNumber;
+                  field.onChange(Number.isFinite(next) ? next : 15);
+                }}
+                type="number"
+                min={5}
+                max={480}
+                step={5}
+                aria-invalid={fieldState.invalid}
+                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+              />
+              <FieldError
+                errors={fieldState.error ? [fieldState.error] : undefined}
+                className="bru-field-error"
+              />
+            </Field>
+          )}
+        />
+
+        <ResponsiveModalFooter>
+          <Button
+            type="button"
+            variant="outline"
+            size="brutalist"
+            onClick={onDone}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="brutalist"
+            size="brutalist"
+            disabled={isPending}
+          >
+            {isPending ? "Creating…" : "Create"}
+          </Button>
+        </ResponsiveModalFooter>
+      </form>
+    </FormProvider>
+  );
+}
