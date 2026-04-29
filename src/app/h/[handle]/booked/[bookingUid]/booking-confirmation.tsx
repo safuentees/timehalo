@@ -98,7 +98,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
         {booking.host.handle ? (
           <Link
             href={`/h/${booking.host.handle}`}
-            className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 transition-opacity hover:opacity-100"
+            className="bru-legend transition-opacity hover:opacity-100"
           >
             /h/{booking.host.handle}
           </Link>
@@ -114,13 +114,13 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             >
               <CheckIcon className="size-4 sm:size-[18px]" strokeWidth={3} />
             </span>
-            <span className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 sm:text-[12px]">
+            <span className="bru-legend sm:text-[12px]">
               Booked
             </span>
           </div>
 
           <div className="mt-10 sm:mt-14 lg:mt-20">
-            <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55 sm:text-[13px]">
+            <p className="bru-legend sm:text-[13px]">
               {weekday}
             </p>
             <p className="mt-2 text-[clamp(48px,14vw,160px)] font-black leading-[0.88] tracking-[-0.045em] uppercase sm:mt-3">
@@ -129,7 +129,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             <p className="mt-4 font-[family-name:var(--bru-mono)] text-[16px] font-bold tabular-nums sm:mt-6 sm:text-[18px] lg:text-[20px]">
               {slotTime}
             </p>
-            <p className="mt-1 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 sm:text-[11px]">
+            <p className="mt-1 bru-eyebrow sm:text-[11px]">
               {tzLabel}
             </p>
           </div>
@@ -150,7 +150,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 with {hostName}
               </p>
               {booking.host.handle ? (
-                <p className="mt-0.5 truncate font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55 sm:text-[11px]">
+                <p className="mt-0.5 truncate bru-eyebrow sm:text-[11px]">
                   /h/{booking.host.handle}
                 </p>
               ) : null}
@@ -161,12 +161,8 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             href={`/api/bookings/${booking.publicUid}/calendar`}
             className={cn(
               buttonVariants({ variant: "brutalist", size: "brutalist" }),
-              // Height bumps only — never override the brutalist variant's
-              // `text-[var(--bru-paper)]` with a `text-[12px]`-style size
-              // class. tailwind-merge collapses both into one `text-*`
-              // group and the color disappears, leaving black text on a
-              // black button at sm/lg breakpoints. See
-              // .claude/rules/dashboard-forms.md "Hover + color contracts".
+              // Size bumps only; the brutalist variant owns the paired
+              // background/text colors for stale and hover states.
               "mt-8 w-full justify-center gap-2 sm:mt-10 sm:h-11 lg:h-12",
             )}
           >
@@ -191,7 +187,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
         </div>
       </main>
 
-      <footer className="hidden items-center justify-between border-t-[1.5px] border-bru-line px-8 py-5 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 sm:flex lg:px-12">
+      <footer className="hidden items-center justify-between border-t-[1.5px] border-bru-line px-8 py-5 bru-eyebrow sm:flex lg:px-12">
         <span>Officehours</span>
         <span className="tabular-nums">Receipt {fmtStamp(startDate)}</span>
       </footer>

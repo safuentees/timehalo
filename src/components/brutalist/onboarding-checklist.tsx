@@ -69,7 +69,7 @@ export function OnboardingChecklist() {
     >
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+          <p className="bru-eyebrow">
             Getting started · {done}/{total}
           </p>
           <h2 className="mt-2 text-[18px] font-black leading-tight">
