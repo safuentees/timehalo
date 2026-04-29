@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { MembershipRole } from "@/generated/prisma/enums";
 
 export const WORKSPACE_SCOPES = [
@@ -49,8 +50,17 @@ export function scopesFor(role: MembershipRole): ReadonlyArray<WorkspaceScope> {
   return Array.from(ROLE_SCOPES[role]);
 }
 
-export const WORKSPACE_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+// @unique constraint catches duplicates; this regex catches malformed
+export const WORKSPACE_SLUG_MIN = 3;
 export const WORKSPACE_SLUG_MAX = 30;
+export const WORKSPACE_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+
+export const workspaceSlugSchema = z
+  .string()
+  .trim()
+  .min(WORKSPACE_SLUG_MIN, `${WORKSPACE_SLUG_MIN}+ characters`)
+  .max(WORKSPACE_SLUG_MAX, `${WORKSPACE_SLUG_MAX} characters max`)
+  .regex(WORKSPACE_SLUG_REGEX, "Lowercase letters, digits, hyphens");
 
 const PERSONAL_PREFIX = "personal-";
 const PERSONAL_SUFFIX_LEN = WORKSPACE_SLUG_MAX - PERSONAL_PREFIX.length;

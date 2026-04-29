@@ -18,16 +18,11 @@ import {
   ResponsiveModalTitle,
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
-import { WORKSPACE_SLUG_REGEX } from "@/lib/workspaces";
+import { workspaceSlugSchema } from "@/lib/workspaces";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Required").max(60),
-  slug: z
-    .string()
-    .trim()
-    .min(3, "3+ characters")
-    .max(30, "30 characters max")
-    .regex(WORKSPACE_SLUG_REGEX, "Lowercase letters, digits, hyphens"),
+  slug: workspaceSlugSchema,
 });
 
 type FormValues = z.infer<typeof schema>;

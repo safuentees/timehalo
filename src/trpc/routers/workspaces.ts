@@ -7,10 +7,10 @@ import { generateApiKey } from "@/lib/api-keys";
 import { scheduleEmailSend } from "@/lib/tasks";
 import {
   WORKSPACE_SCOPES,
-  WORKSPACE_SLUG_REGEX,
   INVITATION_EXPIRY_MS,
   hasScope,
   scopesFor,
+  workspaceSlugSchema,
   type WorkspaceScope,
 } from "@/lib/workspaces";
 import { generateInvitationToken } from "@/lib/workspaces-server";
@@ -20,14 +20,6 @@ import {
   requireFeature,
 } from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
-
-const workspaceSlugSchema = z
-  .string()
-  .min(3)
-  .max(30)
-  .regex(WORKSPACE_SLUG_REGEX, {
-    message: "Lowercase letters, digits, hyphens. 3–30 chars.",
-  });
 
 const workspaceMembershipRoleSchema = z.enum([
   "OWNER",
