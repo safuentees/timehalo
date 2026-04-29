@@ -10,6 +10,7 @@ import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
+import { OhUserMenu } from "./user-menu";
 
 export function OhDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
@@ -115,6 +116,8 @@ export function OhDashboardBar() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+
+      <OhUserMenu />
 
       <WorkspaceCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>

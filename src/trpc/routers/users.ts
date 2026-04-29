@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { planForUser } from "@/lib/billing";
+import { isAdminHandle } from "@/lib/admin";
 import { getEnabledFeatures } from "@/lib/feature-flags";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
@@ -11,15 +12,18 @@ import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 export const users = router({
   me: privateProcedure.query(async ({ ctx }) => {
-    return await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
       select: {
         id: true,
         handle: true,
         timezone: true,
         email: true,
+        name: true,
+        image: true,
       },
     });
+    return { ...user, isAdmin: isAdminHandle(user.handle) };
   }),
 
   featureFlags: privateProcedure.query(async ({ ctx }) => {

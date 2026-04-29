@@ -319,5 +319,22 @@
     "cancelDescription": "{name} will be notified by email. This cannot be undone.",
     "cancelConfirm": "Cancel booking",
     "cancelCancel": "Keep booking"
+  },
+  "UserMenu": {
+    "trigger": "Open menu for {name}",
+    "fallbackName": "Account",
+    "openPublicPage": "Open public page",
+    "accountGroup": "Account",
+    "profile": "Profile",
+    "settings": "Settings",
+    "preferencesGroup": "Preferences",
+    "theme": "Appearance",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "language": "Language",
+    "systemStatus": "System status",
+    "adminConsole": "Admin console",
+    "signOut": "Sign out"
   }
 }
