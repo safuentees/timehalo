@@ -269,6 +269,19 @@
 
 /* Brutalist-themed shadcn Sidebar wrapper. Scopes sidebar tokens to the
    brutalist palette so <Sidebar> renders in paper/ink without forking. */
+/* Kill the body-level native scrollbar gutter while the dashboard is
+   mounted. The cookie-cutter panel scrolls internally via the Radix
+   ScrollArea, so the document body never needs a scrollbar — but
+   browsers (especially Windows/Linux Chrome + Firefox) reserve one
+   anyway, painting a thin vertical strip at the right edge. In dark
+   mode the body bg is near-black, so the gutter reads as a black
+   stripe against the cream sidebar. `:has(.bru-app)` scopes the rule
+   to dashboard routes only; `/login`, `/register`, `/h/[handle]`
+   keep their normal page-scrolling behavior. */
+:where(html, body):has(.bru-app) {
+  overflow: hidden;
+}
+
 .bru-app {
   --bru-dashboard-bar-height: 32px;
   --sidebar: var(--bru-frame);
