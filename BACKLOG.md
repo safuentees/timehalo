@@ -163,12 +163,7 @@ Tier C items wait for their gating signal.
 
 ## Live `TODO` comments in source
 
-Run `rg "TODO" src/` to surface. The codebase carries no live `TODO(...)` markers anymore — the previous rate-limit.ts marker was promoted to B.PT14 (above) and the comment rewritten to reference the BACKLOG row.
-
-| File:line | Note | Tracked as |
-|---|---|---|
-| `src/lib/rate-limit.ts:108` | Now a forward-looking comment referencing `B.PT14`, no longer a `TODO()` | B.PT14 |
-| `src/lib/event-types.ts:13` | v1 backfill note (singleton EventType per existing User) | Implicitly closed at `5b8914e`. Comment can be removed in any drive-by edit. |
+`rg "TODO|FIXME|XXX" src/` returns zero matches as of HEAD. Every deferral lives as a row in the tables above; new code that wants to defer something should add a row here, not drop a `TODO(…)` marker. If a future audit finds new markers, promote them to backlog rows in the same commit they appear.
 
 ---
 
