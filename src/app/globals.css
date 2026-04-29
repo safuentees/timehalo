@@ -2211,16 +2211,18 @@
 
 .bru-host-content-inner {
   /* View-transition target + sizing for the Radix ScrollArea Root.
-     Absolutely fills the parent panel — no flex math, just inset:0
-     against the bounded `position: relative` parent. Radix Viewport
-     inside has `size-full` (h-full + w-full) which then resolves to
-     the panel's exact viewport-anchored height. Children inside the
-     Viewport that exceed it scroll natively; the absolute positioning
-     means the children's intrinsic height never affects the Root's
-     box (which would have happened in a flex chain). */
+     Radix sets `position: relative` inline on Root (verified in
+     node_modules/@radix-ui/react-scroll-area/dist/index.mjs) — inline
+     style beats className, so an `position: absolute` override here
+     is silently ignored. Per the Radix maintainers' guidance
+     (github.com/radix-ui/primitives/discussions/1485): set explicit
+     height/width on Root, then the Viewport's `size-full` resolves
+     and `overflow-y: scroll` kicks in when content exceeds Root's
+     height. Parent (.bru-host-content) is exactly viewport-anchored,
+     so 100% here = exactly 100svh - 24px. */
   view-transition-name: bru-host-content;
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Fade-only, sequenced. Default View Transitions API behavior is a
