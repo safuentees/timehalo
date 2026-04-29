@@ -7,6 +7,10 @@ import type { BusyTime, CalendarAdapter, CalendarSummary } from "./types";
 const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const GOOGLE_CALENDAR_LIST = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
 const GOOGLE_FREEBUSY = "https://www.googleapis.com/calendar/v3/freeBusy";
+const GOOGLE_EVENTS = (calendarId: string) =>
+  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+const GOOGLE_EVENT = (calendarId: string, eventId: string) =>
+  `${GOOGLE_EVENTS(calendarId)}/${encodeURIComponent(eventId)}`;
 const REFRESH_LEEWAY_MS = 60_000;
 
 export const GOOGLE_OAUTH_SCOPES = [
@@ -203,5 +207,94 @@ export function googleAdapter(credentialId: string): CalendarAdapter {
       }
       return out;
     },
+    async createEvent(input) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(GOOGLE_EVENTS(input.calendarId), {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(buildGoogleEventBody(input)),
+      });
+      if (!res.ok) {
+        throw new Error(
+          `Google events.insert failed: ${res.status} ${await res.text()}`,
+        );
+      }
+      const event = (await res.json()) as { id: string };
+      return { externalEventId: event.id };
+    },
+    async updateEvent(externalEventId, input) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(
+        GOOGLE_EVENT(input.calendarId, externalEventId),
+        {
+          method: "PATCH",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(buildGoogleEventBody(input)),
+        },
+      );
+      if (res.status === 404) return;
+      if (!res.ok) {
+        throw new Error(
+          `Google events.patch failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+    async deleteEvent(opts) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(
+        GOOGLE_EVENT(opts.calendarId, opts.externalEventId),
+        {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${accessToken}` },
+        },
+      );
+      if (res.status === 404 || res.status === 410) return;
+      if (!res.ok) {
+        throw new Error(
+          `Google events.delete failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+  };
+}
+
+type GoogleEventBody = {
+  summary: string;
+  description?: string;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  attendees?: Array<{ email: string; displayName?: string }>;
+};
+function buildGoogleEventBody(input: {
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  attendeeEmail?: string;
+  attendeeName?: string;
+}): GoogleEventBody {
+  return {
+    summary: input.title,
+    ...(input.description ? { description: input.description } : {}),
+    start: { dateTime: input.start.toISOString(), timeZone: "UTC" },
+    end: { dateTime: input.end.toISOString(), timeZone: "UTC" },
+    ...(input.attendeeEmail
+      ? {
+          attendees: [
+            {
+              email: input.attendeeEmail,
+              ...(input.attendeeName
+                ? { displayName: input.attendeeName }
+                : {}),
+            },
+          ],
+        }
+      : {}),
   };
 }

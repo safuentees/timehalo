@@ -12,6 +12,16 @@ export type CalendarSummary = {
   isPrimary: boolean;
 };
 
+export type CalendarEventInput = {
+  calendarId: string;
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  attendeeEmail?: string;
+  attendeeName?: string;
+};
+
 export interface CalendarAdapter {
   readonly provider: CalendarProvider;
 
@@ -22,4 +32,16 @@ export interface CalendarAdapter {
     from: Date;
     to: Date;
   }): Promise<BusyTime[]>;
+
+  createEvent(input: CalendarEventInput): Promise<{ externalEventId: string }>;
+
+  updateEvent(
+    externalEventId: string,
+    input: CalendarEventInput,
+  ): Promise<void>;
+
+  deleteEvent(opts: {
+    calendarId: string;
+    externalEventId: string;
+  }): Promise<void>;
 }
