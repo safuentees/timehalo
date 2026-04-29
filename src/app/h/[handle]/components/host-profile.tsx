@@ -63,6 +63,9 @@ export default function HostProfile({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+  const [rescheduleFromUid, setRescheduleFromUid] = useState<
+    string | undefined
+  >();
 
   useEffect(() => {
     const dateStr = getQueryParam("date");
@@ -74,6 +77,10 @@ export default function HostProfile({
     if (slotIso) {
       const matching = slots.find((s) => s.start === slotIso);
       if (matching) setSelectedSlot(matching);
+    }
+    const rescheduleUid = getQueryParam("reschedule");
+    if (rescheduleUid) {
+      setRescheduleFromUid(rescheduleUid);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -140,6 +147,23 @@ export default function HostProfile({
           <div className="bru-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
+
+      {rescheduleFromUid ? (
+        <div
+          role="status"
+          className="border-b-[1.5px] border-bru-line bg-bru-paper px-5 py-3 sm:px-8"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="bru-eyebrow">RESCHEDULING — PICK A NEW SLOT</span>
+            <a
+              href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
+              className="bru-eyebrow opacity-55 transition-opacity hover:opacity-100"
+            >
+              CANCEL
+            </a>
+          </div>
+        </div>
+      ) : null}
 
       <article className="bru-v1">
         <header className="bru-v1-hero bru-reveal">
@@ -226,6 +250,7 @@ export default function HostProfile({
             selectedDate={selectedDate}
             onSelectDate={handleSelectDate}
             selectedSlot={selectedSlot}
+            rescheduleFromUid={rescheduleFromUid}
             onPickSlot={(s) => {
               setSelectedSlot(s);
               updateQueryParam("slot", s.start, { pushEntry: true });

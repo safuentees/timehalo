@@ -25,6 +25,7 @@ type Props = {
   onPickSlot: (slot: Slot) => void;
   months?: number;
   selectedSlot: Slot | undefined;
+  rescheduleFromUid?: string;
 };
 
 export function AvailabilityDrawer({
@@ -37,6 +38,7 @@ export function AvailabilityDrawer({
   onPickSlot,
   months = 3,
   selectedSlot,
+  rescheduleFromUid,
 }: Props) {
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
   const monthBarDate = selectedDate ?? startOfToday();
@@ -124,6 +126,7 @@ export function AvailabilityDrawer({
           slot={selectedSlot}
           open={bookingOpen}
           onOpenChange={setBookingOpen}
+          rescheduleFromUid={rescheduleFromUid}
         />
       </ResponsiveModalContent>
     </ResponsiveModal>

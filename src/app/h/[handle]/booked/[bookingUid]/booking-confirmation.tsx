@@ -149,17 +149,27 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           </a>
 
           <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase sm:mt-8 sm:text-[11px]">
-            <button
-              type="button"
-              onClick={handleShare}
-              className="opacity-55 transition-opacity hover:opacity-100"
-            >
-              {shareState === "idle"
-                ? "Share"
-                : shareState === "shared"
-                  ? "Shared"
-                  : "Copied"}
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="opacity-55 transition-opacity hover:opacity-100"
+              >
+                {shareState === "idle"
+                  ? "Share"
+                  : shareState === "shared"
+                    ? "Shared"
+                    : "Copied"}
+              </button>
+              {booking.host.handle ? (
+                <Link
+                  href={`/h/${booking.host.handle}?reschedule=${booking.publicUid}`}
+                  className="opacity-55 transition-opacity hover:opacity-100"
+                >
+                  Reschedule
+                </Link>
+              ) : null}
+            </div>
             <span className="truncate opacity-40">#{booking.publicUid}</span>
           </div>
         </div>
