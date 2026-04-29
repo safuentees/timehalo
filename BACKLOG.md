@@ -117,10 +117,10 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT7 | `/workspaces/<slug>/settings` page | SHIPPED | _to be filled by commit_ | Surfaced B.PT5's lifecycle four-pack via four sections (general / transfer / leave / danger). Typed-confirm dialog on delete mirrors `delete-account-dialog.tsx`. |
 | B.PT8 | Resend + edit-pending-invite-role procedures + UI | SHIPPED | _to be filled by commit_ | New `workspaces.resendInvitation` (rotates token + refreshes expiry + re-enqueues email with `:resend:<ts>` referenceUid) and `workspaces.updateInvitationRole` (same role rules as invite). Members-panel InvitationRow gains an inline role select + Resend button alongside the existing Revoke. 5 new vitest cases. |
 | B.PT9 | Bulk invite (`workspaces.inviteMany`) | SHIPPED | _to be filled by commit_ | New `workspaces.inviteMany({ slug, invites: [{email, role}, ...] })` — all-or-nothing batch with one cap-check + per-row role-rule pre-pass + one transaction for all rows. Members-panel invite dialog refactored from single-row to `useFieldArray`. 5 new vitest cases. |
-| **B.PT10** | **Multi-step workflows (`WorkflowStep` chains)** | **OPEN** | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. |
-| **B.PT11** | **SMS / Slack / Discord workflow actions** | **OPEN** | — | ~150 LOC per provider, 1 day each. |
+| B.PT10 | Multi-step workflows (`WorkflowStep` chains) | SIGNAL-GATED | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. The schema branch (linear chain vs. fan-out vs. conditional steps) doesn't have a load-bearing use case yet — single-action rules already cover 90% of the value. Promote when a real "schedule X then Y" need surfaces. |
+| B.PT11 | SMS / Slack / Discord workflow actions | SIGNAL-GATED | — | ~150 LOC per provider, 1 day each. Provider choice IS the design call (Twilio vs. SignalWire for SMS; webhook URL vs. OAuth app for Slack/Discord). Webhook actions are the existing escape hatch. Promote when a customer names the provider they want native. |
 | B.PT12 | Calendar conflict → round-robin `excludeHostIds` integration | SHIPPED | _to be filled by commit_ | New `findBusyHostIds` helper in `src/lib/calendar/index.ts`; bookings.create's multi-host branch merges its result into excludeHostIds before selectHost. ISO-string overlap (no Date allocation), Promise.allSettled soft-fail per host. 2 new test cases extend round-robin-integration.test.ts. |
-| **B.PT13** | **Distribution fairness lookback decay (cron)** | **OPEN** | — | `EventTypeHost.recentAssignments` cron decay. ~60 LOC, half day. Wait for round-robin usage signal. |
+| B.PT13 | Distribution fairness lookback decay (cron) | SIGNAL-GATED | — | `EventTypeHost.recentAssignments` cron decay. ~60 LOC, half day. Window length (7d? 30d?) and decay shape (fixed window vs. exponential) need real round-robin usage data — single-host-per-event-type backfilled accounts don't generate the signal. Promote when multi-host event types accumulate enough bookings that distribution skew is measurable. |
 | **B.PT14** | **Upstash Redis swap for `createRatelimit`** | **SIGNAL-GATED** | — | `src/lib/rate-limit.ts:108` carries a memory-only fallback today. When prod traffic justifies multi-instance limiting, branch on `UPSTASH_REDIS_REST_URL` and return a Redis-backed Limiter with the same return shape — caller code doesn't change. ~40 LOC, half day. Trigger: multi-instance serverless deploy where the in-memory map can't share state across processes. |
 
 ---
@@ -149,26 +149,27 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 ## What's next (auto-derived)
 
-The OPEN rows that aren't signal-gated are now empty. The remaining
-items in Tier B (B.PT10 multi-step workflows, B.PT11 SMS/Slack/Discord
-workflow actions, B.PT13 distribution fairness lookback) are all
-explicitly "wait for signal" per their notes — multi-step adds 350
-LOC for a 90%-of-value-already-shipped feature, the workflow action
-providers each add per-vendor integration debt with no asking user,
-and the lookback decay needs round-robin usage volume that today's
-single-host-per-event-type hosts don't generate.
+**There are no OPEN rows.** Every commit-flagged deferral is shipped.
 
-Tier C items remain SIGNAL-GATED across the board.
+What remains is Tier B's three SIGNAL-GATED rows (B.PT10 / B.PT11 /
+B.PT13) plus the entire Tier C surface — none of which should be
+started without the matching signal:
 
-Pick the next move based on a real-world signal:
+| Signal | Promotes |
+|---|---|
+| "I want to schedule something X minutes after this other thing" | B.PT10 multi-step workflows |
+| "Our customer asked for native Slack / SMS / Discord on booking" | B.PT11 with the named provider in scope |
+| "We measured uneven host distribution under round-robin" | B.PT13 lookback decay cron |
+| Real prod traffic justifying push channels | C.PT1 calendar push notifications |
+| Pick a metric / incident sink (BetterUptime / Vercel / UptimeRobot) | C.PT2 / C.PT3 / C.PT4 status-page extensions |
+| User demands hidden / parent-driven embeds | C.PT5 / C.PT6 / C.PT7 embed extensions |
+| 2FA / SSO / enterprise SSO requirement | C.PT8 better-auth migration |
+| Multi-instance serverless deploy | B.PT14 Upstash Redis swap for `createRatelimit` |
+| Postgres migration itself | C.PT9 Postgres-mode CI workflow |
+| Measured `/h/<handle>` p95 > 800ms or sustained > 5 reads/s | C5 cache-aside (deferred-by-design — see `docs/C5-cache-aside-deferred.md`) |
 
-- "I want to schedule something X minutes after this other thing" →
-  promote B.PT10 from Tier B's signal-gated bucket.
-- "Our customer asked for Slack/SMS on booking" → promote B.PT11 with
-  the named provider in scope.
-- "We measured uneven distribution" → promote B.PT13.
-
-Until a signal arrives, every commit-flagged deferral is closed.
+The right next move is a product call (which signal flips an item
+from gated to actionable), not engineering.
 
 ---
 
