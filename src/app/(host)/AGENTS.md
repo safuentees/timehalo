@@ -16,13 +16,18 @@
   `keepDirtyValues` for server-seeded forms.
 - Use `mutateAsync()` for the submit; surface field-level conflicts
   via `form.setError`.
-- Keep layouts mobile-first and consistent with the brutalist
-  language.
+- Keep layouts mobile-first and consistent with the chrome of the
+  most-recently-shipped dashboard pages (`/bookings`, `/settings`,
+  `/workspaces/*`). See `AGENTS.md` *Visual identity* — the
+  aesthetic walked away from the original brutalist palette; new
+  dashboard surfaces match the quieter chrome.
 - Wrap page content in `BrutalistPageShell` and lead with
   `BrutalistPageHeader title="..."`. The shell owns the canonical
   width + padding (`max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`); never
   hand-roll those values inline. Future pages must match these two
-  components — drift is a bug.
+  components — drift is a bug. (Component names are historical;
+  they're the canonical dashboard chrome until a planned refactor
+  renames them.)
 - Open first: `availability/page.tsx`,
   `availability/components/availability-form.tsx`,
   `profile/page.tsx`, `profile/components/profile-form.tsx`.
