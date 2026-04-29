@@ -27,6 +27,7 @@ import {
   resolveEventTypeForHandle,
 } from "@/lib/event-types";
 import { selectHost } from "@/lib/round-robin";
+import { findBusyHostIds } from "@/lib/calendar";
 import {
   emitBookingEvent,
   iterateBookingEvents,
@@ -149,17 +150,26 @@ export const bookings = router({
           );
           let pickedHostId = host.id;
           if (resolvedEventType && resolvedEventType.hosts.length > 1) {
-            const conflictingHosts = await prisma.booking.findMany({
-              where: {
-                eventTypeId: resolvedEventType.id,
-                slotStart,
-                deleted: false,
-              },
-              select: { hostId: true },
-            });
-            const excludeHostIds = new Set(
-              conflictingHosts.map((b) => b.hostId),
-            );
+            const [conflictingHosts, calendarBusyHostIds] =
+              await Promise.all([
+                prisma.booking.findMany({
+                  where: {
+                    eventTypeId: resolvedEventType.id,
+                    slotStart,
+                    deleted: false,
+                  },
+                  select: { hostId: true },
+                }),
+                findBusyHostIds({
+                  hostIds: resolvedEventType.hosts.map((h) => h.userId),
+                  slotStart,
+                  slotEnd,
+                }),
+              ]);
+            const excludeHostIds = new Set<string>([
+              ...conflictingHosts.map((b) => b.hostId),
+              ...calendarBusyHostIds,
+            ]);
             const pick = selectHost({
               hosts: resolvedEventType.hosts,
               excludeHostIds,

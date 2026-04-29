@@ -76,3 +76,35 @@ export async function fetchHostBusyTimes(opts: {
   }
   return out;
 }
+
+export async function findBusyHostIds(opts: {
+  hostIds: ReadonlyArray<string>;
+  slotStart: Date;
+  slotEnd: Date;
+}): Promise<Set<string>> {
+  if (opts.hostIds.length === 0) return new Set();
+
+  const slotStartIso = opts.slotStart.toISOString();
+  const slotEndIso = opts.slotEnd.toISOString();
+  const settled = await Promise.allSettled(
+    opts.hostIds.map(async (hostId) => {
+      const busy = await fetchHostBusyTimes({
+        hostId,
+        from: opts.slotStart,
+        to: opts.slotEnd,
+      });
+      const overlaps = busy.some(
+        (b) => b.start < slotEndIso && b.end > slotStartIso,
+      );
+      return overlaps ? hostId : null;
+    }),
+  );
+
+  const out = new Set<string>();
+  for (const r of settled) {
+    if (r.status === "fulfilled" && r.value !== null) {
+      out.add(r.value);
+    }
+  }
+  return out;
+}

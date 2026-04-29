@@ -1,6 +1,27 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  afterEach,
+  vi,
+} from "vitest";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
+
+vi.mock("@/env", async () => {
+  const orig = await vi.importActual<typeof import("@/env")>("@/env");
+  return {
+    ...orig,
+    env: {
+      ...orig.env,
+      GOOGLE_OAUTH_CLIENT_ID: "test-google-client-id",
+      GOOGLE_OAUTH_CLIENT_SECRET: "test-google-client-secret",
+    },
+  };
+});
 import {
   createTestEventTypeHostPool,
   createTestHost,
@@ -153,6 +174,187 @@ describe("B2 — round-robin in bookings.create", () => {
     await prisma.eventTypeHost.updateMany({
       where: { eventTypeId, userId: host.id },
       data: { priority: 2, weight: 1 },
+    });
+  });
+
+  describe("calendar conflict → excludeHostIds (B.PT12)", () => {
+    let credentialId: string;
+    let busyHostId: string;
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeAll(async () => {
+      busyHostId = [host.id, secondHost.id].sort()[0];
+
+      const cred = await prisma.calendarCredential.create({
+        data: {
+          userId: busyHostId,
+          provider: "GOOGLE",
+          externalAccountId: "rr-cal-account",
+          externalAccountEmail: "rr-host@example.com",
+          accessToken: "plain-access-token",
+          refreshToken: "plain-refresh-token",
+          accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          scope: "https://www.googleapis.com/auth/calendar.readonly",
+        },
+        select: { id: true },
+      });
+      credentialId = cred.id;
+      await prisma.selectedCalendar.create({
+        data: {
+          credentialId: cred.id,
+          externalCalendarId: "primary",
+          summary: "Personal",
+          isPrimary: true,
+        },
+      });
+    });
+
+    beforeEach(async () => {
+      originalFetch = globalThis.fetch;
+      await prisma.booking.deleteMany({ where: { eventTypeId } });
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllGlobals();
+    });
+
+    afterAll(async () => {
+      await prisma.selectedCalendar.deleteMany({
+        where: { credentialId },
+      });
+      await prisma.calendarCredential.deleteMany({
+        where: { id: credentialId },
+      });
+    });
+
+    it("excludes a host whose external calendar is busy at the slot", async () => {
+      const slotStart = tomorrowAtMinute(0);
+      const slotEnd = new Date(slotStart.getTime() + 15 * 60 * 1000);
+
+      const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+        const url =
+          typeof input === "string" ? input : input.toString();
+        if (url.includes("calendar/v3/freeBusy")) {
+          return new Response(
+            JSON.stringify({
+              calendars: {
+                primary: {
+                  busy: [
+                    {
+                      start: slotStart.toISOString(),
+                      end: slotEnd.toISOString(),
+                    },
+                  ],
+                },
+              },
+            }),
+            {
+              status: 200,
+              headers: { "content-type": "application/json" },
+            },
+          );
+        }
+        throw new Error(`Unexpected fetch call: ${url}`);
+      });
+      globalThis.fetch =
+        fetchSpy as unknown as typeof globalThis.fetch;
+
+      const caller = callRouter(fakeContext());
+      const created = await caller.bookings.create({
+        handle: host.handle,
+        slotStart: slotStart.toISOString(),
+        visitorName: "Maya",
+        visitorEmail: "maya@example.com",
+        idempotencyKey: crypto.randomUUID(),
+      });
+
+      const row = await prisma.booking.findUniqueOrThrow({
+        where: { publicUid: created.publicUid },
+        select: { hostId: true },
+      });
+      const otherHostId =
+        busyHostId === host.id ? secondHost.id : host.id;
+      expect(row.hostId).toBe(otherHostId);
+
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+
+    it("returns CONFLICT when every pool member is calendar-busy", async () => {
+      const otherHostId =
+        busyHostId === host.id ? secondHost.id : host.id;
+      const otherCred = await prisma.calendarCredential.create({
+        data: {
+          userId: otherHostId,
+          provider: "GOOGLE",
+          externalAccountId: "rr-cal-account-other",
+          externalAccountEmail: "rr-other@example.com",
+          accessToken: "plain-access-token",
+          refreshToken: "plain-refresh-token",
+          accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          scope: "https://www.googleapis.com/auth/calendar.readonly",
+        },
+        select: { id: true },
+      });
+      await prisma.selectedCalendar.create({
+        data: {
+          credentialId: otherCred.id,
+          externalCalendarId: "primary",
+          summary: "Personal",
+          isPrimary: true,
+        },
+      });
+
+      try {
+        const slotStart = tomorrowAtMinute(30);
+        const slotEnd = new Date(slotStart.getTime() + 15 * 60 * 1000);
+
+        const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+          const url =
+            typeof input === "string" ? input : input.toString();
+          if (url.includes("calendar/v3/freeBusy")) {
+            return new Response(
+              JSON.stringify({
+                calendars: {
+                  primary: {
+                    busy: [
+                      {
+                        start: slotStart.toISOString(),
+                        end: slotEnd.toISOString(),
+                      },
+                    ],
+                  },
+                },
+              }),
+              {
+                status: 200,
+                headers: { "content-type": "application/json" },
+              },
+            );
+          }
+          throw new Error(`Unexpected fetch call: ${url}`);
+        });
+        globalThis.fetch =
+          fetchSpy as unknown as typeof globalThis.fetch;
+
+        const caller = callRouter(fakeContext());
+        await expect(
+          caller.bookings.create({
+            handle: host.handle,
+            slotStart: slotStart.toISOString(),
+            visitorName: "Maya",
+            visitorEmail: "maya@example.com",
+            idempotencyKey: crypto.randomUUID(),
+          }),
+        ).rejects.toThrow(/already booked at that slot/);
+      } finally {
+        await prisma.selectedCalendar.deleteMany({
+          where: { credentialId: otherCred.id },
+        });
+        await prisma.calendarCredential.deleteMany({
+          where: { id: otherCred.id },
+        });
+      }
     });
   });
 });
