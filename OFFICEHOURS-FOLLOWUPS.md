@@ -422,6 +422,10 @@ LOC: ~400. Time: 3 days.
 
 ### B5. Workspaces UI pages
 
+**Status: shipped** (`e69f1ca`). The three pages 2306114 named are live.
+Implicit follow-ups the surface implies but never explicitly committed
+to are tracked in B6 below.
+
 From `2306114` verbatim: "UI pages — `/workspaces`, `/workspaces/<slug>/
 members`, accept page at `/invitations/<token>`. Procedures are tested
 + ready; UI is mechanical."
@@ -440,6 +444,66 @@ Mostly composition over the brutalist primitives; same pattern as
 `/settings` Workflows / API keys / Calendar sections.
 
 LOC: ~400. Time: 2 days.
+
+### B6. Workspace surface completeness
+
+B5 shipped the three pages `2306114` named verbatim (`/workspaces`,
+`/workspaces/<slug>/members`, `/invitations/<token>`). The surface
+implies more capabilities than the followups doc's original B5 entry
+described — they're not in any commit's `WHAT'S DEFERRED` block, but
+they become obvious the moment a workspace OWNER tries to do anything
+beyond invite-and-remove members. Tracking them here so the gap is
+visible in the backlog.
+
+| Capability | Procedure | UI |
+|---|---|---|
+| Rename a workspace | ❌ no `workspaces.update` | ❌ |
+| Delete a workspace | ❌ no `workspaces.delete` | ❌ |
+| Leave a workspace (as a member) | ❌ no `workspaces.leave` | ❌ |
+| Transfer ownership | ❌ no `workspaces.transferOwnership` | ❌ |
+| Resend invitation (vs revoke + re-create) | ❌ revoke-only | ❌ |
+| Edit pending invitation role | ❌ | ❌ |
+| Bulk invite | ❌ server takes one email at a time | ❌ |
+| Workspace context switcher (global) | n/a | ❌ — only the API-keys dropdown switches workspaces |
+| `/workspaces/<slug>/settings` page (workspace-level config) | n/a | ❌ |
+
+Per-item scope, biggest leverage first:
+
+**Rename + Delete + Leave + Transfer ownership.** The four "lifecycle"
+actions. Each is one procedure + one confirm dialog. Group together
+so the workspace settings page (last row) has somewhere to put them.
+Transfer ownership wants a recipient-confirms step — invitation-token
+shape works (mint a one-shot token, recipient accepts via
+`/invitations/<token>?action=transfer-ownership`). ~2-3 days total.
+
+**Workspace context switcher.** The load-bearing UX gap. Today only
+the `/settings` → API keys section has a workspace dropdown;
+everything else silently uses the user's primary owned workspace. The
+moment workspace-aware webhooks + audit (B1) ship, every host page
+needs a "which workspace is this view about?" picker. Build it once
+(cookie or zustand-style global state), reuse across surfaces.
+~2 days.
+
+**`/workspaces/<slug>/settings` page.** Natural home for rename /
+delete / transfer / billing / member-cap status / invite defaults.
+Mirrors the existing `/settings` structure: `BrutalistPageShell tight`,
+`SectionHeader` rhythm. ~1-2 days once the lifecycle procedures land.
+
+**Resend invitation + edit pending invitation role.** Invitations
+already `revokeInvitation`; "resend" is "revoke + re-create" wrapped
+in one procedure that preserves the email + role and rotates the
+token. Edit-role is a one-line update on `Invitation.role` if the
+caller passes the scope check. ~half day each.
+
+**Bulk invite.** Server takes one email at a time. Either accept an
+array (`workspaces.inviteMany`) or loop client-side (worse — each
+invite is a separate Task enqueue, no bulk dedup). Per-row plan-cap
+check inside a transaction so 4 of 5 don't accidentally land when
+the 5th would overflow. ~1 day.
+
+LOC: ~600-800 across all items. Time: 1-2 weeks as one focused sweep,
+or each item ships independently when a real user complaint surfaces
+it.
 
 ---
 
