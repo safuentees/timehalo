@@ -7,6 +7,7 @@ import {
   googleAuthUrl,
   microsoftAuthUrl,
 } from "@/lib/calendar";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 // Calendar sub-router (B3). Read-side OAuth flow: connect → list
@@ -42,6 +43,14 @@ export const calendar = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // A8 — wire the universal `calendar.connect` gate. FREE / PRO /
+      // TEAM all carry it today, so this is a no-op against current
+      // plans; the gate exists so a future change in PLAN_FEATURES
+      // (e.g. flipping calendar.connect to PRO+ only) is one matrix
+      // edit away from being enforced. Closes the orphan called out
+      // in 1439e7f's commit message.
+      requireFeature(await planForUser(ctx.user.id), "calendar.connect");
+
       const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
       // The state binds the OAuth redirect to the calling user — we
       // verify on callback so a stranger can't drop a refresh_token
