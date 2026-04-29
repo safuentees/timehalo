@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
 import { useBrutalistPrefs } from "./prefs-context";
 
@@ -36,7 +37,9 @@ export function BrutalistDashboardLayout({
                 snapshot animates only the rendered children, the
                 white panel underneath stays solid. */}
           <div className="bru-host-content">
-            <div className="bru-host-content-inner">{children}</div>
+            <ScrollArea className="bru-host-content-inner">
+              {children}
+            </ScrollArea>
           </div>
         </SidebarInset>
       </SidebarProvider>

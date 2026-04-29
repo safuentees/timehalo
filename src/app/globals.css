@@ -2204,44 +2204,16 @@
 }
 
 .bru-host-content-inner {
-  /* View-transition target. Owns the scroll surface inside the
-     fixed-height parent: flex:1 fills vertically, min-height:0
-     allows the flex item to shrink below its content size (without
-     this, the inner would push past the panel and the parent's
-     overflow:hidden would clip with no scrollbar). */
+  /* View-transition target + sizing for the Radix ScrollArea Root.
+     Radix manages overflow internally (Viewport child handles the
+     scroll, ScrollAreaScrollbar absolutely-positions over content
+     for true overlay behavior — no layout shift, scrollbar floats
+     instead of taking gutter space). All native scrollbar styling
+     was removed; the brutalist thumb lives on the ScrollAreaThumb
+     in src/components/ui/scroll-area.tsx. */
   view-transition-name: bru-host-content;
   flex: 1 1 0%;
   min-height: 0;
-  overflow-y: auto;
-  scrollbar-gutter: auto;
-  /* Overlay-style scrollbar. `overflow: overlay` was the old Chromium
-     way to get this and was removed in Chrome 119+ (silent fallback
-     to `auto` is what ate the overlay behaviour). The modern
-     replacement: paint the track transparent so the bar appears to
-     float over content, keep the thumb thin (8px) and tinted from
-     the brutalist ink so it's visible but unobtrusive. macOS Chrome
-     respects the user's "Show scroll bars: When scrolling" pref and
-     fades the thumb when idle, restoring the original feel. */
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--bru-ink) 25%, transparent) transparent;
-  display: flex;
-  flex-direction: column;
-}
-.bru-host-content-inner::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.bru-host-content-inner::-webkit-scrollbar-track {
-  background: transparent;
-}
-.bru-host-content-inner::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--bru-ink) 25%, transparent);
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.bru-host-content-inner::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--bru-ink) 50%, transparent);
 }
 
 /* Fade-only, sequenced. Default View Transitions API behavior is a
