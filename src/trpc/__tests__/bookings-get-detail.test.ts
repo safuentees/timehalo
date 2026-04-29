@@ -119,6 +119,89 @@ describe("bookings.getDetail", () => {
     ).toBe(true);
   });
 
+  it("surfaces succeeded Tasks as deliveries, leaves pending Tasks in pendingTasks (A6)", async () => {
+    const visitorCaller = callRouter(fakeContext());
+    const created = await visitorCaller.bookings.create({
+      handle: host.handle,
+      slotStart: tomorrowAtMinute(0).toISOString(),
+      visitorName: "Maya",
+      visitorEmail: "maya@example.com",
+      idempotencyKey: crypto.randomUUID(),
+    });
+
+    // The create flow enqueues at least one Task (reminder email +
+    // any active workflow rules). Mark one as succeeded to verify
+    // it migrates into the deliveries set.
+    const [firstTask] = await prisma.task.findMany({
+      where: { referenceUid: { startsWith: `${created.publicUid}:` } },
+      orderBy: { id: "asc" },
+      take: 1,
+    });
+    expect(firstTask).toBeDefined();
+    await prisma.task.update({
+      where: { id: firstTask.id },
+      data: { succeededAt: new Date(), attempts: 2 },
+    });
+
+    const hostCaller = callRouter(fakeContext({ userId: host.id }));
+    const detail = await hostCaller.bookings.getDetail({
+      publicUid: created.publicUid,
+    });
+
+    expect(detail.deliveries.some((d) => d.id === firstTask.id)).toBe(true);
+    expect(detail.deliveries.find((d) => d.id === firstTask.id)?.attempts).toBe(2);
+    // The succeeded task is NO LONGER in pendingTasks.
+    expect(detail.pendingTasks.some((p) => p.id === firstTask.id)).toBe(false);
+  });
+
+  it("populates previousUid + nextUid for adjacent bookings (A5)", async () => {
+    // Three bookings at +0, +15, +30 in slotStart order. Middle
+    // booking's getDetail surfaces both neighbours; first surfaces
+    // only nextUid; last surfaces only previousUid.
+    const visitorCaller = callRouter(fakeContext());
+    const earlier = await visitorCaller.bookings.create({
+      handle: host.handle,
+      slotStart: tomorrowAtMinute(0).toISOString(),
+      visitorName: "Maya",
+      visitorEmail: "maya@example.com",
+      idempotencyKey: crypto.randomUUID(),
+    });
+    const middle = await visitorCaller.bookings.create({
+      handle: host.handle,
+      slotStart: tomorrowAtMinute(15).toISOString(),
+      visitorName: "Bea",
+      visitorEmail: "bea@example.com",
+      idempotencyKey: crypto.randomUUID(),
+    });
+    const later = await visitorCaller.bookings.create({
+      handle: host.handle,
+      slotStart: tomorrowAtMinute(30).toISOString(),
+      visitorName: "Cal",
+      visitorEmail: "cal@example.com",
+      idempotencyKey: crypto.randomUUID(),
+    });
+
+    const hostCaller = callRouter(fakeContext({ userId: host.id }));
+
+    const middleDetail = await hostCaller.bookings.getDetail({
+      publicUid: middle.publicUid,
+    });
+    expect(middleDetail.previousUid).toBe(earlier.publicUid);
+    expect(middleDetail.nextUid).toBe(later.publicUid);
+
+    const earlierDetail = await hostCaller.bookings.getDetail({
+      publicUid: earlier.publicUid,
+    });
+    expect(earlierDetail.previousUid).toBeNull();
+    expect(earlierDetail.nextUid).toBe(middle.publicUid);
+
+    const laterDetail = await hostCaller.bookings.getDetail({
+      publicUid: later.publicUid,
+    });
+    expect(laterDetail.previousUid).toBe(middle.publicUid);
+    expect(laterDetail.nextUid).toBeNull();
+  });
+
   it("eventType + referrer surface when present, otherwise null", async () => {
     const visitorCaller = callRouter(fakeContext());
     const created = await visitorCaller.bookings.create({

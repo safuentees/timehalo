@@ -201,6 +201,8 @@
   "BookingDetail": {
     "title": "Reserva",
     "back": "Volver a reservas",
+    "previousBooking": "Reserva anterior",
+    "nextBooking": "Reserva siguiente",
     "loading": "Cargando reserva…",
     "tabsLabel": "Secciones de la reserva",
     "tabInfo": "Detalles",
@@ -214,6 +216,8 @@
     "eventTypeLabel": "Tipo de evento",
     "referrerLabel": "Referido",
     "scheduled": "Programado",
+    "delivered": "Entregado",
+    "retriedAttempts": "{count} intentos de entrega",
     "unscheduled": "Bajo demanda",
     "rescheduledFrom": "Reagendada desde",
     "timeline": "Línea de tiempo",
