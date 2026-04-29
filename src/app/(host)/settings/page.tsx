@@ -24,7 +24,14 @@ export default async function SettingsPage() {
 
   const firstSlug = workspaces[0]?.slug;
   if (firstSlug) {
-    await trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug });
+    // Eager-nested prefetch so api-keys + billing read from the
+    // hydration cache instead of flashing "Loading…" on first paint.
+    // Cal.com's settings/developer pattern; see api-keys prefetch
+    // comment above for the rationale.
+    await Promise.all([
+      trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug }),
+      trpc.billing.currentPlan.prefetch({ slug: firstSlug }),
+    ]);
   }
 
   // Resolve the timezone list on the server so SSR + CSR render the

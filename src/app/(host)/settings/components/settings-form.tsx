@@ -9,6 +9,7 @@ import { ThemeFields } from "./theme-fields";
 import { WorkflowFields } from "./workflow-fields";
 import { CalendarFields } from "./calendar-fields";
 import { ApiKeysFields } from "./api-keys-fields";
+import { BillingFields } from "./billing-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 import { SectionHeader } from "@/components/brutalist/section-header";
 
@@ -38,6 +39,7 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
         <WorkflowFields />
         <CalendarFields />
         <ApiKeysFields />
+        <BillingFields />
       </div>
 
       <section className="mt-16">
