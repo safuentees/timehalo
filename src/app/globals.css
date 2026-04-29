@@ -188,6 +188,9 @@
   body {
     @apply bg-background text-foreground;
     background-color: var(--oh-paper);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
