@@ -34,17 +34,30 @@ type FormValues = z.infer<typeof schema>;
 
 const defaultValues: FormValues = { name: "", slug: "" };
 
-export function WorkspaceCreateDialog() {
+export function WorkspaceCreateDialog({
+  open: openProp,
+  onOpenChange: setOpenProp,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} = {}) {
   const t = useTranslations("Workspaces");
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : internalOpen;
+  const setOpen = isControlled
+    ? (setOpenProp ?? (() => {}))
+    : setInternalOpen;
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
-      <ResponsiveModalTrigger asChild>
-        <Button variant="brutalist" size="brutalist">
-          {t("createButton")}
-        </Button>
-      </ResponsiveModalTrigger>
+      {!isControlled ? (
+        <ResponsiveModalTrigger asChild>
+          <Button variant="brutalist" size="brutalist">
+            {t("createButton")}
+          </Button>
+        </ResponsiveModalTrigger>
+      ) : null}
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>{t("createTitle")}</ResponsiveModalTitle>

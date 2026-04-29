@@ -65,23 +65,45 @@ export function BrutalistAppSidebar() {
         "[&_[data-slot=sidebar-container]]:will-change-[width]",
       ].join(" ")}
     >
-      <SidebarHeader className="px-4 pt-5 pb-8">
-        <div className="bru-brand">
-          <HalftoneMark size={32} className="bru-brand-mark" />
-          <div className="bru-brand-name">
-            <div>OFFICEHOURS</div>
-          </div>
-        </div>
-      </SidebarHeader>
 
-      <SidebarContent className="gap-[22px]">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              {PRIMARY_NAV.slice(0, 1).map((item) => {
+                const active = activePath === item.href;
+                return (
+                  <SidebarMenuItem key={item.href} className="group/item">
+                    <SidebarMenuButton
+                      id={sidebarNavId(item.href)}
+                      isActive={active}
+                      tooltip={item.label}
+                      className={menuButtonClass}
+                      render={
+                        <Link href={item.href}>
+                          <item.icon
+                            aria-hidden
+                            strokeWidth={1.5}
+                            className="size-4 shrink-0"
+                          />
+                          <span>{item.label}</span>
+                        </Link>
+                      }
+                    />
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel className={groupLabelClass}>
             LIBRARY
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {PRIMARY_NAV.map((item) => {
+              {PRIMARY_NAV.slice(1).map((item) => {
                 const active = activePath === item.href;
                 return (
                   <SidebarMenuItem key={item.href} className="group/item">
@@ -140,13 +162,11 @@ export function BrutalistAppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
       </SidebarContent>
 
       <SidebarFooter>
         <FooterControls />
       </SidebarFooter>
-
     </Sidebar>
   );
 }
