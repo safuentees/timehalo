@@ -157,6 +157,181 @@ export const workspaces = router({
       };
     }),
 
+  // ─── Workspace lifecycle (B5) ────────────────────────────────────
+  //
+  // Closes the followups doc's B6 lifecycle four-pack: rename +
+  // delete + leave + transfer ownership. Each is a thin procedure
+  // so the workspace settings page (B7) can compose them into a
+  // dedicated UI panel.
+
+  update: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        // Both fields optional — caller can rename, change slug,
+        // or both. Empty input still validates so the procedure is
+        // safe to call as a no-op.
+        name: z.string().trim().min(1).max(60).optional(),
+        newSlug: workspaceSlugSchema.optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const membership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "workspace.write",
+      );
+      try {
+        const updated = await prisma.workspace.update({
+          where: { id: membership.workspaceId },
+          data: {
+            ...(input.name !== undefined ? { name: input.name } : {}),
+            ...(input.newSlug !== undefined ? { slug: input.newSlug } : {}),
+          },
+          select: { id: true, slug: true, name: true },
+        });
+        return updated;
+      } catch (cause) {
+        if (
+          cause instanceof Prisma.PrismaClientKnownRequestError &&
+          cause.code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "That slug is taken. Pick another.",
+            cause,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Could not update workspace.",
+          cause,
+        });
+      }
+    }),
+
+  delete: privateProcedure
+    .input(z.object({ slug: workspaceSlugSchema }))
+    .mutation(async ({ input, ctx }) => {
+      const membership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        // Tighter than workspace.write — only the OWNER can
+        // delete a workspace. Cascades wipe bookings, audit, api
+        // keys, webhooks, event types, subscription, memberships.
+        "workspace.write",
+      );
+      if (membership.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the workspace owner can delete it.",
+        });
+      }
+      // Block deleting the user's last owned workspace — every
+      // user must own at least one (auth.register guarantees a
+      // Personal workspace; the booking flow assumes it). The
+      // user can transfer ownership first, then delete.
+      const ownedCount = await prisma.workspace.count({
+        where: { ownerId: ctx.user.id },
+      });
+      if (ownedCount <= 1) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            "Can't delete your last workspace. Create another or transfer ownership first.",
+        });
+      }
+      await prisma.workspace.delete({
+        where: { id: membership.workspaceId },
+      });
+      return { ok: true as const };
+    }),
+
+  leave: privateProcedure
+    .input(z.object({ slug: workspaceSlugSchema }))
+    .mutation(async ({ input, ctx }) => {
+      const membership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        // Read scope is enough to leave — the action operates on
+        // the caller's own membership. members.write would lock
+        // VIEWERs out of leaving.
+        "workspace.read",
+      );
+      if (membership.role === "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Owner can't leave. Transfer ownership first or delete the workspace.",
+        });
+      }
+      await prisma.membership.delete({ where: { id: membership.id } });
+      return { ok: true as const };
+    }),
+
+  transferOwnership: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        // The user id of the new owner. Must be a current member
+        // of the workspace; OWNER demotes to ADMIN, target
+        // promotes to OWNER. Atomic swap inside one transaction.
+        newOwnerUserId: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const callerMembership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "workspace.write",
+      );
+      if (callerMembership.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the current owner can transfer ownership.",
+        });
+      }
+      if (input.newOwnerUserId === ctx.user.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Already the owner.",
+        });
+      }
+      const target = await prisma.membership.findFirst({
+        where: {
+          workspaceId: callerMembership.workspaceId,
+          userId: input.newOwnerUserId,
+        },
+        select: { id: true, role: true },
+      });
+      if (!target) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User is not a member of this workspace.",
+        });
+      }
+      // Atomic swap. Workspace.ownerId is FK'd — must update it
+      // alongside the role swaps so the post-state is consistent.
+      // Prisma doesn't support a column-defined unique constraint
+      // like "exactly one OWNER per workspace" (that's an app-
+      // level invariant), so the transaction is the ordering fence.
+      await prisma.$transaction(async (tx) => {
+        await tx.membership.update({
+          where: { id: callerMembership.id },
+          data: { role: "ADMIN", assignedBy: input.newOwnerUserId },
+        });
+        await tx.membership.update({
+          where: { id: target.id },
+          data: { role: "OWNER", assignedBy: ctx.user.id },
+        });
+        await tx.workspace.update({
+          where: { id: callerMembership.workspaceId },
+          data: { ownerId: input.newOwnerUserId },
+        });
+      });
+      return { ok: true as const };
+    }),
+
   listMembers: privateProcedure
     .input(z.object({ slug: workspaceSlugSchema }))
     .query(async ({ input, ctx }) => {
