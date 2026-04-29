@@ -121,6 +121,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | **B.PT11** | **SMS / Slack / Discord workflow actions** | **OPEN** | — | ~150 LOC per provider, 1 day each. |
 | **B.PT12** | **Calendar conflict → round-robin `excludeHostIds` integration** | **OPEN** | — | Joins B.PT2 (calendar busy times) + B.PT4 (event-type pools). No new schema. ~80 LOC, half day. |
 | **B.PT13** | **Distribution fairness lookback decay (cron)** | **OPEN** | — | `EventTypeHost.recentAssignments` cron decay. ~60 LOC, half day. Wait for round-robin usage signal. |
+| **B.PT14** | **Upstash Redis swap for `createRatelimit`** | **SIGNAL-GATED** | — | `src/lib/rate-limit.ts:108` carries a memory-only fallback today. When prod traffic justifies multi-instance limiting, branch on `UPSTASH_REDIS_REST_URL` and return a Redis-backed Limiter with the same return shape — caller code doesn't change. ~40 LOC, half day. Trigger: multi-instance serverless deploy where the in-memory map can't share state across processes. |
 
 ---
 
@@ -162,11 +163,11 @@ Tier C items wait for their gating signal.
 
 ## Live `TODO` comments in source
 
-Run `rg "TODO" src/` to surface. Listed here so future audits don't treat them as new finds:
+Run `rg "TODO" src/` to surface. The codebase carries no live `TODO(...)` markers anymore — the previous rate-limit.ts marker was promoted to B.PT14 (above) and the comment rewritten to reference the BACKLOG row.
 
-| File:line | Comment | Tracked as |
+| File:line | Note | Tracked as |
 |---|---|---|
-| `src/lib/rate-limit.ts:108` | `TODO(prod): when UPSTASH_REDIS_REST_URL is set, return the Redis` | New deferral — adds Upstash Redis swap to the limiter. ~40 LOC, half day. Promote to a B.PT row when prod traffic justifies it. |
+| `src/lib/rate-limit.ts:108` | Now a forward-looking comment referencing `B.PT14`, no longer a `TODO()` | B.PT14 |
 | `src/lib/event-types.ts:13` | v1 backfill note (singleton EventType per existing User) | Implicitly closed at `5b8914e`. Comment can be removed in any drive-by edit. |
 
 ---
@@ -177,7 +178,14 @@ Run `rg "TODO" src/` to surface. Listed here so future audits don't treat them a
 - `OFFICEHOURS-DEPTH-IDEAS.md` — Tier A/B/C originals fold into this file's Tier A/B/C tables.
 - `OFFICEHOURS-FOLLOWUPS.md` — same; rolled into the Post-§10.1 sub-tables.
 - `OFFICEHOURS-OPEN-DEFERRALS.md` — replaced wholesale; this file IS the open-deferrals view.
-- `OFFICEHOURS-CLI-IDEAS.md` — kept. Different concern (design exploration for a CLI surface).
-- `OFFICEHOURS-IMPLEMENTATION-AGENT-PROMPT.md` — kept. Different concern (reusable system prompt for a managed agent).
+- `OFFICEHOURS-CLI-IDEAS.md` — moved to `docs/cli-design.md`. Different concern (design exploration for a CLI surface).
+- `OFFICEHOURS-IMPLEMENTATION-AGENT-PROMPT.md` — moved to `docs/implementer-agent-prompt.md`. Different concern (reusable system prompt for a managed agent).
 
-The four merged docs are now 1-line redirect stubs pointing here. They're not deleted from git so blame and historical links survive. To actually remove them, run `git rm OFFICEHOURS-{PROJECT-GUIDE,DEPTH-IDEAS,FOLLOWUPS,OPEN-DEFERRALS}.md`.
+The three stub redirect files (`OFFICEHOURS-DEPTH-IDEAS.md`, `OFFICEHOURS-FOLLOWUPS.md`, `OFFICEHOURS-OPEN-DEFERRALS.md`) were hard-deleted via `git rm` after the consolidation commit. To recover the original content of any of those, run:
+
+```bash
+git log --diff-filter=D -- OFFICEHOURS-<NAME>.md       # find the deletion commit
+git show <commit>^:OFFICEHOURS-<NAME>.md > restored.md  # restore from one commit before
+```
+
+`OFFICEHOURS-PROJECT-GUIDE.md` is gitignored (private to user) and was preserved with a small note pointing here for status. Long-form mental model stays in that file.
