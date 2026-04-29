@@ -12,7 +12,9 @@ import {
 } from "@/components/brutalist/brutalist-input-group";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
+import { trpc } from "@/trpc/hooks";
 import { useBookingCreate } from "@/lib/mutations/use-booking-create";
+import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
 import { getBrowserTimezone } from "@/lib/timezone";
 import {
   bookingFormSchema,
@@ -22,14 +24,35 @@ import {
 type Props = {
   handle: string;
   slotStart: string; // ISO
+  // A9 — reschedule mode. When set, the form swaps to a confirm-only
+  // flow: no name/email/question fields (the new booking inherits
+  // them from the original via the procedure). Submit calls
+  // `bookings.reschedule` instead of `bookings.create`.
+  rescheduleFromUid?: string;
 };
 
 /**
  * Visitor booking form rendered inside the BookingDrawer. Three fields:
  * name, email, question (optional). On submit, calls `bookings.create`
  * with the pre-selected slotStart passed in from the parent page.
+ *
+ * When `rescheduleFromUid` is set, the form renders a confirm-only
+ * panel and submits via `bookings.reschedule`.
  */
-export function BookingForm({ handle, slotStart }: Props) {
+export function BookingForm({ handle, slotStart, rescheduleFromUid }: Props) {
+  if (rescheduleFromUid) {
+    return (
+      <RescheduleConfirm
+        handle={handle}
+        slotStart={slotStart}
+        oldPublicUid={rescheduleFromUid}
+      />
+    );
+  }
+  return <CreateForm handle={handle} slotStart={slotStart} />;
+}
+
+function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }) {
   const router = useRouter();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -177,4 +200,95 @@ export function BookingForm({ handle, slotStart }: Props) {
       </form>
     </FormProvider>
   );
+}
+
+// A9 — reschedule confirmation panel. The original booking carries
+// its visitor name/email/question forward via the server-side
+// reschedule transaction, so the visitor only needs to confirm the
+// new slot. Renders the from→to delta inline; submits via
+// `bookings.reschedule`.
+function RescheduleConfirm({
+  handle,
+  slotStart,
+  oldPublicUid,
+}: {
+  handle: string;
+  slotStart: string;
+  oldPublicUid: string;
+}) {
+  const router = useRouter();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const reschedule = useRescheduleBooking({
+    onSuccess: (result) => {
+      router.push(`/h/${handle}/booked/${result.publicUid}`);
+    },
+  });
+
+  // Look up the original booking so we can show the from→to delta.
+  // Public procedure — same authorization shape as the booked page.
+  const { data: original } = trpc.bookings.getPublicConfirmation.useQuery({
+    handle,
+    bookingUid: oldPublicUid,
+  });
+
+  const newStart = new Date(slotStart);
+  const oldStart = original
+    ? new Date(original.slotStart as unknown as string)
+    : null;
+
+  return (
+    <div className="bru-booking-form flex flex-col gap-5">
+      <div className="flex flex-col gap-3 rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-paper p-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="bru-eyebrow opacity-55">From</span>
+          <span className="font-[family-name:var(--bru-mono)] text-[13px] tabular-nums opacity-75 line-through">
+            {oldStart ? fmtSlot(oldStart) : "—"}
+          </span>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="bru-eyebrow">To</span>
+          <span className="font-[family-name:var(--bru-mono)] text-[14px] font-bold tabular-nums">
+            {fmtSlot(newStart)}
+          </span>
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="brutalist"
+        size="brutalist"
+        disabled={reschedule.isPending}
+        className="bru-book-submit"
+        onClick={() => {
+          reschedule.mutate({
+            oldPublicUid,
+            newSlotStart: slotStart,
+            idempotencyKey,
+            visitorTimezone: getBrowserTimezone(),
+          });
+        }}
+      >
+        {reschedule.isPending ? "Rescheduling…" : "Confirm reschedule →"}
+      </Button>
+      {reschedule.error ? (
+        <p className="bru-field-error" role="alert">
+          {reschedule.error.message}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function fmtSlot(d: Date): string {
+  const day = d
+    .toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
+    .toUpperCase();
+  const time = d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${day} ${time}`;
 }
