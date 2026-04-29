@@ -5,22 +5,27 @@ paths:
   - "src/components/brutalist/**/*.tsx"
 ---
 
-# Brutalist UI
+# Project UI rules (file name is historical)
+
+> The visual aesthetic walked away from the original brutalist palette. **New dashboard pages match the chrome of the most-recently-shipped pages** (`/bookings`, `/settings`, `/workspaces/*`) — see `AGENTS.md` *Visual identity* for the full directive. The component + utility names below (`BrutalistPageShell`, `bru-*` classes, `--bru-*` tokens) stay — they're real artifacts a planned refactor will rename. The engineering rules below (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are good discipline regardless of aesthetic.
+>
+> The strong **paper-and-ink + thick borders + mono caps** look is now scoped to the **public visitor surface only** (`/h/[handle]`, `/booked/[uid]`) — don't extend it to new dashboard pages.
 
 ## Composition
 
 - Compose existing shadcn primitives and repo wrappers before inventing new structure.
-- Keep brutalist-specific overrides in `src/components/brutalist/` and keep wrappers thin.
+- Keep repo-specific overrides in `src/components/brutalist/` and keep wrappers thin. (Directory name is historical; the wrappers themselves are the canonical chrome for the dashboard surface.)
 - Build mobile-first and avoid horizontal scroll at narrow widths.
-- Prefer container queries for brutalist layouts that live inside the host shell.
+- Prefer container queries for layouts that live inside the host shell.
 - In InputGroup layouts, keep the input before the addon in DOM order.
 - For complex forms, keep the canonical `FieldGroup` and `FieldSet` structure intact.
-- For new authenticated pages: wrap content in `BrutalistPageShell` (owns `max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`) and lead with `BrutalistPageHeader title="..."`. Both in `src/components/brutalist/`. Drift is a bug — `(host)/AGENTS.md` flags this as a forcing function.
+- For new authenticated pages: wrap content in `BrutalistPageShell` (owns `max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`) and lead with `BrutalistPageHeader title="..."`. Both in `src/components/brutalist/`. These wrappers ARE what shipped on `/bookings` + `/settings` — using them is the way to match the new chrome, not a forced brutalist override.
 
-## Visual language
+## Visual language (split by surface)
 
-- Paper-and-ink palette, thick obvious borders (`2.5px solid var(--bru-ink)`), uppercase mono accents for labels/metadata.
-- Do not ship stock shadcn visuals — if a surface could land in a generic shadcn starter unchanged, it isn't finished.
+- **Dashboard surface** (`/(host)/*`) — quieter chrome, hairline borders (1.5px structural), Space Grotesk for body + headings, JetBrains Mono reserved for metadata + labels (eyebrows, mono numbers, monospace technical strings). Match `/bookings` row density, `/settings` section rhythm, `/workspaces` card stack — those are the canonical references.
+- **Public visitor surface** (`/h/[handle]`, `/booked/[uid]`) — keeps the stronger paper-and-ink palette, thicker borders (2.5px), uppercase display type. The visitor's first/last touch stays bold by design. Don't drag these motifs into dashboard pages.
+- Do not ship stock shadcn visuals on either surface — if a surface could land in a generic shadcn starter unchanged, it isn't finished.
 
 ## Radius scale (one structural token)
 
@@ -63,7 +68,7 @@ When in doubt, use card-stack — it scales better as items gain affordances.
 - Icon convention (whenever an icon sits inside a placeholder/empty state):
   - Bare lucide line icon — never a muted-grey rounded background tile (that's stock shadcn).
   - Size: `size-8` (32px) for empties, `size-4` (16px) inline with text.
-  - `strokeWidth={1.5}` — slimmer than lucide's default 2 reads more precise/brutalist.
+  - `strokeWidth={1.5}` — slimmer than lucide's default 2; matches the chrome's existing icon weight.
   - Color: `text-[color:var(--bru-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--bru-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
   - No fill, no halo, no ring, no rotation effects — the icon sits in flow.
 
@@ -73,7 +78,7 @@ Three patterns, picked by reversibility:
 
 - **Single-click destructive (mid-stakes, recoverable)**: never. Always pair with a confirm. Use `<ConfirmDialog>` from `src/components/brutalist/confirm-dialog.tsx`. Reference: `workflow-fields.tsx` (delete) + `api-keys-fields.tsx` (revoke).
 - **Typed-confirm (irreversible / account-level)**: render the typed-email or typed-handle confirmation pattern. Reference: `delete-account-dialog.tsx`.
-- **Native `window.confirm`**: never. Breaks the brutalist palette and is mobile-hostile. Audit on 2026-04-27 ripped the last one out.
+- **Native `window.confirm`**: never. Breaks the in-app chrome (looks like an OS modal injected at random) and is mobile-hostile. Audit on 2026-04-27 ripped the last one out.
 
 The `<ConfirmDialog>` API takes `trigger` (the button), `title`, `description`, `confirmLabel`, `cancelLabel`, `pending` (from a mutation hook), and `onConfirm` (awaited; close-on-resolve). Don't roll a one-off dialog for every destructive action.
 
