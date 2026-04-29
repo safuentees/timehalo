@@ -1835,7 +1835,7 @@
   background: var(--bru-paper);
   border-radius: var(--bru-r-window);
   margin: 12px 12px 12px 0;
-  height: calc(100% - 24px);
+  height: calc(100svh - 24px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
