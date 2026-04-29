@@ -101,6 +101,9 @@ model Booking {
   idempotencyKey String? @unique
   eventTypeId  String?
   eventType    EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  externalCalendarEventId      String?
+  externalCalendarCredentialId String?
+  externalCalendarCredential   CalendarCredential? @relation(fields: [externalCalendarCredentialId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
   deleted      Boolean  @default(false)
   deletedAt    DateTime?
@@ -146,6 +149,8 @@ model EventTypeHost {
 model BookingAudit {
   id          Int                 @id @default(autoincrement())
   bookingUid  String              // intentionally NOT FK
+  workspaceId String?
+  workspace   Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   actor       AuditActor
   action      BookingAuditAction
   data        Json                // snapshot of the new state
@@ -154,6 +159,7 @@ model BookingAudit {
 
   @@index([bookingUid])
   @@index([operationId])
+  @@index([workspaceId, createdAt])
 }
 
 enum AuditActor {
@@ -207,6 +213,8 @@ model WebhookSubscription {
   publicUid     String   @unique @default(cuid())
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String
   subscriberUrl String
   secret        String   // hex-encoded 32 random bytes; HMAC SHA-256 key
   events        String   // CSV: "booking.created,booking.confirmed"
@@ -215,6 +223,7 @@ model WebhookSubscription {
   updatedAt     DateTime @updatedAt
 
   @@index([userId, active])
+  @@index([workspaceId, active])
 }
 
 model Task {
@@ -269,6 +278,8 @@ model Workspace {
   subscription  Subscription?
   bookings      Booking[]
   eventTypes    EventType[]
+  webhooks      WebhookSubscription[]
+  bookingAudit  BookingAudit[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -343,6 +354,7 @@ model CalendarCredential {
   accessTokenExpiresAt DateTime
   scope               String              // CSV of granted OAuth scopes
   selectedCalendars   SelectedCalendar[]
+  bookings            Booking[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 

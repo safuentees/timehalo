@@ -9,6 +9,7 @@ import type { WebhookEvent } from "@/trpc/router";
 
 export const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
 export const TASK_TYPE_EMAIL_SEND = "emailSend";
+export const TASK_TYPE_CALENDAR_WRITE = "calendarWrite";
 
 export type WebhookDeliveryPayload = {
   webhookSubscriptionId: number;
@@ -78,6 +79,37 @@ export async function scheduleEmailSend<T extends TemplateName>(
   }
 }
 
+export type CalendarWriteAction = "create" | "update" | "delete";
+
+export type CalendarWritePayload = {
+  action: CalendarWriteAction;
+  bookingPublicUid: string;
+};
+
+export async function scheduleCalendarWrite(opts: {
+  payload: CalendarWritePayload;
+  referenceUid: string;
+}): Promise<boolean> {
+  try {
+    await prisma.task.create({
+      data: {
+        type: TASK_TYPE_CALENDAR_WRITE,
+        payload: JSON.stringify(opts.payload),
+        referenceUid: opts.referenceUid,
+      },
+    });
+    return true;
+  } catch (cause) {
+    if (
+      cause instanceof Prisma.PrismaClientKnownRequestError &&
+      cause.code === "P2002"
+    ) {
+      return false;
+    }
+    throw cause;
+  }
+}
+
 export async function cancelPendingTask(opts: {
   referenceUid: string;
   type: string;
@@ -97,12 +129,12 @@ export async function cancelPendingTask(opts: {
 }
 
 export async function findActiveSubscriptionsForEvent(
-  userId: string,
+  workspaceId: string,
   event: WebhookEvent,
 ) {
   return prisma.webhookSubscription.findMany({
     where: {
-      userId,
+      workspaceId,
       active: true,
       events: { contains: event },
     },

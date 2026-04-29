@@ -43,12 +43,13 @@ describe("cron — webhook delivery processor", () => {
 
   beforeAll(async () => {
     host = await createTestHost(HANDLE);
-    process.env.CRON_SECRET = CRON_SECRET;
+    vi.stubEnv("CRON_SECRET", CRON_SECRET);
   });
   beforeEach(async () => {
     await wipeTransientState(host.id);
     const hostCaller = callRouter(fakeContext({ userId: host.id }));
     const created = await hostCaller.webhooks.create({
+      slug: HANDLE,
       subscriberUrl: "https://receiver.test/hook",
       events: ["booking.created"],
     });
@@ -62,6 +63,7 @@ describe("cron — webhook delivery processor", () => {
     vi.unstubAllGlobals();
   });
   afterAll(async () => {
+    vi.unstubAllEnvs();
     await tearDownTestHost(host.id);
   });
 
@@ -74,7 +76,9 @@ describe("cron — webhook delivery processor", () => {
       visitorName: "Visitor",
       visitorEmail: "v@test.local",
     });
-    await prisma.task.deleteMany({ where: { type: "emailSend" } });
+    await prisma.task.deleteMany({
+      where: { type: { in: ["emailSend", "calendarWrite"] } },
+    });
     return booking;
   }
 

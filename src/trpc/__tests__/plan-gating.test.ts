@@ -61,6 +61,7 @@ describe("A3 plan-gating", () => {
       const caller = callRouter(fakeContext({ userId: owner.id }));
       await expect(
         caller.webhooks.create({
+          slug: owner.handle,
           subscriberUrl: "https://example.com/hook",
           events: ["booking.created"],
         }),
@@ -71,6 +72,7 @@ describe("A3 plan-gating", () => {
       await setWorkspacePlan(await primaryWorkspaceId(owner.id), "PRO");
       const caller = callRouter(fakeContext({ userId: owner.id }));
       const created = await caller.webhooks.create({
+        slug: owner.handle,
         subscriberUrl: "https://example.com/hook",
         events: ["booking.created"],
       });

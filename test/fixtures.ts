@@ -202,6 +202,7 @@ export async function createTestBooking(opts: {
 
 export async function createTestWebhookSubscription(opts: {
   userId: string;
+  workspaceId?: string;
   subscriberUrl?: string;
   events?: ReadonlyArray<string>;
   secret?: string;
@@ -212,9 +213,25 @@ export async function createTestWebhookSubscription(opts: {
   secret: string;
   subscriberUrl: string;
 }> {
+  let workspaceId = opts.workspaceId;
+  if (!workspaceId) {
+    const ws = await prisma.workspace.findFirst({
+      where: { ownerId: opts.userId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (!ws) {
+      throw new Error(
+        `createTestWebhookSubscription: user ${opts.userId} has no owned workspace; ` +
+          `pass workspaceId explicitly or call createTestHost to seed one.`,
+      );
+    }
+    workspaceId = ws.id;
+  }
   return prisma.webhookSubscription.create({
     data: {
       userId: opts.userId,
+      workspaceId,
       subscriberUrl: opts.subscriberUrl ?? "https://receiver.test/hook",
       events: (opts.events ?? ["booking.created"]).join(","),
       secret: opts.secret ?? "test-secret-".padEnd(64, "f"),
@@ -231,15 +248,31 @@ export async function createTestWebhookSubscription(opts: {
 
 export async function createTestBookingAudit(opts: {
   bookingUid: string;
+  workspaceId?: string;
   actor?: "VISITOR" | "HOST" | "SYSTEM";
   action: "CREATED" | "CONFIRMED" | "CANCELLED" | "RESCHEDULED_FROM" | "RESCHEDULED_TO";
   data?: Record<string, unknown>;
   operationId?: string;
   createdAt?: Date;
 }): Promise<{ id: number; bookingUid: string; operationId: string }> {
+  let workspaceId = opts.workspaceId;
+  if (!workspaceId) {
+    const booking = await prisma.booking.findUnique({
+      where: { publicUid: opts.bookingUid },
+      select: { workspaceId: true },
+    });
+    if (!booking) {
+      throw new Error(
+        `createTestBookingAudit: bookingUid ${opts.bookingUid} not found; ` +
+          `pass workspaceId explicitly to seed an orphan audit row.`,
+      );
+    }
+    workspaceId = booking.workspaceId;
+  }
   return prisma.bookingAudit.create({
     data: {
       bookingUid: opts.bookingUid,
+      workspaceId,
       actor: opts.actor ?? "VISITOR",
       action: opts.action,
       data: (opts.data ?? {}) as Prisma.InputJsonValue,

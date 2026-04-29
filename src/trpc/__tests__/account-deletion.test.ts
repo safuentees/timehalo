@@ -46,6 +46,7 @@ describe("users.deleteAccount — cascade + audit survival + email", () => {
 
     const hostCaller = callRouter(fakeContext({ userId: host.id }));
     await hostCaller.webhooks.create({
+      slug: host.handle,
       subscriberUrl: "https://receiver.test/hook",
       events: ["booking.created"],
     });
