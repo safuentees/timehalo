@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Link } from "next-view-transitions";
 import { useTranslations } from "next-intl";
-import { ArrowLeftIcon, MailIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MailIcon,
+} from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
 import { Button } from "@/components/ui/button";
@@ -50,34 +55,81 @@ function fmtAuditTimestamp(d: Date): string {
   return `${fmtDate(d)} ${fmtTime(d)}`;
 }
 
-export default function BookingDetail({ publicUid }: { publicUid: string }) {
+export default function BookingDetail({
+  publicUid,
+  variant = "page",
+}: {
+  publicUid: string;
+  // "page" — standalone full-page route at /bookings/[publicUid].
+  // "drawer" — rendered inside a Sheet by the intercepted parallel
+  //            route at @modal/(.)bookings/[publicUid]. The drawer
+  //            owns its own close button + ESC handler (Sheet
+  //            primitive) and the page shell + back-link are
+  //            suppressed.
+  variant?: "page" | "drawer";
+}) {
   const router = useRouter();
   const t = useTranslations("BookingDetail");
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
+  const isDrawer = variant === "drawer";
 
-  // ESC → back to /bookings (cal.com pattern). Cheap polish.
+  // Keyboard shortcuts (cal.com pattern). Page variant: ESC → back
+  // to /bookings (router.push). Drawer variant: Sheet's own close
+  // handler intercepts ESC, so we only wire ←/→ here. ←/→ navigate
+  // to the adjacent booking in slotStart order if one exists. Skip
+  // when an editable element has focus so the visitor's `<input>`
+  // arrow-key cursor movement isn't hijacked.
+  const previousUid = data?.previousUid ?? null;
+  const nextUid = data?.nextUid ?? null;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      const target = e.target as HTMLElement | null;
+      const editing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target?.isContentEditable ?? false);
+      if (!isDrawer && e.key === "Escape") {
+        // Suppress when the intercepted-route Sheet (A7) is layered
+        // on top of this page render. The Sheet primitive owns ESC
+        // in that scenario; firing router.push("/bookings") here in
+        // parallel would race router.back() and pop history twice.
+        // `[role="dialog"]` matches the Base UI Sheet's popup
+        // container — present only while the drawer is mounted.
+        if (document.querySelector('[role="dialog"]')) return;
         e.preventDefault();
         router.push("/bookings");
+        return;
+      }
+      if (editing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowLeft" && previousUid) {
+        e.preventDefault();
+        router.push(`/bookings/${previousUid}`);
+      } else if (e.key === "ArrowRight" && nextUid) {
+        e.preventDefault();
+        router.push(`/bookings/${nextUid}`);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [router, previousUid, nextUid, isDrawer]);
 
   const cancel = useCancelBooking({
     onSuccess: () => router.push("/bookings"),
   });
 
   if (!data) {
-    return (
-      <BrutalistPageShell tight>
+    const loadingBody = (
+      <>
         <BrutalistPageHeader title={t("title")} />
         <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
-      </BrutalistPageShell>
+      </>
+    );
+    return isDrawer ? (
+      <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
+    ) : (
+      <BrutalistPageShell tight>{loadingBody}</BrutalistPageShell>
     );
   }
 
@@ -87,17 +139,47 @@ export default function BookingDetail({ publicUid }: { publicUid: string }) {
   const rescheduled = data.rescheduledFromUid !== null;
   const status = cancelled ? "cancelled" : rescheduled ? "rescheduled" : "confirmed";
 
-  return (
-    <BrutalistPageShell tight>
-      {/* Back nav — same shape as /workspaces/<slug>/members. */}
-      <div className="mb-4">
-        <Link
-          href="/bookings"
-          className="bru-eyebrow inline-flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
-        >
-          <ArrowLeftIcon className="size-3" aria-hidden />
-          {t("back")}
-        </Link>
+  // Outer wrapper: BrutalistPageShell on the dedicated page route,
+  // a plain padded div inside the Sheet drawer (the Sheet primitive
+  // owns the visual frame). Inner content is identical in both
+  // variants — built once and slotted into either wrapper to avoid
+  // the React 19 lint rule against component construction in render.
+  const body = (
+    <>
+      {/* Back nav + adjacent prev/next chevrons (A5). The chevrons
+          mirror cal.com's BookingDetailsSheet keyboard cluster and
+          link to the host's previous/next booking in slotStart
+          order. Disabled when there is no neighbour on that side —
+          rendered as a ghost-style div so the row doesn't reflow
+          on the first / last booking. ←/→ keys also navigate
+          (effect above). The drawer variant suppresses the back
+          link (the Sheet has its own X close affordance) but keeps
+          the prev/next chevrons aligned to the leading edge so the
+          host can keep triaging without a round-trip to the list. */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        {isDrawer ? (
+          <span aria-hidden />
+        ) : (
+          <Link
+            href="/bookings"
+            className="bru-eyebrow inline-flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
+          >
+            <ArrowLeftIcon className="size-3" aria-hidden />
+            {t("back")}
+          </Link>
+        )}
+        <div className="flex items-center gap-1.5">
+          <NeighbourLink
+            uid={data.previousUid}
+            direction="previous"
+            label={t("previousBooking")}
+          />
+          <NeighbourLink
+            uid={data.nextUid}
+            direction="next"
+            label={t("nextBooking")}
+          />
+        </div>
       </div>
 
       {/* Hero — visitor name as title, slot eyebrow above, status pill */}
@@ -141,16 +223,14 @@ export default function BookingDetail({ publicUid }: { publicUid: string }) {
         )}
       </div>
 
-      {/* Footer actions — sticky at viewport bottom. Cancel only;
-          reschedule lives on the visitor confirmation page (A7). The
-          host doesn't currently have a "reschedule on behalf of"
-          flow — that's a future commit. */}
+      {/* Footer actions. Page variant: sticky at viewport bottom
+          (.bru-dash-save-bar is position:fixed). Drawer variant:
+          inline at the bottom of the Sheet content — the Sheet
+          itself is a position:fixed container so an additional
+          fixed bar would float outside the drawer. */}
       {!cancelled ? (
-        <div className="bru-dash-save-spacer" aria-hidden />
-      ) : null}
-      {!cancelled ? (
-        <div className="bru-dash-save-bar" role="region" aria-label={t("actionsLabel")}>
-          <div className="bru-dash-save-bar-inner flex gap-2">
+        isDrawer ? (
+          <div className="mt-8 flex gap-2 border-t-2 border-bru-line pt-5">
             <ConfirmDialog
               title={t("cancelTitle")}
               description={t("cancelDescription", { name: data.visitorName })}
@@ -174,9 +254,83 @@ export default function BookingDetail({ publicUid }: { publicUid: string }) {
               }
             />
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="bru-dash-save-spacer" aria-hidden />
+            <div className="bru-dash-save-bar" role="region" aria-label={t("actionsLabel")}>
+              <div className="bru-dash-save-bar-inner flex gap-2">
+                <ConfirmDialog
+                  title={t("cancelTitle")}
+                  description={t("cancelDescription", { name: data.visitorName })}
+                  confirmLabel={t("cancelConfirm")}
+                  pendingLabel={t("cancelling")}
+                  cancelLabel={t("cancelCancel")}
+                  pending={cancel.isPending}
+                  onConfirm={async () => {
+                    await cancel.mutateAsync({ publicUid });
+                  }}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="brutalistGhost"
+                      size="brutalist"
+                      className="flex-1"
+                      disabled={cancel.isPending}
+                    >
+                      {cancel.isPending ? t("cancelling") : t("cancelAction")}
+                    </Button>
+                  }
+                />
+              </div>
+            </div>
+          </>
+        )
       ) : null}
-    </BrutalistPageShell>
+    </>
+  );
+
+  return isDrawer ? (
+    <div className="flex flex-col p-5 sm:p-6">{body}</div>
+  ) : (
+    <BrutalistPageShell tight>{body}</BrutalistPageShell>
+  );
+}
+
+// Adjacent booking link (A5). Active state is a Link; inactive is
+// a span with the same dimensions so the row doesn't reflow on the
+// first / last booking. The icon-only chevron is sized to match the
+// back-arrow (`size-3`) for visual rhythm with the row's leading
+// element.
+function NeighbourLink({
+  uid,
+  direction,
+  label,
+}: {
+  uid: string | null;
+  direction: "previous" | "next";
+  label: string;
+}) {
+  const Icon = direction === "previous" ? ChevronLeftIcon : ChevronRightIcon;
+  const baseClass =
+    "inline-flex size-7 items-center justify-center rounded-(--bru-r-xs) transition-opacity";
+  if (!uid) {
+    return (
+      <span
+        aria-hidden
+        className={`${baseClass} pointer-events-none opacity-25`}
+      >
+        <Icon className="size-3.5" strokeWidth={1.75} />
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={`/bookings/${uid}`}
+      aria-label={label}
+      className={`${baseClass} opacity-55 hover:bg-[var(--bru-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2`}
+    >
+      <Icon className="size-3.5" strokeWidth={1.75} />
+    </Link>
   );
 }
 
@@ -278,10 +432,20 @@ type DetailData = {
     attempts: number;
     lastError: string | null;
   }>;
+  deliveries: ReadonlyArray<{
+    id: number;
+    type: string;
+    referenceUid: string | null;
+    scheduledAt: string | Date | null;
+    succeededAt: string | Date | null;
+    attempts: number;
+  }>;
   rescheduledFrom: {
     publicUid: string;
     slotStart: string | Date;
   } | null;
+  previousUid: string | null;
+  nextUid: string | null;
 };
 
 function InfoView({
@@ -382,6 +546,40 @@ function InfoView({
                   {task.scheduledAt
                     ? fmtAuditTimestamp(new Date(task.scheduledAt as unknown as string))
                     : t("unscheduled")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </BrutalistSection>
+      ) : null}
+
+      {data.deliveries.length > 0 ? (
+        <BrutalistSection title={t("delivered")}>
+          <ul role="list" className="flex flex-col gap-2">
+            {data.deliveries.map((delivery) => (
+              <li
+                key={delivery.id}
+                className="flex items-baseline justify-between gap-x-4 text-[13px]"
+              >
+                <span className="bru-eyebrow inline-flex items-center gap-1.5 opacity-55">
+                  {taskLabel(delivery.referenceUid ?? "")}
+                  {delivery.attempts > 1 ? (
+                    <span
+                      className="bru-eyebrow tabular-nums opacity-75"
+                      aria-label={t("retriedAttempts", {
+                        count: delivery.attempts,
+                      })}
+                    >
+                      ×{delivery.attempts}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="tabular-nums opacity-75">
+                  {delivery.succeededAt
+                    ? fmtAuditTimestamp(
+                        new Date(delivery.succeededAt as unknown as string),
+                      )
+                    : null}
                 </span>
               </li>
             ))}
