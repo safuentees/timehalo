@@ -49,7 +49,9 @@
     "trigger_EVENT_RESCHEDULED": "Al reagendar reserva",
     "action_EMAIL_VISITOR": "Correo al visitante",
     "action_EMAIL_HOST": "Correo al anfitrión",
-    "action_WEBHOOK_FIRE": "Disparar webhook"
+    "action_WEBHOOK_FIRE": "Disparar webhook",
+    "upgradePrompt": "Los flujos son una función de pago.",
+    "upgradeLink": "Ver planes"
   },
   "ApiKeys": {
     "legend": "Claves API",
@@ -82,7 +84,9 @@
     "revokeTitle": "¿Revocar esta clave?",
     "revokeConfirm": "Cualquier integración que la use empezará a recibir 401.",
     "noKeysEmpty": "Aún no hay claves. Genera tu primera para autenticar scripts, CI o herramientas externas contra este espacio de trabajo.",
-    "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave."
+    "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave.",
+    "upgradePrompt": "Las claves API son una función de pago.",
+    "upgradeLink": "Ver planes"
   },
   "Calendar": {
     "legend": "Calendario",
@@ -105,6 +109,40 @@
     "save": "Guardar",
     "saving": "Guardando…",
     "cancel": "Cancelar"
+  },
+  "Billing": {
+    "legend": "Plan",
+    "description": "Cambia entre planes gratuito y de pago para este espacio de trabajo.",
+    "workspaceLabel": "Espacio de trabajo",
+    "loading": "Cargando plan…",
+    "noWorkspaceEmpty": "Crea un espacio de trabajo antes de gestionar un plan.",
+    "currentPlanLabel": "Plan actual",
+    "freeBlurb": "$0/mes — solo flujo de reservas.",
+    "priceMonth": "{price}/mes",
+    "perMonth": "/mes",
+    "renewsOn": "Se renueva {date}",
+    "cancelsOn": "Cancela {date}",
+    "redirecting": "Redirigiendo…",
+    "upgradeToPro": "Actualizar a PRO",
+    "upgradeTo": "Cambiar a {tier}",
+    "manageBilling": "Gestionar facturación",
+    "tier": {
+      "FREE": "Gratis",
+      "PRO": "Pro",
+      "TEAM": "Equipo"
+    },
+    "feature": {
+      "bookings": "Reservas ilimitadas",
+      "calendar": "Sincronización con Google y Outlook",
+      "membersUpTo1": "1 miembro del espacio",
+      "membersUpTo5": "Hasta 5 miembros del espacio",
+      "membersUpTo25": "Hasta 25 miembros del espacio",
+      "webhooks": "Suscripciones a webhooks",
+      "apiKeys": "Claves de API por espacio",
+      "workflows": "Flujos de correo y webhooks",
+      "roundRobin": "Asignación rotativa de hosts",
+      "prioritySupport": "Soporte prioritario"
+    }
   },
   "DangerZone": {
     "label": "Zona de peligro",

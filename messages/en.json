@@ -49,7 +49,9 @@
     "trigger_EVENT_RESCHEDULED": "On booking rescheduled",
     "action_EMAIL_VISITOR": "Email visitor",
     "action_EMAIL_HOST": "Email host",
-    "action_WEBHOOK_FIRE": "Fire webhook"
+    "action_WEBHOOK_FIRE": "Fire webhook",
+    "upgradePrompt": "Workflows are a paid feature.",
+    "upgradeLink": "View plans"
   },
   "ApiKeys": {
     "legend": "API keys",
@@ -82,7 +84,9 @@
     "revokeTitle": "Revoke this key?",
     "revokeConfirm": "Any integration using it will start getting 401s.",
     "noKeysEmpty": "No keys yet. Mint your first key to authenticate scripts, CI, or third-party tools against this workspace.",
-    "noWorkspaceEmpty": "No workspace yet. API keys are scoped to a workspace — create one first, then come back to mint a key."
+    "noWorkspaceEmpty": "No workspace yet. API keys are scoped to a workspace — create one first, then come back to mint a key.",
+    "upgradePrompt": "API keys are a paid feature.",
+    "upgradeLink": "View plans"
   },
   "Calendar": {
     "legend": "Calendar",
@@ -105,6 +109,40 @@
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel"
+  },
+  "Billing": {
+    "legend": "Plan",
+    "description": "Switch between free and paid plans for this workspace.",
+    "workspaceLabel": "Workspace",
+    "loading": "Loading plan…",
+    "noWorkspaceEmpty": "Create a workspace before managing a plan.",
+    "currentPlanLabel": "Current plan",
+    "freeBlurb": "$0/month — booking flow only.",
+    "priceMonth": "{price}/month",
+    "perMonth": "/mo",
+    "renewsOn": "Renews {date}",
+    "cancelsOn": "Cancels {date}",
+    "redirecting": "Redirecting…",
+    "upgradeToPro": "Upgrade to PRO",
+    "upgradeTo": "Switch to {tier}",
+    "manageBilling": "Manage billing",
+    "tier": {
+      "FREE": "Free",
+      "PRO": "Pro",
+      "TEAM": "Team"
+    },
+    "feature": {
+      "bookings": "Unlimited bookings",
+      "calendar": "Google + Outlook calendar sync",
+      "membersUpTo1": "1 workspace member",
+      "membersUpTo5": "Up to 5 workspace members",
+      "membersUpTo25": "Up to 25 workspace members",
+      "webhooks": "Webhook subscriptions",
+      "apiKeys": "Workspace-scoped API keys",
+      "workflows": "Email + webhook workflows",
+      "roundRobin": "Round-robin host pools",
+      "prioritySupport": "Priority support"
+    }
   },
   "DangerZone": {
     "label": "Danger zone",
