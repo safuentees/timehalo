@@ -2181,10 +2181,15 @@
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
      adds margin-left below. */
   margin: 12px 12px 12px 0;
-  /* Fill the dashboard space remaining after the top bar, minus the
-     12px top + 12px bottom margins. The parent owns the viewport clamp,
-     so the bar pushes content down without making the document taller. */
-  height: calc(100% - 24px);
+  /* Bind the cookie cutter to the viewport directly (not the parent).
+     Shadcn's SidebarProvider uses `min-h-svh` (at-least-viewport),
+     so when content overflows the parent grows and a `calc(100% - 24px)`
+     panel grows with it — the page scrolls instead of the inner
+     ScrollArea. `100svh` is anchored to the viewport regardless of
+     parent height, so the panel stays exactly viewport-sized and only
+     the Radix Viewport inside scrolls. svh over dvh: stable while
+     mobile browser UI shows/hides, no resize jank. */
+  height: calc(100svh - 24px);
   overflow: hidden;
   /* Make the panel a flex column so the inner can claim flex:1 +
      min-height:0 and own the scroll inside the cutter. */
