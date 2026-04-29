@@ -27,10 +27,15 @@ export function WorkflowFields() {
   // `planForUser` resolves via the user's primary workspace, so the
   // UI mirrors that by reading the first owned workspace's plan.
   const { data: workspaces } = trpc.workspaces.list.useQuery();
-  const firstSlug = workspaces?.[0]?.slug;
+  // B.PT6 — read the active workspace from the list flag, falling
+  // back to the first row when no cookie has been set yet. The plan
+  // gate matters per-workspace, so the surface always reflects the
+  // workspace the user just clicked into.
+  const activeSlug =
+    workspaces?.find((w) => w.isActive)?.slug ?? workspaces?.[0]?.slug;
   const { data: plan } = trpc.billing.currentPlan.useQuery(
-    { slug: firstSlug ?? "" },
-    { enabled: Boolean(firstSlug) },
+    { slug: activeSlug ?? "" },
+    { enabled: Boolean(activeSlug) },
   );
   const isLocked = plan?.plan === "FREE";
 

@@ -1,4 +1,8 @@
 import { auth } from "@/auth";
+import {
+  ACTIVE_WORKSPACE_COOKIE,
+  parseActiveWorkspaceSlug,
+} from "@/lib/active-workspace";
 
 // `ipIdentifier` is the per-request key the rate limiter buckets by.
 // For HTTP requests we read the proxy headers (Vercel sets
@@ -54,7 +58,20 @@ export async function createContext(opts: CreateContextOpts = {}) {
   const cookies =
     opts.cookies ?? parseCookieHeader(headers?.get("cookie"));
 
-  return { user: session?.user ?? null, ipIdentifier, cookies };
+  // B.PT6 — active workspace cookie threaded through every authed
+  // request. Validated against workspaceSlugSchema by the parser so
+  // a stale cookie pointing at a deleted/renamed workspace surfaces
+  // as null and the caller falls back to workspaces[0].
+  const activeWorkspaceSlug = parseActiveWorkspaceSlug(
+    cookies.get(ACTIVE_WORKSPACE_COOKIE),
+  );
+
+  return {
+    user: session?.user ?? null,
+    ipIdentifier,
+    cookies,
+    activeWorkspaceSlug,
+  };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

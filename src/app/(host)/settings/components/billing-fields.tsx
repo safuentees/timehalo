@@ -29,7 +29,7 @@ import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 // mono-caps eyebrows, no shadcn Card wrapper. Pricing copy via
 // next-intl, no hardcoded English.
 
-type Workspace = { slug: string; name: string };
+type Workspace = { slug: string; name: string; isActive: boolean };
 type PlanTier = "FREE" | "PRO" | "TEAM";
 
 const UPGRADE_TIERS = ["PRO", "TEAM"] as const;
@@ -101,7 +101,8 @@ export function BillingFields() {
           slug={
             pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
               ? pickedSlug
-              : workspaces[0].slug
+              : (workspaces.find((w) => w.isActive)?.slug ??
+                  workspaces[0].slug)
           }
           onSlugChange={setPickedSlug}
         />

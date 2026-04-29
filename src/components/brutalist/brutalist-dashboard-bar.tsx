@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
+import { useRouter } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
+import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
@@ -13,26 +16,42 @@ import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/worksp
 // --bru-dashboard-bar-height token (32px) — the sidebar's
 // top: calc(var + 12px) already accounts for it.
 //
-// Trigger: the active workspace name (the user's primary owned
-// workspace — first-by-createdAt, populated by the register
-// transaction in 9eb0f0f). Click opens a Base UI Menu with:
-//   • the WORKSPACES group label
-//   • each workspace as a row, checkmark on the current one,
-//     click navigates to that workspace's members page
-//   • separator
-//   • + Create workspace (opens the existing dialog inline)
-//   • settings glyph + Manage workspaces (routes to /workspaces)
+// Trigger: the active workspace name (the row with isActive=true,
+// which the server-side workspaces.list resolves from the
+// `oh_active_workspace` cookie — B.PT6 — falling back to the first
+// row when the cookie is unset or stale). Click opens a Base UI
+// Menu with one row per workspace; clicking a row writes the cookie
+// via the setActiveWorkspace server action, then router.refresh()
+// so other workspace-aware surfaces (settings, billing, api-keys,
+// workflow plan-gate) re-read the new active context. We also
+// navigate to the chosen workspace's members page so the user lands
+// somewhere meaningful.
 export function BrutalistDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const utils = trpc.useUtils();
 
-  // The "current" workspace is the user's primary owned workspace.
-  // workspaces.list orders by assignedAt asc; for a host who only
-  // owns Personal that's also the createdAt-asc primary. When
-  // workspace context (B6) ships, this becomes a cookie-stored
-  // selection; for now first-of-list is correct.
-  const current = workspaces?.[0];
+  const current = workspaces?.find((w) => w.isActive) ?? workspaces?.[0];
   const label = current?.name ?? "Workspaces";
+
+  function handlePick(slug: string) {
+    startTransition(async () => {
+      const result = await setActiveWorkspace({ slug });
+      if (!result.ok) {
+        toast.error("Couldn't switch workspace.");
+        return;
+      }
+      // Invalidate the list query so any consumer sees the new
+      // isActive row immediately. router.refresh() re-fetches RSC
+      // data + re-runs SSR prefetches so /settings + /workspaces
+      // reflect the new context on the next render.
+      await utils.workspaces.list.invalidate();
+      router.refresh();
+      router.push(`/workspaces/${slug}/members`);
+    });
+  }
 
   return (
     <div className="bru-dashboard-bar">
@@ -64,33 +83,32 @@ export function BrutalistDashboardBar() {
                 <Menu.GroupLabel className="bru-menu-label">
                   Workspaces
                 </Menu.GroupLabel>
-                {(workspaces ?? []).map((w) => {
-                  const isCurrent = current?.id === w.id;
-                  return (
-                    <Menu.Item
-                      key={w.id}
-                      className="bru-menu-item"
-                      render={<Link href={`/workspaces/${w.slug}/members`} />}
+                {(workspaces ?? []).map((w) => (
+                  <Menu.Item
+                    key={w.id}
+                    className="bru-menu-item"
+                    onClick={() => handlePick(w.slug)}
+                  >
+                    <span className="bru-menu-item-glyph">
+                      {w.isActive ? (
+                        <Check
+                          aria-hidden
+                          strokeWidth={2}
+                          className="size-3.5"
+                        />
+                      ) : null}
+                    </span>
+                    <span
+                      className={
+                        w.isActive
+                          ? "font-semibold"
+                          : "font-normal opacity-85"
+                      }
                     >
-                      <span className="bru-menu-item-glyph">
-                        {isCurrent ? (
-                          <Check
-                            aria-hidden
-                            strokeWidth={2}
-                            className="size-3.5"
-                          />
-                        ) : null}
-                      </span>
-                      <span
-                        className={
-                          isCurrent ? "font-semibold" : "font-normal opacity-85"
-                        }
-                      >
-                        {w.name}
-                      </span>
-                    </Menu.Item>
-                  );
-                })}
+                      {w.name}
+                    </span>
+                  </Menu.Item>
+                ))}
               </Menu.Group>
 
               <Menu.Separator className="bru-menu-separator" />
