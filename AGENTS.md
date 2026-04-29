@@ -77,6 +77,20 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Skip the seed script's Workspace + OWNER Membership creation. `bookings.create` requires `host.ownedWorkspaces[0]` (B1 invariant); without it the call fails with `"Host has no workspace"`.
 - Enable `fileParallelism: true` in `vitest.config.ts` or raise `workers` above 1 in `playwright.config.ts` — both gate against concrete races (DB wipes / dev-server compilation). The cost (~2s slower runs) buys flake-resistance the project's identity depends on.
 
+## Backlog source of truth
+
+`BACKLOG.md` at the repo root is the single canonical source of truth for what's shipped, what's open, and what's next. Treat it as authoritative — if any other markdown (`OFFICEHOURS-*.md`, `CAL-LAB-ROADMAP.md`, etc.) disagrees, `BACKLOG.md` wins.
+
+When you ship a deferred item or introduce a new deferral, you must update `BACKLOG.md` in the same commit:
+
+- **Closing an item.** Flip its row's status to `SHIPPED` and write the commit SHA in the *Closed by* column. Don't delete rows — closed items stay for auditability.
+- **Introducing a new deferral.** Add a row under the relevant tier with the next free ID (e.g. `B.PT14`). The commit body should include `Defers: <new-id>` so future audits can trace it.
+- **Re-categorizing.** Edit the row inline; note the move in the *Notes* column.
+
+The `commit-msg` git hook at `.githooks/commit-msg` enforces this: any commit message that names a backlog ID (e.g. `B7`, `B.PT12`, `A12`) must touch `BACKLOG.md` in its staged diff, or the commit aborts. Activate the hooks dir once with `git config core.hooksPath .githooks` (the bootstrap script does this automatically).
+
+The four legacy docs (`OFFICEHOURS-PROJECT-GUIDE.md`, `OFFICEHOURS-DEPTH-IDEAS.md`, `OFFICEHOURS-FOLLOWUPS.md`, `OFFICEHOURS-OPEN-DEFERRALS.md`) are 1-line redirect stubs to `BACKLOG.md`. Don't add new content to them. If you need to write a long-form note, put it in `.claude/rules/` (Claude-only), `.agents/notes/` (cross-agent), or extend `BACKLOG.md` itself.
+
 ## Commands
 
 - `pnpm dev` — local server
