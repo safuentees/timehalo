@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { MembershipRole } from "@/generated/prisma/enums";
 
 // Pure shared module — safe to import from server AND client. The
@@ -74,11 +75,30 @@ export function scopesFor(role: MembershipRole): ReadonlyArray<WorkspaceScope> {
 }
 
 // Slug rules — same shape as User.handle: lowercase letters, digits,
-// hyphens, length 3–30. Reuses the handle alphabet so the URL is
-// immediately readable. The schema's @unique constraint catches
-// duplicates; this regex catches malformed input before the DB call.
-export const WORKSPACE_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+// hyphens, length WORKSPACE_SLUG_MIN–WORKSPACE_SLUG_MAX. Reuses the
+// handle alphabet so the URL is immediately readable. The schema's
+// @unique constraint catches duplicates; this regex catches malformed
+// input before the DB call.
+//
+// The regex's structure is mechanically tied to the bounds: first char
+// + middle{MIN-2..MAX-2} + last char = MIN..MAX total. If you change
+// MIN or MAX, also update the {1,28} quantifier inside the regex.
+export const WORKSPACE_SLUG_MIN = 3;
 export const WORKSPACE_SLUG_MAX = 30;
+export const WORKSPACE_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+
+// Single-source-of-truth zod schema. Both the tRPC router and the
+// client-side workspace-create dialog import this so the bounds, the
+// regex, and the user-facing error copy stay locked together. Per the
+// 2ffca4e deferral: "pull WORKSPACE_SLUG_MAX into the same module
+// that owns the schema and the helper so all three are mechanically
+// tied."
+export const workspaceSlugSchema = z
+  .string()
+  .trim()
+  .min(WORKSPACE_SLUG_MIN, `${WORKSPACE_SLUG_MIN}+ characters`)
+  .max(WORKSPACE_SLUG_MAX, `${WORKSPACE_SLUG_MAX} characters max`)
+  .regex(WORKSPACE_SLUG_REGEX, "Lowercase letters, digits, hyphens");
 
 // Default slug for the auto-created "Personal" workspace minted at
 // signup (auth.register) and at next-auth's events.createUser. The
