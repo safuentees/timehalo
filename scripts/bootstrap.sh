@@ -159,4 +159,10 @@ fi
 [ -s src/generated/prisma/client.ts ] && [ -s src/generated/prisma/models.ts ] \
   || fail "generated prisma client missing files — try ./scripts/bootstrap.sh --force"
 
+# 7. Wire .githooks as the hooks dir so the commit-msg backlog guard
+#    fires for every contributor. Idempotent — `git config` overwrites
+#    on every run; we set it unconditionally because the cost is one
+#    syscall and the cost of getting it wrong is silent backlog drift.
+git config core.hooksPath .githooks
+
 log "ready — pnpm dev"

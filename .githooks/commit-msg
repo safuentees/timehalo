@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# commit-msg hook — enforce that any commit referencing a backlog item ID
+# also touches BACKLOG.md in the staged diff. The aim: stop "closes B7"
+# commits from drifting away from BACKLOG.md's status table.
+#
+# ID grammar (matches BACKLOG.md):
+#   - Original-tier:   A1..A15, B1..B5, C1..C6, 10.1.1..10.1.10
+#   - Post-tier (PT):  A.PT1..A.PT9, B.PT1..B.PT13, C.PT1..C.PT9
+#
+# We match either form. Bypass with the standard `--no-verify` flag if
+# you genuinely need to (e.g. a typo fix to a row already updated in a
+# prior commit).
+set -e
+
+COMMIT_MSG_FILE="$1"
+[ -f "$COMMIT_MSG_FILE" ] || exit 0
+
+# Read commit body. Skip merge / fixup / squash messages — they
+# auto-include the original subject which would re-trigger on every
+# rebase pass.
+FIRST_LINE=$(head -n 1 "$COMMIT_MSG_FILE")
+case "$FIRST_LINE" in
+  Merge*|Revert*|"fixup!"*|"squash!"*) exit 0 ;;
+esac
+
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Extract IDs. Two forms in one regex:
+#   1. "B.PT12", "A.PT3", "C.PT9"  — post-tier shape
+#   2. "B7", "A12", "C3"           — original-tier shape
+#   3. "10.1.6"                    — §10.1 numbered items
+#
+# Word boundaries so we don't match "B12" inside "PR#B12345" etc. We
+# require the ID to be standalone (preceded by start-of-line / space /
+# punctuation that's not a digit).
+IDS=$(printf '%s\n' "$COMMIT_MSG" \
+  | grep -oE '(\b[ABC]\.PT[0-9]+\b|\b[ABC][0-9]+\b|\b10\.1\.[0-9]+\b)' \
+  | sort -u || true)
+
+if [ -z "$IDS" ]; then
+  exit 0
+fi
+
+# BACKLOG.md must be in the staged diff. We check the index — what
+# this commit will actually carry.
+if git diff --cached --name-only | grep -qx "BACKLOG.md"; then
+  exit 0
+fi
+
+# Friendly rejection. List the offending IDs so the author knows
+# exactly which rows to update.
+{
+  echo
+  echo "❌ Commit references backlog item(s):"
+  printf '   • %s\n' $IDS
+  echo
+  echo "But BACKLOG.md isn't in the staged diff. Update the row(s) above:"
+  echo "   - Flip status to SHIPPED if you're closing the item."
+  echo "   - Add a new row + 'Defers: <new-id>' in the body if you're"
+  echo "     introducing a deferral."
+  echo
+  echo "Bypass with --no-verify only if the commit message ID is a"
+  echo "back-reference, not a state change (e.g. fixing a comment that"
+  echo "happens to mention 'A3')."
+  echo
+} >&2
+
+exit 1
