@@ -72,7 +72,7 @@ export default async function StatusPage() {
   return (
     <main className="bru-main">
       <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
-        <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+        <p className="bru-legend">
           Officehours / Status
         </p>
         <h1
@@ -122,7 +122,7 @@ export default async function StatusPage() {
         </ul>
 
         <section className="mt-12 border-t-2 border-bru-line-strong pt-8">
-          <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+          <p className="bru-eyebrow">
             Notes
           </p>
           <p className="mt-3 max-w-prose text-[13px] leading-[1.55] opacity-75">

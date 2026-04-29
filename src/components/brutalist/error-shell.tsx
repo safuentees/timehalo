@@ -17,7 +17,7 @@ export function ErrorShell({
   return (
     <main className="bru-main">
       <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
-        <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+        <p className="bru-legend">
           {label}
         </p>
         <h1 className="mt-4 text-bru-h1 font-black uppercase tracking-tight">
@@ -54,7 +54,7 @@ export function ErrorShellLink({
         href={href}
         className="group block border-2 border-bru-line p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong hover:bg-bru-tint"
       >
-        <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55 group-hover:opacity-90">
+        <p className="bru-eyebrow group-hover:opacity-90">
           {description}
         </p>
         <p className="mt-2 text-[16px] font-black leading-tight">
