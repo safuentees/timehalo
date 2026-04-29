@@ -71,6 +71,20 @@ export const env = createEnv({
       .string()
       .regex(/^[0-9a-fA-F]{64}$/, "must be 64 hex characters (32 bytes)")
       .optional(),
+    /**
+     * Stripe billing (B3 — checkout + portal). All optional so a
+     * fresh clone boots without a Stripe account; the procedures
+     * gate on STRIPE_SECRET_KEY and throw PRECONDITION_FAILED when
+     * unset. STRIPE_PRICE_PRO / STRIPE_PRICE_TEAM are the price ids
+     * created in the Stripe dashboard for each plan; checkout
+     * sessions reference them. STRIPE_WEBHOOK_SECRET signs the
+     * incoming webhook payloads (already used by the existing
+     * verifier in src/lib/billing.ts).
+     */
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_PRICE_PRO: z.string().optional(),
+    STRIPE_PRICE_TEAM: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
   },
   client: {
     /**
