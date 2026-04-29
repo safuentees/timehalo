@@ -67,6 +67,13 @@ export default function HostProfile({
   // URL is the truth across reload/share/back.
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+  // A9 — `?reschedule=<bookingUid>` puts the picker in reschedule
+  // mode. Triggered from the booked confirmation page's Reschedule
+  // button. Also seeded post-mount so SSR + first client render agree
+  // on `undefined` (matches the URL-from-effect pattern above).
+  const [rescheduleFromUid, setRescheduleFromUid] = useState<
+    string | undefined
+  >();
 
   // Seed selection from URL once on mount, after hydration. Read once;
   // popstate handles forward updates, our setters write back.
@@ -80,6 +87,10 @@ export default function HostProfile({
     if (slotIso) {
       const matching = slots.find((s) => s.start === slotIso);
       if (matching) setSelectedSlot(matching);
+    }
+    const rescheduleUid = getQueryParam("reschedule");
+    if (rescheduleUid) {
+      setRescheduleFromUid(rescheduleUid);
     }
     // Run once — slots prop changes after this should NOT clobber the
     // visitor's selection. If a fetch returns new slots that no longer
@@ -159,6 +170,27 @@ export default function HostProfile({
           <div className="bru-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
+
+      {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>`
+          is in the URL so the visitor knows they're picking a NEW
+          slot to swap into, not booking fresh. The slot-picker
+          drawer's confirm panel shows the from→to delta. */}
+      {rescheduleFromUid ? (
+        <div
+          role="status"
+          className="border-b-[1.5px] border-bru-line bg-bru-paper px-5 py-3 sm:px-8"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="bru-eyebrow">RESCHEDULING — PICK A NEW SLOT</span>
+            <a
+              href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
+              className="bru-eyebrow opacity-55 transition-opacity hover:opacity-100"
+            >
+              CANCEL
+            </a>
+          </div>
+        </div>
+      ) : null}
 
       <article className="bru-v1">
         <header className="bru-v1-hero bru-reveal">
@@ -245,6 +277,7 @@ export default function HostProfile({
             selectedDate={selectedDate}
             onSelectDate={handleSelectDate}
             selectedSlot={selectedSlot}
+            rescheduleFromUid={rescheduleFromUid}
             onPickSlot={(s) => {
               setSelectedSlot(s);
               // Slot pick is commit-ish — pushState so browser back

@@ -15,6 +15,9 @@ type Props = {
   slot: Slot | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // A9 — when set, the inner BookingForm renders the reschedule
+  // confirm panel and the modal title swaps to "Confirm reschedule".
+  rescheduleFromUid?: string;
 };
 
 /**
@@ -28,16 +31,18 @@ export function BookingDrawer({
   slot,
   open,
   onOpenChange,
+  rescheduleFromUid,
 }: Props) {
   const startDate = slot ? new Date(slot.start) : null;
   const isOpen = open && !!slot;
+  const isReschedule = Boolean(rescheduleFromUid);
 
   return (
     <ResponsiveModal open={isOpen} onOpenChange={onOpenChange} nested>
       <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
         <ResponsiveModalHeader className="bru-drawer-head">
           <ResponsiveModalTitle className="bru-drawer-title">
-            CONFIRM BOOKING
+            {isReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM BOOKING"}
           </ResponsiveModalTitle>
           {startDate ? (
             <ResponsiveModalDescription className="bru-drawer-sub">
@@ -51,7 +56,13 @@ export function BookingDrawer({
         </ResponsiveModalHeader>
 
         <div className="bru-drawer-body">
-          {slot ? <BookingForm handle={handle} slotStart={slot.start} /> : null}
+          {slot ? (
+            <BookingForm
+              handle={handle}
+              slotStart={slot.start}
+              rescheduleFromUid={rescheduleFromUid}
+            />
+          ) : null}
         </div>
       </ResponsiveModalContent>
     </ResponsiveModal>
