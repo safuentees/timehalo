@@ -174,7 +174,7 @@ export function AvailabilityFields() {
 function EmptyBlocks() {
   return (
     <div className="rounded-(--bru-r-sm) border-[1.5px] border-dashed border-[var(--bru-line-dashed)] px-5 py-7 text-left">
-      <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+      <p className="bru-eyebrow">
         No hours set
       </p>
       <p className="mt-2 text-[13px] leading-[1.5] opacity-70">
@@ -382,7 +382,7 @@ function BlockEditorContent({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+    <span className="bru-eyebrow">
       {children}
     </span>
   );
@@ -405,7 +405,7 @@ function DaysRowButton({
       aria-label={`Edit days: ${label}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+        <span className="bru-eyebrow">
           Days
         </span>
         <span className="truncate text-[18px] leading-[1.1] font-black">
@@ -543,7 +543,7 @@ function TimeColumn({
         className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent opacity-0 focus:outline-none [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
       />
       <span className="pointer-events-none flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+        <span className="bru-eyebrow">
           {label}
         </span>
         <span className="truncate text-[18px] leading-[1.1] font-black tabular-nums">
