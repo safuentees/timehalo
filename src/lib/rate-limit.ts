@@ -22,6 +22,8 @@ function parseDurationMs(duration: Duration): number {
 type LimiterResult = {
   success: boolean;
   remainingPoints: number;
+  resetAtMs: number;
+  limit: number;
 };
 
 export type Limiter = {
@@ -42,18 +44,34 @@ function createMemoryLimiter(
       const entry = windows.get(key);
 
       if (!entry || now >= entry.resetAt) {
-        windows.set(key, { count: 1, resetAt: now + windowMs });
+        const resetAt = now + windowMs;
+        windows.set(key, { count: 1, resetAt });
         setTimeout(() => windows.delete(key), windowMs).unref?.();
-        return { success: true, remainingPoints: maxRequests - 1 };
+        return {
+          success: true,
+          remainingPoints: maxRequests - 1,
+          resetAtMs: resetAt,
+          limit: maxRequests,
+        };
       }
 
       entry.count++;
 
       if (entry.count > maxRequests) {
-        return { success: false, remainingPoints: 0 };
+        return {
+          success: false,
+          remainingPoints: 0,
+          resetAtMs: entry.resetAt,
+          limit: maxRequests,
+        };
       }
 
-      return { success: true, remainingPoints: maxRequests - entry.count };
+      return {
+        success: true,
+        remainingPoints: maxRequests - entry.count,
+        resetAtMs: entry.resetAt,
+        limit: maxRequests,
+      };
     },
     name: "memory",
   };
