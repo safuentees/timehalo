@@ -38,6 +38,14 @@ function parseDurationMs(duration: Duration): number {
 type LimiterResult = {
   success: boolean;
   remainingPoints: number;
+  // Unix ms timestamp at which the current window resets (and the
+  // budget is restored). Callers building HTTP 429 responses turn
+  // this into a `Retry-After` header (seconds-from-now).
+  resetAtMs: number;
+  // Total budget for the window. Callers expose it as
+  // `X-RateLimit-Limit` so clients know what they're being
+  // measured against.
+  limit: number;
 };
 
 export type Limiter = {
@@ -58,20 +66,36 @@ function createMemoryLimiter(
       const entry = windows.get(key);
 
       if (!entry || now >= entry.resetAt) {
-        windows.set(key, { count: 1, resetAt: now + windowMs });
+        const resetAt = now + windowMs;
+        windows.set(key, { count: 1, resetAt });
         // unref so this timer doesn't keep the Node event loop alive
         // after the dev server is killed.
         setTimeout(() => windows.delete(key), windowMs).unref?.();
-        return { success: true, remainingPoints: maxRequests - 1 };
+        return {
+          success: true,
+          remainingPoints: maxRequests - 1,
+          resetAtMs: resetAt,
+          limit: maxRequests,
+        };
       }
 
       entry.count++;
 
       if (entry.count > maxRequests) {
-        return { success: false, remainingPoints: 0 };
+        return {
+          success: false,
+          remainingPoints: 0,
+          resetAtMs: entry.resetAt,
+          limit: maxRequests,
+        };
       }
 
-      return { success: true, remainingPoints: maxRequests - entry.count };
+      return {
+        success: true,
+        remainingPoints: maxRequests - entry.count,
+        resetAtMs: entry.resetAt,
+        limit: maxRequests,
+      };
     },
     name: "memory",
   };
