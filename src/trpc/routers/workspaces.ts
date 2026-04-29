@@ -86,10 +86,23 @@ export const workspaces = router({
       },
       orderBy: { assignedAt: "asc" },
     });
+    // B.PT6 — `isActive` reflects ctx.activeWorkspaceSlug. If the
+    // cookie is unset OR points at a workspace the user is no
+    // longer a member of, isActive falls back to "first row" so
+    // every list response always has exactly one active row. The
+    // dashboard bar + per-section default-pickers depend on that
+    // invariant.
+    const activeSlug = ctx.activeWorkspaceSlug;
+    const cookieMatches = memberships.some(
+      (m) => m.workspace.slug === activeSlug,
+    );
+    const fallbackSlug = memberships[0]?.workspace.slug ?? null;
+    const effectiveSlug = cookieMatches ? activeSlug : fallbackSlug;
     return memberships.map((m) => ({
       role: m.role,
       assignedAt: m.assignedAt,
       ...m.workspace,
+      isActive: m.workspace.slug === effectiveSlug,
     }));
   }),
 

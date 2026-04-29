@@ -113,7 +113,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT3-UI | Billing settings UI section + plan-gate inline prompts | SHIPPED | `63c4553` | |
 | B.PT4 | `/workspaces/<slug>/event-types` page | SHIPPED | `1f5b93a` | |
 | B.PT5 | Workspace lifecycle four-pack (rename / delete / leave / transfer) | SHIPPED | `304eb36` | |
-| **B.PT6** | **Global workspace context switcher (cookie-stored)** | **OPEN** | — | Top-bar dropdown shipped at `c9df11a` but doesn't switch global state. Threads cookie through tRPC context. ~250 LOC, 2 days. |
+| B.PT6 | Global workspace context switcher (cookie-stored) | SHIPPED | _to be filled by commit_ | `oh_active_workspace` cookie + Next 15 server action + `ctx.activeWorkspaceSlug` + `workspaces.list` returns `isActive` per row. Top-bar dropdown clicks set the cookie via the action then `router.refresh()` + navigate. Settings + billing + api-keys + workflows defaults now respect the active row. Falls back to first-by-membership when cookie unset or stale. |
 | B.PT7 | `/workspaces/<slug>/settings` page | SHIPPED | _to be filled by commit_ | Surfaced B.PT5's lifecycle four-pack via four sections (general / transfer / leave / danger). Typed-confirm dialog on delete mirrors `delete-account-dialog.tsx`. |
 | **B.PT8** | **Resend + edit-pending-invite-role procedures + UI** | **OPEN** | — | ~80 LOC, half day each. |
 | **B.PT9** | **Bulk invite (`workspaces.inviteMany`)** | **OPEN** | — | ~120 LOC, 1 day. |
@@ -151,9 +151,8 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 Pick from `OPEN` rows above, in this priority order:
 
-1. **B.PT6** — workspace context switcher. Ties B.PT1 (workspace-aware webhooks/audit) + B.PT4 (event-types) into a coherent navigation. 2 days.
-2. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
-3. **B.PT9** — bulk invite. 1 day.
+1. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
+2. **B.PT9** — bulk invite. 1 day.
 
 Tier C items wait for their gating signal.
 

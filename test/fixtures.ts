@@ -191,11 +191,13 @@ export function fakeContext(overrides: Partial<{
   userId: string;
   ipIdentifier: string;
   cookies: Map<string, string>;
+  activeWorkspaceSlug: string | null;
 }> = {}) {
   return {
     user: overrides.userId ? { id: overrides.userId, email: "test@test.local" } : null,
     ipIdentifier: overrides.ipIdentifier ?? `test:${crypto.randomUUID()}`,
     cookies: overrides.cookies ?? new Map<string, string>(),
+    activeWorkspaceSlug: overrides.activeWorkspaceSlug ?? null,
   };
 }
 
