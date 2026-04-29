@@ -1836,9 +1836,8 @@
   border-radius: var(--bru-r-window);
   margin: 12px 12px 12px 0;
   height: calc(100svh - 24px);
+  position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 @media (max-width: 767px) {
@@ -1849,8 +1848,8 @@
 
 .bru-host-content-inner {
   view-transition-name: bru-host-content;
-  flex: 1 1 0%;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
 }
 
 ::view-transition-old(bru-host-content) {
