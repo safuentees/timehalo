@@ -2181,20 +2181,21 @@
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
      adds margin-left below. */
   margin: 12px 12px 12px 0;
-  /* Bind the cookie cutter to the viewport directly (not the parent).
-     Shadcn's SidebarProvider uses `min-h-svh` (at-least-viewport),
-     so when content overflows the parent grows and a `calc(100% - 24px)`
-     panel grows with it — the page scrolls instead of the inner
-     ScrollArea. `100svh` is anchored to the viewport regardless of
-     parent height, so the panel stays exactly viewport-sized and only
-     the Radix Viewport inside scrolls. svh over dvh: stable while
-     mobile browser UI shows/hides, no resize jank. */
+  /* Cookie cutter — viewport-anchored. svh anchors to the smallest
+     viewport (browser UI fully extended), so the panel stays exactly
+     this tall regardless of parent overflow or browser-bar
+     animation. The panel + 24px of margin = full viewport. */
   height: calc(100svh - 24px);
+  /* `position: relative` establishes the containing block for the
+     absolutely-positioned ScrollArea inside. `overflow: hidden` is
+     the cookie cut — anything that escapes the rounded boundary
+     (shouldn't happen with the absolute child, but defensive) gets
+     clipped. Combination replaces the previous flex-col chain,
+     which let the panel imply auto-height when min-height:0
+     kicked in on the flex child and the browser couldn't resolve
+     the percentage chain. */
+  position: relative;
   overflow: hidden;
-  /* Make the panel a flex column so the inner can claim flex:1 +
-     min-height:0 and own the scroll inside the cutter. */
-  display: flex;
-  flex-direction: column;
 }
 
 /* Mobile (< 768px, matches src/hooks/use-mobile.ts MOBILE_BREAKPOINT
@@ -2210,15 +2211,16 @@
 
 .bru-host-content-inner {
   /* View-transition target + sizing for the Radix ScrollArea Root.
-     Radix manages overflow internally (Viewport child handles the
-     scroll, ScrollAreaScrollbar absolutely-positions over content
-     for true overlay behavior — no layout shift, scrollbar floats
-     instead of taking gutter space). All native scrollbar styling
-     was removed; the brutalist thumb lives on the ScrollAreaThumb
-     in src/components/ui/scroll-area.tsx. */
+     Absolutely fills the parent panel — no flex math, just inset:0
+     against the bounded `position: relative` parent. Radix Viewport
+     inside has `size-full` (h-full + w-full) which then resolves to
+     the panel's exact viewport-anchored height. Children inside the
+     Viewport that exceed it scroll natively; the absolute positioning
+     means the children's intrinsic height never affects the Root's
+     box (which would have happened in a flex chain). */
   view-transition-name: bru-host-content;
-  flex: 1 1 0%;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
 }
 
 /* Fade-only, sequenced. Default View Transitions API behavior is a
