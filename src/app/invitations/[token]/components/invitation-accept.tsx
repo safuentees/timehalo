@@ -54,7 +54,7 @@ export default function InvitationAccept({
     <div className="min-h-screen bg-bru-bg">
       <main className="mx-auto max-w-md px-6 pt-20 sm:pt-32">
         <header>
-          <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-55">
+          <p className="bru-eyebrow">
             {t("eyebrow")}
           </p>
           <h1 className="mt-4 font-heading text-3xl font-black tracking-tight leading-none">
@@ -119,7 +119,7 @@ export default function InvitationAccept({
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-x-4">
-      <dt className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+      <dt className="bru-eyebrow">
         {label}
       </dt>
       <dd className="text-[13px] font-medium tabular-nums">{value}</dd>

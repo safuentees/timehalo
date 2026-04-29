@@ -18,7 +18,7 @@ export default async function AdminFeatureFlagsPage() {
 
   return (
     <section>
-      <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+      <p className="bru-legend">
         Feature flags · {flags.length} known
       </p>
       <ul role="list" className="mt-5 flex flex-col gap-3">
@@ -29,7 +29,7 @@ export default async function AdminFeatureFlagsPage() {
           >
             <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
               <div className="min-w-0">
-                <p className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55">
+                <p className="bru-eyebrow">
                   {f.type} · {f.hasRow ? "DB row" : "default"}
                 </p>
                 <h2 className="mt-2 text-[18px] font-black leading-tight">
@@ -50,7 +50,7 @@ export default async function AdminFeatureFlagsPage() {
                 {f.description}
               </p>
             ) : null}
-            <p className="mt-3 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
+            <p className="mt-3 bru-eyebrow">
               {f.assignments.length === 0
                 ? "Globally on (no assignment scoping)"
                 : `Scoped to ${f.assignments.length} user(s)`}
@@ -70,7 +70,7 @@ export default async function AdminFeatureFlagsPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-6 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-55">
+      <p className="mt-6 bru-eyebrow">
         Mutations live on admin.featureFlags.{"{"}setEnabled, assign, unassign{"}"}
       </p>
     </section>

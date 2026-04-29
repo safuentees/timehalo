@@ -41,7 +41,7 @@ export default async function AdminAuditPage({
 
   return (
     <section>
-      <p className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.2px] uppercase opacity-55">
+      <p className="bru-legend">
         Audit · {bookingUid}
       </p>
       {trail.length === 0 ? (

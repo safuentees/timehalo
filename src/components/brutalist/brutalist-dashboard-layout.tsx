@@ -1,10 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
 import { useBrutalistPrefs } from "./prefs-context";
