@@ -425,6 +425,102 @@ export const bookings = router({
       return booking;
     }),
 
+  getDetail: privateProcedure
+    .input(z.object({ publicUid: z.string().min(1) }))
+    .query(async ({ input, ctx }) => {
+      const booking = await prisma.booking.findUnique({
+        where: { publicUid: input.publicUid },
+        select: {
+          id: true,
+          publicUid: true,
+          hostId: true,
+          workspaceId: true,
+          eventTypeId: true,
+          visitorName: true,
+          visitorEmail: true,
+          visitorTimezone: true,
+          question: true,
+          slotStart: true,
+          slotEnd: true,
+          referrer: true,
+          rescheduledFromUid: true,
+          createdAt: true,
+          deleted: true,
+          deletedAt: true,
+          host: {
+            select: {
+              id: true,
+              name: true,
+              handle: true,
+              email: true,
+              timezone: true,
+            },
+          },
+          eventType: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              durationMins: true,
+            },
+          },
+        },
+      });
+      if (!booking) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+      if (booking.hostId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+
+      const [audit, pendingTasks] = await Promise.all([
+        prisma.bookingAudit.findMany({
+          where: { bookingUid: booking.publicUid },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            actor: true,
+            action: true,
+            data: true,
+            operationId: true,
+            createdAt: true,
+          },
+        }),
+        prisma.task.findMany({
+          where: {
+            referenceUid: { startsWith: `${booking.publicUid}:` },
+            succeededAt: null,
+          },
+          orderBy: { scheduledAt: "asc" },
+          select: {
+            id: true,
+            type: true,
+            referenceUid: true,
+            scheduledAt: true,
+            attempts: true,
+            lastError: true,
+          },
+        }),
+      ]);
+
+      let rescheduledFrom: { publicUid: string; slotStart: Date } | null = null;
+      if (booking.rescheduledFromUid) {
+        const prior = await prisma.booking.findUnique({
+          where: { publicUid: booking.rescheduledFromUid },
+          select: { publicUid: true, slotStart: true },
+        });
+        rescheduledFrom = prior;
+      }
+
+      return { ...booking, audit, pendingTasks, rescheduledFrom };
+    }),
+
   cancel: privateProcedure
     .input(z.object({ publicUid: z.string().min(1) }))
     .mutation(async ({ input, ctx }) =>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Link } from "next-view-transitions";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -57,6 +58,7 @@ export function BookingsList() {
             {list.map((b) => (
               <li key={b.id}>
                 <BookingRow
+                  publicUid={b.publicUid}
                   visitorName={b.visitorName}
                   visitorEmail={b.visitorEmail}
                   question={b.question}
@@ -115,18 +117,23 @@ function SegButton({
 }
 
 function BookingRow({
+  publicUid,
   visitorName,
   visitorEmail,
   question,
   slotStart,
 }: {
+  publicUid: string;
   visitorName: string;
   visitorEmail: string;
   question: string | null;
   slotStart: Date;
 }) {
   return (
-    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+    <Link
+      href={`/bookings/${publicUid}`}
+      className="group block rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong focus-visible:outline-none focus-visible:border-bru-line-strong"
+    >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {visitorName}
@@ -147,7 +154,7 @@ function BookingRow({
       <p className="mt-2 font-[family-name:var(--bru-mono)] text-[12px] tabular-nums opacity-55 truncate">
         {visitorEmail}
       </p>
-    </article>
+    </Link>
   );
 }
 
