@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { prisma } from "@/lib/prisma";
 import {
   createTestUser,
+  createTestHost,
   createTestBooking,
   createTestBookingAudit,
   createTestWebhookSubscription,
@@ -92,7 +93,10 @@ describe("createTestBooking + createTestWebhookSubscription + createTestBookingA
   });
 
   it("createTestWebhookSubscription stores the events CSV", async () => {
-    const user = await createTestUser("vitest-factory-wh");
+    // B1 — webhook subscriptions are workspace-scoped, so the user
+    // must own a workspace. createTestHost seeds one (Personal);
+    // the factory auto-resolves the primary workspace by default.
+    const user = await createTestHost("vitest-factory-wh");
     userId = user.id;
     const sub = await createTestWebhookSubscription({
       userId: user.id,
@@ -107,8 +111,19 @@ describe("createTestBooking + createTestWebhookSubscription + createTestBookingA
   });
 
   it("createTestBookingAudit accepts arbitrary bookingUid (no FK)", async () => {
+    // B1 — audit rows now require workspaceId. The bookingUid stays
+    // a plain string (audit-survives-booking-deletion invariant)
+    // but the workspace must exist. Seed a host so we have a real
+    // workspaceId to attach the orphan audit row to.
+    const host = await createTestHost("vitest-factory-audit");
+    userId = host.id;
+    const ws = await prisma.workspace.findFirstOrThrow({
+      where: { ownerId: host.id },
+      select: { id: true },
+    });
     const audit = await createTestBookingAudit({
       bookingUid: "ghost-booking-uid",
+      workspaceId: ws.id,
       action: "CREATED",
       data: { hostId: "fake" },
     });

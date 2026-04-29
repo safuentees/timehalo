@@ -5,6 +5,7 @@ import {
   beforeAll,
   beforeEach,
   afterAll,
+  vi,
 } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
@@ -32,14 +33,14 @@ describe("admin gate", () => {
   beforeAll(async () => {
     admin = await createTestHost(ADMIN_HANDLE);
     regular = await createTestHost(REGULAR_HANDLE);
-    process.env.OFFICEHOURS_ADMIN_HANDLES = ADMIN_HANDLE;
+    vi.stubEnv("OFFICEHOURS_ADMIN_HANDLES", ADMIN_HANDLE);
   });
   beforeEach(async () => {
     await wipeTransientState(admin.id);
     await wipeTransientState(regular.id);
   });
   afterAll(async () => {
-    delete process.env.OFFICEHOURS_ADMIN_HANDLES;
+    vi.unstubAllEnvs();
     await tearDownTestHost(admin.id);
     await tearDownTestHost(regular.id);
   });
@@ -72,14 +73,14 @@ describe("admin.featureFlags", () => {
   beforeAll(async () => {
     admin = await createTestHost(`${ADMIN_HANDLE}-ff`);
     regular = await createTestHost(`${REGULAR_HANDLE}-ff`);
-    process.env.OFFICEHOURS_ADMIN_HANDLES = `${ADMIN_HANDLE}-ff`;
+    vi.stubEnv("OFFICEHOURS_ADMIN_HANDLES", `${ADMIN_HANDLE}-ff`);
   });
   beforeEach(async () => {
     await wipeTransientState(admin.id);
     await wipeTransientState(regular.id);
   });
   afterAll(async () => {
-    delete process.env.OFFICEHOURS_ADMIN_HANDLES;
+    vi.unstubAllEnvs();
     await tearDownTestHost(admin.id);
     await tearDownTestHost(regular.id);
   });
@@ -145,14 +146,14 @@ describe("admin.webhooks", () => {
   beforeAll(async () => {
     admin = await createTestHost(`${ADMIN_HANDLE}-wh`);
     regular = await createTestHost(`${REGULAR_HANDLE}-wh`);
-    process.env.OFFICEHOURS_ADMIN_HANDLES = `${ADMIN_HANDLE}-wh`;
+    vi.stubEnv("OFFICEHOURS_ADMIN_HANDLES", `${ADMIN_HANDLE}-wh`);
   });
   beforeEach(async () => {
     await wipeTransientState(admin.id);
     await wipeTransientState(regular.id);
   });
   afterAll(async () => {
-    delete process.env.OFFICEHOURS_ADMIN_HANDLES;
+    vi.unstubAllEnvs();
     await tearDownTestHost(admin.id);
     await tearDownTestHost(regular.id);
   });
@@ -160,6 +161,7 @@ describe("admin.webhooks", () => {
   it("listAll surfaces every subscription across users", async () => {
     const regularCaller = callRouter(fakeContext({ userId: regular.id }));
     await regularCaller.webhooks.create({
+      slug: regular.handle,
       subscriberUrl: "https://receiver.test/hook",
       events: ["booking.created"],
     });
@@ -205,14 +207,14 @@ describe("admin.audit.byBookingUid", () => {
   beforeAll(async () => {
     admin = await createTestHost(`${ADMIN_HANDLE}-au`);
     host = await createTestHost(`${REGULAR_HANDLE}-au`);
-    process.env.OFFICEHOURS_ADMIN_HANDLES = `${ADMIN_HANDLE}-au`;
+    vi.stubEnv("OFFICEHOURS_ADMIN_HANDLES", `${ADMIN_HANDLE}-au`);
   });
   beforeEach(async () => {
     await wipeTransientState(admin.id);
     await wipeTransientState(host.id);
   });
   afterAll(async () => {
-    delete process.env.OFFICEHOURS_ADMIN_HANDLES;
+    vi.unstubAllEnvs();
     await tearDownTestHost(admin.id);
     await tearDownTestHost(host.id);
   });
