@@ -2,19 +2,11 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
-import { createTestHost, tearDownTestHost } from "../../../test/fixtures";
+import { createTestHost, fakeContext, tearDownTestHost } from "../../../test/fixtures";
 
 const callRouter = createCaller(appRouter);
 
 const TEST_HANDLE = "vitest-host";
-
-function createTestContext() {
-  return {
-    user: null,
-    ipIdentifier: `test:${crypto.randomUUID()}`,
-    cookies: new Map<string, string>(),
-  };
-}
 
 function nextMondayAt10UTC(): Date {
   const d = new Date();
@@ -45,7 +37,7 @@ describe("bookings.create idempotency", () => {
   });
 
   it("returns the same booking when called twice with the same key", async () => {
-    const caller = callRouter(createTestContext());
+    const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();
     const input = {
       handle: TEST_HANDLE,
@@ -67,7 +59,7 @@ describe("bookings.create idempotency", () => {
   });
 
   it("rejects with CONFLICT when same slot but different key", async () => {
-    const caller = callRouter(createTestContext());
+    const caller = callRouter(fakeContext());
     const baseInput = {
       handle: TEST_HANDLE,
       slotStart: slotIso,
@@ -89,7 +81,7 @@ describe("bookings.create idempotency", () => {
   });
 
   it("survives 3 concurrent submits with the same key (race protection)", async () => {
-    const caller = callRouter(createTestContext());
+    const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();
     const input = {
       handle: TEST_HANDLE,
@@ -115,7 +107,7 @@ describe("bookings.create idempotency", () => {
   });
 
   it("writes one CREATED audit row per successful booking, none for retries", async () => {
-    const caller = callRouter(createTestContext());
+    const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();
     const input = {
       handle: TEST_HANDLE,
@@ -136,7 +128,7 @@ describe("bookings.create idempotency", () => {
   });
 
   it("writes the host's primary workspaceId on the booking row", async () => {
-    const caller = callRouter(createTestContext());
+    const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();
     await caller.bookings.create({
       handle: TEST_HANDLE,

@@ -5,10 +5,9 @@ config(); // load DATABASE_URL from .env before Prisma initializes
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { hash } from "bcryptjs";
+import { TEST_EMAIL, TEST_PASSWORD, TEST_HANDLE } from "./test-constants";
 
-export const TEST_EMAIL = "hydration-e2e@test.local";
-export const TEST_PASSWORD = "test-password-hydration-1234";
-export const TEST_HANDLE = "hydration-e2e";
+export { TEST_EMAIL, TEST_PASSWORD, TEST_HANDLE };
 
 async function main() {
   const prisma = new PrismaClient({
@@ -19,8 +18,32 @@ async function main() {
 
   try {
     const passwordHash = await hash(TEST_PASSWORD, 10);
+
+    const existing = await prisma.user.findFirst({
+      where: { email: TEST_EMAIL },
+      select: { id: true },
+    });
+    if (existing) {
+      await prisma.bookingAudit.deleteMany({
+        where: {
+          bookingUid: {
+            in: (
+              await prisma.booking.findMany({
+                where: { hostId: existing.id },
+                select: { publicUid: true },
+              })
+            ).map((b) => b.publicUid),
+          },
+        },
+      });
+      await prisma.booking.deleteMany({ where: { hostId: existing.id } });
+      await prisma.task.deleteMany({});
+    }
+    await prisma.workspace.deleteMany({
+      where: { slug: `${TEST_HANDLE}-personal` },
+    });
     await prisma.user.deleteMany({ where: { email: TEST_EMAIL } });
-    await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         email: TEST_EMAIL,
         passwordHash,
@@ -31,6 +54,22 @@ async function main() {
             { dayOfWeek: "WEDNESDAY", startTime: "10:00", endTime: "16:00" },
           ],
         },
+      },
+      select: { id: true },
+    });
+    const ws = await prisma.workspace.create({
+      data: {
+        slug: `${TEST_HANDLE}-personal`,
+        name: "Personal",
+        ownerId: created.id,
+      },
+      select: { id: true },
+    });
+    await prisma.membership.create({
+      data: {
+        workspaceId: ws.id,
+        userId: created.id,
+        role: "OWNER",
       },
     });
     console.log(`[seed] test user created: ${TEST_EMAIL}`);

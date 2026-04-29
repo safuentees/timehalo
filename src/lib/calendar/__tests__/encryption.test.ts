@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   encryptToken,
   decryptToken,
@@ -9,7 +9,10 @@ const TEST_KEY =
   "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
 beforeEach(() => {
-  process.env.CALENDAR_TOKEN_KEY = TEST_KEY;
+  vi.stubEnv("CALENDAR_TOKEN_KEY", TEST_KEY);
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("calendar token encryption", () => {
@@ -52,14 +55,14 @@ describe("calendar token encryption", () => {
   });
 
   it("throws clearly when CALENDAR_TOKEN_KEY is missing", () => {
-    delete process.env.CALENDAR_TOKEN_KEY;
+    vi.stubEnv("CALENDAR_TOKEN_KEY", undefined as unknown as string);
     expect(() => encryptToken("anything")).toThrow(
       /CALENDAR_TOKEN_KEY is required/i,
     );
   });
 
   it("throws clearly when CALENDAR_TOKEN_KEY is the wrong length", () => {
-    process.env.CALENDAR_TOKEN_KEY = "deadbeef"; // 8 chars — way too short
+    vi.stubEnv("CALENDAR_TOKEN_KEY", "deadbeef"); // 8 chars — way too short
     expect(() => encryptToken("anything")).toThrow(/64 hex characters/);
   });
 });

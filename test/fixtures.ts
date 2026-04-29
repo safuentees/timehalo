@@ -126,6 +126,21 @@ export async function tearDownTestHost(hostId: string) {
   await prisma.$disconnect();
 }
 
+export async function safeTearDownByHandle(handle: string) {
+  const existing = await prisma.user.findFirst({
+    where: { handle },
+    select: { id: true },
+  });
+  if (existing) {
+    await wipeTransientState(existing.id);
+    await prisma.user.deleteMany({ where: { id: existing.id } });
+  } else {
+    await prisma.bookingAudit.deleteMany({});
+    await prisma.task.deleteMany({});
+  }
+  await prisma.$disconnect();
+}
+
 export function fakeContext(overrides: Partial<{
   userId: string;
   ipIdentifier: string;
@@ -281,4 +296,86 @@ export async function createTestBookingAudit(opts: {
     },
     select: { id: true, bookingUid: true, operationId: true },
   });
+}
+
+export async function purgeTestWorkspaces(slugs: ReadonlyArray<string>) {
+  for (const slug of slugs) {
+    const ws = await prisma.workspace.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!ws) continue;
+    await prisma.invitation.deleteMany({ where: { workspaceId: ws.id } });
+    await prisma.membership.deleteMany({ where: { workspaceId: ws.id } });
+    await prisma.workspace.delete({ where: { id: ws.id } });
+  }
+}
+
+export async function createTestEventTypeHostPool(opts: {
+  hostHandle: string;
+  slug?: string;
+  durationMins?: number;
+  members: ReadonlyArray<{
+    userId: string;
+    isFixed?: boolean;
+    priority?: number;
+    weight?: number;
+    recentAssignments?: number;
+  }>;
+}): Promise<{ eventTypeId: string; workspaceId: string }> {
+  const host = await prisma.user.findUniqueOrThrow({
+    where: { handle: opts.hostHandle },
+    select: {
+      id: true,
+      ownedWorkspaces: {
+        select: { id: true },
+        take: 1,
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+  const workspaceId = host.ownedWorkspaces[0]?.id;
+  if (!workspaceId) {
+    throw new Error(
+      `createTestEventTypeHostPool: host ${opts.hostHandle} has no owned ` +
+        `workspace; call createTestHost first.`,
+    );
+  }
+
+  const slug = opts.slug ?? opts.hostHandle;
+  const eventType = await prisma.eventType.upsert({
+    where: { workspaceId_slug: { workspaceId, slug } },
+    create: {
+      workspaceId,
+      slug,
+      name: slug,
+      durationMins: opts.durationMins ?? 15,
+    },
+    update: {},
+    select: { id: true },
+  });
+
+  for (const m of opts.members) {
+    await prisma.eventTypeHost.upsert({
+      where: {
+        eventTypeId_userId: { eventTypeId: eventType.id, userId: m.userId },
+      },
+      create: {
+        eventTypeId: eventType.id,
+        userId: m.userId,
+        isFixed: m.isFixed ?? false,
+        priority: m.priority ?? 2,
+        weight: m.weight ?? 1,
+        recentAssignments: m.recentAssignments ?? 0,
+      },
+      update: {
+        isFixed: m.isFixed ?? false,
+        priority: m.priority ?? 2,
+        weight: m.weight ?? 1,
+        recentAssignments: m.recentAssignments ?? 0,
+      },
+    });
+  }
+
+  return { eventTypeId: eventType.id, workspaceId };
 }

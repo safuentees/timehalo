@@ -2,9 +2,6 @@ import { test, expect } from "@playwright/test";
 
 const HYDRATION_RE = /hydrat|did not match|server.+rendered|server\/client/i;
 
-const TEST_EMAIL = "hydration-e2e@test.local";
-const TEST_PASSWORD = "test-password-hydration-1234";
-
 const AUTHED_ROUTES = [
   "/bookings",
   "/availability",
@@ -15,18 +12,7 @@ const AUTHED_ROUTES = [
 test.describe.configure({ mode: "serial" });
 
 for (const route of AUTHED_ROUTES) {
-  test(`hydrates cleanly (authed): ${route}`, async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    await page.goto("/login");
-    await page.locator('input[type="email"]').fill(TEST_EMAIL);
-    await page.locator('input[type="password"]').fill(TEST_PASSWORD);
-    await page.getByRole("button", { name: "Sign in" }).click();
-    await page.waitForURL(/\/(bookings|profile|availability|$)/, {
-      timeout: 15_000,
-    });
-
+  test(`hydrates cleanly (authed): ${route}`, async ({ page }) => {
     const consoleErrors: string[] = [];
     const pageErrors: string[] = [];
     page.on("console", (msg) => {
@@ -56,8 +42,6 @@ for (const route of AUTHED_ROUTES) {
       }
       console.log("=== End ===\n");
     }
-
-    await context.close();
 
     expect(
       hydrationErrors,

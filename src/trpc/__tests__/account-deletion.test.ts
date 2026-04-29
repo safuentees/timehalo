@@ -6,6 +6,7 @@ import { TASK_TYPE_EMAIL_SEND, type EmailSendPayload } from "@/lib/tasks";
 import {
   createTestHost,
   fakeContext,
+  safeTearDownByHandle,
   tomorrowAtMinute,
   wipeTransientState,
 } from "../../../test/fixtures";
@@ -23,10 +24,7 @@ describe("users.deleteAccount — cascade + audit survival + email", () => {
     await wipeTransientState(host.id);
   });
   afterAll(async () => {
-    await prisma.bookingAudit.deleteMany({});
-    await prisma.task.deleteMany({});
-    await prisma.user.deleteMany({ where: { handle: HANDLE } });
-    await prisma.$disconnect();
+    await safeTearDownByHandle(HANDLE);
   });
 
   it("requires authentication", async () => {

@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  vi,
+} from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
@@ -54,6 +62,14 @@ describe("timezone — validation + normalization", () => {
 });
 
 describe("generateUpcomingSlots — DST-aware host timezone", () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-08T07:00:00Z")); // DST cusp, NY
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it("respects DST transitions when host is America/New_York", () => {
     const from = new Date("2026-03-06T05:00:00Z"); // Fri, 00:00 EST
 

@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
+import { TEST_HANDLE } from "./test-constants";
 
 const HYDRATION_RE = /hydrat|did not match|server.+rendered|server\/client/i;
 
 const PUBLIC_ROUTES = [
   "/login",
   "/register",
-  "/h/turbius", // host profile — adjust handle if needed
+  `/h/${TEST_HANDLE}`,
 ];
 
 for (const route of PUBLIC_ROUTES) {

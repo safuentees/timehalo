@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
 import {
+  createTestEventTypeHostPool,
   createTestHost,
   fakeContext,
   tearDownTestHost,
@@ -11,69 +12,6 @@ import {
 
 const callRouter = createCaller(appRouter);
 const HANDLE_RR = "vitest-rr";
-
-async function attachSecondHostToEventType(opts: {
-  hostHandle: string;
-  secondUser: { id: string };
-}): Promise<{ eventTypeId: string }> {
-  const host = await prisma.user.findUniqueOrThrow({
-    where: { handle: opts.hostHandle },
-    select: {
-      id: true,
-      ownedWorkspaces: {
-        select: { id: true },
-        take: 1,
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
-  const workspaceId = host.ownedWorkspaces[0].id;
-
-  const eventType = await prisma.eventType.upsert({
-    where: { workspaceId_slug: { workspaceId, slug: opts.hostHandle } },
-    create: {
-      workspaceId,
-      slug: opts.hostHandle,
-      name: opts.hostHandle,
-      durationMins: 15,
-    },
-    update: {},
-    select: { id: true },
-  });
-  await prisma.eventTypeHost.upsert({
-    where: {
-      eventTypeId_userId: { eventTypeId: eventType.id, userId: host.id },
-    },
-    create: {
-      eventTypeId: eventType.id,
-      userId: host.id,
-      isFixed: false, // turn the singleton into a pool member
-      priority: 2,
-      weight: 1,
-      recentAssignments: 0,
-    },
-    update: { isFixed: false },
-  });
-  await prisma.eventTypeHost.upsert({
-    where: {
-      eventTypeId_userId: {
-        eventTypeId: eventType.id,
-        userId: opts.secondUser.id,
-      },
-    },
-    create: {
-      eventTypeId: eventType.id,
-      userId: opts.secondUser.id,
-      isFixed: false,
-      priority: 2,
-      weight: 1,
-      recentAssignments: 0,
-    },
-    update: { isFixed: false },
-  });
-
-  return { eventTypeId: eventType.id };
-}
 
 describe("B2 — round-robin in bookings.create", () => {
   let host: { id: string; handle: string };
@@ -100,9 +38,9 @@ describe("B2 — round-robin in bookings.create", () => {
       select: { id: true },
     });
     secondHost = u;
-    const result = await attachSecondHostToEventType({
+    const result = await createTestEventTypeHostPool({
       hostHandle: host.handle,
-      secondUser: secondHost,
+      members: [{ userId: host.id }, { userId: secondHost.id }],
     });
     eventTypeId = result.eventTypeId;
   });

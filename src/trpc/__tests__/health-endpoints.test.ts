@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { GET as healthGet } from "@/app/api/health/route";
 import { GET as readyGet } from "@/app/api/ready/route";
+import { prisma } from "@/lib/prisma";
 
 describe("/api/health (liveness)", () => {
   it("always 200, JSON, status: ok", async () => {
@@ -21,5 +22,21 @@ describe("/api/ready (readiness)", () => {
     expect(body.checks.database.status).toBe("ok");
     expect(["configured", "unconfigured"]).toContain(body.checks.email);
     expect(["configured", "unconfigured"]).toContain(body.checks.sentry);
+  });
+
+  it("returns 503 + status: not-ready when DB check rejects", async () => {
+    const spy = vi
+      .spyOn(prisma, "$queryRaw")
+      .mockRejectedValueOnce(new Error("simulated db outage"));
+    try {
+      const res = await readyGet();
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.status).toBe("not-ready");
+      expect(body.checks.database.status).toBe("error");
+      expect(body.checks.database.error).toMatch(/simulated db outage/);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
