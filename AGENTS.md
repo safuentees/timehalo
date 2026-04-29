@@ -24,10 +24,25 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 ## Priorities
 
 - Preserve type safety, security, and small focused diffs.
-- Keep pages mobile-first and consistent with the repo's brutalist UI language.
+- Keep pages mobile-first and consistent with the chrome of the most-recently-shipped dashboard pages. See *Visual identity* below.
 - Prefer explicit server/client wiring over magic.
 - The §10.1 production primitives (idempotency, audit, rate limit, webhooks, soft delete, SSE, attribution, feature flags, observability) are not optional decorations. They're contracts other tests + features depend on. See `.claude/rules/production-primitives.md`.
 - Treat `tempCLAUDE.md` as legacy reference material, not active session context.
+
+## Visual identity (read this before building any UI)
+
+The visual aesthetic has evolved away from the early-MVP brutalist palette. **New pages match the chrome of the most-recently-shipped dashboard pages** (`/bookings`, `/settings`, `/workspaces/*`) — quieter, denser, ChatGPT-dashboard-inspired. Don't extend the original brutalist motifs (paper-and-ink hero blocks, thick 2.5px borders everywhere, mono-caps display type on chrome elements) to new surfaces.
+
+Two distinct surfaces, two different tones:
+
+- **Authenticated host shell** — `/(host)/*`. The new chrome lives here. Match `/bookings` and `/settings` for layout density, button weight, color saturation, spacing rhythm.
+- **Public visitor surface** — `/h/[handle]`, `/booked/[uid]`. The legacy stronger aesthetic stays — the visitor's first/last touch is intentionally bolder. Don't drag those motifs back into the dashboard.
+
+The component + utility names (`BrutalistPageShell`, `BrutalistPageHeader`, `<ConfirmDialog>`, `<SectionHeader>`, `bru-legend` / `bru-description` / `bru-eyebrow`, `bru-input`, `--bru-r-sm` radius, Space Grotesk + JetBrains Mono) **stay** — they're real artifacts a planned refactor will rename. Use them; don't speculatively rename in-flight.
+
+The engineering rules in `.claude/rules/brutalist-ui.md` (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are **good discipline regardless of aesthetic** — keep following them. The file name is historical; the rules apply to the current chrome too.
+
+**Reject signal**: a new page reads more brutalist than `/bookings` or `/settings`.
 
 ## Always do
 
@@ -45,7 +60,7 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Use `fakeContext()` from `test/fixtures.ts` for synthetic tRPC contexts; never roll your own. The fixture inventory (`createTestHost`, `createTestUser`, `createTestEventTypeHostPool`, `safeTearDownByHandle`, `purgeTestWorkspaces`, `upgradeWorkspaceToPro`, etc.) is documented in `.claude/rules/testing.md` *Fixtures inventory*.
 - Reference `e2e/test-constants.ts` (`TEST_EMAIL`, `TEST_PASSWORD`, `TEST_HANDLE`) from Playwright specs and the seed script — never hardcode the test handle in spec files.
 - For Playwright auth: rely on the cached `storageState` from `e2e/auth.setup.ts`. Don't inline the credentials form login per spec; the `authed` project already loads `playwright/.auth/user.json`. See `.claude/rules/testing.md` *Auth caching*.
-- Use the styling tokens from `.claude/rules/brutalist-ui.md`: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
+- Use the project's structural styling tokens (documented in `.claude/rules/brutalist-ui.md` — file name is historical, rules apply to the current chrome): `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
 - When a client tree branches on a browser-only signal (`useMediaQuery`, `useTheme`, `useMounted`, ICU data, `localStorage`), pick the SSR default that matches the hook's server snapshot, and resolve runtime-derived lists on the server. See `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
 - For section / field chrome inside a hub page, use the `bru-legend` / `bru-description` / `bru-eyebrow` CSS classes (defined in `globals.css`) and the `<SectionHeader>` component. Never inline the eight-class `font-[family-name:var(--bru-mono)] text-[Npx] font-extrabold tracking-[Npx] uppercase opacity-...` strings. See `.claude/rules/brutalist-ui.md` *Typography utilities*.
 - For destructive actions, use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never `window.confirm()`, never fire a destructive mutation on a single click without a confirm. Account-level / irreversible deletions use the typed-confirm pattern instead (`delete-account-dialog.tsx` reference). See `.claude/rules/brutalist-ui.md` *Destructive actions*.

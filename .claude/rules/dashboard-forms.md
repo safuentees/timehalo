@@ -52,7 +52,7 @@ Every dialog inside the host shell composes from the `responsive-modal.tsx` prim
 
 - `<ResponsiveModalContent>` — the popup shell.
 - `<ResponsiveModalHeader>` — wraps the title; bakes `px-5 pb-4 sm:px-6` padding.
-- `<ResponsiveModalTitle>` — bakes `text-[20px] font-black uppercase tracking-tight` (brutalist title style).
+- `<ResponsiveModalTitle>` — bakes `text-[20px] font-black uppercase tracking-tight` (the project's dialog-title chrome).
 - `<ResponsiveModalBody>` — wraps non-form bodies; bakes `flex flex-col gap-5 px-5 pb-6 sm:px-6`.
 - `<ResponsiveModalFooter>` — wraps cancel + confirm buttons; bakes `flex flex-col gap-2 sm:flex-row sm:justify-end`.
 
