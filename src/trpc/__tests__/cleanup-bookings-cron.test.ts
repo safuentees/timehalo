@@ -5,6 +5,7 @@ import {
   beforeAll,
   beforeEach,
   afterAll,
+  vi,
 } from "vitest";
 import { POST as cleanupHandler } from "@/app/api/cron/cleanup-bookings/route";
 import { appRouter, createCaller } from "@/trpc/router";
@@ -37,12 +38,13 @@ describe("cron — cleanup-bookings", () => {
 
   beforeAll(async () => {
     host = await createTestHost(HANDLE);
-    process.env.CRON_SECRET = CRON_SECRET;
+    vi.stubEnv("CRON_SECRET", CRON_SECRET);
   });
   beforeEach(async () => {
     await wipeTransientState(host.id);
   });
   afterAll(async () => {
+    vi.unstubAllEnvs();
     await tearDownTestHost(host.id);
   });
 

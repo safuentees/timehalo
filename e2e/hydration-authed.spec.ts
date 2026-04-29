@@ -2,15 +2,13 @@ import { test, expect } from "@playwright/test";
 
 // Hydration tests for routes behind the dashboard layout (the
 // BrutalistDashboardLayout that the user's stack trace pointed at).
-// Test user is seeded once in e2e/global-setup.ts via tsx — Playwright's
-// own runtime can't import the generated Prisma client cleanly, so the
-// seed lives in a separate process.
+//
+// Auth is cached once by e2e/auth.setup.ts (the "setup" project in
+// playwright.config.ts). This spec runs in the "authed" project which
+// loads storageState: playwright/.auth/user.json — every test starts
+// already-logged-in. No inline login per route.
 
 const HYDRATION_RE = /hydrat|did not match|server.+rendered|server\/client/i;
-
-// Must match constants in e2e/seed-test-user.ts.
-const TEST_EMAIL = "hydration-e2e@test.local";
-const TEST_PASSWORD = "test-password-hydration-1234";
 
 const AUTHED_ROUTES = [
   "/bookings",
@@ -22,23 +20,7 @@ const AUTHED_ROUTES = [
 test.describe.configure({ mode: "serial" });
 
 for (const route of AUTHED_ROUTES) {
-  test(`hydrates cleanly (authed): ${route}`, async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    // Log in via the credentials form.
-    await page.goto("/login");
-    await page.locator('input[type="email"]').fill(TEST_EMAIL);
-    await page.locator('input[type="password"]').fill(TEST_PASSWORD);
-    // The login page also has a "Continue with GitHub" submit button.
-    // Pick the credentials one by accessible name.
-    await page.getByRole("button", { name: "Sign in" }).click();
-    await page.waitForURL(/\/(bookings|profile|availability|$)/, {
-      timeout: 15_000,
-    });
-
-    // Wire console listeners AFTER login finishes so we don't pollute
-    // the route's error list with login-flow noise.
+  test(`hydrates cleanly (authed): ${route}`, async ({ page }) => {
     const consoleErrors: string[] = [];
     const pageErrors: string[] = [];
     page.on("console", (msg) => {
@@ -72,8 +54,6 @@ for (const route of AUTHED_ROUTES) {
       }
       console.log("=== End ===\n");
     }
-
-    await context.close();
 
     expect(
       hydrationErrors,

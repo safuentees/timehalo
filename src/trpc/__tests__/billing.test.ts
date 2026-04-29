@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createHmac } from "node:crypto";
 import { POST as stripeWebhook } from "@/app/api/stripe/webhook/route";
 import {
@@ -46,11 +46,11 @@ describe("planFromStripePriceId", () => {
   });
 
   it("respects STRIPE_PRICE_PRO env", () => {
-    process.env.STRIPE_PRICE_PRO = "price_pro_test";
+    vi.stubEnv("STRIPE_PRICE_PRO", "price_pro_test");
     try {
       expect(planFromStripePriceId("price_pro_test")).toBe("PRO");
     } finally {
-      delete process.env.STRIPE_PRICE_PRO;
+      vi.unstubAllEnvs();
     }
   });
 });
@@ -121,18 +121,23 @@ describe("verifyStripeSignature", () => {
 
 describe("/api/stripe/webhook handler", () => {
   it("returns 503 when STRIPE_WEBHOOK_SECRET unset", async () => {
-    delete process.env.STRIPE_WEBHOOK_SECRET;
-    const res = await stripeWebhook(
-      new Request("http://localhost/api/stripe/webhook", {
-        method: "POST",
-        body: "{}",
-      }),
-    );
-    expect(res.status).toBe(503);
+    // `vi.stubEnv(name, undefined)` removes the var (Vitest 4 semantics).
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", undefined as unknown as string);
+    try {
+      const res = await stripeWebhook(
+        new Request("http://localhost/api/stripe/webhook", {
+          method: "POST",
+          body: "{}",
+        }),
+      );
+      expect(res.status).toBe(503);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("returns 400 on missing/invalid signature", async () => {
-    process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
     try {
       const res = await stripeWebhook(
         new Request("http://localhost/api/stripe/webhook", {
@@ -143,13 +148,13 @@ describe("/api/stripe/webhook handler", () => {
       );
       expect(res.status).toBe(400);
     } finally {
-      delete process.env.STRIPE_WEBHOOK_SECRET;
+      vi.unstubAllEnvs();
     }
   });
 
   it("dedups on event.id (second send returns duplicate=true)", async () => {
     const secret = "whsec_dedup_test";
-    process.env.STRIPE_WEBHOOK_SECRET = secret;
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", secret);
     const body = JSON.stringify({
       id: `evt_dedup_${Date.now()}`,
       type: "ping.unhandled",
@@ -177,7 +182,7 @@ describe("/api/stripe/webhook handler", () => {
       const json = await second.json();
       expect(json.duplicate).toBe(true);
     } finally {
-      delete process.env.STRIPE_WEBHOOK_SECRET;
+      vi.unstubAllEnvs();
       // Clean up the dedup row we wrote.
       await prisma.stripeEvent.deleteMany({
         where: { type: "ping.unhandled" },

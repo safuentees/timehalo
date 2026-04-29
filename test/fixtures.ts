@@ -162,6 +162,31 @@ export async function tearDownTestHost(hostId: string) {
   await prisma.$disconnect();
 }
 
+/**
+ * Tear down a test host whose row may already be gone (e.g. the test
+ * under test deleted it via `users.deleteAccount`). Same shape as
+ * `tearDownTestHost` but resilient: locates the row by handle and
+ * no-ops the user delete if it's missing. Still scrubs the global
+ * transient tables (audit, tasks) so the row residue doesn't bleed
+ * into the next test file.
+ */
+export async function safeTearDownByHandle(handle: string) {
+  const existing = await prisma.user.findFirst({
+    where: { handle },
+    select: { id: true },
+  });
+  if (existing) {
+    await wipeTransientState(existing.id);
+    await prisma.user.deleteMany({ where: { id: existing.id } });
+  } else {
+    // Host already gone — only the global transient tables can carry
+    // residue (BookingAudit has no FK; Task may have orphan rows).
+    await prisma.bookingAudit.deleteMany({});
+    await prisma.task.deleteMany({});
+  }
+  await prisma.$disconnect();
+}
+
 export function fakeContext(overrides: Partial<{
   userId: string;
   ipIdentifier: string;
@@ -366,4 +391,113 @@ export async function createTestBookingAudit(opts: {
     },
     select: { id: true, bookingUid: true, operationId: true },
   });
+}
+
+/**
+ * Delete every Invitation + Membership + Workspace row matching the
+ * given slugs. Used by the workspaces.* contract tests so each one
+ * starts from a clean slate without bleeding into the next file's
+ * fixtures (no FK from Invitation → Membership, so the order matters).
+ */
+export async function purgeTestWorkspaces(slugs: ReadonlyArray<string>) {
+  for (const slug of slugs) {
+    const ws = await prisma.workspace.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!ws) continue;
+    await prisma.invitation.deleteMany({ where: { workspaceId: ws.id } });
+    await prisma.membership.deleteMany({ where: { workspaceId: ws.id } });
+    await prisma.workspace.delete({ where: { id: ws.id } });
+  }
+}
+
+/**
+ * Mint an EventType + EventTypeHost pool on the host's primary owned
+ * workspace. `createTestHost` seeds a singleton host (no EventType),
+ * so round-robin / multi-host tests have to attach the pool members
+ * by hand. This factory is the canonical way to do that.
+ *
+ * Usage (from round-robin-integration.test.ts):
+ *
+ *   const { eventTypeId } = await createTestEventTypeHostPool({
+ *     hostHandle: host.handle,
+ *     members: [
+ *       { userId: host.id },           // primary host
+ *       { userId: secondHost.id },     // pool member
+ *     ],
+ *   });
+ *
+ * Defaults match the most common shape: `isFixed: false` (round-robin
+ * pool member, not a singleton), `priority: 2`, `weight: 1`,
+ * `recentAssignments: 0`. Override per-member to test priority /
+ * weight / tiebreak edge cases.
+ */
+export async function createTestEventTypeHostPool(opts: {
+  hostHandle: string;
+  slug?: string;
+  durationMins?: number;
+  members: ReadonlyArray<{
+    userId: string;
+    isFixed?: boolean;
+    priority?: number;
+    weight?: number;
+    recentAssignments?: number;
+  }>;
+}): Promise<{ eventTypeId: string; workspaceId: string }> {
+  const host = await prisma.user.findUniqueOrThrow({
+    where: { handle: opts.hostHandle },
+    select: {
+      id: true,
+      ownedWorkspaces: {
+        select: { id: true },
+        take: 1,
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+  const workspaceId = host.ownedWorkspaces[0]?.id;
+  if (!workspaceId) {
+    throw new Error(
+      `createTestEventTypeHostPool: host ${opts.hostHandle} has no owned ` +
+        `workspace; call createTestHost first.`,
+    );
+  }
+
+  const slug = opts.slug ?? opts.hostHandle;
+  const eventType = await prisma.eventType.upsert({
+    where: { workspaceId_slug: { workspaceId, slug } },
+    create: {
+      workspaceId,
+      slug,
+      name: slug,
+      durationMins: opts.durationMins ?? 15,
+    },
+    update: {},
+    select: { id: true },
+  });
+
+  for (const m of opts.members) {
+    await prisma.eventTypeHost.upsert({
+      where: {
+        eventTypeId_userId: { eventTypeId: eventType.id, userId: m.userId },
+      },
+      create: {
+        eventTypeId: eventType.id,
+        userId: m.userId,
+        isFixed: m.isFixed ?? false,
+        priority: m.priority ?? 2,
+        weight: m.weight ?? 1,
+        recentAssignments: m.recentAssignments ?? 0,
+      },
+      update: {
+        isFixed: m.isFixed ?? false,
+        priority: m.priority ?? 2,
+        weight: m.weight ?? 1,
+        recentAssignments: m.recentAssignments ?? 0,
+      },
+    });
+  }
+
+  return { eventTypeId: eventType.id, workspaceId };
 }

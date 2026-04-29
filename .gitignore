@@ -74,6 +74,7 @@ BRANCH-PROTECTION.md
 test-results/
 playwright-report/
 playwright/.cache/
+playwright/.auth/
 
 # bootstrap script state cache
 .bootstrap-state/
