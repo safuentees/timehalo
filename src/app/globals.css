@@ -251,6 +251,20 @@
        the content. --oh-paper tracks the theme so dark mode stays
        dark behind the transition. */
     background-color: var(--oh-paper);
+    /* Pin antialiasing to grayscale globally. macOS Chrome/Safari
+       defaults to subpixel-antialiased text but flips to grayscale on
+       any compositor-promoted element — view-transition snapshots
+       (`oh-host-content`), Floating UI's `transform: translate3d`
+       positioner on Base UI menu popups, even the chevron rotation
+       on the workspace + user-menu triggers. The flip reads as the
+       text "lowering resolution" mid-animation, then snapping back.
+       Pinning to grayscale up front matches the rendering mode the
+       browser would pick during composition, so static and animated
+       text render identically. Pattern: cal.com
+       `apps/web/styles/globals.css:18-19`. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
