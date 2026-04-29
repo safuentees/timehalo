@@ -20,6 +20,10 @@ export const env = createEnv({
       .string()
       .regex(/^[0-9a-fA-F]{64}$/, "must be 64 hex characters (32 bytes)")
       .optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_PRICE_PRO: z.string().optional(),
+    STRIPE_PRICE_TEAM: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
