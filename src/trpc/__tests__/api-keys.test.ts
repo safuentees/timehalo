@@ -323,6 +323,32 @@ describe("/api/v1/whoami", () => {
     expect(body.scopes).toContain("bookings.read");
     expect(body.keyId).toBe(minted.id);
   });
+
+  it("429 with Retry-After + X-RateLimit-* headers when per-key budget is exhausted", async () => {
+    // A3 — per-key rate limit. Bucket key is `api-v1:${key.id}`,
+    // budget 60/min. A freshly-minted key has its own untouched
+    // bucket, so 60 requests succeed, the 61st returns 429.
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    const minted = await ownerCaller.workspaces.apiKeys.create({
+      slug: SLUG,
+      name: "rate-limit-target",
+      scopes: ["workspace.read"],
+    });
+    // Burn the full window. In-memory limiter so each call is a
+    // synchronous Map lookup; ~10ms total.
+    for (let i = 0; i < 60; i++) {
+      const ok = await whoamiGet(bearerRequest(minted.token));
+      expect(ok.status).toBe(200);
+    }
+    const limited = await whoamiGet(bearerRequest(minted.token));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("Retry-After")).toMatch(/^\d+$/);
+    expect(limited.headers.get("X-RateLimit-Limit")).toBe("60");
+    expect(limited.headers.get("X-RateLimit-Remaining")).toBe("0");
+    expect(limited.headers.get("X-RateLimit-Reset")).toMatch(/^\d+$/);
+    const body = await limited.json();
+    expect(body.error).toBe("rate_limited");
+  });
 });
 
 describe("/api/openapi.json", () => {
