@@ -14,6 +14,10 @@ const MS_TOKEN_ENDPOINT =
 const MS_CALENDARS = "https://graph.microsoft.com/v1.0/me/calendars";
 const MS_GETSCHEDULE =
   "https://graph.microsoft.com/v1.0/me/calendar/getSchedule";
+const MS_EVENTS = (calendarId: string) =>
+  `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/events`;
+const MS_EVENT = (calendarId: string, eventId: string) =>
+  `${MS_EVENTS(calendarId)}/${encodeURIComponent(eventId)}`;
 const REFRESH_LEEWAY_MS = 60_000;
 
 export const MICROSOFT_OAUTH_SCOPES = [
@@ -235,5 +239,102 @@ export function microsoftAdapter(credentialId: string): CalendarAdapter {
       }
       return out;
     },
+    // ─── B2 — two-way write ──────────────────────────────────────
+    async createEvent(input) {
+      const accessToken = await refreshMicrosoftToken(credentialId);
+      const res = await fetch(MS_EVENTS(input.calendarId), {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(buildMicrosoftEventBody(input)),
+      });
+      if (!res.ok) {
+        throw new Error(
+          `Microsoft events POST failed: ${res.status} ${await res.text()}`,
+        );
+      }
+      const event = (await res.json()) as { id: string };
+      return { externalEventId: event.id };
+    },
+    async updateEvent(externalEventId, input) {
+      const accessToken = await refreshMicrosoftToken(credentialId);
+      const res = await fetch(MS_EVENT(input.calendarId, externalEventId), {
+        method: "PATCH",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(buildMicrosoftEventBody(input)),
+      });
+      if (res.status === 404) return;
+      if (!res.ok) {
+        throw new Error(
+          `Microsoft events PATCH failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+    async deleteEvent(opts) {
+      const accessToken = await refreshMicrosoftToken(credentialId);
+      const res = await fetch(
+        MS_EVENT(opts.calendarId, opts.externalEventId),
+        {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${accessToken}` },
+        },
+      );
+      if (res.status === 404 || res.status === 410) return;
+      if (!res.ok) {
+        throw new Error(
+          `Microsoft events DELETE failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+  };
+}
+
+// Microsoft Graph event body. start/end use `dateTime` + `timeZone:
+// UTC` since we hold all booking times as UTC instants. Body is
+// HTML-escaped on the provider side, so the description is sent as
+// plain text via contentType: "text".
+type MicrosoftEventBody = {
+  subject: string;
+  body?: { contentType: "text"; content: string };
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  attendees?: Array<{
+    emailAddress: { address: string; name?: string };
+    type: "required";
+  }>;
+};
+function buildMicrosoftEventBody(input: {
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  attendeeEmail?: string;
+  attendeeName?: string;
+}): MicrosoftEventBody {
+  return {
+    subject: input.title,
+    ...(input.description
+      ? { body: { contentType: "text", content: input.description } }
+      : {}),
+    start: { dateTime: input.start.toISOString(), timeZone: "UTC" },
+    end: { dateTime: input.end.toISOString(), timeZone: "UTC" },
+    ...(input.attendeeEmail
+      ? {
+          attendees: [
+            {
+              emailAddress: {
+                address: input.attendeeEmail,
+                ...(input.attendeeName ? { name: input.attendeeName } : {}),
+              },
+              type: "required",
+            },
+          ],
+        }
+      : {}),
   };
 }

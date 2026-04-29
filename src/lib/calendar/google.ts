@@ -17,6 +17,10 @@ import type { BusyTime, CalendarAdapter, CalendarSummary } from "./types";
 const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const GOOGLE_CALENDAR_LIST = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
 const GOOGLE_FREEBUSY = "https://www.googleapis.com/calendar/v3/freeBusy";
+const GOOGLE_EVENTS = (calendarId: string) =>
+  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+const GOOGLE_EVENT = (calendarId: string, eventId: string) =>
+  `${GOOGLE_EVENTS(calendarId)}/${encodeURIComponent(eventId)}`;
 // Refresh slightly before the upstream expiry so we don't race a
 // just-expired token into a 401.
 const REFRESH_LEEWAY_MS = 60_000;
@@ -222,5 +226,105 @@ export function googleAdapter(credentialId: string): CalendarAdapter {
       }
       return out;
     },
+    // ─── B2 — two-way write ──────────────────────────────────────
+    async createEvent(input) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(GOOGLE_EVENTS(input.calendarId), {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(buildGoogleEventBody(input)),
+      });
+      if (!res.ok) {
+        throw new Error(
+          `Google events.insert failed: ${res.status} ${await res.text()}`,
+        );
+      }
+      const event = (await res.json()) as { id: string };
+      return { externalEventId: event.id };
+    },
+    async updateEvent(externalEventId, input) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(
+        GOOGLE_EVENT(input.calendarId, externalEventId),
+        {
+          method: "PATCH",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(buildGoogleEventBody(input)),
+        },
+      );
+      // 404 → event already gone upstream. Idempotent — no-op.
+      if (res.status === 404) return;
+      if (!res.ok) {
+        throw new Error(
+          `Google events.patch failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+    async deleteEvent(opts) {
+      const accessToken = await refreshGoogleToken(credentialId);
+      const res = await fetch(
+        GOOGLE_EVENT(opts.calendarId, opts.externalEventId),
+        {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${accessToken}` },
+        },
+      );
+      // 404 / 410 → event already gone. Idempotent.
+      if (res.status === 404 || res.status === 410) return;
+      if (!res.ok) {
+        throw new Error(
+          `Google events.delete failed: ${res.status} ${await res.text()}`,
+        );
+      }
+    },
+  };
+}
+
+// Google Calendar event body shape. start/end use `dateTime` +
+// `timeZone: UTC` since we hold all booking times as UTC instants;
+// Google renders them in the host's calendar zone automatically.
+// `attendees` makes the visitor show up in the host's invite list
+// + sends them an email when `sendUpdates: all` is set on the
+// request URL — but we POST without sendUpdates so the provider
+// only writes to the host's calendar. Visitor-side notifications
+// are this app's responsibility (booking-created template).
+type GoogleEventBody = {
+  summary: string;
+  description?: string;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  attendees?: Array<{ email: string; displayName?: string }>;
+};
+function buildGoogleEventBody(input: {
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  attendeeEmail?: string;
+  attendeeName?: string;
+}): GoogleEventBody {
+  return {
+    summary: input.title,
+    ...(input.description ? { description: input.description } : {}),
+    start: { dateTime: input.start.toISOString(), timeZone: "UTC" },
+    end: { dateTime: input.end.toISOString(), timeZone: "UTC" },
+    ...(input.attendeeEmail
+      ? {
+          attendees: [
+            {
+              email: input.attendeeEmail,
+              ...(input.attendeeName
+                ? { displayName: input.attendeeName }
+                : {}),
+            },
+          ],
+        }
+      : {}),
   };
 }

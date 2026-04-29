@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import type { EmailSendPayload } from "@/lib/tasks";
+import { getCalendarAdapter } from "@/lib/calendar";
+import type {
+  CalendarWritePayload,
+  EmailSendPayload,
+} from "@/lib/tasks";
 import { signWebhookBody } from "@/lib/webhook-signature";
 
 // Cron processor — drains due Task rows. Vercel Cron pings this on a
@@ -21,6 +25,7 @@ import { signWebhookBody } from "@/lib/webhook-signature";
 
 const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
 const TASK_TYPE_EMAIL_SEND = "emailSend";
+const TASK_TYPE_CALENDAR_WRITE = "calendarWrite";
 const MAX_TASKS_PER_RUN = 25;
 
 // Exponential backoff anchored at 5 minutes: 5m, 10m, 20m, 40m...
@@ -79,6 +84,10 @@ export async function POST(request: Request) {
       else failed++;
     } else if (task.type === TASK_TYPE_EMAIL_SEND) {
       const result = await runEmailSend(task);
+      if (result === "ok") succeeded++;
+      else failed++;
+    } else if (task.type === TASK_TYPE_CALENDAR_WRITE) {
+      const result = await runCalendarWrite(task);
       if (result === "ok") succeeded++;
       else failed++;
     } else {
@@ -231,6 +240,183 @@ async function runEmailSend(task: {
         ? result.error
         : "Resend send failed";
   return markFailed(task.id, task.attempts, errMessage);
+}
+
+async function runCalendarWrite(task: {
+  id: number;
+  payload: string;
+  attempts: number;
+}): Promise<"ok" | "fail"> {
+  let payload: CalendarWritePayload;
+  try {
+    payload = JSON.parse(task.payload) as CalendarWritePayload;
+  } catch {
+    return markFailed(task.id, task.attempts, "Invalid calendar task payload JSON");
+  }
+
+  // Look up the booking — its slot times are the source of truth
+  // for the event body. The booking carries the
+  // externalCalendarCredentialId we need to pick the adapter.
+  const booking = await prisma.booking.findUnique({
+    where: { publicUid: payload.bookingPublicUid },
+    select: {
+      visitorName: true,
+      visitorEmail: true,
+      question: true,
+      slotStart: true,
+      slotEnd: true,
+      hostId: true,
+      externalCalendarEventId: true,
+      externalCalendarCredentialId: true,
+      host: { select: { name: true, handle: true } },
+    },
+  });
+  if (!booking) {
+    return markPermanentlyFailed(
+      task.id,
+      "Booking not found (deleted before calendar write ran)",
+    );
+  }
+
+  // CREATE picks the host's primary credential + its primary
+  // selected calendar. UPDATE / DELETE use whatever was recorded
+  // on the booking when CREATE ran. If the host has no connected
+  // calendar at CREATE time, we permanently skip — there's nothing
+  // to write to and nothing to track.
+  let credentialId = booking.externalCalendarCredentialId;
+  let calendarId: string | null = null;
+  if (payload.action === "create") {
+    const primary = await primaryCalendarFor(booking.hostId);
+    if (!primary) {
+      return markPermanentlyFailed(
+        task.id,
+        "Host has no connected calendar; calendar write skipped",
+      );
+    }
+    credentialId = primary.credentialId;
+    calendarId = primary.externalCalendarId;
+  } else {
+    if (!credentialId || !booking.externalCalendarEventId) {
+      // Nothing was ever written — nothing to update / delete.
+      return markPermanentlyFailed(
+        task.id,
+        "Booking has no recorded calendar event; nothing to update/delete",
+      );
+    }
+    // Pull the calendar id from any selected calendar on the
+    // recorded credential — match the one whose externalCalendarId
+    // we'd have used at create time. Since SelectedCalendar is
+    // unique per credential, the primary stays consistent.
+    const primary = await primarySelectedCalendarFor(credentialId);
+    if (!primary) {
+      return markPermanentlyFailed(
+        task.id,
+        "Recorded credential has no selected calendar",
+      );
+    }
+    calendarId = primary.externalCalendarId;
+  }
+
+  const credential = await prisma.calendarCredential.findUnique({
+    where: { id: credentialId! },
+    select: { id: true, provider: true },
+  });
+  if (!credential) {
+    return markPermanentlyFailed(
+      task.id,
+      "Calendar credential disconnected before task ran",
+    );
+  }
+  const adapter = getCalendarAdapter(credential.id, credential.provider);
+  if (!adapter) {
+    return markPermanentlyFailed(
+      task.id,
+      `${credential.provider} OAuth not configured`,
+    );
+  }
+
+  const hostLabel = booking.host?.name ?? booking.host?.handle ?? "Host";
+  const eventInput = {
+    calendarId: calendarId!,
+    title: `Office hours with ${booking.visitorName}`,
+    description: booking.question ?? `Booked via ${hostLabel}'s page`,
+    start: booking.slotStart,
+    end: booking.slotEnd,
+    attendeeEmail: booking.visitorEmail,
+    attendeeName: booking.visitorName,
+  };
+
+  try {
+    if (payload.action === "create") {
+      const { externalEventId } = await adapter.createEvent(eventInput);
+      await prisma.booking.update({
+        where: { publicUid: payload.bookingPublicUid },
+        data: {
+          externalCalendarEventId: externalEventId,
+          externalCalendarCredentialId: credential.id,
+        },
+      });
+    } else if (payload.action === "update") {
+      await adapter.updateEvent(
+        booking.externalCalendarEventId!,
+        eventInput,
+      );
+    } else if (payload.action === "delete") {
+      await adapter.deleteEvent({
+        calendarId: calendarId!,
+        externalEventId: booking.externalCalendarEventId!,
+      });
+      // Clear the pointer so re-running cancel is a no-op (the
+      // recorded-event check above flips to "nothing to delete").
+      await prisma.booking.update({
+        where: { publicUid: payload.bookingPublicUid },
+        data: { externalCalendarEventId: null },
+      });
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return markFailed(task.id, task.attempts, `Adapter error: ${message}`);
+  }
+
+  await prisma.task.update({
+    where: { id: task.id },
+    data: { succeededAt: new Date(), attempts: task.attempts + 1 },
+  });
+  return "ok";
+}
+
+// Pick the host's "destination" calendar — the primary calendar of
+// the host's earliest-connected credential. Caller checks for null
+// when the host has no connected calendar at all.
+async function primaryCalendarFor(hostId: string): Promise<
+  { credentialId: string; externalCalendarId: string } | null
+> {
+  const credential = await prisma.calendarCredential.findFirst({
+    where: { userId: hostId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (!credential) return null;
+  const selected = await primarySelectedCalendarFor(credential.id);
+  if (!selected) return null;
+  return { credentialId: credential.id, externalCalendarId: selected.externalCalendarId };
+}
+
+async function primarySelectedCalendarFor(
+  credentialId: string,
+): Promise<{ externalCalendarId: string } | null> {
+  // Prefer the row with isPrimary=true; fall back to any selected
+  // calendar so a host who didn't explicitly mark a primary still
+  // gets the write directed somewhere.
+  const primary = await prisma.selectedCalendar.findFirst({
+    where: { credentialId, isPrimary: true },
+    select: { externalCalendarId: true },
+  });
+  if (primary) return primary;
+  return prisma.selectedCalendar.findFirst({
+    where: { credentialId },
+    select: { externalCalendarId: true },
+  });
 }
 
 async function markFailed(
