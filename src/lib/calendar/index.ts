@@ -87,3 +87,63 @@ export async function fetchHostBusyTimes(opts: {
   }
   return out;
 }
+
+/**
+ * For a set of candidate host ids, return the subset whose connected
+ * calendars show them busy at the requested slot. The booking flow
+ * passes this set to `selectHost`'s `excludeHostIds` so the round-
+ * robin algorithm picks a different host instead of throwing
+ * CONFLICT for a multi-host pool that has at least one available
+ * member.
+ *
+ * Per-host fetches run in parallel (Promise.allSettled) so a single
+ * slow / failing provider doesn't block the whole pick. A failing
+ * fetch is treated as "not busy" — same direction as
+ * fetchHostBusyTimes' soft-fail semantics. The alternative (treating
+ * fetch failure as "busy, skip this host") would silently degrade
+ * round-robin to single-host whenever a provider hiccups.
+ *
+ * Overlap predicate: half-open `[slotStart, slotEnd)`. A busy event
+ * that ends exactly at slotStart, or starts exactly at slotEnd,
+ * doesn't conflict — same boundary semantics as `subtractBusyTimes`
+ * in `busy-merge.ts`.
+ */
+export async function findBusyHostIds(opts: {
+  hostIds: ReadonlyArray<string>;
+  slotStart: Date;
+  slotEnd: Date;
+}): Promise<Set<string>> {
+  if (opts.hostIds.length === 0) return new Set();
+
+  // BusyTime.start/end are ISO UTC strings (see types.ts). ISO 8601
+  // UTC sorts lexicographically the same way it sorts chronologically,
+  // so string comparison is correct AND avoids allocating Date
+  // wrappers on the hot path.
+  const slotStartIso = opts.slotStart.toISOString();
+  const slotEndIso = opts.slotEnd.toISOString();
+  const settled = await Promise.allSettled(
+    opts.hostIds.map(async (hostId) => {
+      const busy = await fetchHostBusyTimes({
+        hostId,
+        from: opts.slotStart,
+        to: opts.slotEnd,
+      });
+      const overlaps = busy.some(
+        (b) => b.start < slotEndIso && b.end > slotStartIso,
+      );
+      return overlaps ? hostId : null;
+    }),
+  );
+
+  const out = new Set<string>();
+  for (const r of settled) {
+    if (r.status === "fulfilled" && r.value !== null) {
+      out.add(r.value);
+    }
+    // Reject path: same soft-fail as fetchHostBusyTimes — a single
+    // adapter hiccup must not silently degrade round-robin to a
+    // single host. Treating the reject as "not busy" matches the
+    // public host page's same-direction soft-fail.
+  }
+  return out;
+}
