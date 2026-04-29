@@ -7,6 +7,7 @@ import {
   googleAuthUrl,
   microsoftAuthUrl,
 } from "@/lib/calendar";
+import { planForUser, requireFeature } from "@/lib/billing";
 import { privateProcedure, router } from "@/trpc/trpc";
 
 export const calendar = router({
@@ -31,6 +32,8 @@ export const calendar = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      requireFeature(await planForUser(ctx.user.id), "calendar.connect");
+
       const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
       const { randomBytes } = await import("node:crypto");
       const state = `${ctx.user.id}:${randomBytes(32).toString("hex")}`;
