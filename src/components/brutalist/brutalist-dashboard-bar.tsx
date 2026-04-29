@@ -1,18 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
+import { useRouter } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
+import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
 export function BrutalistDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const utils = trpc.useUtils();
 
-  const current = workspaces?.[0];
+  const current = workspaces?.find((w) => w.isActive) ?? workspaces?.[0];
   const label = current?.name ?? "Workspaces";
+
+  function handlePick(slug: string) {
+    startTransition(async () => {
+      const result = await setActiveWorkspace({ slug });
+      if (!result.ok) {
+        toast.error("Couldn't switch workspace.");
+        return;
+      }
+      await utils.workspaces.list.invalidate();
+      router.refresh();
+      router.push(`/workspaces/${slug}/members`);
+    });
+  }
 
   return (
     <div className="bru-dashboard-bar">
@@ -38,33 +57,32 @@ export function BrutalistDashboardBar() {
                 <Menu.GroupLabel className="bru-menu-label">
                   Workspaces
                 </Menu.GroupLabel>
-                {(workspaces ?? []).map((w) => {
-                  const isCurrent = current?.id === w.id;
-                  return (
-                    <Menu.Item
-                      key={w.id}
-                      className="bru-menu-item"
-                      render={<Link href={`/workspaces/${w.slug}/members`} />}
+                {(workspaces ?? []).map((w) => (
+                  <Menu.Item
+                    key={w.id}
+                    className="bru-menu-item"
+                    onClick={() => handlePick(w.slug)}
+                  >
+                    <span className="bru-menu-item-glyph">
+                      {w.isActive ? (
+                        <Check
+                          aria-hidden
+                          strokeWidth={2}
+                          className="size-3.5"
+                        />
+                      ) : null}
+                    </span>
+                    <span
+                      className={
+                        w.isActive
+                          ? "font-semibold"
+                          : "font-normal opacity-85"
+                      }
                     >
-                      <span className="bru-menu-item-glyph">
-                        {isCurrent ? (
-                          <Check
-                            aria-hidden
-                            strokeWidth={2}
-                            className="size-3.5"
-                          />
-                        ) : null}
-                      </span>
-                      <span
-                        className={
-                          isCurrent ? "font-semibold" : "font-normal opacity-85"
-                        }
-                      >
-                        {w.name}
-                      </span>
-                    </Menu.Item>
-                  );
-                })}
+                      {w.name}
+                    </span>
+                  </Menu.Item>
+                ))}
               </Menu.Group>
 
               <Menu.Separator className="bru-menu-separator" />

@@ -36,7 +36,8 @@ export function ApiKeysFields() {
           slug={
             pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
               ? pickedSlug
-              : workspaces[0].slug
+              : (workspaces.find((w) => w.isActive)?.slug ??
+                  workspaces[0].slug)
           }
           onSlugChange={setPickedSlug}
         />
@@ -48,6 +49,7 @@ export function ApiKeysFields() {
 type WorkspaceListItem = {
   slug: string;
   name: string;
+  isActive: boolean;
 };
 
 function ApiKeysForWorkspace({

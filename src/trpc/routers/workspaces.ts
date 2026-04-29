@@ -73,10 +73,17 @@ export const workspaces = router({
       },
       orderBy: { assignedAt: "asc" },
     });
+    const activeSlug = ctx.activeWorkspaceSlug;
+    const cookieMatches = memberships.some(
+      (m) => m.workspace.slug === activeSlug,
+    );
+    const fallbackSlug = memberships[0]?.workspace.slug ?? null;
+    const effectiveSlug = cookieMatches ? activeSlug : fallbackSlug;
     return memberships.map((m) => ({
       role: m.role,
       assignedAt: m.assignedAt,
       ...m.workspace,
+      isActive: m.workspace.slug === effectiveSlug,
     }));
   }),
 

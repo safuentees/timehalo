@@ -1,4 +1,8 @@
 import { auth } from "@/auth";
+import {
+  ACTIVE_WORKSPACE_COOKIE,
+  parseActiveWorkspaceSlug,
+} from "@/lib/active-workspace";
 
 type CreateContextOpts = {
   req?: Request;
@@ -40,7 +44,16 @@ export async function createContext(opts: CreateContextOpts = {}) {
   const cookies =
     opts.cookies ?? parseCookieHeader(headers?.get("cookie"));
 
-  return { user: session?.user ?? null, ipIdentifier, cookies };
+  const activeWorkspaceSlug = parseActiveWorkspaceSlug(
+    cookies.get(ACTIVE_WORKSPACE_COOKIE),
+  );
+
+  return {
+    user: session?.user ?? null,
+    ipIdentifier,
+    cookies,
+    activeWorkspaceSlug,
+  };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

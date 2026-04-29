@@ -14,10 +14,11 @@ export function WorkflowFields() {
   const t = useTranslations("Workflows");
   const { data, isLoading } = trpc.workflows.list.useQuery();
   const { data: workspaces } = trpc.workspaces.list.useQuery();
-  const firstSlug = workspaces?.[0]?.slug;
+  const activeSlug =
+    workspaces?.find((w) => w.isActive)?.slug ?? workspaces?.[0]?.slug;
   const { data: plan } = trpc.billing.currentPlan.useQuery(
-    { slug: firstSlug ?? "" },
-    { enabled: Boolean(firstSlug) },
+    { slug: activeSlug ?? "" },
+    { enabled: Boolean(activeSlug) },
   );
   const isLocked = plan?.plan === "FREE";
 
