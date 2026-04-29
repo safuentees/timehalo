@@ -8,6 +8,8 @@ import { trpc } from "@/trpc/hooks";
 import { useSetMemberRole } from "@/lib/mutations/use-set-member-role";
 import { useRemoveMember } from "@/lib/mutations/use-remove-member";
 import { useRevokeInvitation } from "@/lib/mutations/use-revoke-invitation";
+import { useResendInvitation } from "@/lib/mutations/use-resend-invitation";
+import { useUpdateInvitationRole } from "@/lib/mutations/use-update-invitation-role";
 import { Button } from "@/components/ui/button";
 import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
 import { BrutalistPageHeader } from "@/components/brutalist/page-header";
@@ -129,7 +131,8 @@ export default function MembersPanel({ slug }: { slug: string }) {
                       role={inv.role}
                       expiresAt={inv.expiresAt as unknown as string}
                       acceptedAt={inv.acceptedAt as unknown as string | null}
-                      canRevoke={canWriteMembers}
+                      canManage={canWriteMembers}
+                      canGrantAdmin={isOwner}
                     />
                   </li>
                 ))}
@@ -242,7 +245,8 @@ function InvitationRow({
   role,
   expiresAt,
   acceptedAt,
-  canRevoke,
+  canManage,
+  canGrantAdmin,
 }: {
   slug: string;
   invitationId: string;
@@ -250,10 +254,13 @@ function InvitationRow({
   role: "OWNER" | "ADMIN" | "MEMBER" | "VIEWER";
   expiresAt: string;
   acceptedAt: string | null;
-  canRevoke: boolean;
+  canManage: boolean;
+  canGrantAdmin: boolean;
 }) {
   const t = useTranslations("Members");
   const revoke = useRevokeInvitation();
+  const resend = useResendInvitation();
+  const updateRole = useUpdateInvitationRole();
   // React 19's compiler ESLint rule (`react-hooks/set-state-in-effect`,
   // and the impure-call check) flags `Date.now()` during render. Read
   // it once at mount via lazy useState — invitation expiry is a 7-day
@@ -261,6 +268,17 @@ function InvitationRow({
   const [expired] = useState(() => new Date(expiresAt).getTime() < Date.now());
   const accepted = acceptedAt !== null;
   const status = accepted ? "accepted" : expired ? "expired" : "pending";
+  const pending = !accepted;
+  const showActions = canManage && pending;
+
+  // Match the invite procedure's role rules: ADMIN requires the
+  // caller to be OWNER; MEMBER + VIEWER + (existing) ADMIN are
+  // always selectable. The server enforces; this just keeps a
+  // non-OWNER caller from seeing an option that bounces.
+  const ROLE_OPTIONS: ReadonlyArray<"ADMIN" | "MEMBER" | "VIEWER"> =
+    canGrantAdmin
+      ? ["ADMIN", "MEMBER", "VIEWER"]
+      : ["MEMBER", "VIEWER"];
 
   return (
     <article
@@ -269,35 +287,77 @@ function InvitationRow({
         accepted || expired ? "border-bru-line opacity-60" : "border-bru-line hover:border-bru-line-strong",
       ].join(" ")}
     >
-      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[14px] leading-[1.2] font-black truncate">{email}</h3>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="bru-eyebrow">{t(`role_${role}`)}</span>
             <span className="bru-eyebrow">{t(`status_${status}`)}</span>
           </div>
         </div>
-        {canRevoke && !accepted ? (
-          <ConfirmDialog
-            trigger={
-              <Button
-                type="button"
-                variant="outline"
-                size="brutalist"
-                disabled={revoke.isPending}
-              >
-                {revoke.isPending ? t("revoking") : t("revoke")}
-              </Button>
-            }
-            title={t("revokeTitle")}
-            description={t("revokeDescription", { email })}
-            confirmLabel={t("revoke")}
-            pendingLabel={t("revoking")}
-            cancelLabel={t("cancel")}
-            pending={revoke.isPending}
-            onConfirm={() => revoke.mutateAsync({ slug, invitationId })}
-          />
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {showActions ? (
+            <select
+              aria-label={t("inviteRoleLabel", { email })}
+              value={role}
+              onChange={(e) =>
+                updateRole.mutateAsync({
+                  slug,
+                  invitationId,
+                  role: e.target.value as
+                    | "ADMIN"
+                    | "MEMBER"
+                    | "VIEWER",
+                })
+              }
+              disabled={updateRole.isPending}
+              className="bru-input font-[family-name:var(--bru-mono)] text-[12px]"
+            >
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {t(`role_${r}`)}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="bru-eyebrow">{t(`role_${role}`)}</span>
+          )}
+          {showActions ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="brutalist"
+              disabled={resend.isPending}
+              onClick={() =>
+                resend.mutateAsync({ slug, invitationId })
+              }
+            >
+              {resend.isPending ? t("resending") : t("resend")}
+            </Button>
+          ) : null}
+          {showActions ? (
+            <ConfirmDialog
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="brutalist"
+                  disabled={revoke.isPending}
+                >
+                  {revoke.isPending ? t("revoking") : t("revoke")}
+                </Button>
+              }
+              title={t("revokeTitle")}
+              description={t("revokeDescription", { email })}
+              confirmLabel={t("revoke")}
+              pendingLabel={t("revoking")}
+              cancelLabel={t("cancel")}
+              pending={revoke.isPending}
+              onConfirm={() =>
+                revoke.mutateAsync({ slug, invitationId })
+              }
+            />
+          ) : null}
+        </div>
       </header>
     </article>
   );

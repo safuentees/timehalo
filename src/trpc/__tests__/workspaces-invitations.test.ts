@@ -226,3 +226,139 @@ describe("invitations.preview", () => {
     ).rejects.toThrow(TRPCError);
   });
 });
+
+// B.PT8 — resendInvitation + updateInvitationRole.
+//
+// Both procedures pass the same scope check (members.write) as
+// invite + revoke, so we cover the happy path + the role-rule
+// rejection cases that mirror invite's gates. The token-rotation
+// behavior is the load-bearing detail for resend; we assert the
+// new token differs from the old one + the expiresAt has been
+// pushed forward.
+describe("workspaces.resendInvitation + updateInvitationRole (B.PT8)", () => {
+  let owner: { id: string };
+
+  beforeAll(async () => {
+    owner = await createTestUser("vitest-pt8-owner");
+  });
+
+  beforeEach(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await prisma.task.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await tearDownTestHost(owner.id);
+  });
+
+  async function seedInvitation(role: "ADMIN" | "MEMBER" | "VIEWER" = "MEMBER") {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+    const inv = await ownerCaller.workspaces.invite({
+      slug: SLUG,
+      email: "invitee@example.com",
+      role,
+    });
+    return { ownerCaller, invitationId: inv.id };
+  }
+
+  it("resendInvitation rotates the token + pushes expiresAt forward", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation();
+    const before = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { token: true, expiresAt: true },
+    });
+
+    const resent = await ownerCaller.workspaces.resendInvitation({
+      slug: SLUG,
+      invitationId,
+    });
+    const after = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { token: true, expiresAt: true },
+    });
+
+    expect(after.token).not.toBe(before.token);
+    expect(after.expiresAt.getTime()).toBeGreaterThan(
+      before.expiresAt.getTime(),
+    );
+    expect(resent.email).toBe("invitee@example.com");
+
+    // A new email Task was enqueued with a `:resend:` referenceUid
+    // suffix so the dedup index doesn't collide with the original.
+    const tasks = await prisma.task.findMany({
+      where: { type: "emailSend" },
+      select: { referenceUid: true },
+    });
+    const resendTask = tasks.find(
+      (t) =>
+        t.referenceUid !== null &&
+        t.referenceUid.includes(`:${invitationId}:resend:`),
+    );
+    expect(resendTask).toBeDefined();
+  });
+
+  it("resendInvitation rejects an already-accepted invitation", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation();
+    // Mark accepted directly to bypass the accept flow.
+    await prisma.invitation.update({
+      where: { id: invitationId },
+      data: { acceptedAt: new Date() },
+    });
+
+    await expect(
+      ownerCaller.workspaces.resendInvitation({
+        slug: SLUG,
+        invitationId,
+      }),
+    ).rejects.toThrow(/already accepted|NOT_FOUND/i);
+  });
+
+  it("updateInvitationRole flips MEMBER → VIEWER", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    await ownerCaller.workspaces.updateInvitationRole({
+      slug: SLUG,
+      invitationId,
+      role: "VIEWER",
+    });
+    const row = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { role: true },
+    });
+    expect(row.role).toBe("VIEWER");
+  });
+
+  it("updateInvitationRole rejects ADMIN grant from a non-owner caller", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    // Demote ourselves to ADMIN to test the same gate the invite
+    // procedure carries (we replicate the rule there).
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: SLUG },
+      select: { id: true },
+    });
+    await prisma.membership.updateMany({
+      where: { workspaceId: ws.id, userId: owner.id },
+      data: { role: "ADMIN" },
+    });
+    await expect(
+      ownerCaller.workspaces.updateInvitationRole({
+        slug: SLUG,
+        invitationId,
+        role: "ADMIN",
+      }),
+    ).rejects.toThrow(/owner can grant ADMIN|FORBIDDEN/i);
+  });
+
+  it("updateInvitationRole rejects OWNER role outright", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    await expect(
+      ownerCaller.workspaces.updateInvitationRole({
+        slug: SLUG,
+        invitationId,
+        role: "OWNER",
+      }),
+    ).rejects.toThrow(/Owner can't be granted|FORBIDDEN/i);
+  });
+});
