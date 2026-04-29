@@ -512,6 +512,123 @@ export const workspaces = router({
       });
     }),
 
+  inviteMany: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        invites: z
+          .array(
+            z.object({
+              email: z.string().trim().email().toLowerCase(),
+              role: workspaceMembershipRoleSchema,
+            }),
+          )
+          .min(1, "At least one invite")
+          .max(50, "At most 50 invites per call"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const callerMembership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "members.write",
+      );
+
+      for (const inv of input.invites) {
+        if (inv.role === "OWNER") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Owner can't be granted via invite",
+          });
+        }
+        if (
+          inv.role === "ADMIN" &&
+          callerMembership.role !== "OWNER"
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Only the owner can invite ADMINs",
+          });
+        }
+      }
+
+      const plan = await planForWorkspace(callerMembership.workspaceId);
+      const cap = memberCap(plan);
+      const [memberCount, pendingCount] = await Promise.all([
+        prisma.membership.count({
+          where: { workspaceId: callerMembership.workspaceId },
+        }),
+        prisma.invitation.count({
+          where: {
+            workspaceId: callerMembership.workspaceId,
+            acceptedAt: null,
+          },
+        }),
+      ]);
+      if (
+        memberCount + pendingCount + input.invites.length >
+        cap
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Member cap would be exceeded for ${plan} plan (${cap}). Upgrade or reduce the batch.`,
+        });
+      }
+
+      const tokens = await Promise.all(
+        input.invites.map(() => generateInvitationToken()),
+      );
+      const expiresAt = new Date(Date.now() + INVITATION_EXPIRY_MS);
+      const inviter = await prisma.user.findUnique({
+        where: { id: ctx.user.id },
+        select: { name: true, handle: true },
+      });
+      const inviterName =
+        inviter?.name ?? inviter?.handle ?? "An Officehours user";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+      const created = await prisma.$transaction(
+        input.invites.map((inv, i) =>
+          prisma.invitation.create({
+            data: {
+              workspaceId: callerMembership.workspaceId,
+              email: inv.email,
+              role: inv.role,
+              token: tokens[i],
+              invitedBy: ctx.user.id,
+              expiresAt,
+            },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              expiresAt: true,
+            },
+          }),
+        ),
+      );
+
+      await Promise.all(
+        created.map((inv, i) =>
+          scheduleEmailSend({
+            payload: {
+              to: inv.email,
+              template: "workspace-invite",
+              props: {
+                workspaceName: callerMembership.workspace.name,
+                inviterName,
+                role: inv.role,
+                acceptUrl: `${appUrl}/invitations/${tokens[i]}`,
+              },
+            },
+            referenceUid: `invitation:${inv.id}:email`,
+          }),
+        ),
+      );
+
+      return created;
+    }),
+
   resendInvitation: privateProcedure
     .input(
       z.object({
