@@ -13,6 +13,13 @@ import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
   const { data, isLoading } = trpc.workflows.list.useQuery();
+  const { data: workspaces } = trpc.workspaces.list.useQuery();
+  const firstSlug = workspaces?.[0]?.slug;
+  const { data: plan } = trpc.billing.currentPlan.useQuery(
+    { slug: firstSlug ?? "" },
+    { enabled: Boolean(firstSlug) },
+  );
+  const isLocked = plan?.plan === "FREE";
 
   return (
     <section aria-labelledby="workflows-legend">
@@ -52,7 +59,19 @@ export function WorkflowFields() {
       </div>
 
       <div className="mt-4">
-        <WorkflowCreateDialog />
+        {isLocked ? (
+          <BrutalistInlineEmpty>
+            {t("upgradePrompt")}{" "}
+            <a
+              href="#billing-legend"
+              className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-bru hover:opacity-100"
+            >
+              {t("upgradeLink")}
+            </a>
+          </BrutalistInlineEmpty>
+        ) : (
+          <WorkflowCreateDialog />
+        )}
       </div>
     </section>
   );

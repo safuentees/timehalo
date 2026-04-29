@@ -1,0 +1,323 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations, useFormatter } from "next-intl";
+import { trpc } from "@/trpc/hooks";
+import { useBillingCheckout } from "@/lib/mutations/use-billing-checkout";
+import { useBillingPortal } from "@/lib/mutations/use-billing-portal";
+import { Button } from "@/components/ui/button";
+import { SectionHeader } from "@/components/brutalist/section-header";
+import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+
+type Workspace = { slug: string; name: string };
+type PlanTier = "FREE" | "PRO" | "TEAM";
+
+const UPGRADE_TIERS = ["PRO", "TEAM"] as const;
+
+const PLAN_DISPLAY: Record<
+  PlanTier,
+  { priceCents: number; featureKeys: ReadonlyArray<string> }
+> = {
+  FREE: {
+    priceCents: 0,
+    featureKeys: ["bookings", "calendar", "membersUpTo1"],
+  },
+  PRO: {
+    priceCents: 1999,
+    featureKeys: [
+      "bookings",
+      "calendar",
+      "membersUpTo5",
+      "webhooks",
+      "apiKeys",
+      "workflows",
+    ],
+  },
+  TEAM: {
+    priceCents: 4999,
+    featureKeys: [
+      "bookings",
+      "calendar",
+      "membersUpTo25",
+      "webhooks",
+      "apiKeys",
+      "workflows",
+      "roundRobin",
+      "prioritySupport",
+    ],
+  },
+};
+
+export function BillingFields() {
+  const t = useTranslations("Billing");
+  const { data: workspaces, isLoading: workspacesLoading } =
+    trpc.workspaces.list.useQuery();
+
+  const [pickedSlug, setPickedSlug] = useState<string | null>(null);
+
+  return (
+    <section aria-labelledby="billing-legend">
+      <SectionHeader
+        legendId="billing-legend"
+        legend={t("legend")}
+        description={t("description")}
+      />
+
+      {workspacesLoading ? (
+        <p className="mt-5 text-[13px] opacity-55">{t("loading")}</p>
+      ) : !workspaces || workspaces.length === 0 ? (
+        <BrutalistInlineEmpty className="mt-5">
+          {t("noWorkspaceEmpty")}
+        </BrutalistInlineEmpty>
+      ) : (
+        <BillingForWorkspace
+          workspaces={workspaces}
+          slug={
+            pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
+              ? pickedSlug
+              : workspaces[0].slug
+          }
+          onSlugChange={setPickedSlug}
+        />
+      )}
+    </section>
+  );
+}
+
+function BillingForWorkspace({
+  workspaces,
+  slug,
+  onSlugChange,
+}: {
+  workspaces: Workspace[];
+  slug: string;
+  onSlugChange: (slug: string) => void;
+}) {
+  const t = useTranslations("Billing");
+  const { data: current, isLoading } =
+    trpc.billing.currentPlan.useQuery({ slug });
+
+  return (
+    <>
+      {workspaces.length > 1 ? (
+        <div className="mt-5">
+          <label htmlFor="billing-workspace" className="bru-legend">
+            {t("workspaceLabel")}
+          </label>
+          <select
+            id="billing-workspace"
+            value={slug}
+            onChange={(e) => onSlugChange(e.target.value)}
+            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
+          >
+            {workspaces.map((w) => (
+              <option key={w.slug} value={w.slug}>
+                {w.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
+      <div className="mt-5">
+        {isLoading || !current ? (
+          <p className="text-[13px] opacity-55">{t("loading")}</p>
+        ) : (
+          <CurrentPlanBanner
+            slug={slug}
+            plan={current.plan}
+            currentPeriodEnd={
+              current.currentPeriodEnd
+                ? new Date(current.currentPeriodEnd)
+                : null
+            }
+            cancelAtPeriodEnd={current.cancelAtPeriodEnd}
+            hasStripeCustomer={current.hasStripeCustomer}
+          />
+        )}
+      </div>
+
+      <ul role="list" className="mt-6 grid gap-2.5 sm:grid-cols-2">
+        {UPGRADE_TIERS.map((tier) => (
+          <li key={tier}>
+            <PlanCard
+              slug={slug}
+              tier={tier}
+              isCurrent={current?.plan === tier}
+              disabled={isLoading || !current}
+            />
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function CurrentPlanBanner({
+  slug,
+  plan,
+  currentPeriodEnd,
+  cancelAtPeriodEnd,
+  hasStripeCustomer,
+}: {
+  slug: string;
+  plan: PlanTier;
+  currentPeriodEnd: Date | null;
+  cancelAtPeriodEnd: boolean;
+  hasStripeCustomer: boolean;
+}) {
+  const t = useTranslations("Billing");
+  const fmt = useFormatter();
+  const checkout = useBillingCheckout();
+  const portal = useBillingPortal();
+  const isFree = plan === "FREE";
+
+  const dateLabel =
+    currentPeriodEnd && !isFree
+      ? cancelAtPeriodEnd
+        ? t("cancelsOn", {
+            date: fmt.dateTime(currentPeriodEnd, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }),
+          })
+        : t("renewsOn", {
+            date: fmt.dateTime(currentPeriodEnd, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }),
+          })
+      : null;
+
+  return (
+    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0 flex-1">
+          <p className="bru-eyebrow">{t("currentPlanLabel")}</p>
+          <h3 className="mt-2 font-[family-name:var(--bru-mono)] text-[28px] font-black uppercase leading-none tracking-[1px]">
+            {t(`tier.${plan}`)}
+          </h3>
+          <p className="mt-2 text-[13px] opacity-65">
+            {isFree
+              ? t("freeBlurb")
+              : t("priceMonth", {
+                  price: formatPrice(PLAN_DISPLAY[plan].priceCents),
+                })}
+            {dateLabel ? (
+              <>
+                <span className="ml-1 opacity-55">{dateLabel}</span>
+              </>
+            ) : null}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {isFree ? (
+            <Button
+              type="button"
+              variant="brutalist"
+              size="brutalist"
+              disabled={checkout.isPending}
+              onClick={() =>
+                checkout.mutate({ slug, plan: "PRO" })
+              }
+            >
+              {checkout.isPending ? t("redirecting") : t("upgradeToPro")}
+            </Button>
+          ) : (
+            hasStripeCustomer && (
+              <Button
+                type="button"
+                variant="brutalistGhost"
+                size="brutalist"
+                disabled={portal.isPending}
+                onClick={() => portal.mutate({ slug })}
+              >
+                {portal.isPending ? t("redirecting") : t("manageBilling")}
+              </Button>
+            )
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PlanCard({
+  slug,
+  tier,
+  isCurrent,
+  disabled,
+}: {
+  slug: string;
+  tier: "PRO" | "TEAM";
+  isCurrent: boolean;
+  disabled: boolean;
+}) {
+  const t = useTranslations("Billing");
+  const checkout = useBillingCheckout();
+  const display = PLAN_DISPLAY[tier];
+  const featureLabels = display.featureKeys.map((k) => t(`feature.${k}`));
+
+  return (
+    <article
+      className={[
+        "flex h-full flex-col rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru sm:p-6",
+        isCurrent
+          ? "border-bru-line-strong"
+          : "hover:border-bru-line-strong",
+      ].join(" ")}
+    >
+      <header>
+        <p className="bru-eyebrow">{t(`tier.${tier}`)}</p>
+        <p className="mt-3 flex items-baseline gap-1">
+          <span className="font-[family-name:var(--bru-mono)] text-[28px] font-black tabular-nums leading-none">
+            {formatPrice(display.priceCents)}
+          </span>
+          <span className="bru-eyebrow opacity-55">{t("perMonth")}</span>
+        </p>
+      </header>
+
+      <ul className="mt-5 flex flex-1 flex-col gap-2 text-[13px]">
+        {featureLabels.map((label) => (
+          <li key={label} className="flex items-start gap-2">
+            <span
+              aria-hidden
+              className="mt-[5px] inline-block size-1.5 rounded-full bg-bru-line-strong"
+            />
+            <span className="opacity-80">{label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-6">
+        {isCurrent ? (
+          <p className="bru-eyebrow opacity-55">{t("currentPlanLabel")}</p>
+        ) : (
+          <Button
+            type="button"
+            variant="brutalist"
+            size="brutalist"
+            disabled={disabled || checkout.isPending}
+            onClick={() => checkout.mutate({ slug, plan: tier })}
+            className="w-full"
+          >
+            {checkout.isPending
+              ? t("redirecting")
+              : t("upgradeTo", { tier: t(`tier.${tier}`) })}
+          </Button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function formatPrice(cents: number): string {
+  if (cents === 0) return "$0";
+  const dollars = cents / 100;
+  return Number.isInteger(dollars)
+    ? `$${dollars}`
+    : `$${dollars.toFixed(2)}`;
+}

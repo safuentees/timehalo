@@ -64,6 +64,8 @@ function ApiKeysForWorkspace({
     { slug },
     { placeholderData: keepPreviousData },
   );
+  const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
+  const isLocked = plan?.plan === "FREE";
 
   return (
     <>
@@ -112,9 +114,24 @@ function ApiKeysForWorkspace({
       </div>
 
       <div className="mt-4">
-        <ApiKeyCreateDialog slug={slug} />
+        {isLocked ? <UpgradePrompt /> : <ApiKeyCreateDialog slug={slug} />}
       </div>
     </>
+  );
+}
+
+function UpgradePrompt() {
+  const t = useTranslations("ApiKeys");
+  return (
+    <BrutalistInlineEmpty>
+      {t("upgradePrompt")}{" "}
+      <a
+        href="#billing-legend"
+        className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-bru hover:opacity-100"
+      >
+        {t("upgradeLink")}
+      </a>
+    </BrutalistInlineEmpty>
   );
 }
 

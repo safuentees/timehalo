@@ -15,7 +15,10 @@ export default async function SettingsPage() {
 
   const firstSlug = workspaces[0]?.slug;
   if (firstSlug) {
-    await trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug });
+    await Promise.all([
+      trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug }),
+      trpc.billing.currentPlan.prefetch({ slug: firstSlug }),
+    ]);
   }
 
   const timezones = getRuntimeTimezones();
