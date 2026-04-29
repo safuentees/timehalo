@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Link } from "next-view-transitions";
 import { useTranslations } from "next-intl";
-import { ArrowLeftIcon, MinusCircleIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, MinusCircleIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetMemberRole } from "@/lib/mutations/use-set-member-role";
 import { useRemoveMember } from "@/lib/mutations/use-remove-member";
@@ -46,13 +46,20 @@ export default function MembersPanel({ slug }: { slug: string }) {
     <BrutalistPageShell>
       <BrutalistPageHeader title={workspace?.name ?? t("title")} />
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
         <Link
           href="/workspaces"
           className="bru-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
         >
           <ArrowLeftIcon className="size-3" aria-hidden />
           {tWorkspaces("backToList")}
+        </Link>
+        <Link
+          href={`/workspaces/${slug}/settings`}
+          className="bru-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
+        >
+          {tWorkspaces("settingsLink")}
+          <ArrowRightIcon className="size-3" aria-hidden />
         </Link>
       </div>
 

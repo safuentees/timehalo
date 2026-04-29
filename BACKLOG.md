@@ -114,7 +114,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT4 | `/workspaces/<slug>/event-types` page | SHIPPED | `1f5b93a` | |
 | B.PT5 | Workspace lifecycle four-pack (rename / delete / leave / transfer) | SHIPPED | `304eb36` | |
 | **B.PT6** | **Global workspace context switcher (cookie-stored)** | **OPEN** | — | Top-bar dropdown shipped at `c9df11a` but doesn't switch global state. Threads cookie through tRPC context. ~250 LOC, 2 days. |
-| **B.PT7** | **`/workspaces/<slug>/settings` page** | **OPEN** | — | Natural home for B.PT5's lifecycle procedures. ~200 LOC, 1–2 days. **Highest leverage immediate item** — without it, B.PT5's procedures are tRPC-only, invisible to users. |
+| B.PT7 | `/workspaces/<slug>/settings` page | SHIPPED | _to be filled by commit_ | Surfaced B.PT5's lifecycle four-pack via four sections (general / transfer / leave / danger). Typed-confirm dialog on delete mirrors `delete-account-dialog.tsx`. |
 | **B.PT8** | **Resend + edit-pending-invite-role procedures + UI** | **OPEN** | — | ~80 LOC, half day each. |
 | **B.PT9** | **Bulk invite (`workspaces.inviteMany`)** | **OPEN** | — | ~120 LOC, 1 day. |
 | **B.PT10** | **Multi-step workflows (`WorkflowStep` chains)** | **OPEN** | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. |
@@ -151,11 +151,10 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 Pick from `OPEN` rows above, in this priority order:
 
-1. **B.PT7** — `/workspaces/<slug>/settings` page. Highest leverage. Surfaces the brand-new lifecycle procedures (B.PT5) to users. 1–2 days.
-2. **B.PT12** — calendar conflict → round-robin. Cheap. Joins two recently-landed surfaces. Half day.
-3. **B.PT6** — workspace context switcher. Ties B.PT1 (workspace-aware webhooks/audit) + B.PT4 (event-types) into a coherent navigation. 2 days.
-4. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
-5. **B.PT9** — bulk invite. 1 day.
+1. **B.PT12** — calendar conflict → round-robin. Cheap. Joins two recently-landed surfaces. Half day.
+2. **B.PT6** — workspace context switcher. Ties B.PT1 (workspace-aware webhooks/audit) + B.PT4 (event-types) into a coherent navigation. 2 days.
+3. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
+4. **B.PT9** — bulk invite. 1 day.
 
 Tier C items wait for their gating signal.
 
