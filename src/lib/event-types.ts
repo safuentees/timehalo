@@ -9,10 +9,9 @@ import type { Host as RoundRobinHost } from "@/lib/round-robin";
 //
 // Backfill (20260428202405) seeded one EventType per User (slug =
 // User.handle, single fixed EventTypeHost = the user). New users go
-// through this same shape via auth.register / bootstrapUserWorkspace
-// — see the "TODO" note at the bottom; for v1 the backfill covers
-// existing users and an explicit "create event type" call (future
-// commit) creates new ones.
+// through this same shape via auth.register / bootstrapUserWorkspace.
+// Explicit "create event type" calls live on the workspaces.eventTypes
+// router (B.PT4); the backfill handles every pre-PT4 account.
 
 export type ResolvedEventType = {
   id: string;
