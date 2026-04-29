@@ -1,6 +1,31 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  afterEach,
+  vi,
+} from "vitest";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
+
+// Hoisted env mock so the Google adapter sees configured OAuth client
+// regardless of the operator's local .env. Pattern mirrors
+// calendar-integration.test.ts. Other env keys fall through via
+// importActual so DATABASE_URL etc. behave normally.
+vi.mock("@/env", async () => {
+  const orig = await vi.importActual<typeof import("@/env")>("@/env");
+  return {
+    ...orig,
+    env: {
+      ...orig.env,
+      GOOGLE_OAUTH_CLIENT_ID: "test-google-client-id",
+      GOOGLE_OAUTH_CLIENT_SECRET: "test-google-client-secret",
+    },
+  };
+});
 import {
   createTestEventTypeHostPool,
   createTestHost,
@@ -189,6 +214,215 @@ describe("B2 — round-robin in bookings.create", () => {
     await prisma.eventTypeHost.updateMany({
       where: { eventTypeId, userId: host.id },
       data: { priority: 2, weight: 1 },
+    });
+  });
+
+  // ── B.PT12 — calendar conflict feeds excludeHostIds ──────────────
+  // The calendar-busy host is excluded from the round-robin pick so
+  // a multi-host pool with at least one free member doesn't throw
+  // CONFLICT. We connect a Google calendar to whichever host would
+  // win the id-sort tiebreak, then mock freeBusy to return a busy
+  // range overlapping the requested slot — the OTHER host should
+  // get picked.
+  describe("calendar conflict → excludeHostIds (B.PT12)", () => {
+    let credentialId: string;
+    let busyHostId: string;
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeAll(async () => {
+      // Pick the host that would normally win the id-sort tiebreak.
+      // We connect THEIR calendar and mark them busy — round-robin
+      // should then pick the other host instead. If we connected
+      // the loser's calendar the test would prove nothing because
+      // the loser already wasn't getting picked.
+      busyHostId = [host.id, secondHost.id].sort()[0];
+
+      const cred = await prisma.calendarCredential.create({
+        data: {
+          userId: busyHostId,
+          provider: "GOOGLE",
+          externalAccountId: "rr-cal-account",
+          externalAccountEmail: "rr-host@example.com",
+          // Plaintext tokens — encryption helper returns input
+          // unchanged when there's no `v1:` envelope prefix, so the
+          // test doesn't need CALENDAR_TOKEN_KEY set. expiresAt far
+          // in the future short-circuits refreshGoogleToken.
+          accessToken: "plain-access-token",
+          refreshToken: "plain-refresh-token",
+          accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          scope: "https://www.googleapis.com/auth/calendar.readonly",
+        },
+        select: { id: true },
+      });
+      credentialId = cred.id;
+      await prisma.selectedCalendar.create({
+        data: {
+          credentialId: cred.id,
+          externalCalendarId: "primary",
+          summary: "Personal",
+          isPrimary: true,
+        },
+      });
+    });
+
+    beforeEach(async () => {
+      originalFetch = globalThis.fetch;
+      // Outer beforeEach only wipes bookings where hostId === host.id,
+      // so prior tests' bookings on secondHost.id leak in. Wipe by
+      // eventTypeId here to reset the pool's slot state regardless of
+      // which host won the prior pick. Bookings for fixtures outside
+      // this event type stay untouched.
+      await prisma.booking.deleteMany({ where: { eventTypeId } });
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+      vi.unstubAllGlobals();
+    });
+
+    afterAll(async () => {
+      await prisma.selectedCalendar.deleteMany({
+        where: { credentialId },
+      });
+      await prisma.calendarCredential.deleteMany({
+        where: { id: credentialId },
+      });
+    });
+
+    it("excludes a host whose external calendar is busy at the slot", async () => {
+      const slotStart = tomorrowAtMinute(0);
+      const slotEnd = new Date(slotStart.getTime() + 15 * 60 * 1000);
+
+      // Mock freeBusy to return a busy range overlapping the slot.
+      // Anything else throws so an unmocked dependency surfaces.
+      const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+        const url =
+          typeof input === "string" ? input : input.toString();
+        if (url.includes("calendar/v3/freeBusy")) {
+          return new Response(
+            JSON.stringify({
+              calendars: {
+                primary: {
+                  busy: [
+                    {
+                      start: slotStart.toISOString(),
+                      end: slotEnd.toISOString(),
+                    },
+                  ],
+                },
+              },
+            }),
+            {
+              status: 200,
+              headers: { "content-type": "application/json" },
+            },
+          );
+        }
+        throw new Error(`Unexpected fetch call: ${url}`);
+      });
+      globalThis.fetch =
+        fetchSpy as unknown as typeof globalThis.fetch;
+
+      const caller = callRouter(fakeContext());
+      const created = await caller.bookings.create({
+        handle: host.handle,
+        slotStart: slotStart.toISOString(),
+        visitorName: "Maya",
+        visitorEmail: "maya@example.com",
+        idempotencyKey: crypto.randomUUID(),
+      });
+
+      const row = await prisma.booking.findUniqueOrThrow({
+        where: { publicUid: created.publicUid },
+        select: { hostId: true },
+      });
+      // The OTHER host (not the one whose calendar is busy) wins.
+      const otherHostId =
+        busyHostId === host.id ? secondHost.id : host.id;
+      expect(row.hostId).toBe(otherHostId);
+
+      // freeBusy was hit at least once for the connected host. The
+      // other host has no CalendarCredential, so no second call.
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+
+    it("returns CONFLICT when every pool member is calendar-busy", async () => {
+      // Connect a calendar for the OTHER host too so both pool
+      // members hit the freeBusy mock.
+      const otherHostId =
+        busyHostId === host.id ? secondHost.id : host.id;
+      const otherCred = await prisma.calendarCredential.create({
+        data: {
+          userId: otherHostId,
+          provider: "GOOGLE",
+          externalAccountId: "rr-cal-account-other",
+          externalAccountEmail: "rr-other@example.com",
+          accessToken: "plain-access-token",
+          refreshToken: "plain-refresh-token",
+          accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          scope: "https://www.googleapis.com/auth/calendar.readonly",
+        },
+        select: { id: true },
+      });
+      await prisma.selectedCalendar.create({
+        data: {
+          credentialId: otherCred.id,
+          externalCalendarId: "primary",
+          summary: "Personal",
+          isPrimary: true,
+        },
+      });
+
+      try {
+        const slotStart = tomorrowAtMinute(30);
+        const slotEnd = new Date(slotStart.getTime() + 15 * 60 * 1000);
+
+        const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+          const url =
+            typeof input === "string" ? input : input.toString();
+          if (url.includes("calendar/v3/freeBusy")) {
+            return new Response(
+              JSON.stringify({
+                calendars: {
+                  primary: {
+                    busy: [
+                      {
+                        start: slotStart.toISOString(),
+                        end: slotEnd.toISOString(),
+                      },
+                    ],
+                  },
+                },
+              }),
+              {
+                status: 200,
+                headers: { "content-type": "application/json" },
+              },
+            );
+          }
+          throw new Error(`Unexpected fetch call: ${url}`);
+        });
+        globalThis.fetch =
+          fetchSpy as unknown as typeof globalThis.fetch;
+
+        const caller = callRouter(fakeContext());
+        await expect(
+          caller.bookings.create({
+            handle: host.handle,
+            slotStart: slotStart.toISOString(),
+            visitorName: "Maya",
+            visitorEmail: "maya@example.com",
+            idempotencyKey: crypto.randomUUID(),
+          }),
+        ).rejects.toThrow(/already booked at that slot/);
+      } finally {
+        await prisma.selectedCalendar.deleteMany({
+          where: { credentialId: otherCred.id },
+        });
+        await prisma.calendarCredential.deleteMany({
+          where: { id: otherCred.id },
+        });
+      }
     });
   });
 });

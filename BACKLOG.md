@@ -119,7 +119,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | **B.PT9** | **Bulk invite (`workspaces.inviteMany`)** | **OPEN** | — | ~120 LOC, 1 day. |
 | **B.PT10** | **Multi-step workflows (`WorkflowStep` chains)** | **OPEN** | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. |
 | **B.PT11** | **SMS / Slack / Discord workflow actions** | **OPEN** | — | ~150 LOC per provider, 1 day each. |
-| **B.PT12** | **Calendar conflict → round-robin `excludeHostIds` integration** | **OPEN** | — | Joins B.PT2 (calendar busy times) + B.PT4 (event-type pools). No new schema. ~80 LOC, half day. |
+| B.PT12 | Calendar conflict → round-robin `excludeHostIds` integration | SHIPPED | _to be filled by commit_ | New `findBusyHostIds` helper in `src/lib/calendar/index.ts`; bookings.create's multi-host branch merges its result into excludeHostIds before selectHost. ISO-string overlap (no Date allocation), Promise.allSettled soft-fail per host. 2 new test cases extend round-robin-integration.test.ts. |
 | **B.PT13** | **Distribution fairness lookback decay (cron)** | **OPEN** | — | `EventTypeHost.recentAssignments` cron decay. ~60 LOC, half day. Wait for round-robin usage signal. |
 | **B.PT14** | **Upstash Redis swap for `createRatelimit`** | **SIGNAL-GATED** | — | `src/lib/rate-limit.ts:108` carries a memory-only fallback today. When prod traffic justifies multi-instance limiting, branch on `UPSTASH_REDIS_REST_URL` and return a Redis-backed Limiter with the same return shape — caller code doesn't change. ~40 LOC, half day. Trigger: multi-instance serverless deploy where the in-memory map can't share state across processes. |
 
@@ -151,10 +151,9 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 Pick from `OPEN` rows above, in this priority order:
 
-1. **B.PT12** — calendar conflict → round-robin. Cheap. Joins two recently-landed surfaces. Half day.
-2. **B.PT6** — workspace context switcher. Ties B.PT1 (workspace-aware webhooks/audit) + B.PT4 (event-types) into a coherent navigation. 2 days.
-3. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
-4. **B.PT9** — bulk invite. 1 day.
+1. **B.PT6** — workspace context switcher. Ties B.PT1 (workspace-aware webhooks/audit) + B.PT4 (event-types) into a coherent navigation. 2 days.
+2. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
+3. **B.PT9** — bulk invite. 1 day.
 
 Tier C items wait for their gating signal.
 

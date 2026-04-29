@@ -27,6 +27,7 @@ import {
   resolveEventTypeForHandle,
 } from "@/lib/event-types";
 import { selectHost } from "@/lib/round-robin";
+import { findBusyHostIds } from "@/lib/calendar";
 import {
   emitBookingEvent,
   iterateBookingEvents,
@@ -199,17 +200,42 @@ export const bookings = router({
           );
           let pickedHostId = host.id;
           if (resolvedEventType && resolvedEventType.hosts.length > 1) {
-            const conflictingHosts = await prisma.booking.findMany({
-              where: {
-                eventTypeId: resolvedEventType.id,
-                slotStart,
-                deleted: false,
-              },
-              select: { hostId: true },
-            });
-            const excludeHostIds = new Set(
-              conflictingHosts.map((b) => b.hostId),
-            );
+            // Two distinct conflict sources, both feeding excludeHostIds:
+            //
+            //   (a) Officehours-internal — a different visitor already
+            //       booked one of the pool members at this exact slot.
+            //       The slot collision check below would catch this
+            //       inside the transaction, but excluding upfront lets
+            //       round-robin pick a different host instead of
+            //       throwing CONFLICT for a pool that has free members.
+            //
+            //   (b) External calendar (B.PT12) — a host's connected
+            //       Google / Outlook calendar shows them busy at this
+            //       slot. Same exclude treatment so a host blocked on
+            //       their personal calendar doesn't get picked. Only
+            //       fired when there's actually a multi-host pool to
+            //       pick across — fetching busy times for a singleton
+            //       pool wastes a network call.
+            const [conflictingHosts, calendarBusyHostIds] =
+              await Promise.all([
+                prisma.booking.findMany({
+                  where: {
+                    eventTypeId: resolvedEventType.id,
+                    slotStart,
+                    deleted: false,
+                  },
+                  select: { hostId: true },
+                }),
+                findBusyHostIds({
+                  hostIds: resolvedEventType.hosts.map((h) => h.userId),
+                  slotStart,
+                  slotEnd,
+                }),
+              ]);
+            const excludeHostIds = new Set<string>([
+              ...conflictingHosts.map((b) => b.hostId),
+              ...calendarBusyHostIds,
+            ]);
             const pick = selectHost({
               hosts: resolvedEventType.hosts,
               excludeHostIds,
