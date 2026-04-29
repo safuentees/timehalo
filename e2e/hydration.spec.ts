@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { TEST_HANDLE } from "./test-constants";
 
 // Hydration smoke tests — load each route in a real Chromium and
 // fail if any hydration warning appears in the console. Catches the
@@ -6,9 +7,8 @@ import { test, expect } from "@playwright/test";
 // interference, build-plugin asymmetries between server and client
 // bundles).
 //
-// Public routes only for now — authed routes (/bookings, /settings,
-// etc.) need a session cookie set up. We add that after the public
-// path is proven.
+// Public routes only for now — authed routes live in
+// hydration-authed.spec.ts (uses cached storageState).
 //
 // Hydration error patterns React 19 / Next 16 emit:
 //   - "Hydration failed because the server rendered HTML didn't match"
@@ -20,7 +20,10 @@ const HYDRATION_RE = /hydrat|did not match|server.+rendered|server\/client/i;
 const PUBLIC_ROUTES = [
   "/login",
   "/register",
-  "/h/turbius", // host profile — adjust handle if needed
+  // Host profile for the seeded test user. The handle is sourced from
+  // e2e/test-constants.ts so it stays in sync with the seed script —
+  // no more silent breakage if a host is renamed/wiped from dev.db.
+  `/h/${TEST_HANDLE}`,
 ];
 
 for (const route of PUBLIC_ROUTES) {

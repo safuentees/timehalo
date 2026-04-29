@@ -11,7 +11,12 @@ export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   // Hydration tests run serially so console-error capture from one
   // test doesn't bleed into another via the shared page lifecycle.
+  // workers: 1 also prevents `pnpm dev`'s on-demand compilation from
+  // racing across two parallel page loads — when /login and /h/<host>
+  // hit the dev server in parallel, base-ui's useId snapshots can
+  // diverge between SSR and CSR and emit a phantom hydration mismatch.
   fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]],
@@ -21,7 +26,33 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // Authenticate once, persist cookies to playwright/.auth/user.json.
+    // The "authed" project below `use`s that storage so each authed spec
+    // starts already-logged-in instead of re-running the credentials form.
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    {
+      // Public specs — no persisted auth, hit the site as an anonymous
+      // visitor. Hydration smoke + the end-to-end booking-flow spec live
+      // here. Uses an empty storageState so partner-onboarding-style
+      // contamination from prior runs can never bleed in.
+      name: "public",
+      testMatch: /(?:hydration|booking-flow)\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: { cookies: [], origins: [] },
+      },
+    },
+    {
+      // Authed hydration smoke + future flow specs. Reuses the cached
+      // storageState from the setup project.
+      name: "authed",
+      testMatch: /hydration-authed\.spec\.ts/,
+      dependencies: ["setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/user.json",
+      },
+    },
   ],
   webServer: {
     command: "pnpm dev",

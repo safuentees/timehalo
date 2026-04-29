@@ -41,6 +41,10 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Restart `pnpm dev` after `pnpm prisma generate`.
 - Filter `deleted: false` on every Booking read (item 7 invariant).
 - Run `pnpm test:run` before committing user-visible procedure changes.
+- Use `vi.stubEnv("X", value)` + `vi.unstubAllEnvs()` in tests, NEVER `process.env.X = ...`. To unset: `vi.stubEnv("X", undefined as unknown as string)`. The full canon is in `.claude/rules/testing.md` *Env stubbing*.
+- Use `fakeContext()` from `test/fixtures.ts` for synthetic tRPC contexts; never roll your own. The fixture inventory (`createTestHost`, `createTestUser`, `createTestEventTypeHostPool`, `safeTearDownByHandle`, `purgeTestWorkspaces`, `upgradeWorkspaceToPro`, etc.) is documented in `.claude/rules/testing.md` *Fixtures inventory*.
+- Reference `e2e/test-constants.ts` (`TEST_EMAIL`, `TEST_PASSWORD`, `TEST_HANDLE`) from Playwright specs and the seed script — never hardcode the test handle in spec files.
+- For Playwright auth: rely on the cached `storageState` from `e2e/auth.setup.ts`. Don't inline the credentials form login per spec; the `authed` project already loads `playwright/.auth/user.json`. See `.claude/rules/testing.md` *Auth caching*.
 - Use the styling tokens from `.claude/rules/brutalist-ui.md`: `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
 - When a client tree branches on a browser-only signal (`useMediaQuery`, `useTheme`, `useMounted`, ICU data, `localStorage`), pick the SSR default that matches the hook's server snapshot, and resolve runtime-derived lists on the server. See `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
 - For section / field chrome inside a hub page, use the `bru-legend` / `bru-description` / `bru-eyebrow` CSS classes (defined in `globals.css`) and the `<SectionHeader>` component. Never inline the eight-class `font-[family-name:var(--bru-mono)] text-[Npx] font-extrabold tracking-[Npx] uppercase opacity-...` strings. See `.claude/rules/brutalist-ui.md` *Typography utilities*.
@@ -65,14 +69,21 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 - Use `window.confirm()` for destructive actions. Use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never fire a destructive mutation on a single click with no confirmation.
 - Hand-roll dialog padding/footer strings (`px-5 pb-6 flex flex-col gap-5 sm:px-6`, `flex flex-col gap-2 sm:flex-row sm:justify-end`). Compose `<ResponsiveModalBody>` + `<ResponsiveModalFooter>` from the primitive instead.
 - Put `<BrutalistSaveBar>` on a hub page with multiple independent sub-sections — it claims to commit the whole page but only mutates one section's data. Per-section save instead.
+- Mutate `process.env.X = ...` directly inside Vitest tests — leaks across tests if a test crashes mid-run. Use `vi.stubEnv` + `vi.unstubAllEnvs()` (Vitest 4 canon).
+- Roll your own context object inside a tRPC test — use `fakeContext()`. Bypassing it skips the unique-IP rate-limit isolation and breaks the `Context` type chain.
+- Re-login per route in Playwright authed specs — the `authed` project loads cached `storageState`. Inline login adds ~5s per test and re-litigates the credentials form selector.
+- Use `networkidle` in Playwright — the live-queue SSE subscription holds a persistent connection forever and `networkidle` never fires. Use `waitUntil: "load"` + a 1.5s buffer.
+- Hardcode the test user's handle / email / password in a spec — import from `e2e/test-constants.ts`.
+- Skip the seed script's Workspace + OWNER Membership creation. `bookings.create` requires `host.ownedWorkspaces[0]` (B1 invariant); without it the call fails with `"Host has no workspace"`.
+- Enable `fileParallelism: true` in `vitest.config.ts` or raise `workers` above 1 in `playwright.config.ts` — both gate against concrete races (DB wipes / dev-server compilation). The cost (~2s slower runs) buys flake-resistance the project's identity depends on.
 
 ## Commands
 
 - `pnpm dev` — local server
 - `pnpm tsc --noEmit` — type check
 - `pnpm lint` — ESLint (CI enforces, 0 errors)
-- `pnpm test:run` — Vitest server-side contract tests (45 tests, ~3s)
-- `pnpm exec playwright test` — browser hydration smoke + auth flow (~25s)
+- `pnpm test:run` — Vitest server-side contract tests (~300 tests across 40 files, ~6s tests / ~27s wall)
+- `pnpm exec playwright test` — browser hydration smoke + auth flow + booking flow (~15s, workers=1, storageState-cached auth)
 - `pnpm prisma generate` — regenerate the typed client
 - `pnpm prisma migrate dev --name <name>` — interactive; runs locally only
 

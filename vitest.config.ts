@@ -1,9 +1,13 @@
 import { defineConfig } from "vitest/config";
 import path from "node:path";
+import tsconfigPaths from "vite-tsconfig-paths";
 
-// Vitest 4 config — matches the Next.js path alias (`@/...` → `src/`)
-// and uses the Node environment because all current tests exercise
-// server-side code (tRPC procedures, Prisma queries).
+// Vitest 4 config — server-side contract tests in Node.
+//
+// `vite-tsconfig-paths` reads `tsconfig.json`'s `paths` directly, so
+// the `@/*` alias resolves the same way in tests as it does at build
+// time. Keep `tsconfig.json` as the single source of truth — never
+// duplicate path aliases here.
 //
 // Tight `include` glob — the repo has nested node_modules under
 // `.claude/worktrees/` which slip past the default exclude and cause
@@ -11,6 +15,7 @@ import path from "node:path";
 // include explicitly, we never look anywhere except `src/**/__tests__/`.
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
     environment: "node",
     globals: false,
@@ -26,7 +31,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
       // `server-only` is Next's runtime guard — throws if pulled into a
       // client bundle. We're running in a Node test process, the guard
       // is moot, and the package isn't a standalone install. Stub to

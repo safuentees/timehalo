@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  vi,
+} from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
@@ -56,6 +64,20 @@ describe("timezone — validation + normalization", () => {
 });
 
 describe("generateUpcomingSlots — DST-aware host timezone", () => {
+  // Pin Date.now() to the US "spring forward" Sunday cusp so any future
+  // refactor that accidentally references the system clock (instead of
+  // the explicit `from`) breaks here, not on a passing CI dev box on
+  // some other day of the year. The current implementation uses only
+  // the explicit `from` arg, so this is belt-and-braces — but the
+  // pin is the contract and we want it written down.
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-08T07:00:00Z")); // DST cusp, NY
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   // March 8 2026 is the US "spring forward" Sunday → 02:00 doesn't
   // exist in America/New_York; clocks jump to 03:00. A 09:00 wall-clock
   // slot maps to 13:00 UTC after DST starts (was 14:00 UTC in standard
