@@ -197,6 +197,7 @@
 
 :where(html, body):has(.bru-app) {
   overflow: hidden;
+  scrollbar-gutter: auto;
 }
 
 .bru-app {
