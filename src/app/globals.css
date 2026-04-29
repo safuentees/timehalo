@@ -347,6 +347,11 @@
 .oh-dashboard-bar {
   display: flex;
   align-items: center;
+  /* Workspace switcher anchors the start; user-profile menu anchors
+     the end. justify-between keeps the visual rhythm balanced even
+     when the workspace name truncates — the avatar pin doesn't drift. */
+  justify-content: space-between;
+  gap: 12px;
   flex: 0 0 var(--oh-dashboard-bar-block);
   height: var(--oh-dashboard-bar-block);
   padding: 12px 18px 0;
@@ -480,6 +485,143 @@
      to compete with, 12% reads as a soft seam, not a hard divider. */
   background: color-mix(in srgb, var(--oh-ink) 12%, transparent);
   border: 0;
+}
+
+/* User-profile menu trigger — circular avatar at the bar's end. The
+   button is the avatar's exact size; hover/open/focus expand a 2px
+   ring (box-shadow, not border, so the avatar's after-pseudo border
+   stays clean). Cal.com / dub pattern: minimal trigger, identity
+   surface lives inside the popup. */
+.oh-user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--oh-dashboard-bar-height) - 4px);
+  width: calc(var(--oh-dashboard-bar-height) - 4px);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  outline: none;
+  transition: box-shadow 150ms var(--ease-oh, ease);
+}
+.oh-user-menu-trigger:hover,
+.oh-user-menu-trigger[data-popup-open] {
+  box-shadow: 0 0 0 2px var(--oh-tint-hover);
+}
+.oh-user-menu-trigger:focus-visible {
+  box-shadow: 0 0 0 2px var(--oh-ink);
+}
+.oh-user-menu-avatar {
+  pointer-events: none;
+}
+
+/* Wider popup for the identity header — name + email + handle pill
+   need ~280px to read without truncating. The submenu variant goes
+   the other way: tighter, just enough for radio rows. */
+.oh-menu-popup--user {
+  min-width: 280px;
+  padding-top: 0;
+}
+.oh-menu-popup--submenu {
+  min-width: 200px;
+}
+
+/* Identity header inside the user popup. Avatar pinned to the start,
+   name/email stack flex-grows + truncates, handle pill anchors the
+   bottom as a discreet jump-to-public-page affordance. */
+.oh-user-menu-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 12px 12px;
+}
+.oh-user-menu-name {
+  font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--oh-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.oh-user-menu-email {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--oh-ink);
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.oh-user-menu-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 3px 6px 3px 5px;
+  border: 1.5px solid var(--oh-line-strong);
+  border-radius: var(--oh-r-xs);
+  background: transparent;
+  font-family: var(--oh-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+  color: var(--oh-ink);
+  text-decoration: none;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition:
+    background-color 120ms var(--ease-oh, ease),
+    color 120ms var(--ease-oh, ease);
+}
+.oh-user-menu-handle:hover,
+.oh-user-menu-handle:focus-visible {
+  background: var(--oh-ink);
+  color: var(--oh-frame);
+  outline: none;
+}
+
+/* Submenu trigger row. Same .oh-menu-item bones plus a trail slot
+   on the inline-end for the active value + chevron. The current
+   value reads as quiet metadata so the row doesn't look "selected"
+   — it's a label, not the radio dot. */
+.oh-menu-item--submenu[data-popup-open] {
+  background: var(--oh-tint-hover);
+}
+.oh-menu-submenu-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+.oh-menu-submenu-current {
+  font-family: var(--oh-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--oh-ink);
+  opacity: 0.55;
+}
+
+/* Destructive item — sign out. Uses the existing --destructive token
+   (OKLCH red, theme-aware via .dark override). Keeps the tint hover
+   pattern but tints with the destructive color so the row reads as
+   "danger" without becoming the loudest pixel in the popup. */
+.oh-menu-item--destructive {
+  color: var(--destructive);
+}
+.oh-menu-item--destructive[data-highlighted] {
+  background: color-mix(in srgb, var(--destructive) 12%, transparent);
 }
 
 .oh-app {

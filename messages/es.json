@@ -319,5 +319,22 @@
     "cancelDescription": "{name} recibirá un correo. Esta acción no se puede deshacer.",
     "cancelConfirm": "Cancelar reserva",
     "cancelCancel": "Conservar reserva"
+  },
+  "UserMenu": {
+    "trigger": "Abrir menú de {name}",
+    "fallbackName": "Cuenta",
+    "openPublicPage": "Abrir página pública",
+    "accountGroup": "Cuenta",
+    "profile": "Perfil",
+    "settings": "Ajustes",
+    "preferencesGroup": "Preferencias",
+    "theme": "Apariencia",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "language": "Idioma",
+    "systemStatus": "Estado del sistema",
+    "adminConsole": "Panel admin",
+    "signOut": "Cerrar sesión"
   }
 }

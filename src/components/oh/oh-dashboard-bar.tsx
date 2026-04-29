@@ -10,12 +10,18 @@ import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
+import { OhUserMenu } from "./user-menu";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
 // outer flex-col places this above .oh-app, which still owns the
 // flex-row with sidebar + inset. Bar height comes from the existing
 // --oh-dashboard-bar-height token (32px) — the sidebar's
 // top: calc(var + 12px) already accounts for it.
+//
+// The bar is justify-between (CSS-side, .oh-dashboard-bar): workspace
+// switcher anchors the start, user-profile menu anchors the end. Both
+// share the same Base UI Menu primitive + popup styling so the bar
+// reads as one chrome surface, not two unrelated dropdowns.
 //
 // Trigger: the active workspace name (the row with isActive=true,
 // which the server-side workspaces.list resolves from the
@@ -151,6 +157,8 @@ export function OhDashboardBar() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+
+      <OhUserMenu />
 
       <WorkspaceCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { planForUser } from "@/lib/billing";
+import { isAdminHandle } from "@/lib/admin";
 import { getEnabledFeatures } from "@/lib/feature-flags";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
@@ -10,21 +11,24 @@ import { timezoneSchema } from "@/lib/timezone";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 export const users = router({
-  // Minimal "me" projection — just the fields the settings form needs.
-  // Returning the whole User record would leak passwordHash, attempts, etc.
+  // "Me" projection. Settings forms read handle/timezone/email; the
+  // top-bar avatar menu reads name/image/isAdmin. Combined into one
+  // call so the dashboard pays a single network hop. `isAdmin` is
+  // computed against OFFICEHOURS_ADMIN_HANDLES via isAdminHandle —
+  // server-only check, never trust a client-supplied flag.
   me: privateProcedure.query(async ({ ctx }) => {
-    return await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
-      // email is included so the settings danger-zone confirms against
-      // the live account email rather than re-querying. Private
-      // procedure — only the logged-in user sees their own row.
       select: {
         id: true,
         handle: true,
         timezone: true,
         email: true,
+        name: true,
+        image: true,
       },
     });
+    return { ...user, isAdmin: isAdminHandle(user.handle) };
   }),
 
   // Per-user feature flag map. Returns every known flag's resolved
