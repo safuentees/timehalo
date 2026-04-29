@@ -512,6 +512,111 @@ export const workspaces = router({
       });
     }),
 
+  resendInvitation: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        invitationId: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const callerMembership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "members.write",
+      );
+      const existing = await prisma.invitation.findFirst({
+        where: {
+          id: input.invitationId,
+          workspaceId: callerMembership.workspaceId,
+          acceptedAt: null,
+        },
+        select: { id: true, email: true, role: true },
+      });
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found or already accepted",
+        });
+      }
+      const token = await generateInvitationToken();
+      const updated = await prisma.invitation.update({
+        where: { id: existing.id },
+        data: {
+          token,
+          expiresAt: new Date(Date.now() + INVITATION_EXPIRY_MS),
+        },
+        select: { id: true, email: true, role: true, expiresAt: true },
+      });
+
+      const inviter = await prisma.user.findUnique({
+        where: { id: ctx.user.id },
+        select: { name: true, handle: true },
+      });
+      const inviterName =
+        inviter?.name ?? inviter?.handle ?? "An Officehours user";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const acceptUrl = `${appUrl}/invitations/${token}`;
+      await scheduleEmailSend({
+        payload: {
+          to: existing.email,
+          template: "workspace-invite",
+          props: {
+            workspaceName: callerMembership.workspace.name,
+            inviterName,
+            role: existing.role,
+            acceptUrl,
+          },
+        },
+        referenceUid: `invitation:${existing.id}:resend:${Date.now()}`,
+      });
+
+      return updated;
+    }),
+
+  updateInvitationRole: privateProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        invitationId: z.string().min(1),
+        role: workspaceMembershipRoleSchema,
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const callerMembership = await requireMembership(
+        input.slug,
+        ctx.user.id,
+        "members.write",
+      );
+      if (input.role === "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Owner can't be granted via invite",
+        });
+      }
+      if (input.role === "ADMIN" && callerMembership.role !== "OWNER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the owner can grant ADMIN",
+        });
+      }
+      const result = await prisma.invitation.updateMany({
+        where: {
+          id: input.invitationId,
+          workspaceId: callerMembership.workspaceId,
+          acceptedAt: null,
+        },
+        data: { role: input.role },
+      });
+      if (result.count === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found or already accepted",
+        });
+      }
+      return { ok: true as const };
+    }),
+
   revokeInvitation: privateProcedure
     .input(
       z.object({

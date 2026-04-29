@@ -115,7 +115,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT5 | Workspace lifecycle four-pack (rename / delete / leave / transfer) | SHIPPED | `304eb36` | |
 | B.PT6 | Global workspace context switcher (cookie-stored) | SHIPPED | _to be filled by commit_ | `oh_active_workspace` cookie + Next 15 server action + `ctx.activeWorkspaceSlug` + `workspaces.list` returns `isActive` per row. Top-bar dropdown clicks set the cookie via the action then `router.refresh()` + navigate. Settings + billing + api-keys + workflows defaults now respect the active row. Falls back to first-by-membership when cookie unset or stale. |
 | B.PT7 | `/workspaces/<slug>/settings` page | SHIPPED | _to be filled by commit_ | Surfaced B.PT5's lifecycle four-pack via four sections (general / transfer / leave / danger). Typed-confirm dialog on delete mirrors `delete-account-dialog.tsx`. |
-| **B.PT8** | **Resend + edit-pending-invite-role procedures + UI** | **OPEN** | — | ~80 LOC, half day each. |
+| B.PT8 | Resend + edit-pending-invite-role procedures + UI | SHIPPED | _to be filled by commit_ | New `workspaces.resendInvitation` (rotates token + refreshes expiry + re-enqueues email with `:resend:<ts>` referenceUid) and `workspaces.updateInvitationRole` (same role rules as invite). Members-panel InvitationRow gains an inline role select + Resend button alongside the existing Revoke. 5 new vitest cases. |
 | **B.PT9** | **Bulk invite (`workspaces.inviteMany`)** | **OPEN** | — | ~120 LOC, 1 day. |
 | **B.PT10** | **Multi-step workflows (`WorkflowStep` chains)** | **OPEN** | — | ~350 LOC, 3 days. cal.com `/packages/features/ee/workflows/` is the reference. |
 | **B.PT11** | **SMS / Slack / Discord workflow actions** | **OPEN** | — | ~150 LOC per provider, 1 day each. |
@@ -151,8 +151,7 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 Pick from `OPEN` rows above, in this priority order:
 
-1. **B.PT8** — resend + edit-role invite. Half day each, tiny procedures.
-2. **B.PT9** — bulk invite. 1 day.
+1. **B.PT9** — bulk invite. 1 day.
 
 Tier C items wait for their gating signal.
 

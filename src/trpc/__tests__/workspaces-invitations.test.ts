@@ -214,3 +214,126 @@ describe("invitations.preview", () => {
     ).rejects.toThrow(TRPCError);
   });
 });
+
+describe("workspaces.resendInvitation + updateInvitationRole (B.PT8)", () => {
+  let owner: { id: string };
+
+  beforeAll(async () => {
+    owner = await createTestUser("vitest-pt8-owner");
+  });
+
+  beforeEach(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await prisma.task.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await purgeTestWorkspaces([SLUG]);
+    await tearDownTestHost(owner.id);
+  });
+
+  async function seedInvitation(role: "ADMIN" | "MEMBER" | "VIEWER" = "MEMBER") {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({ slug: SLUG, name: "Vitest Co" });
+    await upgradeWorkspaceToPro({ slug: SLUG });
+    const inv = await ownerCaller.workspaces.invite({
+      slug: SLUG,
+      email: "invitee@example.com",
+      role,
+    });
+    return { ownerCaller, invitationId: inv.id };
+  }
+
+  it("resendInvitation rotates the token + pushes expiresAt forward", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation();
+    const before = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { token: true, expiresAt: true },
+    });
+
+    const resent = await ownerCaller.workspaces.resendInvitation({
+      slug: SLUG,
+      invitationId,
+    });
+    const after = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { token: true, expiresAt: true },
+    });
+
+    expect(after.token).not.toBe(before.token);
+    expect(after.expiresAt.getTime()).toBeGreaterThan(
+      before.expiresAt.getTime(),
+    );
+    expect(resent.email).toBe("invitee@example.com");
+
+    const tasks = await prisma.task.findMany({
+      where: { type: "emailSend" },
+      select: { referenceUid: true },
+    });
+    const resendTask = tasks.find(
+      (t) =>
+        t.referenceUid !== null &&
+        t.referenceUid.includes(`:${invitationId}:resend:`),
+    );
+    expect(resendTask).toBeDefined();
+  });
+
+  it("resendInvitation rejects an already-accepted invitation", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation();
+    await prisma.invitation.update({
+      where: { id: invitationId },
+      data: { acceptedAt: new Date() },
+    });
+
+    await expect(
+      ownerCaller.workspaces.resendInvitation({
+        slug: SLUG,
+        invitationId,
+      }),
+    ).rejects.toThrow(/already accepted|NOT_FOUND/i);
+  });
+
+  it("updateInvitationRole flips MEMBER → VIEWER", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    await ownerCaller.workspaces.updateInvitationRole({
+      slug: SLUG,
+      invitationId,
+      role: "VIEWER",
+    });
+    const row = await prisma.invitation.findUniqueOrThrow({
+      where: { id: invitationId },
+      select: { role: true },
+    });
+    expect(row.role).toBe("VIEWER");
+  });
+
+  it("updateInvitationRole rejects ADMIN grant from a non-owner caller", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    const ws = await prisma.workspace.findUniqueOrThrow({
+      where: { slug: SLUG },
+      select: { id: true },
+    });
+    await prisma.membership.updateMany({
+      where: { workspaceId: ws.id, userId: owner.id },
+      data: { role: "ADMIN" },
+    });
+    await expect(
+      ownerCaller.workspaces.updateInvitationRole({
+        slug: SLUG,
+        invitationId,
+        role: "ADMIN",
+      }),
+    ).rejects.toThrow(/owner can grant ADMIN|FORBIDDEN/i);
+  });
+
+  it("updateInvitationRole rejects OWNER role outright", async () => {
+    const { ownerCaller, invitationId } = await seedInvitation("MEMBER");
+    await expect(
+      ownerCaller.workspaces.updateInvitationRole({
+        slug: SLUG,
+        invitationId,
+        role: "OWNER",
+      }),
+    ).rejects.toThrow(/Owner can't be granted|FORBIDDEN/i);
+  });
+});
