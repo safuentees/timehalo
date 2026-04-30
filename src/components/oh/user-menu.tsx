@@ -62,6 +62,7 @@ export function OhUserMenu() {
   return (
     <Menu.Root>
       <Menu.Trigger
+        id="oh-user-menu-trigger"
         className="oh-user-menu-trigger"
         type="button"
         aria-label={t("trigger", { name: labelName })}

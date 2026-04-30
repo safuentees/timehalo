@@ -54,7 +54,11 @@ export function OhDashboardBar() {
         className="-ml-1 mr-1 size-7 rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] md:hidden"
       />
       <Menu.Root>
-        <Menu.Trigger className="oh-dashboard-bar-trigger" type="button">
+        <Menu.Trigger
+          id="oh-workspace-switcher-trigger"
+          className="oh-dashboard-bar-trigger"
+          type="button"
+        >
           <span className="oh-dashboard-bar-label">{label}</span>
           <ChevronDown
             aria-hidden
