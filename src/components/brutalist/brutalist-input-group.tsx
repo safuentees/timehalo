@@ -59,7 +59,7 @@ function BrutalistInputGroupAddon({
   // (right edge for inline-start, left edge for inline-end) instead
   // of an inverted ink block. Reads as one continuous paper input
   // with a typographically distinct prefix — matches the rest-of-app
-  // input vocabulary (`.bru-input` is paper-on-ink throughout).
+  // input vocabulary (`.oh-input` is paper-on-ink throughout).
   const sideRule =
     align === "inline-end"
       ? "border-l-[1.5px] border-(--oh-ink)"
@@ -86,7 +86,7 @@ function BrutalistInputGroupText({
     <InputGroupText
       data-slot="brutalist-input-group-text"
       className={cn(
-        // Match the bru-eyebrow vocabulary used elsewhere (mono caps,
+        // Match the oh-eyebrow vocabulary used elsewhere (mono caps,
         // 11px, 1.5px tracking). 55% opacity so the prefix sits as a
         // quiet label rather than competing with the input value.
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase text-(color:--oh-ink) opacity-55",

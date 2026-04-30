@@ -174,7 +174,7 @@ export function AvailabilityFields() {
 function EmptyBlocks() {
   return (
     <div className="rounded-(--oh-r-sm) border-[1.5px] border-dashed border-[var(--oh-line-dashed)] px-5 py-7 text-left">
-      <p className="bru-eyebrow">
+      <p className="oh-eyebrow">
         No hours set
       </p>
       <p className="mt-2 text-[13px] leading-[1.5] opacity-70">
@@ -199,7 +199,7 @@ function BlockChip({
       aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="bru-eyebrow">{formatDayLabel(block.days)}</span>
+        <span className="oh-eyebrow">{formatDayLabel(block.days)}</span>
         <span className="text-[18px] leading-[1.1] font-black tabular-nums">
           {formatTimeRange(block.from, block.to)}
         </span>
@@ -382,7 +382,7 @@ function BlockEditorContent({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="bru-eyebrow">
+    <span className="oh-eyebrow">
       {children}
     </span>
   );
@@ -405,7 +405,7 @@ function DaysRowButton({
       aria-label={`Edit days: ${label}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="bru-eyebrow">
+        <span className="oh-eyebrow">
           Days
         </span>
         <span className="truncate text-[18px] leading-[1.1] font-black">
@@ -439,16 +439,16 @@ function DayToggle({
       aria-label={longLabel}
       className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] ${
         selected
-          ? "bg-bru-ink text-bru-paper"
-          : "bg-bru-paper text-bru-ink opacity-65 hover:opacity-100"
+          ? "bg-oh-ink text-oh-paper"
+          : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100"
       }`}
     >
       <span>{label}</span>
       <span
         className={`grid size-5 shrink-0 place-items-center rounded-(--oh-r-xs) border-[1.5px] ${
           selected
-            ? "border-bru-paper bg-bru-paper text-bru-ink"
-            : "border-bru-ink bg-transparent text-transparent"
+            ? "border-oh-paper bg-oh-paper text-oh-ink"
+            : "border-oh-ink bg-transparent text-transparent"
         }`}
         aria-hidden
       >
@@ -476,7 +476,7 @@ function DayPickerDrawer({
       nested
     >
       <ResponsiveModalContent
-        mobileClassName="bru-drawer-content-nested"
+        mobileClassName="oh-drawer-content-nested"
         defaultClose={false}
       >
         <div className="border-b border-[var(--oh-line-firm)] px-5 pt-4 pb-4">
@@ -543,7 +543,7 @@ function TimeColumn({
         className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent opacity-0 focus:outline-none [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
       />
       <span className="pointer-events-none flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="bru-eyebrow">
+        <span className="oh-eyebrow">
           {label}
         </span>
         <span className="truncate text-[18px] leading-[1.1] font-black tabular-nums">

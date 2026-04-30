@@ -19,7 +19,7 @@ export function BrutalistEmpty({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-(--oh-r-sm) border-2 border-dashed border-bru-line-strong p-10 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-(--oh-r-sm) border-2 border-dashed border-oh-line-strong p-10 text-center",
         className,
       )}
     >

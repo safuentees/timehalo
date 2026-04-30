@@ -15,7 +15,7 @@ export function BrutalistDashboardLayout({
 }) {
   const { typeface, density, motion } = useBrutalistPrefs();
 
-  const insetClass = ["bru-root", motion ? "bru-motion" : ""]
+  const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -27,25 +27,25 @@ export function BrutalistDashboardLayout({
   return (
     <TooltipProvider delay={200}>
       <div
-        className="bru-app-shell"
+        className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
       >
         <BrutalistDashboardBar />
-        <SidebarProvider className="bru-app">
+        <SidebarProvider className="oh-app">
           <BrutalistAppSidebar />
           <SidebarInset className={insetClass}>
             {/* Two layers:
-                - .bru-host-content owns the static visual frame
+                - .oh-host-content owns the static visual frame
                   (paper bg, rounded corners, margin from the cream
                   frame). NO view-transition-name — it stays put across
                   route changes.
-                - .bru-host-content-inner is the view-transition
+                - .oh-host-content-inner is the view-transition
                   target. Transparent, just a wrapper for children;
                   snapshot animates only the rendered children, the
                   white panel underneath stays solid. */}
-            <div className="bru-host-content">
-              <ScrollArea className="bru-host-content-inner">
+            <div className="oh-host-content">
+              <ScrollArea className="oh-host-content-inner">
                 {children}
               </ScrollArea>
             </div>

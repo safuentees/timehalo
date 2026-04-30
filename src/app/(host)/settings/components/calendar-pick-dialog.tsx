@@ -135,10 +135,10 @@ function CalendarPickBody({
 
   return (
     <ResponsiveModalBody>
-      <p className="bru-description">{t("pickDescription")}</p>
+      <p className="oh-description">{t("pickDescription")}</p>
       <ul
         role="list"
-        className="border-2 border-bru-line divide-y-2 divide-bru-line"
+        className="border-2 border-oh-line divide-y-2 divide-oh-line"
       >
         {rows.map((c) => (
           <li
@@ -150,7 +150,7 @@ function CalendarPickBody({
                 {c.summary}
               </p>
               {c.isPrimary ? (
-                <p className="bru-eyebrow mt-1">
+                <p className="oh-eyebrow mt-1">
                   {t("primaryBadge")}
                 </p>
               ) : null}

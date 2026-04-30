@@ -7,13 +7,13 @@ import Link from "next/link";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="bru-main">
+    <main className="oh-main">
       <div className="mx-auto w-full max-w-[920px] px-4 py-8 sm:px-6 sm:py-10">
-        <div className="border-b-2 border-bru-line-strong pb-6">
-          <p className="bru-legend">
+        <div className="border-b-2 border-oh-line-strong pb-6">
+          <p className="oh-legend">
             Officehours / Admin
           </p>
-          <h1 className="mt-3 text-bru-h2 font-black uppercase tracking-tight">
+          <h1 className="mt-3 text-oh-h2 font-black uppercase tracking-tight">
             Operator surface
           </h1>
         </div>

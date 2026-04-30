@@ -11,7 +11,7 @@ import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
-// outer flex-col places this above .bru-app, which still owns the
+// outer flex-col places this above .oh-app, which still owns the
 // flex-row with sidebar + inset. Bar height comes from the existing
 // --oh-dashboard-bar-height token (32px) — the sidebar's
 // top: calc(var + 12px) already accounts for it.
@@ -54,19 +54,19 @@ export function BrutalistDashboardBar() {
   }
 
   return (
-    <div className="bru-dashboard-bar">
+    <div className="oh-dashboard-bar">
       <Menu.Root>
-        <Menu.Trigger className="bru-dashboard-bar-trigger" type="button">
-          <span className="bru-dashboard-bar-label">{label}</span>
+        <Menu.Trigger className="oh-dashboard-bar-trigger" type="button">
+          <span className="oh-dashboard-bar-label">{label}</span>
           <ChevronDown
             aria-hidden
             strokeWidth={1.75}
-            className="bru-dashboard-bar-chevron size-3 opacity-55"
+            className="oh-dashboard-bar-chevron size-3 opacity-55"
           />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner
-            className="bru-menu-positioner"
+            className="oh-menu-positioner"
             sideOffset={8}
             align="start"
             alignOffset={-8}
@@ -78,18 +78,18 @@ export function BrutalistDashboardBar() {
             // CSS-cache hiccups in dev.
             style={{ zIndex: 100 }}
           >
-            <Menu.Popup className="bru-menu-popup">
+            <Menu.Popup className="oh-menu-popup">
               <Menu.Group>
-                <Menu.GroupLabel className="bru-menu-label">
+                <Menu.GroupLabel className="oh-menu-label">
                   Workspaces
                 </Menu.GroupLabel>
                 {(workspaces ?? []).map((w) => (
                   <Menu.Item
                     key={w.id}
-                    className="bru-menu-item"
+                    className="oh-menu-item"
                     onClick={() => handlePick(w.slug)}
                   >
-                    <span className="bru-menu-item-glyph">
+                    <span className="oh-menu-item-glyph">
                       {w.isActive ? (
                         <Check
                           aria-hidden
@@ -111,22 +111,22 @@ export function BrutalistDashboardBar() {
                 ))}
               </Menu.Group>
 
-              <Menu.Separator className="bru-menu-separator" />
+              <Menu.Separator className="oh-menu-separator" />
 
               <Menu.Item
-                className="bru-menu-item"
+                className="oh-menu-item"
                 onClick={() => setCreateOpen(true)}
               >
-                <span className="bru-menu-item-glyph">
+                <span className="oh-menu-item-glyph">
                   <Plus aria-hidden strokeWidth={1.75} className="size-4" />
                 </span>
                 <span>Create workspace</span>
               </Menu.Item>
               <Menu.Item
-                className="bru-menu-item"
+                className="oh-menu-item"
                 render={<Link href="/workspaces" />}
               >
-                <span className="bru-menu-item-glyph">
+                <span className="oh-menu-item-glyph">
                   <Settings aria-hidden strokeWidth={1.75} className="size-4" />
                 </span>
                 <span>Manage workspaces</span>

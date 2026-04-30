@@ -93,7 +93,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bru-booking-form">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="oh-booking-form">
         <FieldGroup>
           <FieldSet>
             <FieldGroup>
@@ -116,7 +116,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                     </BrutalistInputGroup>
                     <FieldError
                       errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="bru-field-error"
+                      className="oh-field-error"
                     />
                   </Field>
                 )}
@@ -147,7 +147,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                     </BrutalistInputGroup>
                     <FieldError
                       errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="bru-field-error"
+                      className="oh-field-error"
                     />
                   </Field>
                 )}
@@ -160,9 +160,9 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                 name="question"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <label className="bru-field-label" htmlFor={field.name}>
+                    <label className="oh-field-label" htmlFor={field.name}>
                       Question{" "}
-                      <span className="bru-field-label-opt">(optional)</span>
+                      <span className="oh-field-label-opt">(optional)</span>
                     </label>
                     <textarea
                       {...field}
@@ -171,11 +171,11 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                       maxLength={500}
                       placeholder="What would you like to talk about?"
                       aria-invalid={fieldState.invalid}
-                      className="bru-textarea"
+                      className="oh-textarea"
                     />
                     <FieldError
                       errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="bru-field-error"
+                      className="oh-field-error"
                     />
                   </Field>
                 )}
@@ -187,12 +187,12 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
             variant="brutalist"
             size="brutalist"
             disabled={book.isPending}
-            className="bru-book-submit"
+            className="oh-book-submit"
           >
             {book.isPending ? "Booking…" : "Confirm booking →"}
           </Button>
           {book.error ? (
-            <p className="bru-field-error" role="alert">
+            <p className="oh-field-error" role="alert">
               {book.error.message}
             </p>
           ) : null}
@@ -237,16 +237,16 @@ function RescheduleConfirm({
     : null;
 
   return (
-    <div className="bru-booking-form flex flex-col gap-5">
-      <div className="flex flex-col gap-3 rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-paper p-4">
+    <div className="oh-booking-form flex flex-col gap-5">
+      <div className="flex flex-col gap-3 rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-paper p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="bru-eyebrow opacity-55">From</span>
+          <span className="oh-eyebrow opacity-55">From</span>
           <span className="font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-75 line-through">
             {oldStart ? fmtSlot(oldStart) : "—"}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <span className="bru-eyebrow">To</span>
+          <span className="oh-eyebrow">To</span>
           <span className="font-[family-name:var(--oh-mono)] text-[14px] font-bold tabular-nums">
             {fmtSlot(newStart)}
           </span>
@@ -257,7 +257,7 @@ function RescheduleConfirm({
         variant="brutalist"
         size="brutalist"
         disabled={reschedule.isPending}
-        className="bru-book-submit"
+        className="oh-book-submit"
         onClick={() => {
           reschedule.mutate({
             oldPublicUid,
@@ -270,7 +270,7 @@ function RescheduleConfirm({
         {reschedule.isPending ? "Rescheduling…" : "Confirm reschedule →"}
       </Button>
       {reschedule.error ? (
-        <p className="bru-field-error" role="alert">
+        <p className="oh-field-error" role="alert">
           {reschedule.error.message}
         </p>
       ) : null}

@@ -50,9 +50,9 @@ export function MonthDrawer({
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen} nested>
       <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
-      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
-        <ResponsiveModalHeader className="bru-drawer-head">
-          <ResponsiveModalTitle className="bru-drawer-title">
+      <ResponsiveModalContent mobileClassName="oh-drawer-content-nested">
+        <ResponsiveModalHeader className="oh-drawer-head">
+          <ResponsiveModalTitle className="oh-drawer-title">
             {title}
           </ResponsiveModalTitle>
           <ResponsiveModalDescription className="sr-only">
@@ -60,15 +60,15 @@ export function MonthDrawer({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <div className="bru-drawer-weekdays" aria-hidden="true">
+        <div className="oh-drawer-weekdays" aria-hidden="true">
           {WEEKDAY_LABELS.map((d) => (
-            <span key={d} className="bru-drawer-weekdays-cell">
+            <span key={d} className="oh-drawer-weekdays-cell">
               {d}
             </span>
           ))}
         </div>
 
-        <div className="bru-drawer-body" data-view="month">
+        <div className="oh-drawer-body" data-view="month">
           <MonthStack
             months={months}
             densityMap={densityMap}
