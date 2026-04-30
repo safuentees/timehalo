@@ -156,7 +156,7 @@ function CreateForm({
                 spellCheck={false}
                 placeholder={t("namePlaceholder")}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-2 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-2 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -184,7 +184,7 @@ function CreateForm({
                       key={scope}
                       className={[
                         "flex cursor-pointer items-center gap-3 px-4 py-3",
-                        "font-[family-name:var(--bru-mono)] text-[12px] font-extrabold tracking-[1.5px] uppercase",
+                        "font-[family-name:var(--oh-mono)] text-[12px] font-extrabold tracking-[1.5px] uppercase",
                         "transition-colors duration-150 ease-bru",
                         // Cell separators: top border on every row except
                         // the first column-cell, plus a left border on
@@ -298,7 +298,7 @@ function RevealedToken({
             value={token}
             readOnly
             onFocus={(e) => e.currentTarget.select()}
-            className="bru-input flex-1 min-w-[220px] font-[family-name:var(--bru-mono)] text-[13px]"
+            className="bru-input flex-1 min-w-[220px] font-[family-name:var(--oh-mono)] text-[13px]"
           />
           <Button
             type="button"

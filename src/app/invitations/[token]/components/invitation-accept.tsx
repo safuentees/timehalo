@@ -81,7 +81,7 @@ export default function InvitationAccept({
               {t("openWorkspace")}
             </Link>
           ) : expired ? (
-            <p className="font-[family-name:var(--bru-mono)] text-[11px] tracking-[1.5px] opacity-55">
+            <p className="font-[family-name:var(--oh-mono)] text-[11px] tracking-[1.5px] opacity-55">
               {t("expiredHint")}
             </p>
           ) : isAuthed ? (
@@ -106,7 +106,7 @@ export default function InvitationAccept({
 
           <Link
             href="/bookings"
-            className="text-center font-[family-name:var(--bru-mono)] text-[11px] tracking-[1.5px] uppercase opacity-55 transition-opacity hover:opacity-100"
+            className="text-center font-[family-name:var(--oh-mono)] text-[11px] tracking-[1.5px] uppercase opacity-55 transition-opacity hover:opacity-100"
           >
             {t("notNow")}
           </Link>

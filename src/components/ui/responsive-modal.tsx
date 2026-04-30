@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
-// Threshold = (--bru-modal-w) + 2 * (--bru-modal-edge) from globals.css
+// Threshold = (--oh-modal-w) + 2 * (--oh-modal-edge) from globals.css
 // (720 + 48 = 768). Below this width, the fixed-size desktop dialog
 // would clip its own gutters, so we swap to a vaul Drawer instead.
 // Keep this constant in lock-step with the CSS tokens.
@@ -208,10 +208,10 @@ export function ResponsiveModalContent({
         inset: 0,
         margin: "auto",
         translate: "none",
-        width: "var(--bru-modal-w)",
-        maxWidth: "calc(100vw - 2 * var(--bru-modal-edge))",
-        height: "calc(100vh - 2 * var(--bru-modal-vinset))",
-        maxHeight: "calc(100vh - 2 * var(--bru-modal-vinset))",
+        width: "var(--oh-modal-w)",
+        maxWidth: "calc(100vw - 2 * var(--oh-modal-edge))",
+        height: "calc(100vh - 2 * var(--oh-modal-vinset))",
+        maxHeight: "calc(100vh - 2 * var(--oh-modal-vinset))",
       }}
       showCloseButton={showCloseButton}
     >
@@ -356,7 +356,7 @@ export function ResponsiveModalClose({
 }: CloseProps) {
   const { isMobile } = useResponsiveModal();
   const baseClass = cn(
-    "rounded-(--bru-r-xs)",
+    "rounded-(--oh-r-xs)",
     floating &&
       "absolute top-3 right-3 z-10 [&]:translate-x-0 [&]:translate-y-0",
     className,

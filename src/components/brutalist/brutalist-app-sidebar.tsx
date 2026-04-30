@@ -31,21 +31,21 @@ import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 // bg tint alone — the left-rail indicator is for the expanded
 // state where the label is the scan target.
 const menuButtonClass = [
-  "relative rounded-(--bru-r-xs)",
+  "relative rounded-(--oh-r-xs)",
   "font-sans text-[13.5px] font-medium",
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
   "group-data-[collapsible=icon]:border-l-0",
   "transition-colors duration-150 ease-bru",
-  "hover:bg-[var(--bru-tint-hover)]",
-  "data-[active=true]:bg-[var(--bru-tint-active)]",
-  "data-[active=true]:border-l-[var(--bru-ink)]",
+  "hover:bg-[var(--oh-tint-hover)]",
+  "data-[active=true]:bg-[var(--oh-tint-active)]",
+  "data-[active=true]:border-l-[var(--oh-ink)]",
   "data-[active=true]:font-bold",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2",
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2",
 ].join(" ");
 
 const groupLabelClass =
-  "font-[family:var(--bru-mono)] text-[10px] font-bold tracking-[2.5px] uppercase opacity-55 px-[10px] pb-[8px]";
+  "font-[family:var(--oh-mono)] text-[10px] font-bold tracking-[2.5px] uppercase opacity-55 px-[10px] pb-[8px]";
 
 function sidebarNavId(href: string) {
   const pathname = href.split(/[?#]/)[0] ?? href;

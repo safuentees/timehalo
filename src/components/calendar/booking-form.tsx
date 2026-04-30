@@ -238,16 +238,16 @@ function RescheduleConfirm({
 
   return (
     <div className="bru-booking-form flex flex-col gap-5">
-      <div className="flex flex-col gap-3 rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-paper p-4">
+      <div className="flex flex-col gap-3 rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-paper p-4">
         <div className="flex items-baseline justify-between gap-3">
           <span className="bru-eyebrow opacity-55">From</span>
-          <span className="font-[family-name:var(--bru-mono)] text-[13px] tabular-nums opacity-75 line-through">
+          <span className="font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-75 line-through">
             {oldStart ? fmtSlot(oldStart) : "—"}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <span className="bru-eyebrow">To</span>
-          <span className="font-[family-name:var(--bru-mono)] text-[14px] font-bold tabular-nums">
+          <span className="font-[family-name:var(--oh-mono)] text-[14px] font-bold tabular-nums">
             {fmtSlot(newStart)}
           </span>
         </div>
