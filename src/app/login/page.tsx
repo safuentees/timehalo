@@ -46,9 +46,7 @@ export default async function LoginPage({
           </div>
         ) : null}
 
-        <div className="rounded-(--oh-r-sm) border-[1.5px] border-[color:var(--oh-line-strong)] bg-[color:var(--oh-paper)] px-5 py-6 sm:px-6">
-          <CredentialsForm />
-        </div>
+        <CredentialsForm />
 
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-oh-line" />
