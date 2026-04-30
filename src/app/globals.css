@@ -2457,6 +2457,19 @@
   }
 }
 
+[data-slot="sidebar"][data-mobile="true"] {
+  view-transition-name: oh-mobile-sidebar;
+}
+
+::view-transition-group(oh-mobile-sidebar) {
+  z-index: 100;
+}
+
+::view-transition-old(oh-mobile-sidebar),
+::view-transition-new(oh-mobile-sidebar) {
+  animation: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
