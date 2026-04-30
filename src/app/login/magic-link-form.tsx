@@ -2,8 +2,6 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export default function MagicLinkForm() {
@@ -37,39 +35,57 @@ export default function MagicLinkForm() {
 
   if (sentTo) {
     return (
-      <p className="font-mono text-xs tracking-wide text-muted-foreground text-pretty">
-        Check your email — link sent to{" "}
-        <span className="text-foreground">{sentTo}</span>
-      </p>
+      <div className="grid gap-3">
+        <p className="text-[13px] leading-[1.5] opacity-65">
+          Check your email — link sent to{" "}
+          <span className="font-medium text-[color:var(--oh-ink)] opacity-100">
+            {sentTo}
+          </span>
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setSentTo(null);
+            setEmail("");
+          }}
+          className="oh-eyebrow self-start opacity-55 transition-opacity hover:opacity-100"
+        >
+          Use a different email
+        </button>
+      </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
       <div className="grid gap-2">
-        <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          Magic link
-        </Label>
-        <Input
+        <label htmlFor="magic-link-email" className="oh-legend">
+          Or send a magic link
+        </label>
+        <input
+          id="magic-link-email"
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="text-sm"
+          autoComplete="email"
+          className="oh-input"
         />
       </div>
-      {error && (
-        <p className="font-mono text-xs text-destructive">{error}</p>
-      )}
+      {error ? (
+        <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
+          {error}
+        </p>
+      ) : null}
       <Button
         type="submit"
-        variant="outline"
-        size="sm"
-        className="w-full font-mono text-xs tracking-wide border-foreground/20 transition-colors duration-200 hover:bg-foreground/[0.06] hover:border-foreground/40"
+        variant="ohGhost"
+        size="oh"
+        className="w-full justify-center"
         disabled={submitting}
       >
-        {submitting ? "Sending..." : "Email me a sign-in link"}
+        {submitting ? "Sending…" : "Email me a sign-in link"}
       </Button>
     </form>
   );
