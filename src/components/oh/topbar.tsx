@@ -7,7 +7,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 // Desktop owns its own collapse + theme controls inside the sidebar
 // footer (see brutalist-app-sidebar.tsx) — at md:+ this entire
 // element disappears.
-export function BrutalistTopbar() {
+export function OhTopbar() {
   return (
     <div
       className="oh-topbar oh-reveal md:hidden"

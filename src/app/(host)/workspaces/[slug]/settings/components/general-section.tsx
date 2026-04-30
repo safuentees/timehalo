@@ -14,7 +14,7 @@ import {
   WORKSPACE_SLUG_MAX,
   workspaceSlugSchema,
 } from "@/lib/workspaces";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 // General section — rename + slug change. One atomic form so the
 // caller submits both fields together; either field may stay empty

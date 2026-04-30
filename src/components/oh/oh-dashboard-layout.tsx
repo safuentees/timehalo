@@ -4,16 +4,16 @@ import { type ReactNode } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BrutalistAppSidebar } from "./brutalist-app-sidebar";
-import { BrutalistDashboardBar } from "./brutalist-dashboard-bar";
-import { useBrutalistPrefs } from "./prefs-context";
+import { OhAppSidebar } from "./oh-app-sidebar";
+import { OhDashboardBar } from "./oh-dashboard-bar";
+import { useOhPrefs } from "./prefs-context";
 
-export function BrutalistDashboardLayout({
+export function OhDashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const { typeface, density, motion } = useBrutalistPrefs();
+  const { typeface, density, motion } = useOhPrefs();
 
   const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
@@ -31,9 +31,9 @@ export function BrutalistDashboardLayout({
         data-typeface={typeface}
         data-density={density}
       >
-        <BrutalistDashboardBar />
+        <OhDashboardBar />
         <SidebarProvider className="oh-app">
-          <BrutalistAppSidebar />
+          <OhAppSidebar />
           <SidebarInset className={insetClass}>
             {/* Two layers:
                 - .oh-host-content owns the static visual frame

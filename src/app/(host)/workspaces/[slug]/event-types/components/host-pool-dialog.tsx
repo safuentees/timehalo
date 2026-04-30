@@ -8,8 +8,8 @@ import {
   useUpdateEventTypeHost,
 } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -81,7 +81,7 @@ function HostPoolBody({
         {isLoading ? (
           <p className="text-[13px] opacity-55">Loading…</p>
         ) : !hosts || hosts.length === 0 ? (
-          <BrutalistInlineEmpty>No hosts yet.</BrutalistInlineEmpty>
+          <OhInlineEmpty>No hosts yet.</OhInlineEmpty>
         ) : (
           <ul role="list" className="flex flex-col gap-2.5">
             {hosts.map((h) => (

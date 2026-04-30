@@ -12,9 +12,9 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { BrutalistSaveBar } from "@/components/brutalist/save-bar";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { OhSaveBar } from "@/components/oh/save-bar";
 import {
   HandleFields,
   handleFieldSchema,
@@ -66,8 +66,8 @@ export default function ProfileForm() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <BrutalistPageShell>
-          <BrutalistPageHeader title="Public profile" />
+        <OhPageShell>
+          <OhPageHeader title="Public profile" />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
@@ -84,8 +84,8 @@ export default function ProfileForm() {
               </FieldSet>
             </FieldGroup>
           </div>
-        </BrutalistPageShell>
-        <BrutalistSaveBar
+        </OhPageShell>
+        <OhSaveBar
           isPending={saveHandle.isPending}
           isDirty={form.formState.isDirty}
           labels={{

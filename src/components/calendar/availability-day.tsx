@@ -9,7 +9,7 @@ type Props = DayButtonProps & {
 };
 
 /**
- * Brutalist day cell: date number + 0–3 density squares below. Past days
+ * Oh day cell: date number + 0–3 density squares below. Past days
  * render muted without strikethrough; future closed days strikethrough.
  * Available days invert on hover via the parent `.oh-day-available` modifier.
  */

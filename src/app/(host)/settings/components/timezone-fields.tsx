@@ -14,11 +14,11 @@ import {
   getBrowserTimezone,
   timezoneSchema,
 } from "@/lib/timezone";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 // IANA timezone picker. Self-contained — owns its own form, mutation,
 // and Save button. Per-section commits match the cal.com / dub.co
-// pattern; the previous global <BrutalistSaveBar> on /settings was
+// pattern; the previous global <OhSaveBar> on /settings was
 // theatrical (only saved timezone, but visually claimed to save the
 // whole page). Other sections (language, theme, workflows, calendar,
 // API keys) commit through their own paths.

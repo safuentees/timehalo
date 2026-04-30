@@ -14,7 +14,7 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
 
 // Per-credential calendar selector. Lists every calendar on the
 // connected account; each row toggles whether busy-times from that
@@ -104,7 +104,7 @@ function CalendarPickBody({
   if (data.length === 0) {
     return (
       <ResponsiveModalBody>
-        <BrutalistInlineEmpty>{t("pickEmpty")}</BrutalistInlineEmpty>
+        <OhInlineEmpty>{t("pickEmpty")}</OhInlineEmpty>
       </ResponsiveModalBody>
     );
   }

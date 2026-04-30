@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 // Reusable shell for not-found / error / global-error pages.
-// Brutalist: paper background, sharp 2px border on the link items,
+// Oh: paper background, sharp 2px border on the link items,
 // monospace metadata. No animation, no hero image — error pages
 // should load fast and read fast.
 //

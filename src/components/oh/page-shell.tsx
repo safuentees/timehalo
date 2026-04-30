@@ -33,7 +33,7 @@ type Props = {
   wide?: boolean;
 };
 
-export function BrutalistPageShell({
+export function OhPageShell({
   children,
   tight = false,
   wide = false,

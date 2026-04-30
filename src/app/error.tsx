@@ -5,7 +5,7 @@ import * as Sentry from "@sentry/nextjs";
 import {
   ErrorShell,
   ErrorShellLink,
-} from "@/components/brutalist/error-shell";
+} from "@/components/oh/error-shell";
 import { Button } from "@/components/ui/button";
 
 // App Router error boundary. Catches uncaught render / data errors

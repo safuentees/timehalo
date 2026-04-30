@@ -26,7 +26,7 @@ import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/worksp
 // workflow plan-gate) re-read the new active context. We also
 // navigate to the chosen workspace's members page so the user lands
 // somewhere meaningful.
-export function BrutalistDashboardBar() {
+export function OhDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);

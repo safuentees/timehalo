@@ -13,9 +13,9 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { BrutalistSaveBar } from "@/components/brutalist/save-bar";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { OhSaveBar } from "@/components/oh/save-bar";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -69,8 +69,8 @@ export default function AvailabilityForm() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <BrutalistPageShell>
-          <BrutalistPageHeader title="Hours" />
+        <OhPageShell>
+          <OhPageHeader title="Hours" />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
@@ -86,8 +86,8 @@ export default function AvailabilityForm() {
               </FieldSet>
             </FieldGroup>
           </div>
-        </BrutalistPageShell>
-        <BrutalistSaveBar
+        </OhPageShell>
+        <OhSaveBar
           isPending={saveSchedule.isPending}
           isDirty={form.formState.isDirty || seededFromDefault}
           labels={{

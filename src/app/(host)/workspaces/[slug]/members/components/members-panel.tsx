@@ -11,11 +11,11 @@ import { useRevokeInvitation } from "@/lib/mutations/use-revoke-invitation";
 import { useResendInvitation } from "@/lib/mutations/use-resend-invitation";
 import { useUpdateInvitationRole } from "@/lib/mutations/use-update-invitation-role";
 import { Button } from "@/components/ui/button";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
 // Members panel for /workspaces/<slug>/members. Three sections
@@ -45,8 +45,8 @@ export default function MembersPanel({ slug }: { slug: string }) {
   const isOwner = workspace?.callerRole === "OWNER";
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader title={workspace?.name ?? t("title")} />
+    <OhPageShell>
+      <OhPageHeader title={workspace?.name ?? t("title")} />
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
         <Link
@@ -82,7 +82,7 @@ export default function MembersPanel({ slug }: { slug: string }) {
             {membersLoading ? (
               <p className="text-[13px] opacity-55">{t("loading")}</p>
             ) : !members || members.length === 0 ? (
-              <BrutalistInlineEmpty>{t("listEmpty")}</BrutalistInlineEmpty>
+              <OhInlineEmpty>{t("listEmpty")}</OhInlineEmpty>
             ) : (
               <ul role="list" aria-labelledby="members-legend" className="flex flex-col gap-2.5">
                 {members.map((m) => (
@@ -115,7 +115,7 @@ export default function MembersPanel({ slug }: { slug: string }) {
             {invitationsLoading ? (
               <p className="text-[13px] opacity-55">{t("loading")}</p>
             ) : !invitations || invitations.length === 0 ? (
-              <BrutalistInlineEmpty>{t("invitationsEmpty")}</BrutalistInlineEmpty>
+              <OhInlineEmpty>{t("invitationsEmpty")}</OhInlineEmpty>
             ) : (
               <ul
                 role="list"
@@ -141,7 +141,7 @@ export default function MembersPanel({ slug }: { slug: string }) {
           </div>
         </section>
       </div>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }
 

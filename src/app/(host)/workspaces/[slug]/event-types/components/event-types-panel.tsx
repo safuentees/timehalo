@@ -6,11 +6,11 @@ import { ArrowLeftIcon, UsersIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteEventType } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
 import { EventTypeCreateDialog } from "./event-type-create-dialog";
 import { EventTypeEditDialog } from "./event-type-edit-dialog";
 import { HostPoolDialog } from "./host-pool-dialog";
@@ -34,8 +34,8 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
   const canWrite = callerScopes.includes("workspace.write");
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader title={workspace?.name ?? "Event types"} />
+    <OhPageShell>
+      <OhPageHeader title={workspace?.name ?? "Event types"} />
 
       <div className="mt-4">
         <Link
@@ -60,9 +60,9 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
             {isLoading ? (
               <p className="text-[13px] opacity-55">Loading…</p>
             ) : !eventTypes || eventTypes.length === 0 ? (
-              <BrutalistInlineEmpty>
+              <OhInlineEmpty>
                 No event types yet. Create one to start accepting bookings.
-              </BrutalistInlineEmpty>
+              </OhInlineEmpty>
             ) : (
               <ul
                 role="list"
@@ -83,7 +83,7 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
           </div>
         </section>
       </div>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }
 
