@@ -8,6 +8,7 @@ import { useBillingPortal } from "@/lib/mutations/use-billing-portal";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhSelect } from "@/components/oh/oh-select";
 
 // Workspace billing section (B3-UI). Closes the surface gap left by
 // `e76402d` — backend procedures shipped, this is the operator-facing
@@ -146,18 +147,21 @@ function BillingForWorkspace({
           <label htmlFor="billing-workspace" className="oh-legend">
             {t("workspaceLabel")}
           </label>
-          <select
-            id="billing-workspace"
-            value={slug}
-            onChange={(e) => onSlugChange(e.target.value)}
-            className="oh-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
-          >
-            {workspaces.map((w) => (
-              <option key={w.slug} value={w.slug}>
-                {w.name}
-              </option>
-            ))}
-          </select>
+          <div className="mt-2">
+            <OhSelect
+              id="billing-workspace"
+              value={slug}
+              onChange={(e) => onSlugChange(e.target.value)}
+              wrapperClassName="w-fit"
+              className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+            >
+              {workspaces.map((w) => (
+                <option key={w.slug} value={w.slug}>
+                  {w.name}
+                </option>
+              ))}
+            </OhSelect>
+          </div>
         </div>
       ) : null}
 

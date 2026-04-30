@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhSelect } from "@/components/oh/oh-select";
 
 // Transfer ownership picker. Eligible recipients = workspace members
 // other than the current owner. The user picks one + a ConfirmDialog
@@ -56,12 +57,12 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
             <label htmlFor="transfer-target" className="oh-legend">
               {t("transferTargetLabel")}
             </label>
-            <select
+            <OhSelect
               id="transfer-target"
               value={pickedUserId}
               onChange={(e) => setPickedUserId(e.target.value)}
               disabled={transfer.isPending}
-              className="oh-input w-full font-[family-name:var(--oh-mono)] text-[13px]"
+              className="font-[family-name:var(--oh-mono)] text-[13px]"
             >
               <option value="">{t("transferPlaceholder")}</option>
               {eligible.map((m) => {
@@ -73,7 +74,7 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
                   </option>
                 );
               })}
-            </select>
+            </OhSelect>
 
             <div className="flex justify-end">
               <ConfirmDialog

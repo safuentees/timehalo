@@ -8,6 +8,7 @@ import { z } from "zod";
 import { useCreateWorkflow } from "@/lib/mutations/use-create-workflow";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError } from "@/components/ui/field";
+import { OhSelect } from "@/components/oh/oh-select";
 import {
   RESPONSIVE_MODAL_BODY_CLASS,
   ResponsiveModal,
@@ -178,18 +179,20 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>{t("fieldTrigger")}</FieldLabel>
-              <select
-                {...field}
-                id={field.name}
-                aria-invalid={fieldState.invalid}
-                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
-              >
-                {TRIGGERS.map((v) => (
-                  <option key={v} value={v}>
-                    {t(`trigger_${v}`)}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-3">
+                <OhSelect
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="font-[family-name:var(--oh-mono)] text-[14px]"
+                >
+                  {TRIGGERS.map((v) => (
+                    <option key={v} value={v}>
+                      {t(`trigger_${v}`)}
+                    </option>
+                  ))}
+                </OhSelect>
+              </div>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
                 className="oh-field-error"
@@ -236,18 +239,20 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>{t("fieldAction")}</FieldLabel>
-              <select
-                {...field}
-                id={field.name}
-                aria-invalid={fieldState.invalid}
-                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
-              >
-                {ACTIONS.map((v) => (
-                  <option key={v} value={v}>
-                    {t(`action_${v}`)}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-3">
+                <OhSelect
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="font-[family-name:var(--oh-mono)] text-[14px]"
+                >
+                  {ACTIONS.map((v) => (
+                    <option key={v} value={v}>
+                      {t(`action_${v}`)}
+                    </option>
+                  ))}
+                </OhSelect>
+              </div>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
                 className="oh-field-error"
@@ -264,19 +269,21 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 <FieldLabel htmlFor={field.name}>
                   {t("fieldTemplate")}
                 </FieldLabel>
-                <select
-                  {...field}
-                  value={field.value ?? ""}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
-                >
-                  {TEMPLATES.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-3">
+                  <OhSelect
+                    {...field}
+                    value={field.value ?? ""}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="font-[family-name:var(--oh-mono)] text-[14px]"
+                  >
+                    {TEMPLATES.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </OhSelect>
+                </div>
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
                   className="oh-field-error"
@@ -292,20 +299,22 @@ function CreateForm({ onDone }: { onDone: () => void }) {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>{t("fieldEvent")}</FieldLabel>
-                <select
-                  {...field}
-                  value={field.value ?? ""}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
-                >
-                  <option value="">—</option>
-                  {WEBHOOK_EVENTS.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-3">
+                  <OhSelect
+                    {...field}
+                    value={field.value ?? ""}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="font-[family-name:var(--oh-mono)] text-[14px]"
+                  >
+                    <option value="">—</option>
+                    {WEBHOOK_EVENTS.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </OhSelect>
+                </div>
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
                   className="oh-field-error"

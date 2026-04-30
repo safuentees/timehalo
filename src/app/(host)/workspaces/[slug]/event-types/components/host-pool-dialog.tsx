@@ -9,6 +9,7 @@ import {
 } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import {
   ResponsiveModal,
@@ -168,7 +169,7 @@ function HostRow({
         </label>
         <label className="oh-eyebrow inline-flex items-center gap-2">
           Priority
-          <select
+          <OhSelect
             value={host.priority}
             disabled={!canWrite || updateHost.isPending}
             onChange={(e) =>
@@ -179,14 +180,15 @@ function HostRow({
                 priority: Number(e.target.value),
               })
             }
-            className="oh-input font-[family-name:var(--oh-mono)] text-[12px]"
+            wrapperClassName="w-fit"
+            className="font-[family-name:var(--oh-mono)] text-[12px]"
           >
             {[0, 1, 2, 3, 4].map((p) => (
               <option key={p} value={p}>
                 {p}
               </option>
             ))}
-          </select>
+          </OhSelect>
         </label>
         <label className="oh-eyebrow inline-flex items-center gap-2">
           Weight
@@ -285,11 +287,12 @@ function AddHostPicker({
     <div className="flex flex-wrap items-center gap-3 border-t-2 border-oh-line pt-5">
       <label className="oh-eyebrow inline-flex items-center gap-2">
         Add member
-        <select
+        <OhSelect
           value={picked}
           disabled={addHost.isPending}
           onChange={(e) => setPicked(e.target.value)}
-          className="oh-input min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
+          wrapperClassName="w-fit"
+          className="min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
         >
           <option value="">Select…</option>
           {candidates.map((m) => (
@@ -297,7 +300,7 @@ function AddHostPicker({
               {m.user.name ?? m.user.handle ?? m.user.email}
             </option>
           ))}
-        </select>
+        </OhSelect>
       </label>
       <Button
         type="button"

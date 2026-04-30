@@ -22,11 +22,24 @@ import { cn } from "@/lib/utils";
 // pr-9 reservation. `pointer-events-none` on the chevron keeps the
 // click target on the select itself (matters for native picker open).
 
-export type OhSelectProps = SelectHTMLAttributes<HTMLSelectElement>;
+export type OhSelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  /**
+   * Override the default `relative inline-block w-full` wrapper
+   * classes. Use when the select sits inside `inline-flex` chrome that
+   * shouldn't expand to full width (e.g. an inline label "Priority
+   * <select>" row in host-pool-dialog).
+   */
+  wrapperClassName?: string;
+};
 
-export function OhSelect({ className, children, ...rest }: OhSelectProps) {
+export function OhSelect({
+  className,
+  wrapperClassName,
+  children,
+  ...rest
+}: OhSelectProps) {
   return (
-    <span className="relative inline-block w-full">
+    <span className={cn("relative inline-block w-full", wrapperClassName)}>
       <select
         {...rest}
         className={cn(
