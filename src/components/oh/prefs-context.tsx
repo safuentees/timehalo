@@ -3,12 +3,12 @@
 import {
   createContext,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import { useRequiredContext } from "@/hooks/use-required-context";
 
 export type Typeface = "grotesk" | "serif" | "mono";
@@ -36,17 +36,12 @@ export function OhPrefsProvider({
 }: {
   children?: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [typeface, setTypeface] = useState<Typeface>("grotesk");
   const [density, setDensity] = useState<Density>("airy");
   const [motion, setMotion] = useState(true);
 
   const { theme: userTheme, resolvedTheme, setTheme } = useTheme();
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   const theme = mounted ? resolvedTheme : undefined;
   const isDark = theme === "dark";
