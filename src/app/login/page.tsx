@@ -21,10 +21,13 @@ type SearchParams = Promise<{ error?: string }>;
 
 // Auth shell: paper-on-ink palette via oh tokens, no `h-screen
 // overflow-hidden` (mobile soft-keyboard would clip the form).
-// Ink-bordered card frames the form against the cream page bg so
-// the surface reads as a finished primitive, not a default starter.
-// Pattern: cal.com `apps/web/modules/auth/login-view.tsx` shell +
-// dub `apps/web/app/app.dub.co/(auth)/login/page.tsx` card framing.
+// No bordered card around the form — dub.co's auth pages render the
+// form directly on the page bg (`apps/web/app/app.dub.co/(auth)/
+// layout.tsx` — Toolbar + Grid bg + form column with no surrounding
+// container). Cal.com's card uses `bg-default` which IS the page bg,
+// so even there the card reads as a thickened page area, not a
+// popping container. Inputs carry their own oh-input border + paper
+// fill, so the form has plenty of structure without a wrapping shell.
 export default async function LoginPage({
   searchParams,
 }: {
@@ -56,9 +59,7 @@ export default async function LoginPage({
           </div>
         ) : null}
 
-        <div className="rounded-(--oh-r-sm) border-[1.5px] border-[color:var(--oh-line-strong)] bg-[color:var(--oh-paper)] px-5 py-6 sm:px-6">
-          <CredentialsForm />
-        </div>
+        <CredentialsForm />
 
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-oh-line" />

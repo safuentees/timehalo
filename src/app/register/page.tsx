@@ -21,9 +21,7 @@ export default function RegisterPage() {
           </p>
         </header>
 
-        <div className="rounded-(--oh-r-sm) border-[1.5px] border-[color:var(--oh-line-strong)] bg-[color:var(--oh-paper)] px-5 py-6 sm:px-6">
-          <RegisterForm />
-        </div>
+        <RegisterForm />
 
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-oh-line" />
