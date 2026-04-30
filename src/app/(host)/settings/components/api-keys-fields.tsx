@@ -30,12 +30,36 @@ export function ApiKeysFields() {
   const { data: workspaces, isLoading: workspacesLoading } =
     trpc.workspaces.list.useQuery();
 
-  // Picker selection is a controlled override. Null = "use the first
-  // workspace from the list" — derived at render time so we don't
+  // Picker selection is a controlled override. Null = "use the
+  // active workspace's slug" — derived at render time so we don't
   // need an effect to seed the state once the list arrives. React 19's
   // compiler ESLint rule blocks `setState` inside effects for this
   // exact pattern.
   const [pickedSlug, setPickedSlug] = useState<string | null>(null);
+
+  // B.PT17 — reset the local override when the active workspace
+  // changes (topbar switcher click + cookie flip). Without this, a
+  // user who manually picked workspace A from this section's
+  // dropdown stays pinned to A even after the topbar navigates to
+  // workspace B — the list shows A's keys while the topbar says B,
+  // which is the bug the audit on 2026-04-29 surfaced.
+  //
+  // React 19's "setState during render" pattern: compare the
+  // current value against a snapshot kept in state, sync the
+  // snapshot + reset the override in render. Triggers an immediate
+  // re-render on the next pass and avoids the
+  // `react-hooks/set-state-in-effect` rule.
+  const activeSlug =
+    workspaces?.find((w) => w.isActive)?.slug ??
+    workspaces?.[0]?.slug ??
+    null;
+  const [prevActiveSlug, setPrevActiveSlug] = useState<string | null>(
+    activeSlug,
+  );
+  if (activeSlug !== prevActiveSlug) {
+    setPrevActiveSlug(activeSlug);
+    setPickedSlug(null);
+  }
 
   return (
     <section aria-labelledby="api-keys-legend">
@@ -55,8 +79,7 @@ export function ApiKeysFields() {
           slug={
             pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
               ? pickedSlug
-              : (workspaces.find((w) => w.isActive)?.slug ??
-                  workspaces[0].slug)
+              : (activeSlug ?? workspaces[0].slug)
           }
           onSlugChange={setPickedSlug}
         />
