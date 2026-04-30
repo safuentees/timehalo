@@ -21,23 +21,18 @@ import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
   const { data, isLoading } = trpc.workflows.list.useQuery();
-  // Plan gate. workflows.create consults `requireFeature(plan,
-  // "workflows")` server-side; FREE workspaces 403 on submit. Surface
-  // the constraint inline so the user sees the lock before clicking.
-  // `planForUser` resolves via the user's primary workspace, so the
-  // UI mirrors that by reading the first owned workspace's plan.
-  const { data: workspaces } = trpc.workspaces.list.useQuery();
-  // B.PT6 — read the active workspace from the list flag, falling
-  // back to the first row when no cookie has been set yet. The plan
-  // gate matters per-workspace, so the surface always reflects the
-  // workspace the user just clicked into.
-  const activeSlug =
-    workspaces?.find((w) => w.isActive)?.slug ?? workspaces?.[0]?.slug;
-  const { data: plan } = trpc.billing.currentPlan.useQuery(
-    { slug: activeSlug ?? "" },
-    { enabled: Boolean(activeSlug) },
-  );
-  const isLocked = plan?.plan === "FREE";
+  // B.PT18 — workflows are user-scoped today (`Workflow.userId` is
+  // the only FK; no `workspaceId`). The server gate inside
+  // `workflows.create` calls `planForUser(ctx.user.id)`, which reads
+  // the user's primary owned workspace's Subscription. The UI mirrors
+  // that with `users.plan` so the lock state stays consistent with
+  // the procedure-level gate. Switching the topbar workspace no
+  // longer flips the lock — workflows aren't workspace-scoped, so
+  // they shouldn't appear to be. (Future SIGNAL-GATED row B.PT19
+  // tracks the migration to workspace-scoped workflows when a real
+  // need surfaces.)
+  const { data: planResp } = trpc.users.plan.useQuery();
+  const isLocked = planResp?.plan === "FREE";
 
   return (
     <section aria-labelledby="workflows-legend">

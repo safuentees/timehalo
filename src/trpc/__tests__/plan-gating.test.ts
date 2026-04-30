@@ -209,4 +209,43 @@ describe("A3 plan-gating", () => {
       ).rejects.toThrow(/Member cap reached for PRO.*\(5\)|FORBIDDEN/i);
     });
   });
+
+  // ── users.plan (B.PT18) ────────────────────────────────────────
+  // Mirrors the server-side `planForUser` resolution that
+  // `workflows.create` already gates on. Surfaces the same value
+  // to the client so the UI lock-icon stays consistent with the
+  // procedure-level gate. Decoupled from the topbar's active
+  // workspace — workflows are user-scoped, so switching workspace
+  // must not flip this.
+  describe("users.plan", () => {
+    it("FREE plan → returns FREE", async () => {
+      const caller = callRouter(fakeContext({ userId: owner.id }));
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("FREE");
+    });
+
+    it("PRO plan → returns PRO", async () => {
+      await setWorkspacePlan(await primaryWorkspaceId(owner.id), "PRO");
+      const caller = callRouter(fakeContext({ userId: owner.id }));
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("PRO");
+    });
+
+    it("ignores ctx.activeWorkspaceSlug — keys off the user's primary workspace", async () => {
+      // Set the primary workspace to PRO, then call with an
+      // `activeWorkspaceSlug` of a non-existent slug. `users.plan`
+      // must still return PRO since it resolves via `planForUser`,
+      // which uses the user's oldest owned workspace, not the
+      // cookie-derived active slug.
+      await setWorkspacePlan(await primaryWorkspaceId(owner.id), "PRO");
+      const caller = callRouter(
+        fakeContext({
+          userId: owner.id,
+          activeWorkspaceSlug: "nonexistent-slug-cookie",
+        }),
+      );
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("PRO");
+    });
+  });
 });
