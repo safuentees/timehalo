@@ -9,6 +9,7 @@ import { trpc } from "@/trpc/hooks";
 import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
 import { Field, FieldError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { OhSelect } from "@/components/oh/oh-select";
 import {
   DEFAULT_TIMEZONE,
   getBrowserTimezone,
@@ -59,19 +60,19 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             name="timezone"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid} className="mt-5">
-                <select
+                <OhSelect
                   {...field}
                   id={field.name}
                   aria-labelledby="timezone-legend"
                   aria-invalid={fieldState.invalid}
-                  className="oh-input w-full min-w-[260px] font-[family-name:var(--oh-mono)] text-[14px]"
+                  className="min-w-[260px] font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   {timezones.map((z) => (
                     <option key={z} value={z}>
                       {z}
                     </option>
                   ))}
-                </select>
+                </OhSelect>
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
                   className="oh-field-error"
