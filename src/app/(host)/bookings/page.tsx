@@ -14,6 +14,9 @@ export default async function BookingsPage() {
   await Promise.all([
     trpc.bookings.listForHost.prefetch(),
     trpc.users.featureFlags.prefetch(),
+    // users.me feeds the empty-state CTA's `/h/<handle>` link without
+    // a second roundtrip when the empty path renders.
+    trpc.users.me.prefetch(),
   ]);
 
   return (

@@ -5,6 +5,14 @@ type OhEmptyProps = {
   icon?: ComponentType<SVGProps<SVGSVGElement> & { strokeWidth?: number }>;
   title: ReactNode;
   description?: ReactNode;
+  /**
+   * Primary action for the empty state. Renders below the description
+   * with `mt-2` spacing. Pattern: cal.com `EmptyScreen.buttonText` +
+   * `buttonOnClick` slot — but as a flexible `ReactNode` so callers
+   * compose any button shape (Link, Button, dialog trigger). Audit
+   * `§4.2` finding: empties without an action read as dead-ends.
+   */
+  action?: ReactNode;
   className?: string;
   children?: ReactNode;
 };
@@ -13,6 +21,7 @@ export function OhEmpty({
   icon: Icon,
   title,
   description,
+  action,
   className,
   children,
 }: OhEmptyProps) {
@@ -38,6 +47,7 @@ export function OhEmpty({
           {description}
         </p>
       ) : null}
+      {action ? <div className="mt-2">{action}</div> : null}
       {children}
     </div>
   );
