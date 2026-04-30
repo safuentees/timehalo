@@ -1,12 +1,6 @@
-import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
-import { OhPageHeader } from "@/components/oh/page-header";
-import { OhPageShell } from "@/components/oh/page-shell";
-import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
-import { LiveQueue, type Tab } from "./components/bookings-list";
-import { BookingsTabs } from "./components/bookings-tabs";
-import { BookingsRowsBoundary } from "./components/bookings-rows-boundary";
-import { BookingsRowsSkeleton } from "./components/bookings-rows-skeleton";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { BookingsList, type Tab } from "./components/bookings-list";
 
 const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
 
@@ -20,24 +14,20 @@ export default async function BookingsPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const params = await searchParams;
-  const tab: Tab = isTab(params.tab) ? params.tab : "upcoming";
-  const t = await getTranslations("Bookings");
+  const activeTab: Tab = isTab(params.tab) ? params.tab : "upcoming";
+
+  const trpc = await createPrivateSSRHelper();
+  await Promise.all([
+    trpc.bookings.listForHost.prefetch(),
+    trpc.users.featureFlags.prefetch(),
+    trpc.users.me.prefetch(),
+  ]);
 
   return (
     <main className="oh-main">
-      <OhPageShell>
-        <OhPageHeader title={t("title")} aside={<LiveQueue />} />
-
-        <OnboardingChecklist />
-
-        <BookingsTabs activeTab={tab} />
-
-        <div className="mt-6">
-          <Suspense fallback={<BookingsRowsSkeleton />}>
-            <BookingsRowsBoundary />
-          </Suspense>
-        </div>
-      </OhPageShell>
+      <HydrationBoundary state={dehydrate(trpc.queryClient)}>
+        <BookingsList activeTab={activeTab} />
+      </HydrationBoundary>
     </main>
   );
 }
