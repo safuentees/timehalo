@@ -169,6 +169,11 @@
   --oh-line-soft: var(--oh-line-default);
   --oh-line-firm: var(--oh-line-default);
   --oh-line-dashed: var(--oh-line-default);
+  /* Quieter than line-default — empty-state / placeholder dotted
+     outlines that should read as the page background, not as a
+     framed CTA. ~12% ink so the dots fade into the paper at a
+     glance. */
+  --oh-line-placeholder: color-mix(in srgb, var(--oh-ink) 12%, transparent);
   --oh-tint-hover: var(--oh-tint);
   --oh-tint-active: var(--oh-tint);
   --oh-placeholder: var(--oh-content-subtle);

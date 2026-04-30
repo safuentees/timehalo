@@ -9,12 +9,15 @@ import { cn } from "@/lib/utils";
 // "reads as a popping placeholder against a sparse page" was the old
 // default; shadcn's own Empty primitive ships borderless and only
 // adds the dashed border in the explicit `empty-outline` variant. We
-// follow. Consumers who genuinely want the framed look can compose:
+// follow. Consumers who genuinely want the framed look can compose
+// with the soft placeholder token (~12% ink, fades into the bg):
 //
-//   <OhEmpty className="border border-dashed border-oh-line-strong">
+//   <OhEmpty className="border border-dotted border-[var(--oh-line-placeholder)]">
 //
 // Pattern reference: shadcn `registry/new-york-v4/ui/empty.tsx` +
-// `examples/empty-{demo,outline,icon,background}.tsx`.
+// `examples/empty-{demo,outline,icon,background}.tsx`. Note: shadcn
+// defaults to dashed; we use dotted because it pairs better with the
+// soft placeholder color and reads as a hint, not a CTA outline.
 
 function OhEmpty({ className, ...props }: ComponentProps<"div">) {
   return (

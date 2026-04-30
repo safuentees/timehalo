@@ -64,8 +64,9 @@ When in doubt, use card-stack — it scales better as items gain affordances. Sw
 ## Empty states + icons
 
 - Two patterns, picked by surface size:
-  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): use `<OhInlineEmpty>` from `src/components/oh/inline-empty.tsx`. One-line muted text in a tight dashed border. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
-  - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `OhEmpty` from `src/components/oh/oh-empty.tsx`. Renders icon (optional) + bold Space Grotesk title + 13px muted description in a `border-2 border-dashed border-oh-line-strong p-10` frame.
+  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): use `<OhInlineEmpty>` from `src/components/oh/inline-empty.tsx`. One-line muted text in a tight 1.5px **dotted** placeholder border (`border-[var(--oh-line-placeholder)]`, ~12% ink). Reads as a hint, not a framed CTA. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
+  - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `OhEmpty` from `src/components/oh/oh-empty.tsx`. Default is **borderless** (per shadcn's `Empty` primitive). When a frame is genuinely needed, opt-in via `className="border border-dotted border-[var(--oh-line-placeholder)]"` — same soft placeholder color as the inline empty. The earlier `border-2 border-dashed border-oh-line-strong` shape was dropped in B.PT35 because the heavy dashed frame read as a popping placeholder against a sparse page.
+  - **Placeholder color token**: `--oh-line-placeholder` (defined in `globals.css`, ~12% ink) is the canonical color for any "soft / hint / placeholder" outline — empty states, drop-target hints, "no calendars yet" stubs. Don't use `border-oh-line` (100% ink, structural) for these surfaces; the structural color reads as a CTA outline.
 - Icon convention (whenever an icon sits inside a placeholder/empty state):
   - Bare lucide line icon — never a muted-grey rounded background tile (that's stock shadcn).
   - Size: `size-8` (32px) for empties, `size-4` (16px) inline with text.

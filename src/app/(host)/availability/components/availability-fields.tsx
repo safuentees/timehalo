@@ -142,9 +142,12 @@ export function AvailabilityFields() {
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
           className={cn(
-            // Mobile: full-width dashed CTA — clear "tap to add" target
-            // at the bottom of the list, sized for thumb reach.
-            "w-full justify-center border-dashed",
+            // Mobile: full-width dotted CTA — clear "tap to add" target
+            // at the bottom of the list, sized for thumb reach. Soft
+            // placeholder border (--oh-line-placeholder, ~12% ink)
+            // overrides the ohGhost variant's 100% ink border so the
+            // dots fade into the page bg.
+            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)]",
             // Desktop: content-sized text affordance, left-aligned. No
             // border, no resting bg — gets out of the list's way and
             // doesn't compete with the visually weighted block chips
@@ -174,7 +177,7 @@ export function AvailabilityFields() {
 
 function EmptyBlocks() {
   return (
-    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dashed border-[var(--oh-line-dashed)] px-5 py-7 text-left">
+    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
       <p className="oh-eyebrow">
         No hours set
       </p>
