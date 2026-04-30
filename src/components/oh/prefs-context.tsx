@@ -14,7 +14,7 @@ import { useRequiredContext } from "@/hooks/use-required-context";
 export type Typeface = "grotesk" | "serif" | "mono";
 export type Density = "airy" | "dense";
 
-export type BrutalistPrefsContextValue = {
+export type OhPrefsContextValue = {
   typeface: Typeface;
   setTypeface: (v: Typeface) => void;
   density: Density;
@@ -27,11 +27,11 @@ export type BrutalistPrefsContextValue = {
   toggleTheme: () => void;
 };
 
-export const BrutalistPrefsContext =
-  createContext<BrutalistPrefsContextValue | null>(null);
-BrutalistPrefsContext.displayName = "BrutalistPrefsContext.Provider";
+export const OhPrefsContext =
+  createContext<OhPrefsContextValue | null>(null);
+OhPrefsContext.displayName = "OhPrefsContext.Provider";
 
-export function BrutalistPrefsProvider({
+export function OhPrefsProvider({
   children,
 }: {
   children?: ReactNode;
@@ -61,7 +61,7 @@ export function BrutalistPrefsProvider({
     );
   }, [userTheme, setTheme]);
 
-  const value = useMemo<BrutalistPrefsContextValue>(
+  const value = useMemo<OhPrefsContextValue>(
     () => ({
       typeface,
       setTypeface,
@@ -78,11 +78,11 @@ export function BrutalistPrefsProvider({
   );
 
   return (
-    <BrutalistPrefsContext.Provider value={value}>
+    <OhPrefsContext.Provider value={value}>
       {children}
-    </BrutalistPrefsContext.Provider>
+    </OhPrefsContext.Provider>
   );
 }
 
-export const useBrutalistPrefs = () =>
-  useRequiredContext(BrutalistPrefsContext);
+export const useOhPrefs = () =>
+  useRequiredContext(OhPrefsContext);

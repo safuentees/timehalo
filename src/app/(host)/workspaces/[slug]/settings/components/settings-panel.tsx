@@ -4,8 +4,8 @@ import { Link } from "next-view-transitions";
 import { useTranslations } from "next-intl";
 import { ArrowLeftIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
 import { GeneralSection } from "./general-section";
 import { TransferOwnershipSection } from "./transfer-ownership-section";
 import { LeaveSection } from "./leave-section";
@@ -21,8 +21,8 @@ export default function SettingsPanel({ slug }: { slug: string }) {
   const isOwner = workspace?.callerRole === "OWNER";
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader title={workspace?.name ?? t("title")} />
+    <OhPageShell>
+      <OhPageHeader title={workspace?.name ?? t("title")} />
 
       <div className="mt-4">
         <Link
@@ -53,6 +53,6 @@ export default function SettingsPanel({ slug }: { slug: string }) {
           <DangerSection slug={slug} workspaceSlug={slug} />
         ) : null}
       </div>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }

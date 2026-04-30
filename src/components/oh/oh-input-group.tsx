@@ -9,7 +9,7 @@ import {
   InputGroupText,
 } from "@/components/ui/input-group";
 
-function BrutalistInputGroup({
+function OhInputGroup({
   className,
   ...props
 }: React.ComponentProps<typeof InputGroup>) {
@@ -28,7 +28,7 @@ function BrutalistInputGroup({
   );
 }
 
-function BrutalistInputGroupAddon({
+function OhInputGroupAddon({
   className,
   align,
   ...props
@@ -51,7 +51,7 @@ function BrutalistInputGroupAddon({
   );
 }
 
-function BrutalistInputGroupText({
+function OhInputGroupText({
   className,
   ...props
 }: React.ComponentProps<typeof InputGroupText>) {
@@ -67,7 +67,7 @@ function BrutalistInputGroupText({
   );
 }
 
-function BrutalistInputGroupInput({
+function OhInputGroupInput({
   className,
   ...props
 }: React.ComponentProps<typeof InputGroupInput>) {
@@ -84,8 +84,8 @@ function BrutalistInputGroupInput({
 }
 
 export {
-  BrutalistInputGroup,
-  BrutalistInputGroupAddon,
-  BrutalistInputGroupText,
-  BrutalistInputGroupInput,
+  OhInputGroup,
+  OhInputGroupAddon,
+  OhInputGroupText,
+  OhInputGroupInput,
 };

@@ -14,7 +14,7 @@ import {
   WORKSPACE_SLUG_MAX,
   workspaceSlugSchema,
 } from "@/lib/workspaces";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 type FormShape = { name: string; slug: string };
 

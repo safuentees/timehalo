@@ -9,7 +9,7 @@ export type SaveBarLabels = {
   saved: string;
 };
 
-export function BrutalistSaveBar({
+export function OhSaveBar({
   isPending,
   isDirty,
   labels,

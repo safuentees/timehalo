@@ -9,7 +9,7 @@ import {
   isLocale,
   type Locale,
 } from "@/i18n/locales";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 export function LanguageFields() {
   const t = useTranslations("Settings");

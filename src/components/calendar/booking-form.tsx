@@ -5,11 +5,11 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {
-  BrutalistInputGroup,
-  BrutalistInputGroupAddon,
-  BrutalistInputGroupInput,
-  BrutalistInputGroupText,
-} from "@/components/brutalist/brutalist-input-group";
+  OhInputGroup,
+  OhInputGroupAddon,
+  OhInputGroupInput,
+  OhInputGroupText,
+} from "@/components/oh/oh-input-group";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
 import { trpc } from "@/trpc/hooks";
@@ -79,8 +79,8 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                 name="visitorName"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <BrutalistInputGroup>
-                      <BrutalistInputGroupInput
+                    <OhInputGroup>
+                      <OhInputGroupInput
                         {...field}
                         id={field.name}
                         placeholder="Alex"
@@ -88,10 +88,10 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                         autoCapitalize="words"
                         aria-invalid={fieldState.invalid}
                       />
-                      <BrutalistInputGroupAddon align="inline-start">
-                        <BrutalistInputGroupText>Name</BrutalistInputGroupText>
-                      </BrutalistInputGroupAddon>
-                    </BrutalistInputGroup>
+                      <OhInputGroupAddon align="inline-start">
+                        <OhInputGroupText>Name</OhInputGroupText>
+                      </OhInputGroupAddon>
+                    </OhInputGroup>
                     <FieldError
                       errors={fieldState.error ? [fieldState.error] : undefined}
                       className="oh-field-error"
@@ -107,8 +107,8 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                 name="visitorEmail"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <BrutalistInputGroup>
-                      <BrutalistInputGroupInput
+                    <OhInputGroup>
+                      <OhInputGroupInput
                         {...field}
                         id={field.name}
                         type="email"
@@ -119,10 +119,10 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                         spellCheck={false}
                         aria-invalid={fieldState.invalid}
                       />
-                      <BrutalistInputGroupAddon align="inline-start">
-                        <BrutalistInputGroupText>Email</BrutalistInputGroupText>
-                      </BrutalistInputGroupAddon>
-                    </BrutalistInputGroup>
+                      <OhInputGroupAddon align="inline-start">
+                        <OhInputGroupText>Email</OhInputGroupText>
+                      </OhInputGroupAddon>
+                    </OhInputGroup>
                     <FieldError
                       errors={fieldState.error ? [fieldState.error] : undefined}
                       className="oh-field-error"

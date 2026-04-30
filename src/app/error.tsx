@@ -5,7 +5,7 @@ import * as Sentry from "@sentry/nextjs";
 import {
   ErrorShell,
   ErrorShellLink,
-} from "@/components/brutalist/error-shell";
+} from "@/components/oh/error-shell";
 import { Button } from "@/components/ui/button";
 
 export default function ErrorPage({

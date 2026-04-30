@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode, SVGProps } from "react";
 import { cn } from "@/lib/utils";
 
-type BrutalistEmptyProps = {
+type OhEmptyProps = {
   icon?: ComponentType<SVGProps<SVGSVGElement> & { strokeWidth?: number }>;
   title: ReactNode;
   description?: ReactNode;
@@ -9,13 +9,13 @@ type BrutalistEmptyProps = {
   children?: ReactNode;
 };
 
-export function BrutalistEmpty({
+export function OhEmpty({
   icon: Icon,
   title,
   description,
   className,
   children,
-}: BrutalistEmptyProps) {
+}: OhEmptyProps) {
   return (
     <div
       className={cn(

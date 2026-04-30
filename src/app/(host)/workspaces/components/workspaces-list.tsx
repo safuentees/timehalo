@@ -4,10 +4,10 @@ import { Link } from "next-view-transitions";
 import { useTranslations } from "next-intl";
 import { ArrowRightIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { SectionHeader } from "@/components/oh/section-header";
 import { WorkspaceCreateDialog } from "./workspace-create-dialog";
 
 export default function WorkspacesList() {
@@ -15,8 +15,8 @@ export default function WorkspacesList() {
   const { data, isLoading } = trpc.workspaces.list.useQuery();
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader title={t("title")} />
+    <OhPageShell>
+      <OhPageHeader title={t("title")} />
 
       <section
         aria-labelledby="workspaces-legend"
@@ -33,7 +33,7 @@ export default function WorkspacesList() {
           {isLoading ? (
             <p className="text-[13px] opacity-55">{t("loading")}</p>
           ) : !data || data.length === 0 ? (
-            <BrutalistInlineEmpty>{t("listEmpty")}</BrutalistInlineEmpty>
+            <OhInlineEmpty>{t("listEmpty")}</OhInlineEmpty>
           ) : (
             <ul
               role="list"
@@ -53,7 +53,7 @@ export default function WorkspacesList() {
           )}
         </div>
       </section>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }
 

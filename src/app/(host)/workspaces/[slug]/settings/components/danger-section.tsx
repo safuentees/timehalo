@@ -19,12 +19,12 @@ import {
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
 import {
-  BrutalistInputGroup,
-  BrutalistInputGroupAddon,
-  BrutalistInputGroupInput,
-  BrutalistInputGroupText,
-} from "@/components/brutalist/brutalist-input-group";
-import { SectionHeader } from "@/components/brutalist/section-header";
+  OhInputGroup,
+  OhInputGroupAddon,
+  OhInputGroupInput,
+  OhInputGroupText,
+} from "@/components/oh/oh-input-group";
+import { SectionHeader } from "@/components/oh/section-header";
 
 export function DangerSection({
   slug,
@@ -143,8 +143,8 @@ function DeleteForm({
           name="confirmSlug"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <BrutalistInputGroup>
-                <BrutalistInputGroupInput
+              <OhInputGroup>
+                <OhInputGroupInput
                   {...field}
                   id={field.name}
                   type="text"
@@ -156,12 +156,12 @@ function DeleteForm({
                   data-1p-ignore
                   aria-invalid={fieldState.invalid}
                 />
-                <BrutalistInputGroupAddon align="inline-start">
-                  <BrutalistInputGroupText>
+                <OhInputGroupAddon align="inline-start">
+                  <OhInputGroupText>
                     {t("slugLabel")}
-                  </BrutalistInputGroupText>
-                </BrutalistInputGroupAddon>
-              </BrutalistInputGroup>
+                  </OhInputGroupText>
+                </OhInputGroupAddon>
+              </OhInputGroup>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
                 className="oh-field-error"

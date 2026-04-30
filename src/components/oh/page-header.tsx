@@ -6,7 +6,7 @@ type Props = {
   aside?: ReactNode;
 };
 
-export function BrutalistPageHeader({ kicker, title, aside }: Props) {
+export function OhPageHeader({ kicker, title, aside }: Props) {
   return (
     <div className="border-b-2 border-oh-line-strong pb-6">
       {kicker ? (

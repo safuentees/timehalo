@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];

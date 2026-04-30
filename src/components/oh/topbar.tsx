@@ -2,7 +2,7 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export function BrutalistTopbar() {
+export function OhTopbar() {
   return (
     <div
       className="oh-topbar oh-reveal md:hidden"

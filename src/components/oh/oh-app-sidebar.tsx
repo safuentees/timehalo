@@ -51,7 +51,7 @@ function sidebarNavId(href: string) {
   return `sidebar-nav-${slug}`;
 }
 
-export function BrutalistAppSidebar() {
+export function OhAppSidebar() {
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;

@@ -13,11 +13,11 @@ import {
 import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
 import { Button } from "@/components/ui/button";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { BrutalistSection } from "@/components/brutalist/section";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { OhSection } from "@/components/oh/section";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 
 type Tab = "info" | "history";
 
@@ -91,14 +91,14 @@ export default function BookingDetail({
   if (!data) {
     const loadingBody = (
       <>
-        <BrutalistPageHeader title={t("title")} />
+        <OhPageHeader title={t("title")} />
         <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
       </>
     );
     return isDrawer ? (
       <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
     ) : (
-      <BrutalistPageShell tight>{loadingBody}</BrutalistPageShell>
+      <OhPageShell tight>{loadingBody}</OhPageShell>
     );
   }
 
@@ -136,7 +136,7 @@ export default function BookingDetail({
         </div>
       </div>
 
-      <BrutalistPageHeader
+      <OhPageHeader
         title={data.visitorName}
         aside={<StatusPill status={status} />}
       />
@@ -239,7 +239,7 @@ export default function BookingDetail({
   return isDrawer ? (
     <div className="flex flex-col p-5 sm:p-6">{body}</div>
   ) : (
-    <BrutalistPageShell tight>{body}</BrutalistPageShell>
+    <OhPageShell tight>{body}</OhPageShell>
   );
 }
 
@@ -400,7 +400,7 @@ function InfoView({
 
   return (
     <>
-      <BrutalistSection title={t("when")}>
+      <OhSection title={t("when")}>
         <div className="flex flex-col gap-2">
           <p className="text-[15px] font-bold tabular-nums">
             {fmtDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
@@ -416,9 +416,9 @@ function InfoView({
             </div>
           ) : null}
         </div>
-      </BrutalistSection>
+      </OhSection>
 
-      <BrutalistSection title={t("who")}>
+      <OhSection title={t("who")}>
         <div className="flex flex-col gap-3">
           <div>
             <p className="text-[14px] font-bold">{data.visitorName}</p>
@@ -436,18 +436,18 @@ function InfoView({
             </div>
           ) : null}
         </div>
-      </BrutalistSection>
+      </OhSection>
 
       {data.question ? (
-        <BrutalistSection title={t("question")}>
+        <OhSection title={t("question")}>
           <p className="text-[14px] leading-[1.55] opacity-85">
             &ldquo;{data.question}&rdquo;
           </p>
-        </BrutalistSection>
+        </OhSection>
       ) : null}
 
       {(data.eventType !== null || data.referrer !== null) ? (
-        <BrutalistSection title={t("source")}>
+        <OhSection title={t("source")}>
           <div className="flex flex-col gap-3">
             {data.eventType ? (
               <div className="flex items-baseline justify-between gap-x-4">
@@ -466,11 +466,11 @@ function InfoView({
               </div>
             ) : null}
           </div>
-        </BrutalistSection>
+        </OhSection>
       ) : null}
 
       {data.pendingTasks.length > 0 ? (
-        <BrutalistSection title={t("scheduled")}>
+        <OhSection title={t("scheduled")}>
           <ul role="list" className="flex flex-col gap-2">
             {data.pendingTasks.map((task) => (
               <li
@@ -486,11 +486,11 @@ function InfoView({
               </li>
             ))}
           </ul>
-        </BrutalistSection>
+        </OhSection>
       ) : null}
 
       {data.deliveries.length > 0 ? (
-        <BrutalistSection title={t("delivered")}>
+        <OhSection title={t("delivered")}>
           <ul role="list" className="flex flex-col gap-2">
             {data.deliveries.map((delivery) => (
               <li
@@ -520,11 +520,11 @@ function InfoView({
               </li>
             ))}
           </ul>
-        </BrutalistSection>
+        </OhSection>
       ) : null}
 
       {data.rescheduledFrom ? (
-        <BrutalistSection title={t("rescheduledFrom")}>
+        <OhSection title={t("rescheduledFrom")}>
           <Link
             href={`/bookings/${data.rescheduledFrom.publicUid}`}
             className="oh-eyebrow tabular-nums underline underline-offset-2 opacity-75 hover:opacity-100"
@@ -533,7 +533,7 @@ function InfoView({
               new Date(data.rescheduledFrom.slotStart as unknown as string),
             )}
           </Link>
-        </BrutalistSection>
+        </OhSection>
       ) : null}
     </>
   );
@@ -554,10 +554,10 @@ function HistoryView({
 }) {
   const t = useTranslations("BookingDetail");
   if (audit.length === 0) {
-    return <BrutalistInlineEmpty>{t("historyEmpty")}</BrutalistInlineEmpty>;
+    return <OhInlineEmpty>{t("historyEmpty")}</OhInlineEmpty>;
   }
   return (
-    <BrutalistSection title={t("timeline")}>
+    <OhSection title={t("timeline")}>
       <ul role="list" className="flex flex-col gap-4">
         {audit.map((row) => {
           const at = new Date(row.createdAt as unknown as string);
@@ -589,6 +589,6 @@ function HistoryView({
           );
         })}
       </ul>
-    </BrutalistSection>
+    </OhSection>
   );
 }

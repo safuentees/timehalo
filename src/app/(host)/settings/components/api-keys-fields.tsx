@@ -7,9 +7,9 @@ import { trpc } from "@/trpc/hooks";
 import { useRevokeApiKey } from "@/lib/mutations/use-revoke-api-key";
 import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 
 export function ApiKeysFields() {
   const t = useTranslations("ApiKeys");
@@ -125,7 +125,7 @@ function ApiKeysForWorkspace({
 function UpgradePrompt() {
   const t = useTranslations("ApiKeys");
   return (
-    <BrutalistInlineEmpty>
+    <OhInlineEmpty>
       {t("upgradePrompt")}{" "}
       <a
         href="#billing-legend"
@@ -133,7 +133,7 @@ function UpgradePrompt() {
       >
         {t("upgradeLink")}
       </a>
-    </BrutalistInlineEmpty>
+    </OhInlineEmpty>
   );
 }
 
@@ -216,14 +216,14 @@ function ApiKeyRow({
 function NoWorkspaceEmpty() {
   const t = useTranslations("ApiKeys");
   return (
-    <BrutalistInlineEmpty className="mt-5">
+    <OhInlineEmpty className="mt-5">
       {t("noWorkspaceEmpty")}
-    </BrutalistInlineEmpty>
+    </OhInlineEmpty>
   );
 }
 
 function NoKeysEmpty() {
   const t = useTranslations("ApiKeys");
-  return <BrutalistInlineEmpty>{t("noKeysEmpty")}</BrutalistInlineEmpty>;
+  return <OhInlineEmpty>{t("noKeysEmpty")}</OhInlineEmpty>;
 }
 

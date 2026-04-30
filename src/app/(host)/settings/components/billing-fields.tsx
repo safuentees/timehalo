@@ -6,8 +6,8 @@ import { trpc } from "@/trpc/hooks";
 import { useBillingCheckout } from "@/lib/mutations/use-billing-checkout";
 import { useBillingPortal } from "@/lib/mutations/use-billing-portal";
 import { Button } from "@/components/ui/button";
-import { SectionHeader } from "@/components/brutalist/section-header";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+import { SectionHeader } from "@/components/oh/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
 
 type Workspace = { slug: string; name: string; isActive: boolean };
 type PlanTier = "FREE" | "PRO" | "TEAM";
@@ -66,9 +66,9 @@ export function BillingFields() {
       {workspacesLoading ? (
         <p className="mt-5 text-[13px] opacity-55">{t("loading")}</p>
       ) : !workspaces || workspaces.length === 0 ? (
-        <BrutalistInlineEmpty className="mt-5">
+        <OhInlineEmpty className="mt-5">
           {t("noWorkspaceEmpty")}
-        </BrutalistInlineEmpty>
+        </OhInlineEmpty>
       ) : (
         <BillingForWorkspace
           workspaces={workspaces}

@@ -10,7 +10,7 @@ import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
-export function BrutalistDashboardBar() {
+export function OhDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);

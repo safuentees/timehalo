@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLeaveWorkspace } from "@/lib/mutations/use-leave-workspace";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
 
 export function LeaveSection({
   slug,
