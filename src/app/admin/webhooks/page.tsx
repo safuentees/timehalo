@@ -23,7 +23,7 @@ export default async function AdminWebhooksPage() {
     <section className="flex flex-col gap-10">
       <div>
         <p className="oh-legend">
-          Subscriptions · {subs.length}
+          Subscriptions ({subs.length})
         </p>
         <ul role="list" className="mt-5 flex flex-col gap-3">
           {subs.map((s) => (
@@ -34,7 +34,10 @@ export default async function AdminWebhooksPage() {
               <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
                 <div className="min-w-0">
                   <p className="oh-eyebrow">
-                    @{s.user.handle ?? "no-handle"} · {s.user.email}
+                    @{s.user.handle ?? "no-handle"}
+                  </p>
+                  <p className="mt-1 font-[family-name:var(--oh-mono)] text-[11px] opacity-65">
+                    {s.user.email}
                   </p>
                   <h2 className="mt-2 truncate text-[15px] font-bold">
                     {s.subscriberUrl}
@@ -62,7 +65,7 @@ export default async function AdminWebhooksPage() {
 
       <div>
         <p className="oh-legend">
-          Permanently failed deliveries · {failed.length}
+          Permanently failed deliveries ({failed.length})
         </p>
         <ul role="list" className="mt-5 flex flex-col gap-3">
           {failed.map((t) => (
@@ -71,7 +74,7 @@ export default async function AdminWebhooksPage() {
               className="border-[1.5px] border-oh-line p-4"
             >
               <p className="oh-legend">
-                Task #{t.id} · {t.attempts}/{t.maxAttempts} attempts
+                Task #{t.id} ({t.attempts}/{t.maxAttempts} attempts)
               </p>
               <p className="mt-1 font-[family-name:var(--oh-mono)] text-[12px] opacity-90">
                 {t.referenceUid ?? "(no ref)"}
