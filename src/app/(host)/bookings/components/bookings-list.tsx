@@ -17,8 +17,23 @@ import {
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 type Tab = "upcoming" | "past";
+
+type Booking = {
+  id: number;
+  publicUid: string;
+  visitorName: string;
+  visitorEmail: string;
+  question: string | null;
+  slotStart: Date | string;
+};
 
 export function BookingsList() {
   const t = useTranslations("Bookings");
@@ -26,8 +41,6 @@ export function BookingsList() {
   const { data } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
-
-  const list = tab === "upcoming" ? (data?.upcoming ?? []) : (data?.past ?? []);
 
   return (
     <OhPageShell>
@@ -38,90 +51,89 @@ export function BookingsList() {
 
       <OnboardingChecklist />
 
-      <div
-        role="tablist"
-        aria-label={t("tablistLabel")}
-        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong"
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as Tab)}
+        className="mt-8"
       >
-        <SegButton
-          active={tab === "upcoming"}
-          count={data?.upcoming.length}
-          onClick={() => setTab("upcoming")}
+        <TabsList
+          aria-label={t("tablistLabel")}
+          className="h-auto w-fit gap-0 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong bg-transparent p-0"
         >
-          {t("tabUpcoming")}
-        </SegButton>
-        <SegButton
-          active={tab === "past"}
-          count={data?.past.length}
-          onClick={() => setTab("past")}
-        >
-          {t("tabPast")}
-        </SegButton>
-      </div>
+          <BookingTabTrigger value="upcoming" count={data?.upcoming.length}>
+            {t("tabUpcoming")}
+          </BookingTabTrigger>
+          <BookingTabTrigger value="past" count={data?.past.length}>
+            {t("tabPast")}
+          </BookingTabTrigger>
+        </TabsList>
 
-      <div className="mt-6">
-        {list.length === 0 ? (
-          <EmptyBookings tab={tab} />
-        ) : (
-          <ul role="list" className="flex flex-col gap-2.5">
-            {list.map((b) => (
-              <li key={b.id}>
-                <BookingRow
-                  publicUid={b.publicUid}
-                  visitorName={b.visitorName}
-                  visitorEmail={b.visitorEmail}
-                  question={b.question}
-                  slotStart={new Date(b.slotStart as unknown as string)}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <TabsContent value="upcoming" className="mt-6">
+          <BookingsListPanel
+            tab="upcoming"
+            bookings={data?.upcoming ?? []}
+          />
+        </TabsContent>
+        <TabsContent value="past" className="mt-6">
+          <BookingsListPanel tab="past" bookings={data?.past ?? []} />
+        </TabsContent>
+      </Tabs>
     </OhPageShell>
   );
 }
 
-function SegButton({
-  active,
+function BookingTabTrigger({
+  value,
   count,
-  onClick,
   children,
 }: {
-  active: boolean;
+  value: Tab;
   count?: number;
-  onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
+    <TabsTrigger
+      value={value}
       className={[
-        "inline-flex items-center justify-center gap-2.5 px-4 py-2.5",
+        "h-auto flex-none rounded-none border-0 px-4 py-2.5",
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "transition-colors duration-150 ease-oh",
         "border-r-2 border-oh-line-strong last:border-r-0",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oh-line-strong focus-visible:ring-inset",
-        active
-          ? "bg-oh-content text-oh-bg"
-          : "bg-oh-bg text-oh-content hover:bg-oh-tint",
+        "data-active:!bg-oh-content data-active:!text-oh-bg data-active:!shadow-none",
+        "hover:bg-oh-tint",
       ].join(" ")}
     >
       <span className="leading-none">{children}</span>
       {typeof count === "number" ? (
-        <span
-          className={[
-            "tabular-nums text-[11px] font-bold leading-none",
-            active ? "opacity-65" : "opacity-45",
-          ].join(" ")}
-        >
+        <span className="tabular-nums text-[11px] font-bold leading-none opacity-45 group-data-[state=active]:opacity-65 data-active:opacity-65">
           {count}
         </span>
       ) : null}
-    </button>
+    </TabsTrigger>
+  );
+}
+
+function BookingsListPanel({
+  tab,
+  bookings,
+}: {
+  tab: Tab;
+  bookings: Booking[];
+}) {
+  if (bookings.length === 0) return <EmptyBookings tab={tab} />;
+  return (
+    <ul role="list" className="flex flex-col gap-2.5">
+      {bookings.map((b) => (
+        <li key={b.id}>
+          <BookingRow
+            publicUid={b.publicUid}
+            visitorName={b.visitorName}
+            visitorEmail={b.visitorEmail}
+            question={b.question}
+            slotStart={new Date(b.slotStart as unknown as string)}
+          />
+        </li>
+      ))}
+    </ul>
   );
 }
 
