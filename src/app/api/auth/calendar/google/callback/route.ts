@@ -21,11 +21,11 @@ export async function GET(request: Request) {
 
   if (errorParam) {
     redirect(
-      `${appUrl}/settings?calendarError=${encodeURIComponent(errorParam)}`,
+      `${appUrl}/settings/calendars?calendarError=${encodeURIComponent(errorParam)}`,
     );
   }
   if (!code || !state) {
-    redirect(`${appUrl}/settings?calendarError=missing_params`);
+    redirect(`${appUrl}/settings/calendars?calendarError=missing_params`);
   }
 
   const session = await auth();
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
   const [stateUserId] = state.split(":");
   if (stateUserId !== session.user.id) {
-    redirect(`${appUrl}/settings?calendarError=state_mismatch`);
+    redirect(`${appUrl}/settings/calendars?calendarError=state_mismatch`);
   }
 
   const redirectUri = `${appUrl}/api/auth/calendar/google/callback`;
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
       },
     });
   } catch {
-    redirect(`${appUrl}/settings?calendarError=exchange_failed`);
+    redirect(`${appUrl}/settings/calendars?calendarError=exchange_failed`);
   }
-  redirect(`${appUrl}/settings?calendarConnected=google`);
+  redirect(`${appUrl}/settings/calendars?calendarConnected=google`);
 }

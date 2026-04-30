@@ -14,7 +14,12 @@ const AUTHED_ROUTES = [
   "/bookings",
   "/availability",
   "/profile",
-  "/settings",
+  // Settings is now a hub of sub-routes; cover the default landing
+  // (general — three lightweight client sections, no workspace dep)
+  // and billing (carries the workspace-scoped eager-nested prefetch
+  // that's the most likely to drift).
+  "/settings/general",
+  "/settings/billing",
 ];
 
 test.describe.configure({ mode: "serial" });

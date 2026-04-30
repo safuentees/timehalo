@@ -177,8 +177,8 @@ export const billing = router({
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${appUrl}/settings?billing=success`,
-        cancel_url: `${appUrl}/settings?billing=cancelled`,
+        success_url: `${appUrl}/settings/billing?billing=success`,
+        cancel_url: `${appUrl}/settings/billing?billing=cancelled`,
         // Bind the workspace to the session so the webhook handler
         // knows which Subscription row to upsert. metadata round-
         // trips through every event Stripe emits for this session.
@@ -232,7 +232,7 @@ export const billing = router({
         env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
       const session = await stripe.billingPortal.sessions.create({
         customer: sub.stripeCustomerId,
-        return_url: `${appUrl}/settings`,
+        return_url: `${appUrl}/settings/billing`,
       });
       return { url: session.url };
     }),

@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 import { DAY_KEYS, defaultSchedule } from "@/lib/schedule";
 import type { DayKey, ScheduleValues } from "@/lib/schedule";
 
-// Re-exports keep existing callers (settings-form) working without rewiring.
+// Re-exports keep `availability-form` reading the schedule schema from
+// the same module that owns the field UI — no extra hop through `lib/`.
 export {
   scheduleSchema as availabilitySchema,
   defaultSchedule as defaultAvailability,

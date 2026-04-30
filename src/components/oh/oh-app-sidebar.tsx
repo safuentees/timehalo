@@ -11,14 +11,12 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { HalftoneMark } from "@/components/brand/halftone-mark";
-import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
+import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
 
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
 // Matches the original .oh-nav-item aesthetic, driven by data-[active=true]
@@ -62,21 +60,16 @@ function sidebarNavId(href: string) {
 }
 
 export function OhAppSidebar() {
-  // Pathname-driven active state must be deferred to post-mount.
-  // Re-applies the fix from commit 28a83c3 — Next 16's hydration
-  // ordering means usePathname() returning the same value on server
-  // and client doesn't matter; the React tree shape can still differ
-  // by a beat, which causes Base UI's Tooltip useId() calls to land
-  // at different positions and produces the hydration warning the
-  // Playwright suite catches on /settings.
-  //
-  // Server + first client paint render with active=false everywhere;
-  // the real active highlight lights up immediately after mount.
-  // Brief absence of the active style is far cheaper than a hydration
-  // bailout that strips event handlers from the entire sidebar.
+  // Pathname drives BOTH the active-row highlight AND which nav set
+  // renders (main app vs. settings sub-nav). Active state must be
+  // deferred to post-mount per commit 28a83c3 (Base UI Tooltip useId
+  // hydration ordering); the nav SET itself is hydration-safe because
+  // usePathname() is deterministic across SSR + first client render,
+  // so navGroupsForPath() returns the same array on both passes.
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
+  const groups = navGroupsForPath(pathname);
 
   return (
     <Sidebar
@@ -93,121 +86,73 @@ export function OhAppSidebar() {
         "[&_[data-slot=sidebar-container]]:will-change-[width]",
       ].join(" ")}
     >
-      {/* <SidebarHeader className="px-4 pt-5 pb-8">
-        <div className="oh-brand">
-          <HalftoneMark size={32} className="oh-brand-mark" />
-          <div className="oh-brand-name">
-            <div>OFFICEHOURS</div>
-          </div>
-        </div>
-      </SidebarHeader> */}
-
       <SidebarContent>
-        {/* Bookings — the canonical destination, sits alone above
-            LIBRARY with no eyebrow. The first thing the host sees
-            when they open the dashboard is the thing they'd most
-            often want to act on. */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {PRIMARY_NAV.slice(0, 1).map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={groupLabelClass}>
-            LIBRARY
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {PRIMARY_NAV.slice(1).map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={groupLabelClass}>
-            WORKSPACE
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {SECONDARY_NAV.map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((group, index) => (
+          <NavGroupRender
+            key={group.label ?? `group-${index}`}
+            group={group}
+            activePath={activePath}
+          />
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
         <FooterControls />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function NavGroupRender({
+  group,
+  activePath,
+}: {
+  group: NavGroup;
+  activePath: string | null;
+}) {
+  return (
+    <SidebarGroup>
+      {group.label ? (
+        <SidebarGroupLabel className={groupLabelClass}>
+          {group.label}
+        </SidebarGroupLabel>
+      ) : null}
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-0.5">
+          {group.items.map((item) => {
+            // Active when the route exactly matches OR is a child of
+            // the nav target. Lets `/settings/general/whatever` keep
+            // the General row lit even on a sub-page. The `/` root
+            // exception avoids every row matching when href === "/".
+            const active =
+              activePath !== null &&
+              (activePath === item.href ||
+                (item.href !== "/" &&
+                  activePath.startsWith(`${item.href}/`)));
+            return (
+              <SidebarMenuItem key={item.href} className="group/item">
+                <SidebarMenuButton
+                  id={sidebarNavId(item.href)}
+                  isActive={active}
+                  tooltip={item.label}
+                  className={menuButtonClass}
+                  render={
+                    <Link href={item.href}>
+                      <item.icon
+                        aria-hidden
+                        strokeWidth={1.5}
+                        className="size-4 shrink-0"
+                      />
+                      <span>{item.label}</span>
+                    </Link>
+                  }
+                />
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
 

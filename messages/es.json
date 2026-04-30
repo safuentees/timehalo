@@ -1,6 +1,12 @@
 {
   "Settings": {
     "title": "Cuenta",
+    "subnavGeneral": "General",
+    "subnavWorkflows": "Flujos",
+    "subnavCalendars": "Calendarios",
+    "subnavDeveloper": "Desarrollador",
+    "subnavBilling": "Facturación",
+    "subnavDanger": "Peligro",
     "timezoneLegend": "Zona horaria",
     "timezoneDescription": "Se usa para programar tu disponibilidad y marcar la hora de las reservas.",
     "languageLegend": "Idioma",
@@ -260,7 +266,22 @@
     "role_OWNER": "Dueño",
     "role_ADMIN": "Admin",
     "role_MEMBER": "Miembro",
-    "role_VIEWER": "Lectura"
+    "role_VIEWER": "Lectura",
+    "bulkInviteButton": "Invitar en lote",
+    "bulkInviteTitle": "Invitar varios al equipo",
+    "bulkInviteEmailsLabel": "Correos",
+    "bulkInvitePlaceholder": "ana@example.com\nluis@example.com\ncarmen@example.com",
+    "bulkInviteValidCount": "{count, plural, =0 {Sin correos válidos} one {1 correo} other {# correos}}",
+    "bulkInviteInvalidCount": "{count, plural, one {1 entrada inválida ignorada} other {# entradas inválidas ignoradas}}",
+    "bulkInviteOverLimit": "Más allá del límite de {max} correos por lote",
+    "bulkInviteSubmit": "{count, plural, =0 {Enviar invitaciones} one {Enviar 1 invitación} other {Enviar # invitaciones}}",
+    "bulkInviteSentSummary": "{count, plural, =0 {No se enviaron invitaciones.} one {Se envió 1 invitación.} other {Se enviaron # invitaciones.}}",
+    "bulkInviteCreatedHeading": "Enviadas",
+    "bulkInviteSkippedHeading": "{count, plural, one {Omitidas (1)} other {Omitidas (#)}}",
+    "bulkInviteReason_already-member": "Ya es miembro",
+    "bulkInviteReason_already-invited": "Ya invitado",
+    "bulkInviteReason_duplicate-in-batch": "Duplicado en el lote",
+    "done": "Listo"
   },
   "Invitations": {
     "eyebrow": "Invitación a espacio",

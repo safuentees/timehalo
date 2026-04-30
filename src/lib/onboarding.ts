@@ -59,7 +59,7 @@ export function computeOnboardingSteps(
       title: "Set your timezone",
       description:
         "Your weekly hours interpret in this zone. Default UTC works only if you live in UTC.",
-      href: "/settings",
+      href: "/settings/general",
       done: timezoneDone,
     },
     {
