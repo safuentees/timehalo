@@ -141,8 +141,16 @@ function BookingsListPanel({
   bookings: Booking[];
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
+  // Divided list (cal.com `BookingListItem` pattern). Hairline frame
+  // top + bottom; rows separated by `divide-y` between them. Each row
+  // has no own border — hover bg + chevron-free hit target gives the
+  // click affordance, like cal.com's `hover:bg-cal-muted`. See
+  // `oh-ui.md` *List patterns — content-divided list*.
   return (
-    <ul role="list" className="flex flex-col gap-2.5">
+    <ul
+      role="list"
+      className="border-y border-oh-line divide-y divide-oh-line"
+    >
       {bookings.map((b) => (
         <li key={b.id}>
           <BookingRow
@@ -173,25 +181,26 @@ function BookingRow({
   question: string | null;
   slotStart: Date;
 }) {
-  // Architecture mirrors src/app/(host)/settings/components/workflow-fields.tsx
-  // — same row anatomy across the dashboard:
-  //   <article>
-  //     <header>      name (h3 font-black) | meta (oh-eyebrow)
-  //     <p>           subtitle (oh-eyebrow)
-  //     <p>           body lines (italic note, then mono email)
-  //   </article>
-  // The visitor name is the primary signal (parity with workflow.name);
-  // time is the right-aligned status (parity with workflow active/paused);
-  // date is the subtitle (parity with workflow trigger/action codes).
-  // Click target: whole row routes to the host-side detail page
-  // (cal.com BookingDetailsSheet equivalent). Per chisel: "labels are
-  // a last resort" — no separate "View" button. The entire article
-  // is the affordance, hover-strengthened border tells you it's
-  // clickable.
+  // Row anatomy unchanged:
+  //   <header>      name (h3 font-black) | time (oh-eyebrow)
+  //   <p>           date (oh-eyebrow)
+  //   <p>           question (italic, only when present)
+  //   <p>           email (mono, muted)
+  // The visitor name is the primary signal; time is the right-aligned
+  // status; date is the subtitle. Whole row routes to the host-side
+  // detail page (cal.com BookingDetailsSheet equivalent). Per chisel:
+  // "labels are a last resort" — no separate "View" button. The
+  // entire row is the affordance.
+  //
+  // B.PT37 — divided-list shape. Border + bg lifted to the parent
+  // <ul> as hairline dividers; the row itself just gets a hover bg
+  // tint as the click cue. Cal.com pattern: `hover:bg-cal-muted` on
+  // the row, no per-row border. Reads as a continuous content feed
+  // instead of a stack of cards.
   return (
     <Link
       href={`/bookings/${publicUid}`}
-      className="group block rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong focus-visible:outline-none focus-visible:border-oh-line-strong"
+      className="group block px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
