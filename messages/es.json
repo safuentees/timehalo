@@ -357,5 +357,36 @@
     "systemStatus": "Estado del sistema",
     "adminConsole": "Panel admin",
     "signOut": "Cerrar sesión"
+  },
+  "Bookings": {
+    "title": "Tus reservas",
+    "tabUpcoming": "Próximas",
+    "tabPast": "Pasadas",
+    "tablistLabel": "Período de reservas",
+    "emptyUpcomingTitle": "Sin reservas próximas",
+    "emptyUpcomingDescription": "Las reservas de los visitantes aparecerán aquí.",
+    "emptyPastTitle": "Sin reservas pasadas",
+    "emptyPastDescription": "Las reservas que ya pasaron viven en esta pestaña.",
+    "liveConnected": "Actualizaciones en vivo conectadas",
+    "liveConnecting": "Conectando actualizaciones en vivo",
+    "liveOff": "Actualizaciones en vivo desconectadas",
+    "toastNewBooking": "Nueva reserva de {name}",
+    "toastCancelled": "Cancelada: {name}"
+  },
+  "HostProfile": {
+    "openNow": "Disponible ahora",
+    "closedToday": "Cerrado hoy",
+    "rescheduling": "Reprogramando — elige un nuevo horario",
+    "cancel": "Cancelar",
+    "defaultBio": "Reserva una conversación breve — elige un horario que te funcione.",
+    "daysWithSlots": "{count, plural, =0 {Sin días con horarios abiertos esta semana} one {1 día con horarios abiertos esta semana} other {# días con horarios abiertos esta semana}}",
+    "emptyClosedTitle": "Sin horarios esta semana",
+    "emptyClosedDescription": "{name} aún no ha abierto ningún horario. Vuelve más tarde.",
+    "emptyBookedTitle": "Completamente reservado esta semana",
+    "emptyBookedDescription": "{name} tiene disponibilidad, pero todos los horarios visibles ya están ocupados. Vuelve más tarde para ver nuevas aperturas.",
+    "nextAvailable": "Próximo disponible",
+    "pickADate": "Elige una fecha",
+    "nextSlotAria": "Próximo horario disponible",
+    "brandLabel": "Officehours"
   }
 }

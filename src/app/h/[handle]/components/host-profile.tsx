@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
+import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -40,6 +41,7 @@ export default function HostProfile({
   initialSlots,
   renderedAt,
 }: Props) {
+  const t = useTranslations("HostProfile");
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -143,7 +145,9 @@ export default function HostProfile({
     <main className="oh-main" id="top">
       <div className="oh-topbar">
         <div className="flex items-center gap-3">
-          <div className="oh-monogram">OH</div>
+          <div className="oh-monogram" aria-label={t("brandLabel")}>
+            OH
+          </div>
           <div className="oh-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
@@ -154,12 +158,12 @@ export default function HostProfile({
           className="border-b-[1.5px] border-oh-line bg-oh-paper px-5 py-3 sm:px-8"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="oh-eyebrow">RESCHEDULING — PICK A NEW SLOT</span>
+            <span className="oh-eyebrow">{t("rescheduling")}</span>
             <a
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
               className="oh-eyebrow opacity-55 transition-opacity hover:opacity-100"
             >
-              CANCEL
+              {t("cancel")}
             </a>
           </div>
         </div>
@@ -179,25 +183,19 @@ export default function HostProfile({
               <span className="oh-v1-handle">@{user.handle}</span>
             </div>
             <span
+              role="status"
               className={`oh-v1-status ${openToday ? "is-open" : "is-closed"}`}
             >
               <span className="oh-v1-status-dot" aria-hidden />
-              {openToday ? "OPEN NOW" : "CLOSED TODAY"}
+              {openToday ? t("openNow") : t("closedToday")}
             </span>
           </div>
 
           <h1 className="oh-v1-name">{displayName}</h1>
-          <p className="oh-v1-bio">
-            Book a short conversation — writing, software, or whatever&apos;s
-            been rattling around your head lately.
-          </p>
+          <p className="oh-v1-bio">{t("defaultBio")}</p>
 
           <p className="oh-v1-subtle">
-            <span>
-              {daysWithOpenSlotsThisWeek}{" "}
-              {daysWithOpenSlotsThisWeek === 1 ? "day" : "days"} with open slots
-              this week
-            </span>
+            <span>{t("daysWithSlots", { count: daysWithOpenSlotsThisWeek })}</span>
           </p>
           </div>
         </header>
@@ -233,7 +231,7 @@ export default function HostProfile({
 
       {hasOpenSlots ? (
         <>
-          <div className="oh-v1-bar" role="region" aria-label="Pick a date">
+          <div className="oh-v1-bar" role="region" aria-label={t("pickADate")}>
             <div className="oh-v1-bar-inner">
               <TriggerCard
                 selectedDate={selectedDate}
@@ -269,12 +267,13 @@ function HostEmpty({
   displayName: string;
   kind: "closed" | "booked";
 }) {
+  const t = useTranslations("HostProfile");
   const title =
-    kind === "closed" ? "No slots this week" : "Fully booked this week";
+    kind === "closed" ? t("emptyClosedTitle") : t("emptyBookedTitle");
   const description =
     kind === "closed"
-      ? `${displayName} hasn't opened any time yet. Check back later.`
-      : `${displayName} has availability, but every visible slot is already taken. Check back later for the next opening.`;
+      ? t("emptyClosedDescription", { name: displayName })
+      : t("emptyBookedDescription", { name: displayName });
 
   return (
     <div className="oh-profile-empty">
@@ -288,10 +287,14 @@ function HostEmpty({
 }
 
 function NextAvailable({ slot }: { slot: Slot }) {
+  const t = useTranslations("HostProfile");
   const startDate = new Date(slot.start);
   return (
-    <section className="oh-next-available oh-reveal" aria-label="Next available slot">
-      <span className="oh-next-available-kicker">NEXT AVAILABLE</span>
+    <section
+      className="oh-next-available oh-reveal"
+      aria-label={t("nextSlotAria")}
+    >
+      <span className="oh-next-available-kicker">{t("nextAvailable")}</span>
       <div className="oh-next-available-body">
         <span className="oh-next-available-time">{fmtTime(startDate)}</span>
         <span className="oh-next-available-meta">
