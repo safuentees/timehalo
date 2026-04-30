@@ -135,7 +135,7 @@ function StepRow({
           {!step.done ? (
             <Link
               href={step.href}
-              className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase underline underline-offset-4 opacity-65 hover:opacity-100"
+              className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase underline underline-offset-4 opacity-65 hover:opacity-100"
             >
               Open →
             </Link>

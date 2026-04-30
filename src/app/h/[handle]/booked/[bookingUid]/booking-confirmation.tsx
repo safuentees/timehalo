@@ -91,7 +91,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
       <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <Link
           href="/"
-          className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-bru-content underline-offset-4 transition-[text-decoration] hover:underline"
+          className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-bru-content underline-offset-4 transition-[text-decoration] hover:underline"
         >
           OH
         </Link>
@@ -110,7 +110,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           <div className="flex items-center gap-3">
             <span
               aria-hidden
-              className="grid size-7 place-items-center rounded-(--bru-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg sm:size-8"
+              className="grid size-7 place-items-center rounded-(--oh-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg sm:size-8"
             >
               <CheckIcon className="size-4 sm:size-[18px]" strokeWidth={3} />
             </span>
@@ -126,7 +126,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             <p className="mt-2 text-[clamp(48px,14vw,160px)] font-black leading-[0.88] tracking-[-0.045em] uppercase sm:mt-3">
               {monthDay}
             </p>
-            <p className="mt-4 font-[family-name:var(--bru-mono)] text-[16px] font-bold tabular-nums sm:mt-6 sm:text-[18px] lg:text-[20px]">
+            <p className="mt-4 font-[family-name:var(--oh-mono)] text-[16px] font-bold tabular-nums sm:mt-6 sm:text-[18px] lg:text-[20px]">
               {slotTime}
             </p>
             <p className="mt-1 bru-eyebrow sm:text-[11px]">
@@ -135,13 +135,13 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           </div>
 
           <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-bru-line pt-6 sm:mt-14 sm:gap-4 sm:pt-8 lg:mt-20">
-            <Avatar className="size-10 rounded-(--bru-r-xs) sm:size-12">
+            <Avatar className="size-10 rounded-(--oh-r-xs) sm:size-12">
               <AvatarImage
                 src={booking.host.image ?? undefined}
                 alt={hostName}
-                className="rounded-(--bru-r-xs)"
+                className="rounded-(--oh-r-xs)"
               />
-              <AvatarFallback className="rounded-(--bru-r-xs) bg-bru-paper font-[family-name:var(--bru-mono)] text-[12px] font-extrabold text-bru-ink sm:text-[14px]">
+              <AvatarFallback className="rounded-(--oh-r-xs) bg-bru-paper font-[family-name:var(--oh-mono)] text-[12px] font-extrabold text-bru-ink sm:text-[14px]">
                 {toInitials(hostName)}
               </AvatarFallback>
             </Avatar>
@@ -170,7 +170,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             Add to calendar
           </a>
 
-          <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase sm:mt-8 sm:text-[11px]">
+          <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase sm:mt-8 sm:text-[11px]">
             <div className="flex items-center gap-4">
               <button
                 type="button"

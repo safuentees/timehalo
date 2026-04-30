@@ -132,7 +132,7 @@ function DeleteForm({
         <p className="text-[14px] leading-[1.55] opacity-80">
           {t.rich("deleteIntro", {
             slug: () => (
-              <strong className="font-[family-name:var(--bru-mono)] text-[13px]">
+              <strong className="font-[family-name:var(--oh-mono)] text-[13px]">
                 {workspaceSlug}
               </strong>
             ),
@@ -142,7 +142,7 @@ function DeleteForm({
           {t.rich("deleteTypeSlug", {
             slug: workspaceSlug,
             code: (chunks) => (
-              <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+              <code className="font-[family-name:var(--oh-mono)] text-[12px]">
                 {chunks}
               </code>
             ),
@@ -181,7 +181,7 @@ function DeleteForm({
         />
 
         {serverError ? (
-          <p className="bru-description text-[color:var(--bru-content-muted)]">
+          <p className="bru-description text-[color:var(--oh-content-muted)]">
             {serverError}
           </p>
         ) : null}

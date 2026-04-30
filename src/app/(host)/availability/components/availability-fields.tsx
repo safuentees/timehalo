@@ -149,7 +149,7 @@ export function AvailabilityFields() {
             // doesn't compete with the visually weighted block chips
             // above. Subtle tint hover replaces the variant's full ink
             // invert (which would over-emphasise it on a 760px row).
-            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--bru-tint)] md:hover:text-[var(--bru-ink)]",
+            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
           )}
         >
           <PlusIcon /> Add more hours
@@ -173,7 +173,7 @@ export function AvailabilityFields() {
 
 function EmptyBlocks() {
   return (
-    <div className="rounded-(--bru-r-sm) border-[1.5px] border-dashed border-[var(--bru-line-dashed)] px-5 py-7 text-left">
+    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dashed border-[var(--oh-line-dashed)] px-5 py-7 text-left">
       <p className="bru-eyebrow">
         No hours set
       </p>
@@ -195,7 +195,7 @@ function BlockChip({
     <button
       type="button"
       onClick={onEdit}
-      className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -279,10 +279,10 @@ function BlockEditorContent({
 
   return (
     <>
-      <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
+      <div className="border-b border-[var(--oh-line-firm)] px-5 pt-4 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <ResponsiveModalTitle className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+            <ResponsiveModalTitle className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
               {state.mode === "edit" ? "Edit hours" : "New hours"}
             </ResponsiveModalTitle>
             <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase tabular-nums">
@@ -321,14 +321,14 @@ function BlockEditorContent({
         {error ? (
           <p
             role="alert"
-            className="mt-5 rounded-(--bru-r-xs) border-[1.5px] border-[var(--bru-ink)] bg-[color-mix(in_srgb,var(--bru-ink)_8%,var(--bru-paper))] px-3 py-2.5 font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase"
+            className="mt-5 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase"
           >
             {error}
           </p>
         ) : null}
       </div>
 
-      <div className="border-t border-[var(--bru-line-firm)] bg-[color-mix(in_srgb,var(--bru-ink)_4%,var(--bru-paper))] p-4">
+      <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
         {/*
           Footer follows the canonical dialog pattern (Apple HIG / shadcn
           DialogFooter / Linear / Vercel):
@@ -352,7 +352,7 @@ function BlockEditorContent({
               variant="brutalistGhost"
               size="brutalist"
               onClick={onRemove}
-              className="w-full justify-center rounded-(--bru-r-xs) md:w-auto"
+              className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
             >
               <Trash2Icon /> Remove
             </Button>
@@ -363,7 +363,7 @@ function BlockEditorContent({
             size="brutalist"
             onClick={() => onSave(draft)}
             disabled={!canSave}
-            className="w-full justify-center rounded-(--bru-r-xs) md:w-auto"
+            className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
           >
             <CheckIcon /> {state.mode === "edit" ? "Save" : "Add"}
           </Button>
@@ -401,7 +401,7 @@ function DaysRowButton({
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={`Edit days: ${label}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -437,7 +437,7 @@ function DayToggle({
       onClick={onClick}
       aria-pressed={selected}
       aria-label={longLabel}
-      className={`relative flex w-full items-center justify-between gap-3 rounded-(--bru-r-xs) border-[1.5px] border-[var(--bru-ink)] px-4 py-3 text-left font-[family-name:var(--bru-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bru-ink)] ${
+      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] ${
         selected
           ? "bg-bru-ink text-bru-paper"
           : "bg-bru-paper text-bru-ink opacity-65 hover:opacity-100"
@@ -445,7 +445,7 @@ function DayToggle({
     >
       <span>{label}</span>
       <span
-        className={`grid size-5 shrink-0 place-items-center rounded-(--bru-r-xs) border-[1.5px] ${
+        className={`grid size-5 shrink-0 place-items-center rounded-(--oh-r-xs) border-[1.5px] ${
           selected
             ? "border-bru-paper bg-bru-paper text-bru-ink"
             : "border-bru-ink bg-transparent text-transparent"
@@ -479,10 +479,10 @@ function DayPickerDrawer({
         mobileClassName="bru-drawer-content-nested"
         defaultClose={false}
       >
-        <div className="border-b border-[var(--bru-line-firm)] px-5 pt-4 pb-4">
+        <div className="border-b border-[var(--oh-line-firm)] px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <ResponsiveModalTitle className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+              <ResponsiveModalTitle className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
                 Days
               </ResponsiveModalTitle>
               <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
@@ -505,13 +505,13 @@ function DayPickerDrawer({
             ))}
           </div>
         </div>
-        <div className="border-t border-[var(--bru-line-firm)] bg-[color-mix(in_srgb,var(--bru-ink)_4%,var(--bru-paper))] p-4">
+        <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
           <Button
             type="button"
             variant="brutalist"
             size="brutalist"
             onClick={onClose}
-            className="w-full justify-center rounded-(--bru-r-xs)"
+            className="w-full justify-center rounded-(--oh-r-xs)"
           >
             <CheckIcon /> Done
           </Button>
@@ -533,7 +533,7 @@ function TimeColumn({
   ariaLabel: string;
 }) {
   return (
-    <label className="group relative flex w-full items-center gap-3 rounded-(--bru-r-sm) border-[1.5px] border-[var(--bru-line-firm)] bg-[var(--bru-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--bru-ink)] has-[:focus-visible]:border-[var(--bru-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--bru-ink)]">
+    <label className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] has-[:focus-visible]:border-[var(--oh-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--oh-ink)]">
       <input
         type="time"
         step={900}

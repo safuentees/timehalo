@@ -38,7 +38,7 @@ export default async function AdminFeatureFlagsPage() {
               </div>
               <span
                 className={[
-                  "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+                  "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
                   f.enabled ? "text-bru-content" : "opacity-55",
                 ].join(" ")}
               >
@@ -60,7 +60,7 @@ export default async function AdminFeatureFlagsPage() {
                 {f.assignments.map((a) => (
                   <li
                     key={a.handle}
-                    className="border border-bru-line px-2 py-1 font-[family-name:var(--bru-mono)] text-[11px]"
+                    className="border border-bru-line px-2 py-1 font-[family-name:var(--oh-mono)] text-[11px]"
                   >
                     @{a.handle}
                   </li>

@@ -135,7 +135,7 @@ function EditForm({
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -155,7 +155,7 @@ function EditForm({
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px] lowercase"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px] lowercase"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -185,7 +185,7 @@ function EditForm({
                 max={480}
                 step={5}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}

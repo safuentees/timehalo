@@ -42,14 +42,14 @@ export default async function AdminWebhooksPage() {
                 </div>
                 <span
                   className={[
-                    "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+                    "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
                     s.active ? "text-bru-content" : "opacity-55",
                   ].join(" ")}
                 >
                   {s.active ? "ACTIVE" : "INACTIVE"}
                 </span>
               </header>
-              <p className="mt-3 font-[family-name:var(--bru-mono)] text-[11px] tracking-[1.5px] opacity-65">
+              <p className="mt-3 font-[family-name:var(--oh-mono)] text-[11px] tracking-[1.5px] opacity-65">
                 {s.events}
               </p>
             </li>
@@ -73,7 +73,7 @@ export default async function AdminWebhooksPage() {
               <p className="bru-legend">
                 Task #{t.id} · {t.attempts}/{t.maxAttempts} attempts
               </p>
-              <p className="mt-1 font-[family-name:var(--bru-mono)] text-[12px] opacity-90">
+              <p className="mt-1 font-[family-name:var(--oh-mono)] text-[12px] opacity-90">
                 {t.referenceUid ?? "(no ref)"}
               </p>
               {t.lastError ? (

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // variant: just a message, no chrome.
 //
 // Pattern documented in brutalist-ui.md: 1.5px dashed bru-line border,
-// rounded-(--bru-r-xs), p-4, 13px opacity-55 text. Audit on 2026-04-27
+// rounded-(--oh-r-xs), p-4, 13px opacity-55 text. Audit on 2026-04-27
 // found the same six-class string repeated in three places with margin
 // drift — single source of truth here.
 //
@@ -25,7 +25,7 @@ export function BrutalistInlineEmpty({
   return (
     <p
       className={cn(
-        "rounded-(--bru-r-xs) border-[1.5px] border-dashed border-bru-line p-4 text-[13px] opacity-55",
+        "rounded-(--oh-r-xs) border-[1.5px] border-dashed border-bru-line p-4 text-[13px] opacity-55",
         className,
       )}
     >

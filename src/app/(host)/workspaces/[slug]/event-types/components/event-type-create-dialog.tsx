@@ -119,7 +119,7 @@ function CreateForm({
                 type="text"
                 placeholder="30-min consult"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -140,7 +140,7 @@ function CreateForm({
                 type="text"
                 placeholder="consult-30"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px] lowercase"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px] lowercase"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -170,7 +170,7 @@ function CreateForm({
                 max={480}
                 step={5}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}

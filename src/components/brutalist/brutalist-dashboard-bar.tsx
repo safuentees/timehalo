@@ -13,7 +13,7 @@ import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/worksp
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
 // outer flex-col places this above .bru-app, which still owns the
 // flex-row with sidebar + inset. Bar height comes from the existing
-// --bru-dashboard-bar-height token (32px) — the sidebar's
+// --oh-dashboard-bar-height token (32px) — the sidebar's
 // top: calc(var + 12px) already accounts for it.
 //
 // Trigger: the active workspace name (the row with isActive=true,

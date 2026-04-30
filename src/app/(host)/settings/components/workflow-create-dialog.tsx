@@ -163,7 +163,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
@@ -182,7 +182,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 {...field}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               >
                 {TRIGGERS.map((v) => (
                   <option key={v} value={v}>
@@ -220,7 +220,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   min={0}
                   max={7 * 24 * 60}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 />
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
@@ -240,7 +240,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 {...field}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               >
                 {ACTIONS.map((v) => (
                   <option key={v} value={v}>
@@ -269,7 +269,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   value={field.value ?? ""}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   {TEMPLATES.map((v) => (
                     <option key={v} value={v}>
@@ -297,7 +297,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   value={field.value ?? ""}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--bru-mono)] text-[14px]"
+                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   <option value="">—</option>
                   {WEBHOOK_EVENTS.map((v) => (
@@ -326,9 +326,9 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   onChange={(e) => field.onChange(e.target.checked)}
                   onBlur={field.onBlur}
                   ref={field.ref}
-                  className="size-4 accent-(--bru-ink)"
+                  className="size-4 accent-(--oh-ink)"
                 />
-                <span className="font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+                <span className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-65">
                   {t("fieldActive")}
                 </span>
               </label>

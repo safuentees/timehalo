@@ -14,7 +14,7 @@ export function BrutalistTopbar() {
       style={{ ["--d" as string]: "0ms" }}
     >
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="rounded-(--bru-r-xs) size-9 border border-bru-ink text-bru-ink transition-colors duration-150 ease-bru hover:bg-bru-ink hover:text-bru-paper" />
+        <SidebarTrigger className="rounded-(--oh-r-xs) size-9 border border-bru-ink text-bru-ink transition-colors duration-150 ease-bru hover:bg-bru-ink hover:text-bru-paper" />
       </div>
     </div>
   );
