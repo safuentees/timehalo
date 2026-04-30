@@ -3,12 +3,12 @@
 import {
   createContext,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import { useRequiredContext } from "@/hooks/use-required-context";
 
 export type Typeface = "grotesk" | "serif" | "mono";
@@ -36,17 +36,21 @@ export function OhPrefsProvider({
 }: {
   children?: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
+  // Was `useState(false) + useEffect(() => setMounted(true), [])` — the
+  // pattern AGENTS.md "Never do" list bans because React 19's compiler
+  // ESLint rule (`react-hooks/set-state-in-effect`) flags it. The
+  // `useMounted()` hook routes through `useSyncExternalStore` with an
+  // explicit server-snapshot of `false`, so SSR + first client paint
+  // both see `mounted=false` deterministically — no fiber re-render
+  // ripple, no useId counter drift downstream. The earlier shape
+  // shipped a ban-violation comment (eslint-disable-next-line); this
+  // matches the chrome rule.
+  const mounted = useMounted();
   const [typeface, setTypeface] = useState<Typeface>("grotesk");
   const [density, setDensity] = useState<Density>("airy");
   const [motion, setMotion] = useState(true);
 
   const { theme: userTheme, resolvedTheme, setTheme } = useTheme();
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   const theme = mounted ? resolvedTheme : undefined;
   const isDark = theme === "dark";
