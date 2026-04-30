@@ -2,11 +2,18 @@ import type { SelectHTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type OhSelectProps = SelectHTMLAttributes<HTMLSelectElement>;
+export type OhSelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  wrapperClassName?: string;
+};
 
-export function OhSelect({ className, children, ...rest }: OhSelectProps) {
+export function OhSelect({
+  className,
+  wrapperClassName,
+  children,
+  ...rest
+}: OhSelectProps) {
   return (
-    <span className="relative inline-block w-full">
+    <span className={cn("relative inline-block w-full", wrapperClassName)}>
       <select
         {...rest}
         className={cn(

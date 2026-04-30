@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ApiKeyCreateDialog } from "./api-key-create-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 
 export function ApiKeysFields() {
@@ -87,18 +88,21 @@ function ApiKeysForWorkspace({
           <label htmlFor="api-keys-workspace" className="oh-legend">
             {t("workspaceLabel")}
           </label>
-          <select
-            id="api-keys-workspace"
-            value={slug}
-            onChange={(e) => onSlugChange(e.target.value)}
-            className="oh-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
-          >
-            {workspaces.map((w) => (
-              <option key={w.slug} value={w.slug}>
-                {w.name}
-              </option>
-            ))}
-          </select>
+          <div className="mt-2">
+            <OhSelect
+              id="api-keys-workspace"
+              value={slug}
+              onChange={(e) => onSlugChange(e.target.value)}
+              wrapperClassName="w-fit"
+              className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+            >
+              {workspaces.map((w) => (
+                <option key={w.slug} value={w.slug}>
+                  {w.name}
+                </option>
+              ))}
+            </OhSelect>
+          </div>
         </div>
       ) : null}
 

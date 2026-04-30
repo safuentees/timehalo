@@ -9,6 +9,7 @@ import { PlusIcon, MinusIcon } from "lucide-react";
 import { useInviteMany } from "@/lib/mutations/use-invite-many";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { OhSelect } from "@/components/oh/oh-select";
 import {
   RESPONSIVE_MODAL_BODY_CLASS,
   ResponsiveModal,
@@ -172,17 +173,19 @@ function InviteForm({
                         {t("roleLabel")}
                       </FieldLabel>
                     ) : null}
-                    <select
-                      {...roleField}
-                      id={roleField.name}
-                      className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[12px]"
-                    >
-                      {roleOptions.map((r) => (
-                        <option key={r} value={r}>
-                          {t(`role_${r}`)}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mt-3">
+                      <OhSelect
+                        {...roleField}
+                        id={roleField.name}
+                        className="font-[family-name:var(--oh-mono)] text-[12px]"
+                      >
+                        {roleOptions.map((r) => (
+                          <option key={r} value={r}>
+                            {t(`role_${r}`)}
+                          </option>
+                        ))}
+                      </OhSelect>
+                    </div>
                   </Field>
                 )}
               />
@@ -190,7 +193,7 @@ function InviteForm({
               {index > 0 ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ohGhost"
                   size="ohIcon"
                   onClick={() => remove(index)}
                   aria-label={t("removeInviteRow")}
@@ -209,7 +212,7 @@ function InviteForm({
 
         <Button
           type="button"
-          variant="outline"
+          variant="ohGhost"
           size="oh"
           onClick={() => append(defaultRow())}
           disabled={isPending || fields.length >= 50}
@@ -232,7 +235,7 @@ function InviteForm({
         <ResponsiveModalFooter>
           <Button
             type="button"
-            variant="outline"
+            variant="ohGhost"
             size="oh"
             onClick={onDone}
             disabled={isPending}

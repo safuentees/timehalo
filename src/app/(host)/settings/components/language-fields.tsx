@@ -9,6 +9,7 @@ import {
   isLocale,
   type Locale,
 } from "@/i18n/locales";
+import { OhSelect } from "@/components/oh/oh-select";
 import { SectionHeader } from "@/components/oh/section-header";
 
 export function LanguageFields() {
@@ -23,26 +24,29 @@ export function LanguageFields() {
         legend={t("languageLegend")}
         description={t("languageDescription")}
       />
-      <select
-        id="locale"
-        aria-labelledby="language-legend"
-        value={current}
-        disabled={pending}
-        onChange={(e) => {
-          const next = e.target.value;
-          if (!isLocale(next)) return;
-          start(async () => {
-            await setLocaleAction(next);
-          });
-        }}
-        className="oh-input mt-5 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
-      >
-        {LOCALES.map((l) => (
-          <option key={l} value={l}>
-            {LOCALE_LABELS[l]}
-          </option>
-        ))}
-      </select>
+      <div className="mt-5">
+        <OhSelect
+          id="locale"
+          aria-labelledby="language-legend"
+          value={current}
+          disabled={pending}
+          onChange={(e) => {
+            const next = e.target.value;
+            if (!isLocale(next)) return;
+            start(async () => {
+              await setLocaleAction(next);
+            });
+          }}
+          wrapperClassName="w-fit"
+          className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+        >
+          {LOCALES.map((l) => (
+            <option key={l} value={l}>
+              {LOCALE_LABELS[l]}
+            </option>
+          ))}
+        </OhSelect>
+      </div>
     </section>
   );
 }

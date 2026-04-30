@@ -12,6 +12,7 @@ import { useResendInvitation } from "@/lib/mutations/use-resend-invitation";
 import { useUpdateInvitationRole } from "@/lib/mutations/use-update-invitation-role";
 import { Button } from "@/components/ui/button";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { OhSelect } from "@/components/oh/oh-select";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
@@ -181,7 +182,7 @@ function MemberRow({
           <label htmlFor={`role-${memberId}`} className="oh-eyebrow">
             {t("changeRole")}
           </label>
-          <select
+          <OhSelect
             id={`role-${memberId}`}
             value={role}
             onChange={(e) => {
@@ -190,19 +191,19 @@ function MemberRow({
               setRole.mutate({ slug, userId, role: next });
             }}
             disabled={setRole.isPending}
-            className="oh-input min-w-[140px] font-[family-name:var(--oh-mono)] text-[12px]"
+            className="min-w-[140px] font-[family-name:var(--oh-mono)] text-[12px]"
           >
             {allowedTargets.map((r) => (
               <option key={r} value={r}>
                 {t(`role_${r}`)}
               </option>
             ))}
-          </select>
+          </OhSelect>
           <ConfirmDialog
             trigger={
               <Button
                 type="button"
-                variant="outline"
+                variant="ohGhost"
                 size="oh"
                 disabled={remove.isPending}
                 className="ml-auto"
@@ -275,7 +276,7 @@ function InvitationRow({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {showActions ? (
-            <select
+            <OhSelect
               aria-label={t("inviteRoleLabel", { email })}
               value={role}
               onChange={(e) =>
@@ -289,21 +290,21 @@ function InvitationRow({
                 })
               }
               disabled={updateRole.isPending}
-              className="oh-input font-[family-name:var(--oh-mono)] text-[12px]"
+              className="font-[family-name:var(--oh-mono)] text-[12px]"
             >
               {ROLE_OPTIONS.map((r) => (
                 <option key={r} value={r}>
                   {t(`role_${r}`)}
                 </option>
               ))}
-            </select>
+            </OhSelect>
           ) : (
             <span className="oh-eyebrow">{t(`role_${role}`)}</span>
           )}
           {showActions ? (
             <Button
               type="button"
-              variant="outline"
+              variant="ohGhost"
               size="oh"
               disabled={resend.isPending}
               onClick={() =>
@@ -318,7 +319,7 @@ function InvitationRow({
               trigger={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ohGhost"
                   size="oh"
                   disabled={revoke.isPending}
                 >
