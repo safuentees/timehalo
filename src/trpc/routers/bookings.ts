@@ -1502,6 +1502,14 @@ export const bookings = router({
       ctx.user.id,
       ctx.activeWorkspaceSlug,
     );
+    // No memberships → empty list. The procedure must never throw on
+    // this path: SSR `prefetch()` swallows thrown errors (dehydrated
+    // state excludes failed queries), so a throw here would silently
+    // deny the bookings list of any hydration data and force the
+    // client to render the empty card on every refresh — which reads
+    // as a stuck skeleton rather than the legitimate "no workspace"
+    // edge case it actually is. (B.PT38 — port of `3a6ff1b`.)
+    if (!workspaceId) return { upcoming: [], past: [] };
     const now = new Date();
     const rows = await prisma.booking.findMany({
       where: { hostId: ctx.user.id, workspaceId, deleted: false },
@@ -1557,6 +1565,11 @@ export const bookings = router({
         ctx.user.id,
         ctx.activeWorkspaceSlug,
       );
+      // No memberships → close the SSE immediately. Same defensive
+      // reasoning as `listForHost`: throwing here would surface as a
+      // subscription error in the client's LiveDot, which is wrong
+      // for the legitimate "user has no workspace" case. (B.PT38.)
+      if (!workspaceId) return;
 
       // signal! is non-null inside subscription procedures — tRPC v11
       // wires the request abort signal automatically.

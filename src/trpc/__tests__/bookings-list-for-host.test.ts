@@ -180,6 +180,41 @@ describe("bookings.listForHost — workspace scope (B.PT16)", () => {
     expect(past).toHaveLength(0);
   });
 
+  it("returns empty lists (does NOT throw) when the user has no memberships", async () => {
+    // B.PT38 — edge case: a stale session where the User row's
+    // memberships were cleared (e.g. account-deletion race,
+    // seed-and-reseed in dev). `resolveActiveWorkspaceId` returns
+    // null; the procedure returns empty lists without throwing.
+    // Asserts the SSR contract: prefetch never fails the dehydration
+    // step over this case (Tanstack Query's `dehydrate` excludes
+    // failed queries by default, so a throw here would silently strip
+    // the listForHost entry from the dehydrated state).
+    await prisma.membership.deleteMany({ where: { userId: host.id } });
+    try {
+      const caller = callRouter(fakeContext({ userId: host.id }));
+      const result = await caller.bookings.listForHost();
+      expect(result).toEqual({ upcoming: [], past: [] });
+    } finally {
+      // Restore memberships so subsequent tests in this file's
+      // beforeEach + afterAll path see the canonical setup. The
+      // Workspace rows still exist; we only deleted Membership.
+      await prisma.membership.create({
+        data: {
+          workspaceId: primaryWorkspaceId,
+          userId: host.id,
+          role: "OWNER",
+        },
+      });
+      await prisma.membership.create({
+        data: {
+          workspaceId: sideWorkspaceId,
+          userId: host.id,
+          role: "OWNER",
+        },
+      });
+    }
+  });
+
   it("filters past bookings by workspace too", async () => {
     // Past slot in primary; future slot in side. Active = side →
     // we should see neither in `past`. Active = primary → past
