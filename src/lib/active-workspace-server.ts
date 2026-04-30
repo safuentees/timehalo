@@ -1,5 +1,4 @@
 import "server-only";
-import { TRPCError } from "@trpc/server";
 import { prisma } from "@/lib/prisma";
 
 // B.PT16 — server-side resolver: cookie-derived slug → workspace id.
@@ -13,14 +12,22 @@ import { prisma } from "@/lib/prisma";
 // behaviour so the dashboard switcher and the procedures it scopes
 // always agree on what "active" means.
 //
-// Throws INTERNAL_SERVER_ERROR if the user has no membership at all
-// — schema + auth.register guarantee otherwise; throwing turns a
-// missed migration into a noisy alert instead of a silent NULL.
+// Returns `null` when the user has no membership at all — defensive
+// against stale-session edge cases (e.g. the user's row was deleted
+// after their JWT was minted, or the seed wiped + reseeded the user
+// while a cookie from the prior round was still valid). The ORIGINAL
+// implementation threw INTERNAL_SERVER_ERROR here; that turned a
+// hydration-cache miss (prefetch swallows errors → dehydrated state
+// excludes failed queries → client useQuery sees undefined → empty
+// state) into a confusing "no skeleton ever finishes" UX instead of
+// the expected "you have no bookings yet" empty card. Callers that
+// receive `null` should render the empty list path; the throw never
+// added information the caller could act on.
 
 export async function resolveActiveWorkspaceId(
   userId: string,
   slug: string | null,
-): Promise<string> {
+): Promise<string | null> {
   if (slug) {
     const membership = await prisma.membership.findFirst({
       where: { userId, workspace: { slug } },
@@ -33,11 +40,5 @@ export async function resolveActiveWorkspaceId(
     orderBy: { assignedAt: "asc" },
     select: { workspaceId: true },
   });
-  if (!fallback) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "User has no workspace",
-    });
-  }
-  return fallback.workspaceId;
+  return fallback?.workspaceId ?? null;
 }
