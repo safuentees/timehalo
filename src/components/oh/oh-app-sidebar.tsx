@@ -52,8 +52,13 @@ function sidebarNavId(href: string) {
 export function OhAppSidebar() {
   const pathname = usePathname();
   const mounted = useMounted();
+  const { isMobile } = useSidebar();
   const activePath = mounted ? pathname : null;
   const groups = navGroupsForPath(pathname);
+
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <Sidebar
@@ -78,6 +83,62 @@ export function OhAppSidebar() {
         <FooterControls />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+export function MobileNavContent() {
+  const pathname = usePathname();
+  const mounted = useMounted();
+  const activePath = mounted ? pathname : null;
+  const groups = navGroupsForPath(pathname);
+
+  return (
+    <nav
+      aria-label="Main"
+      className="flex flex-col gap-6 px-4 py-6 sm:px-6"
+    >
+      {groups.map((group, index) => (
+        <div key={group.label ?? `mobile-group-${index}`}>
+          {group.label ? (
+            <p className="oh-eyebrow opacity-55 mb-3">{group.label}</p>
+          ) : null}
+          <ul role="list" className="flex flex-col gap-0.5">
+            {group.items.map((item) => {
+              const active =
+                activePath !== null &&
+                (activePath === item.href ||
+                  (item.href !== "/" &&
+                    activePath.startsWith(`${item.href}/`)));
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={[
+                      "flex items-center gap-3 rounded-(--oh-r-xs) px-3 py-3 text-[15px] font-medium",
+                      "border-l-2 border-l-transparent",
+                      "transition-colors duration-150 ease-oh",
+                      "hover:bg-[var(--oh-tint-hover)]",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2",
+                      active
+                        ? "bg-[var(--oh-tint-active)] border-l-[var(--oh-ink)] font-bold"
+                        : "",
+                    ].join(" ")}
+                  >
+                    <item.icon
+                      aria-hidden
+                      strokeWidth={1.5}
+                      className="size-5 shrink-0"
+                    />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
   );
 }
 

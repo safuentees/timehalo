@@ -1,10 +1,15 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import {
+  SidebarInset,
+  SidebarProvider,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { OhAppSidebar } from "./oh-app-sidebar";
+import { MobileNavContent, OhAppSidebar } from "./oh-app-sidebar";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
 
@@ -32,7 +37,7 @@ export function OhDashboardLayout({
           <SidebarInset className={insetClass}>
             <div className="oh-host-content">
               <ScrollArea className="oh-host-content-inner">
-                {children}
+                <ContentSlot>{children}</ContentSlot>
               </ScrollArea>
             </div>
           </SidebarInset>
@@ -40,4 +45,21 @@ export function OhDashboardLayout({
       </SidebarProvider>
     </TooltipProvider>
   );
+}
+
+function ContentSlot({ children }: { children: ReactNode }) {
+  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (openMobile) {
+      setOpenMobile(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  if (isMobile && openMobile) {
+    return <MobileNavContent />;
+  }
+  return <>{children}</>;
 }
