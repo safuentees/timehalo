@@ -244,8 +244,8 @@ export default function BookingDetail({
               trigger={
                 <Button
                   type="button"
-                  variant="brutalistGhost"
-                  size="brutalist"
+                  variant="ohGhost"
+                  size="oh"
                   className="flex-1"
                   disabled={cancel.isPending}
                 >
@@ -272,8 +272,8 @@ export default function BookingDetail({
                   trigger={
                     <Button
                       type="button"
-                      variant="brutalistGhost"
-                      size="brutalist"
+                      variant="ohGhost"
+                      size="oh"
                       className="flex-1"
                       disabled={cancel.isPending}
                     >
@@ -368,7 +368,7 @@ function SegButton({
       className={[
         "inline-flex items-center gap-2.5 px-4 py-2.5",
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "transition-colors duration-150 ease-bru",
+        "transition-colors duration-150 ease-oh",
         "border-r-2 border-oh-line-strong last:border-r-0",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oh-line-strong focus-visible:ring-inset",
         active

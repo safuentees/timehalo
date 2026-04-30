@@ -32,8 +32,8 @@ export default function ErrorPage({
       actions={
         <Button
           type="button"
-          variant="brutalist"
-          size="brutalist"
+          variant="oh"
+          size="oh"
           onClick={() => reset()}
         >
           Try again

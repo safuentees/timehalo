@@ -160,7 +160,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           <a
             href={`/api/bookings/${booking.publicUid}/calendar`}
             className={cn(
-              buttonVariants({ variant: "brutalist", size: "brutalist" }),
+              buttonVariants({ variant: "oh", size: "oh" }),
               // Size bumps only; the brutalist variant owns the paired
               // background/text colors for stale and hover states.
               "mt-8 w-full justify-center gap-2 sm:mt-10 sm:h-11 lg:h-12",

@@ -98,7 +98,7 @@ export function WorkflowCreateDialog() {
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild>
-        <Button variant="brutalist" size="brutalist">
+        <Button variant="oh" size="oh">
           {t("addButton")}
         </Button>
       </ResponsiveModalTrigger>
@@ -339,8 +339,8 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         <ResponsiveModalFooter>
           <Button
             type="button"
-            variant="brutalistGhost"
-            size="brutalist"
+            variant="ohGhost"
+            size="oh"
             onClick={onDone}
             disabled={isPending}
           >
@@ -348,8 +348,8 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={isPending}
           >
             {isPending ? t("creating") : t("create")}

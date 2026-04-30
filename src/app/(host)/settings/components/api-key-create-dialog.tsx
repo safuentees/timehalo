@@ -76,7 +76,7 @@ export function ApiKeyCreateDialog({ slug }: Props) {
   return (
     <ResponsiveModal open={open} onOpenChange={handleOpenChange}>
       <ResponsiveModalTrigger asChild>
-        <Button variant="brutalist" size="brutalist">
+        <Button variant="oh" size="oh">
           {t("createButton")}
         </Button>
       </ResponsiveModalTrigger>
@@ -185,7 +185,7 @@ function CreateForm({
                       className={[
                         "flex cursor-pointer items-center gap-3 px-4 py-3",
                         "font-[family-name:var(--oh-mono)] text-[12px] font-extrabold tracking-[1.5px] uppercase",
-                        "transition-colors duration-150 ease-bru",
+                        "transition-colors duration-150 ease-oh",
                         // Cell separators: top border on every row except
                         // the first column-cell, plus a left border on
                         // even-indexed cells when the grid splits into two.
@@ -234,8 +234,8 @@ function CreateForm({
         <ResponsiveModalFooter>
           <Button
             type="button"
-            variant="brutalistGhost"
-            size="brutalist"
+            variant="ohGhost"
+            size="oh"
             onClick={onCancel}
             disabled={createApiKey.isPending}
           >
@@ -243,8 +243,8 @@ function CreateForm({
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={createApiKey.isPending}
           >
             {createApiKey.isPending ? t("creating") : t("create")}
@@ -302,8 +302,8 @@ function RevealedToken({
           />
           <Button
             type="button"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             onClick={handleCopy}
           >
             {copied ? (
@@ -326,8 +326,8 @@ function RevealedToken({
       <ResponsiveModalFooter>
         <Button
           type="button"
-          variant="brutalistGhost"
-          size="brutalist"
+          variant="ohGhost"
+          size="oh"
           onClick={onClose}
         >
           {t("done")}

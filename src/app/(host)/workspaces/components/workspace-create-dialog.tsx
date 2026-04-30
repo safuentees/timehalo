@@ -58,7 +58,7 @@ export function WorkspaceCreateDialog({
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       {!isControlled ? (
         <ResponsiveModalTrigger asChild>
-          <Button variant="brutalist" size="brutalist">
+          <Button variant="oh" size="oh">
             {t("createButton")}
           </Button>
         </ResponsiveModalTrigger>
@@ -155,7 +155,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           <Button
             type="button"
             variant="outline"
-            size="brutalist"
+            size="oh"
             onClick={onDone}
             disabled={isPending}
           >
@@ -163,8 +163,8 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={isPending}
           >
             {isPending ? t("creating") : t("create")}

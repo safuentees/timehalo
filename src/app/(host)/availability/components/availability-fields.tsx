@@ -135,8 +135,8 @@ export function AvailabilityFields() {
 
         <Button
           type="button"
-          variant="brutalistGhost"
-          size="brutalist"
+          variant="ohGhost"
+          size="oh"
           onClick={() =>
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
@@ -195,7 +195,7 @@ function BlockChip({
     <button
       type="button"
       onClick={onEdit}
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -349,8 +349,8 @@ function BlockEditorContent({
           {onRemove ? (
             <Button
               type="button"
-              variant="brutalistGhost"
-              size="brutalist"
+              variant="ohGhost"
+              size="oh"
               onClick={onRemove}
               className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
             >
@@ -359,8 +359,8 @@ function BlockEditorContent({
           ) : null}
           <Button
             type="button"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             onClick={() => onSave(draft)}
             disabled={!canSave}
             className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
@@ -401,7 +401,7 @@ function DaysRowButton({
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={`Edit days: ${label}`}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -437,7 +437,7 @@ function DayToggle({
       onClick={onClick}
       aria-pressed={selected}
       aria-label={longLabel}
-      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-bru focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] ${
+      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-oh focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] ${
         selected
           ? "bg-oh-ink text-oh-paper"
           : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100"
@@ -508,8 +508,8 @@ function DayPickerDrawer({
         <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
           <Button
             type="button"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             onClick={onClose}
             className="w-full justify-center rounded-(--oh-r-xs)"
           >
@@ -533,7 +533,7 @@ function TimeColumn({
   ariaLabel: string;
 }) {
   return (
-    <label className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-bru hover:border-[var(--oh-ink)] has-[:focus-visible]:border-[var(--oh-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--oh-ink)]">
+    <label className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] has-[:focus-visible]:border-[var(--oh-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--oh-ink)]">
       <input
         type="time"
         step={900}

@@ -199,7 +199,7 @@ function EditForm({
           <Button
             type="button"
             variant="outline"
-            size="brutalist"
+            size="oh"
             onClick={onDone}
             disabled={isPending}
           >
@@ -207,8 +207,8 @@ function EditForm({
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={isPending}
           >
             {isPending ? "Saving…" : "Save"}

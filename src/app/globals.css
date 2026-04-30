@@ -53,11 +53,11 @@
   --text-oh-h1--line-height: 1;
 
   /* ─── Branded easing — gentle ease-out cubic, same shape vaul / Sonner
-     use for sheet entrances. Generates the `ease-bru` Tailwind utility
-     for inline JSX (`transition-colors duration-150 ease-bru`). Same
+     use for sheet entrances. Generates the `ease-oh` Tailwind utility
+     for inline JSX (`transition-colors duration-150 ease-oh`). Same
      curve baked into the --oh-t-* timings above for the .oh-* CSS
      rules, so the motion vocabulary stays single-sourced. ─── */
-  --ease-bru: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-oh: cubic-bezier(0.16, 1, 0.3, 1);
 
   --font-sans: var(--font-grotesk);
   --font-mono: var(--font-jetbrains);
@@ -371,7 +371,7 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: background-color 150ms var(--ease-bru, ease);
+  transition: background-color 150ms var(--ease-oh, ease);
 }
 .oh-dashboard-bar-trigger:hover,
 .oh-dashboard-bar-trigger[data-popup-open] {
@@ -382,7 +382,7 @@
   outline-offset: 2px;
 }
 .oh-dashboard-bar-chevron {
-  transition: transform 150ms var(--ease-bru, ease);
+  transition: transform 150ms var(--ease-oh, ease);
 }
 .oh-dashboard-bar-trigger[data-popup-open] .oh-dashboard-bar-chevron {
   transform: rotate(180deg);
@@ -459,7 +459,7 @@
   cursor: pointer;
   outline: none;
   user-select: none;
-  transition: background-color 120ms var(--ease-bru, ease);
+  transition: background-color 120ms var(--ease-oh, ease);
 }
 .oh-menu-item[data-highlighted] {
   background: var(--oh-tint-hover);

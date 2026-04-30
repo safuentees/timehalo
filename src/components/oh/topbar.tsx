@@ -14,7 +14,7 @@ export function OhTopbar() {
       style={{ ["--d" as string]: "0ms" }}
     >
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="rounded-(--oh-r-xs) size-9 border border-oh-ink text-oh-ink transition-colors duration-150 ease-bru hover:bg-oh-ink hover:text-oh-paper" />
+        <SidebarTrigger className="rounded-(--oh-r-xs) size-9 border border-oh-ink text-oh-ink transition-colors duration-150 ease-oh hover:bg-oh-ink hover:text-oh-paper" />
       </div>
     </div>
   );

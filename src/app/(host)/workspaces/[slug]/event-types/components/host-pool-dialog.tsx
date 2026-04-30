@@ -235,8 +235,8 @@ function HostRow({
             trigger={
               <Button
                 type="button"
-                variant="brutalistGhost"
-                size="brutalist"
+                variant="ohGhost"
+                size="oh"
                 disabled={removeHost.isPending}
               >
                 Remove
@@ -298,8 +298,8 @@ function AddHostPicker({
       </label>
       <Button
         type="button"
-        variant="brutalist"
-        size="brutalist"
+        variant="oh"
+        size="oh"
         disabled={!picked || addHost.isPending}
         onClick={() => {
           if (!picked) return;
