@@ -3,16 +3,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group";
+import {
+  OhInputGroup,
+  OhInputGroupAddon,
+  OhInputGroupInput,
+  OhInputGroupText,
+} from "@/components/oh/oh-input-group";
 import { handleSchema, registerInputSchema } from "@/lib/register-schema";
 import { useRegister } from "@/lib/mutations/use-register";
 import { trpc } from "@/trpc/hooks";
@@ -33,12 +40,14 @@ type Form = {
 
 export function RegisterForm() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register: registerField,
     handleSubmit,
     control,
     setValue,
     setError,
+    setFocus,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     defaultValues: { email: "", password: "", handle: "" },
@@ -73,18 +82,25 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/");
+      router.push("/bookings");
       router.refresh();
     },
     onError: (error) => {
       if (error.data?.code !== "CONFLICT") return;
 
+      // CONFLICT can fire on either the email column (account exists)
+      // or the handle column (slug taken). Bind the error to the right
+      // field AND scroll-focus it so the user lands directly on the
+      // input that needs editing — react-hook-form's setFocus pattern,
+      // mirrors cal.com's `onError` handlers.
       if (error.message.toLowerCase().includes("email")) {
         setError("email", { message: error.message });
+        setFocus("email");
         return;
       }
 
       setError("handle", { message: error.message });
+      setFocus("handle");
     },
   });
 
@@ -114,56 +130,80 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} className="grid gap-5">
       <div className="grid gap-2">
-        <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <label htmlFor="register-email" className="oh-legend">
           Email
-        </Label>
-        <Input
+        </label>
+        <input
+          id="register-email"
           type="email"
           placeholder="you@domain.com"
           autoComplete="email"
+          aria-invalid={errors.email ? true : undefined}
           {...registerField("email")}
-          className="text-sm"
+          className="oh-input"
         />
         {errors.email ? (
-          <p className="font-mono text-[10px] tracking-wide text-destructive">
+          <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
             {errors.email.message}
           </p>
         ) : null}
       </div>
 
       <div className="grid gap-2">
-        <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <label htmlFor="register-password" className="oh-legend">
           Password
-        </Label>
-        <Input
-          type="password"
-          placeholder="8+ characters"
-          autoComplete="new-password"
-          {...registerField("password")}
-          className="text-sm"
-        />
+        </label>
+        <InputGroup className="overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+          <InputGroupInput
+            id="register-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="8+ characters"
+            autoComplete="new-password"
+            aria-invalid={errors.password ? true : undefined}
+            className="px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
+            {...registerField("password")}
+          />
+          <InputGroupAddon align="inline-end" className="bg-transparent pr-2">
+            <InputGroupButton
+              type="button"
+              size="icon-xs"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="text-[color:var(--oh-content-muted)] hover:bg-[color:var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)]"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" strokeWidth={1.75} />
+              ) : (
+                <Eye className="size-4" strokeWidth={1.75} />
+              )}
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
         {errors.password ? (
-          <p className="font-mono text-[10px] tracking-wide text-destructive">
+          <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
             {errors.password.message}
           </p>
         ) : null}
       </div>
 
       <div className="grid gap-2">
-        <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        <label htmlFor="register-handle" className="oh-legend">
           Handle
-        </Label>
-        <InputGroup>
-          <InputGroupAddon>
-            <InputGroupText>officehours.app/h/</InputGroupText>
-          </InputGroupAddon>
-          <InputGroupInput
+        </label>
+        <OhInputGroup>
+          <OhInputGroupAddon>
+            <OhInputGroupText>officehours.app/h/</OhInputGroupText>
+          </OhInputGroupAddon>
+          <OhInputGroupInput
+            id="register-handle"
             placeholder="alex"
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
             maxLength={30}
             name="handle"
+            aria-invalid={errors.handle ? true : undefined}
             value={handle}
             onChange={(e) =>
               setValue(
@@ -173,31 +213,32 @@ export function RegisterForm() {
               )
             }
           />
-          <InputGroupAddon align="inline-end">
+          <OhInputGroupAddon align="inline-end">
             <AvailabilityBadge state={availability} />
-          </InputGroupAddon>
-        </InputGroup>
+          </OhInputGroupAddon>
+        </OhInputGroup>
         <HandleHelp state={availability} />
         {errors.handle ? (
-          <p className="font-mono text-[10px] tracking-wide text-destructive">
+          <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
             {errors.handle.message}
           </p>
         ) : null}
       </div>
 
       {errors.root?.message ? (
-        <p className="font-mono text-xs text-destructive">
+        <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
           {errors.root.message}
         </p>
       ) : null}
 
       <Button
         type="submit"
+        variant="oh"
+        size="oh"
         disabled={!canSubmit}
-        size="sm"
-        className="font-mono text-xs tracking-wide"
+        className="w-full justify-center"
       >
-        {isBusy ? "Creating..." : "Create account"}
+        {isBusy ? "Creating…" : "Create account"}
       </Button>
     </form>
   );
@@ -207,8 +248,8 @@ function AvailabilityBadge({ state }: { state: Availability }) {
   switch (state) {
     case "checking":
       return (
-        <InputGroupText className="text-muted-foreground tracking-[3px]">
-          ...
+        <InputGroupText className="text-[color:var(--oh-content-muted)] tracking-[3px]">
+          …
         </InputGroupText>
       );
     case "available":
@@ -218,13 +259,23 @@ function AvailabilityBadge({ state }: { state: Availability }) {
         </InputGroupText>
       );
     case "taken":
-      return <InputGroupText className="text-destructive">taken</InputGroupText>;
+      return (
+        <InputGroupText className="text-[color:var(--destructive)]">
+          taken
+        </InputGroupText>
+      );
     case "invalid":
       return (
-        <InputGroupText className="text-muted-foreground">3+</InputGroupText>
+        <InputGroupText className="text-[color:var(--oh-content-muted)]">
+          3+
+        </InputGroupText>
       );
     case "error":
-      return <InputGroupText className="text-destructive">!</InputGroupText>;
+      return (
+        <InputGroupText className="text-[color:var(--destructive)]">
+          !
+        </InputGroupText>
+      );
     default:
       return null;
   }
@@ -243,11 +294,7 @@ function HandleHelp({ state }: { state: Availability }) {
           : "Lowercase letters, numbers, hyphens.";
   const tone =
     state === "taken"
-      ? "text-destructive"
-      : state === "available"
-        ? "text-muted-foreground"
-        : "text-muted-foreground";
-  return (
-    <p className={`font-mono text-[10px] tracking-wide ${tone}`}>{text}</p>
-  );
+      ? "text-[color:var(--destructive)]"
+      : "text-[color:var(--oh-content-muted)]";
+  return <p className={`text-[12px] leading-[1.4] ${tone}`}>{text}</p>;
 }

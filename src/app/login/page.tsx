@@ -9,7 +9,8 @@ import MagicLinkForm from "./magic-link-form";
 // AccessDenied = signIn callback returned false. Configuration =
 // missing env / provider misconfig (operator-level, rare).
 const ERROR_COPY: Record<string, string> = {
-  Verification: "That sign-in link is expired or already used. Send a new one below.",
+  Verification:
+    "That sign-in link is expired or already used. Send a new one below.",
   AccessDenied: "Access denied for that account.",
   Configuration: "Sign-in is temporarily unavailable. Try again shortly.",
   OAuthSignin: "Could not start the OAuth flow. Try again.",
@@ -18,48 +19,54 @@ const ERROR_COPY: Record<string, string> = {
 
 type SearchParams = Promise<{ error?: string }>;
 
+// Auth shell: paper-on-ink palette via oh tokens, no `h-screen
+// overflow-hidden` (mobile soft-keyboard would clip the form).
+// Ink-bordered card frames the form against the cream page bg so
+// the surface reads as a finished primitive, not a default starter.
+// Pattern: cal.com `apps/web/modules/auth/login-view.tsx` shell +
+// dub `apps/web/app/app.dub.co/(auth)/login/page.tsx` card framing.
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const { error } = await searchParams;
-  const errorMessage = error ? (ERROR_COPY[error] ?? "Sign-in failed. Try again.") : null;
+  const errorMessage = error
+    ? (ERROR_COPY[error] ?? "Sign-in failed. Try again.")
+    : null;
 
   return (
-    <div className="h-screen overflow-hidden bg-background">
-      <main className="mx-auto max-w-sm px-8 pt-16 sm:pt-32">
-        <header className="mb-8">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground leading-none -ml-0.5">
+    <div className="min-h-screen bg-[color:var(--oh-frame)] text-[color:var(--oh-ink)]">
+      <main className="mx-auto w-full max-w-[420px] px-5 pt-12 pb-16 sm:pt-24 sm:px-6">
+        <header className="mb-7">
+          <h1 className="text-[28px] font-bold tracking-tight leading-none">
             Sign in
           </h1>
-          <p className="mt-4 font-mono text-xs tracking-wide text-muted-foreground text-pretty">
-            Sign in to create and manage posts.
+          <p className="mt-3 text-[13px] leading-[1.5] opacity-65">
+            Welcome back. Pick how you want to get in.
           </p>
         </header>
 
-        {errorMessage && (
+        {errorMessage ? (
           <div
             role="alert"
-            className="mb-6 border-l-2 border-destructive bg-destructive/[0.06] px-3 py-2 font-mono text-xs leading-relaxed text-destructive"
+            className="oh-field-error mb-6 border-l-2 border-[color:var(--destructive)] bg-[color:color-mix(in_srgb,var(--destructive)_8%,transparent)] px-3 py-2 text-[12px] leading-relaxed text-[color:var(--destructive)]"
           >
             {errorMessage}
           </div>
-        )}
+        ) : null}
 
-        <div className="pt-2 pb-8">
+        <div className="rounded-(--oh-r-sm) border-[1.5px] border-[color:var(--oh-line-strong)] bg-[color:var(--oh-paper)] px-5 py-6 sm:px-6">
           <CredentialsForm />
         </div>
 
-        <div className="flex items-center gap-3 w-full">
-          <div className="flex-1 h-px bg-border" />
-          <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-            or
-          </span>
-          <div className="flex-1 h-px bg-border" />
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-oh-line" />
+          <span className="oh-eyebrow">or</span>
+          <div className="h-px flex-1 bg-oh-line" />
         </div>
 
-        <div className="pt-6">
+        <div className="mt-6 grid gap-3">
           <form
             action={async () => {
               "use server";
@@ -68,31 +75,28 @@ export default async function LoginPage({
           >
             <Button
               type="submit"
-              variant="outline"
-              size="sm"
-              className="w-full font-mono text-xs tracking-wide border-foreground/20 transition-colors duration-200 hover:bg-foreground/[0.06] hover:border-foreground/40"
+              variant="ohGhost"
+              size="oh"
+              className="w-full justify-center gap-2"
             >
               <img
                 src="/icons/github.svg"
                 alt=""
-                className="size-3.5 dark:invert"
+                className="size-4 dark:invert"
               />
               Continue with GitHub
             </Button>
           </form>
-        </div>
-
-        <div className="pt-6">
           <MagicLinkForm />
         </div>
 
-        <p className="font-mono text-xs text-muted-foreground mt-8">
-          No account?{" "}
+        <p className="mt-8 text-[13px] opacity-65">
+          New here?{" "}
           <Link
             href="/register"
-            className="text-foreground transition-colors duration-200 hover:text-muted-foreground"
+            className="font-medium text-[color:var(--oh-ink)] underline underline-offset-4 decoration-oh-line transition-colors hover:decoration-[color:var(--oh-ink)]"
           >
-            Sign up
+            Create an account
           </Link>
         </p>
       </main>
