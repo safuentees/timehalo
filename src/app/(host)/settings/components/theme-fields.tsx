@@ -69,7 +69,7 @@ export function ThemeFields() {
           <button
             type="button"
             onClick={() => setTheme("system")}
-            className="rounded-(--oh-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-bru-tint focus-visible:bg-bru-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-content focus-visible:outline-offset-2"
+            className="rounded-(--oh-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-oh-tint focus-visible:bg-oh-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-content focus-visible:outline-offset-2"
           >
             {t("themeFollowOs")}
           </button>
@@ -97,9 +97,9 @@ function ThemeCard({
         "group relative flex w-[110px] cursor-pointer flex-col gap-2 p-2 transition-colors duration-150 ease-bru",
         "border-2",
         selected
-          ? "border-bru-content bg-bru-content text-bru-bg"
-          : "border-bru-line-strong bg-bru-bg text-bru-content hover:bg-bru-tint",
-        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-bru-content",
+          ? "border-oh-content bg-oh-content text-oh-bg"
+          : "border-oh-line-strong bg-oh-bg text-oh-content hover:bg-oh-tint",
+        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-oh-content",
       )}
     >
       <input

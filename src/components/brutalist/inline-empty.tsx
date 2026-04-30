@@ -11,7 +11,7 @@ export function BrutalistInlineEmpty({
   return (
     <p
       className={cn(
-        "rounded-(--oh-r-xs) border-[1.5px] border-dashed border-bru-line p-4 text-[13px] opacity-55",
+        "rounded-(--oh-r-xs) border-[1.5px] border-dashed border-oh-line p-4 text-[13px] opacity-55",
         className,
       )}
     >

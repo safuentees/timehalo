@@ -70,12 +70,12 @@ function WorkspaceRow({
   return (
     <Link
       href={`/workspaces/${slug}/members`}
-      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong"
+      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong"
     >
       <div className="flex min-w-0 flex-col gap-1.5">
-        <span className="bru-eyebrow tabular-nums">{t(`role_${role}`)}</span>
+        <span className="oh-eyebrow tabular-nums">{t(`role_${role}`)}</span>
         <h3 className="text-[16px] leading-[1.2] font-black truncate">{name}</h3>
-        <span className="bru-eyebrow normal-case tracking-[1.5px] text-[11px]">
+        <span className="oh-eyebrow normal-case tracking-[1.5px] text-[11px]">
           /{slug}
         </span>
       </div>

@@ -116,7 +116,7 @@ export default function BookingDetail({
         ) : (
           <Link
             href="/bookings"
-            className="bru-eyebrow inline-flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
+            className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
           >
             <ArrowLeftIcon className="size-3" aria-hidden />
             {t("back")}
@@ -140,14 +140,14 @@ export default function BookingDetail({
         title={data.visitorName}
         aside={<StatusPill status={status} />}
       />
-      <p className="bru-eyebrow tabular-nums mt-2">
+      <p className="oh-eyebrow tabular-nums mt-2">
         {fmtDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
       </p>
 
       <div
         role="tablist"
         aria-label={t("tabsLabel")}
-        className="mt-8 inline-flex overflow-hidden rounded-(--oh-r-sm) border-2 border-bru-line-strong"
+        className="mt-8 inline-flex overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong"
       >
         <SegButton active={tab === "info"} onClick={() => setTab("info")}>
           {t("tabInfo")}
@@ -177,7 +177,7 @@ export default function BookingDetail({
 
       {!cancelled ? (
         isDrawer ? (
-          <div className="mt-8 flex gap-2 border-t-2 border-bru-line pt-5">
+          <div className="mt-8 flex gap-2 border-t-2 border-oh-line pt-5">
             <ConfirmDialog
               title={t("cancelTitle")}
               description={t("cancelDescription", { name: data.visitorName })}
@@ -203,9 +203,9 @@ export default function BookingDetail({
           </div>
         ) : (
           <>
-            <div className="bru-dash-save-spacer" aria-hidden />
-            <div className="bru-dash-save-bar" role="region" aria-label={t("actionsLabel")}>
-              <div className="bru-dash-save-bar-inner flex gap-2">
+            <div className="oh-dash-save-spacer" aria-hidden />
+            <div className="oh-dash-save-bar" role="region" aria-label={t("actionsLabel")}>
+              <div className="oh-dash-save-bar-inner flex gap-2">
                 <ConfirmDialog
                   title={t("cancelTitle")}
                   description={t("cancelDescription", { name: data.visitorName })}
@@ -283,9 +283,9 @@ function StatusPill({ status }: { status: "confirmed" | "cancelled" | "reschedul
       ? "bg-emerald-600 dark:bg-emerald-400"
       : status === "rescheduled"
         ? "bg-amber-500"
-        : "bg-bru-line-strong";
+        : "bg-oh-line-strong";
   return (
-    <span className="bru-eyebrow inline-flex items-center gap-1.5">
+    <span className="oh-eyebrow inline-flex items-center gap-1.5">
       <span className={["size-1.5 rounded-full", dotClass].join(" ")} aria-hidden />
       {t(`status_${status}`)}
     </span>
@@ -311,11 +311,11 @@ function SegButton({
         "inline-flex items-center gap-2.5 px-4 py-2.5",
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
-        "border-r-2 border-bru-line-strong last:border-r-0",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",
+        "border-r-2 border-oh-line-strong last:border-r-0",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oh-line-strong focus-visible:ring-inset",
         active
-          ? "bg-bru-content text-bru-bg"
-          : "bg-bru-bg text-bru-content hover:bg-bru-tint",
+          ? "bg-oh-content text-oh-bg"
+          : "bg-oh-bg text-oh-content hover:bg-oh-tint",
       ].join(" ")}
     >
       {children}
@@ -407,10 +407,10 @@ function InfoView({
           </p>
           {showTimezones ? (
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-              <span className="bru-eyebrow tabular-nums opacity-55">
+              <span className="oh-eyebrow tabular-nums opacity-55">
                 {t("hostTimezone", { tz: hostTz })}
               </span>
-              <span className="bru-eyebrow tabular-nums opacity-55">
+              <span className="oh-eyebrow tabular-nums opacity-55">
                 {t("visitorTimezone", { tz: visitorTz })}
               </span>
             </div>
@@ -422,14 +422,14 @@ function InfoView({
         <div className="flex flex-col gap-3">
           <div>
             <p className="text-[14px] font-bold">{data.visitorName}</p>
-            <p className="bru-eyebrow inline-flex items-center gap-1.5 mt-1.5 opacity-55">
+            <p className="oh-eyebrow inline-flex items-center gap-1.5 mt-1.5 opacity-55">
               <MailIcon className="size-3" aria-hidden />
               {data.visitorEmail}
             </p>
           </div>
           {data.host ? (
-            <div className="border-t-2 border-bru-line pt-3">
-              <p className="bru-eyebrow opacity-55 mb-1.5">{t("hostLabel")}</p>
+            <div className="border-t-2 border-oh-line pt-3">
+              <p className="oh-eyebrow opacity-55 mb-1.5">{t("hostLabel")}</p>
               <p className="text-[14px] font-bold">
                 {data.host.name ?? data.host.handle ?? data.host.email}
               </p>
@@ -451,7 +451,7 @@ function InfoView({
           <div className="flex flex-col gap-3">
             {data.eventType ? (
               <div className="flex items-baseline justify-between gap-x-4">
-                <span className="bru-eyebrow opacity-55">{t("eventTypeLabel")}</span>
+                <span className="oh-eyebrow opacity-55">{t("eventTypeLabel")}</span>
                 <span className="text-[13px] tabular-nums font-bold">
                   {data.eventType.name}{" "}
                   <span className="opacity-55">/{data.eventType.slug}</span>{" "}
@@ -461,8 +461,8 @@ function InfoView({
             ) : null}
             {data.referrer ? (
               <div className="flex items-baseline justify-between gap-x-4">
-                <span className="bru-eyebrow opacity-55">{t("referrerLabel")}</span>
-                <span className="bru-eyebrow tabular-nums">{data.referrer}</span>
+                <span className="oh-eyebrow opacity-55">{t("referrerLabel")}</span>
+                <span className="oh-eyebrow tabular-nums">{data.referrer}</span>
               </div>
             ) : null}
           </div>
@@ -477,7 +477,7 @@ function InfoView({
                 key={task.id}
                 className="flex items-baseline justify-between gap-x-4 text-[13px]"
               >
-                <span className="bru-eyebrow opacity-55">{taskLabel(task.referenceUid ?? "")}</span>
+                <span className="oh-eyebrow opacity-55">{taskLabel(task.referenceUid ?? "")}</span>
                 <span className="tabular-nums opacity-75">
                   {task.scheduledAt
                     ? fmtAuditTimestamp(new Date(task.scheduledAt as unknown as string))
@@ -497,11 +497,11 @@ function InfoView({
                 key={delivery.id}
                 className="flex items-baseline justify-between gap-x-4 text-[13px]"
               >
-                <span className="bru-eyebrow inline-flex items-center gap-1.5 opacity-55">
+                <span className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55">
                   {taskLabel(delivery.referenceUid ?? "")}
                   {delivery.attempts > 1 ? (
                     <span
-                      className="bru-eyebrow tabular-nums opacity-75"
+                      className="oh-eyebrow tabular-nums opacity-75"
                       aria-label={t("retriedAttempts", {
                         count: delivery.attempts,
                       })}
@@ -527,7 +527,7 @@ function InfoView({
         <BrutalistSection title={t("rescheduledFrom")}>
           <Link
             href={`/bookings/${data.rescheduledFrom.publicUid}`}
-            className="bru-eyebrow tabular-nums underline underline-offset-2 opacity-75 hover:opacity-100"
+            className="oh-eyebrow tabular-nums underline underline-offset-2 opacity-75 hover:opacity-100"
           >
             {fmtAuditTimestamp(
               new Date(data.rescheduledFrom.slotStart as unknown as string),
@@ -568,7 +568,7 @@ function HistoryView({
             >
               <div className="relative flex justify-center pt-1">
                 <span
-                  className="size-2 rounded-full bg-bru-line-strong"
+                  className="size-2 rounded-full bg-oh-line-strong"
                   aria-hidden
                 />
               </div>
@@ -577,11 +577,11 @@ function HistoryView({
                   <span className="text-[13px] font-bold uppercase tracking-[1.5px]">
                     {row.action.toLowerCase()}
                   </span>
-                  <span className="bru-eyebrow tabular-nums opacity-55">
+                  <span className="oh-eyebrow tabular-nums opacity-55">
                     {fmtAuditTimestamp(at)}
                   </span>
                 </div>
-                <span className="bru-eyebrow opacity-55">
+                <span className="oh-eyebrow opacity-55">
                   {row.actor.toLowerCase()}
                 </span>
               </div>

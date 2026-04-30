@@ -24,7 +24,7 @@ export function MonthStack({
   const today = useMemo(() => startOfToday(), []);
 
   return (
-    <div className="bru-month-stack">
+    <div className="oh-month-stack">
       {Array.from({ length: months }).map((_, i) => {
         const monthStart = addMonths(firstMonth, i);
         return (
@@ -39,21 +39,21 @@ export function MonthStack({
             hideNavigation
             disableNavigation
             showOutsideDays={false}
-            className="bru-month"
+            className="oh-month"
             classNames={{
-              root: "bru-month-root",
-              months: "bru-month-months",
-              month: "bru-month-col",
-              month_caption: "bru-month-caption",
-              caption_label: "bru-month-caption-label",
-              weekdays: "bru-weekdays",
-              weekday: "bru-weekday",
-              week: "bru-week",
-              day: "bru-day",
-              today: "bru-day-today",
-              outside: "bru-day-outside",
-              disabled: "bru-day-disabled",
-              hidden: "bru-day-hidden",
+              root: "oh-month-root",
+              months: "oh-month-months",
+              month: "oh-month-col",
+              month_caption: "oh-month-caption",
+              caption_label: "oh-month-caption-label",
+              weekdays: "oh-weekdays",
+              weekday: "oh-weekday",
+              week: "oh-week",
+              day: "oh-day",
+              today: "oh-day-today",
+              outside: "oh-day-outside",
+              disabled: "oh-day-disabled",
+              hidden: "oh-day-hidden",
             }}
             components={{
               DayButton: (props) => (
@@ -69,9 +69,9 @@ export function MonthStack({
               closed: (d) => !densityMap.get(toKey(d)) && d >= today,
             }}
             modifiersClassNames={{
-              available: "bru-day-available",
-              booked: "bru-day-booked",
-              closed: "bru-day-closed",
+              available: "oh-day-available",
+              booked: "oh-day-booked",
+              closed: "oh-day-closed",
             }}
           />
         );

@@ -16,7 +16,7 @@ export function SectionHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
       <div className="min-w-0 flex-1">
-        <p id={legendId} className="bru-legend">
+        <p id={legendId} className="oh-legend">
           {legend}
         </p>
         {title ? (
@@ -25,7 +25,7 @@ export function SectionHeader({
           </h2>
         ) : null}
         {description ? (
-          <p className="bru-description mt-3">{description}</p>
+          <p className="oh-description mt-3">{description}</p>
         ) : null}
       </div>
       {action ? <div className="shrink-0 self-start">{action}</div> : null}

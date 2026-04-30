@@ -92,7 +92,7 @@ export function GeneralSection({
               name="name"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <label htmlFor={field.name} className="bru-legend">
+                  <label htmlFor={field.name} className="oh-legend">
                     {t("nameLabel")}
                   </label>
                   <input
@@ -106,13 +106,13 @@ export function GeneralSection({
                     spellCheck={false}
                     disabled={!canEdit || isPending}
                     aria-invalid={fieldState.invalid}
-                    className="bru-input mt-2 w-full text-[14px]"
+                    className="oh-input mt-2 w-full text-[14px]"
                   />
                   <FieldError
                     errors={
                       fieldState.error ? [fieldState.error] : undefined
                     }
-                    className="bru-field-error"
+                    className="oh-field-error"
                   />
                 </Field>
               )}
@@ -122,7 +122,7 @@ export function GeneralSection({
               name="slug"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <label htmlFor={field.name} className="bru-legend">
+                  <label htmlFor={field.name} className="oh-legend">
                     {t("slugLabel")}
                   </label>
                   <input
@@ -139,11 +139,11 @@ export function GeneralSection({
                     disabled={!canEdit || isPending}
                     aria-invalid={fieldState.invalid}
                     aria-describedby={`${field.name}-hint`}
-                    className="bru-input mt-2 w-full font-[family-name:var(--oh-mono)] text-[13px] tracking-tight"
+                    className="oh-input mt-2 w-full font-[family-name:var(--oh-mono)] text-[13px] tracking-tight"
                   />
                   <p
                     id={`${field.name}-hint`}
-                    className="bru-eyebrow mt-2 opacity-55"
+                    className="oh-eyebrow mt-2 opacity-55"
                   >
                     {t("slugHint")}
                   </p>
@@ -151,7 +151,7 @@ export function GeneralSection({
                     errors={
                       fieldState.error ? [fieldState.error] : undefined
                     }
-                    className="bru-field-error"
+                    className="oh-field-error"
                   />
                 </Field>
               )}

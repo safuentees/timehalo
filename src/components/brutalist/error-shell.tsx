@@ -15,12 +15,12 @@ export function ErrorShell({
   actions?: ReactNode;
 }) {
   return (
-    <main className="bru-main">
+    <main className="oh-main">
       <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
-        <p className="bru-legend">
+        <p className="oh-legend">
           {label}
         </p>
-        <h1 className="mt-4 text-bru-h1 font-black uppercase tracking-tight">
+        <h1 className="mt-4 text-oh-h1 font-black uppercase tracking-tight">
           {title}
         </h1>
         <p className="mt-4 max-w-prose text-[15px] leading-[1.55] opacity-75">
@@ -52,9 +52,9 @@ export function ErrorShellLink({
     <li>
       <Link
         href={href}
-        className="group block border-2 border-bru-line p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong hover:bg-bru-tint"
+        className="group block border-2 border-oh-line p-5 transition-colors duration-150 ease-bru hover:border-oh-line-strong hover:bg-oh-tint"
       >
-        <p className="bru-eyebrow group-hover:opacity-90">
+        <p className="oh-eyebrow group-hover:opacity-90">
           {description}
         </p>
         <p className="mt-2 text-[16px] font-black leading-tight">

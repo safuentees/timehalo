@@ -64,20 +64,20 @@ export default async function StatusPage() {
         : "Booking flow disrupted.";
   const overallTone =
     overall === "ok"
-      ? "text-bru-content"
+      ? "text-oh-content"
       : overall === "degraded"
         ? "opacity-75"
-        : "text-bru-content underline";
+        : "text-oh-content underline";
 
   return (
-    <main className="bru-main">
+    <main className="oh-main">
       <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
-        <p className="bru-legend">
+        <p className="oh-legend">
           Officehours / Status
         </p>
         <h1
           className={[
-            "mt-4 text-bru-h1 font-black uppercase tracking-tight",
+            "mt-4 text-oh-h1 font-black uppercase tracking-tight",
             overallTone,
           ].join(" ")}
         >
@@ -91,7 +91,7 @@ export default async function StatusPage() {
           {checks.map((check) => (
             <li
               key={check.label}
-              className="border-[1.5px] border-bru-line p-5"
+              className="border-[1.5px] border-oh-line p-5"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
                 <p className="text-[16px] font-black">{check.label}</p>
@@ -121,8 +121,8 @@ export default async function StatusPage() {
           ))}
         </ul>
 
-        <section className="mt-12 border-t-2 border-bru-line-strong pt-8">
-          <p className="bru-eyebrow">
+        <section className="mt-12 border-t-2 border-oh-line-strong pt-8">
+          <p className="oh-eyebrow">
             Notes
           </p>
           <p className="mt-3 max-w-prose text-[13px] leading-[1.55] opacity-75">

@@ -44,7 +44,7 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
           </BrutalistInlineEmpty>
         ) : (
           <div className="flex flex-col gap-3">
-            <label htmlFor="transfer-target" className="bru-legend">
+            <label htmlFor="transfer-target" className="oh-legend">
               {t("transferTargetLabel")}
             </label>
             <select
@@ -52,7 +52,7 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
               value={pickedUserId}
               onChange={(e) => setPickedUserId(e.target.value)}
               disabled={transfer.isPending}
-              className="bru-input w-full font-[family-name:var(--oh-mono)] text-[13px]"
+              className="oh-input w-full font-[family-name:var(--oh-mono)] text-[13px]"
             >
               <option value="">{t("transferPlaceholder")}</option>
               {eligible.map((m) => {

@@ -37,7 +37,7 @@ export default async function AdminAuditPage({
 
   return (
     <section>
-      <p className="bru-legend">
+      <p className="oh-legend">
         Audit · {bookingUid}
       </p>
       {trail.length === 0 ? (
@@ -51,7 +51,7 @@ export default async function AdminAuditPage({
             return (
               <li
                 key={row.id}
-                className="border-[1.5px] border-bru-line p-4"
+                className="border-[1.5px] border-oh-line p-4"
               >
                 <p className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase opacity-65">
                   {row.actor} · {row.action} ·{" "}
@@ -62,7 +62,7 @@ export default async function AdminAuditPage({
                 <p className="mt-1 font-[family-name:var(--oh-mono)] text-[10px] tracking-[1.5px] opacity-55">
                   op: {row.operationId}
                 </p>
-                <pre className="mt-3 overflow-x-auto bg-bru-bg-muted p-3 font-[family-name:var(--oh-mono)] text-[11px] leading-[1.45]">
+                <pre className="mt-3 overflow-x-auto bg-oh-bg-muted p-3 font-[family-name:var(--oh-mono)] text-[11px] leading-[1.45]">
                   {JSON.stringify(row.data, null, 2)}
                 </pre>
               </li>

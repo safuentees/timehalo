@@ -119,14 +119,14 @@ function CreateForm({
         })}
         className={RESPONSIVE_MODAL_BODY_CLASS}
       >
-        <p className="bru-description">
+        <p className="oh-description">
           {t("createDescription")}
         </p>
         <Controller<Values>
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <label className="bru-legend" htmlFor={field.name}>
+              <label className="oh-legend" htmlFor={field.name}>
                 {t("nameLabel")}
               </label>
               <input
@@ -137,11 +137,11 @@ function CreateForm({
                 spellCheck={false}
                 placeholder={t("namePlaceholder")}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-2 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-2 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -150,13 +150,13 @@ function CreateForm({
           name="scopes"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <p id="api-key-scopes-label" className="bru-legend">
+              <p id="api-key-scopes-label" className="oh-legend">
                 {t("scopesLabel")}
               </p>
-              <p className="bru-description mt-2">{t("scopesDescription")}</p>
+              <p className="oh-description mt-2">{t("scopesDescription")}</p>
               <fieldset
                 aria-labelledby="api-key-scopes-label"
-                className="mt-3 grid grid-cols-1 gap-0 border-2 border-bru-line-strong sm:grid-cols-2"
+                className="mt-3 grid grid-cols-1 gap-0 border-2 border-oh-line-strong sm:grid-cols-2"
               >
                 {SCOPE_OPTIONS.map((scope) => {
                   const checked = (field.value as Scope[]).includes(scope);
@@ -167,10 +167,10 @@ function CreateForm({
                         "flex cursor-pointer items-center gap-3 px-4 py-3",
                         "font-[family-name:var(--oh-mono)] text-[12px] font-extrabold tracking-[1.5px] uppercase",
                         "transition-colors duration-150 ease-bru",
-                        "border-t-2 border-bru-line-strong first:border-t-0 sm:[&:nth-child(2)]:border-t-0 sm:[&:nth-child(even)]:border-l-2",
+                        "border-t-2 border-oh-line-strong first:border-t-0 sm:[&:nth-child(2)]:border-t-0 sm:[&:nth-child(even)]:border-l-2",
                         checked
-                          ? "bg-bru-content text-bru-bg"
-                          : "bg-bru-bg text-bru-content hover:bg-bru-tint",
+                          ? "bg-oh-content text-oh-bg"
+                          : "bg-oh-bg text-oh-content hover:bg-oh-tint",
                       ].join(" ")}
                     >
                       <input
@@ -191,8 +191,8 @@ function CreateForm({
                         className={[
                           "inline-flex size-4 shrink-0 items-center justify-center border-2",
                           checked
-                            ? "border-bru-bg bg-bru-bg text-bru-content"
-                            : "border-bru-line-strong bg-bru-bg",
+                            ? "border-oh-bg bg-oh-bg text-oh-content"
+                            : "border-oh-line-strong bg-oh-bg",
                         ].join(" ")}
                       >
                         {checked ? <CheckIcon className="size-3" /> : null}
@@ -204,7 +204,7 @@ function CreateForm({
               </fieldset>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -259,9 +259,9 @@ function RevealedToken({
 
   return (
     <ResponsiveModalBody>
-      <p className="bru-description">{t("revealedDescription")}</p>
+      <p className="oh-description">{t("revealedDescription")}</p>
       <Field>
-        <label htmlFor="api-key-token" className="bru-legend">
+        <label htmlFor="api-key-token" className="oh-legend">
           {t("tokenLabel")}
         </label>
         <div className="mt-2 flex flex-wrap items-stretch gap-2">
@@ -271,7 +271,7 @@ function RevealedToken({
             value={token}
             readOnly
             onFocus={(e) => e.currentTarget.select()}
-            className="bru-input flex-1 min-w-[220px] font-[family-name:var(--oh-mono)] text-[13px]"
+            className="oh-input flex-1 min-w-[220px] font-[family-name:var(--oh-mono)] text-[13px]"
           />
           <Button
             type="button"

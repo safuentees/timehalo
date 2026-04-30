@@ -8,9 +8,9 @@ type Props = {
 
 export function BrutalistPageHeader({ kicker, title, aside }: Props) {
   return (
-    <div className="border-b-2 border-bru-line-strong pb-6">
+    <div className="border-b-2 border-oh-line-strong pb-6">
       {kicker ? (
-        <p className="bru-legend">
+        <p className="oh-legend">
           {kicker}
         </p>
       ) : null}
@@ -18,7 +18,7 @@ export function BrutalistPageHeader({ kicker, title, aside }: Props) {
         <h1
           className={`${
             kicker ? "mt-3" : ""
-          } text-bru-h2 font-black uppercase tracking-tight`}
+          } text-oh-h2 font-black uppercase tracking-tight`}
         >
           {title}
         </h1>

@@ -12,7 +12,7 @@ export function BrutalistSection({
 }) {
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <p className="bru-eyebrow">{title}</p>
+      <p className="oh-eyebrow">{title}</p>
       <div>{children}</div>
     </section>
   );

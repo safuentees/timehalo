@@ -22,18 +22,18 @@ export default async function AdminWebhooksPage() {
   return (
     <section className="flex flex-col gap-10">
       <div>
-        <p className="bru-legend">
+        <p className="oh-legend">
           Subscriptions · {subs.length}
         </p>
         <ul role="list" className="mt-5 flex flex-col gap-3">
           {subs.map((s) => (
             <li
               key={s.id}
-              className="border-2 border-bru-line-strong p-5"
+              className="border-2 border-oh-line-strong p-5"
             >
               <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
                 <div className="min-w-0">
-                  <p className="bru-eyebrow">
+                  <p className="oh-eyebrow">
                     @{s.user.handle ?? "no-handle"} · {s.user.email}
                   </p>
                   <h2 className="mt-2 truncate text-[15px] font-bold">
@@ -43,7 +43,7 @@ export default async function AdminWebhooksPage() {
                 <span
                   className={[
                     "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-                    s.active ? "text-bru-content" : "opacity-55",
+                    s.active ? "text-oh-content" : "opacity-55",
                   ].join(" ")}
                 >
                   {s.active ? "ACTIVE" : "INACTIVE"}
@@ -61,16 +61,16 @@ export default async function AdminWebhooksPage() {
       </div>
 
       <div>
-        <p className="bru-legend">
+        <p className="oh-legend">
           Permanently failed deliveries · {failed.length}
         </p>
         <ul role="list" className="mt-5 flex flex-col gap-3">
           {failed.map((t) => (
             <li
               key={t.id}
-              className="border-[1.5px] border-bru-line p-4"
+              className="border-[1.5px] border-oh-line p-4"
             >
-              <p className="bru-legend">
+              <p className="oh-legend">
                 Task #{t.id} · {t.attempts}/{t.maxAttempts} attempts
               </p>
               <p className="mt-1 font-[family-name:var(--oh-mono)] text-[12px] opacity-90">
@@ -89,7 +89,7 @@ export default async function AdminWebhooksPage() {
             </p>
           ) : null}
         </ul>
-        <p className="mt-4 bru-eyebrow">
+        <p className="mt-4 oh-eyebrow">
           Retry via admin.webhooks.retry({"{"} taskId {"}"})
         </p>
       </div>

@@ -22,7 +22,7 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
     <button
       type="button"
       onClick={onClick}
-      className={`bru-trigger-card bru-trigger-card--${variant}`}
+      className={`oh-trigger-card oh-trigger-card--${variant}`}
       aria-label={
         variant === "empty"
           ? "Pick a date"
@@ -31,28 +31,28 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
             : `${fmtDate(selectedDate!)} at ${fmtTime(new Date(selectedSlot!.start))}, edit`
       }
     >
-      <span className="bru-trigger-card-body" aria-live="polite">
+      <span className="oh-trigger-card-body" aria-live="polite">
         {variant === "empty" ? (
-          <span className="bru-trigger-card-line-top">PICK A DATE</span>
+          <span className="oh-trigger-card-line-top">PICK A DATE</span>
         ) : variant === "date" ? (
           <>
-            <span className="bru-trigger-card-line-top">
+            <span className="oh-trigger-card-line-top">
               {fmtDate(selectedDate!)}
             </span>
-            <span className="bru-trigger-card-line-bottom">PICK A TIME</span>
+            <span className="oh-trigger-card-line-bottom">PICK A TIME</span>
           </>
         ) : (
           <>
-            <span className="bru-trigger-card-line-top">
+            <span className="oh-trigger-card-line-top">
               {fmtDate(selectedDate!)}
             </span>
-            <span className="bru-trigger-card-line-bottom bru-trigger-card-time">
+            <span className="oh-trigger-card-line-bottom oh-trigger-card-time">
               {fmtTime(new Date(selectedSlot!.start))}
             </span>
           </>
         )}
       </span>
-      <span className="bru-trigger-card-glyph" aria-hidden>
+      <span className="oh-trigger-card-glyph" aria-hidden>
         {variant === "full" ? <PencilIcon /> : <ArrowRightIcon />}
       </span>
     </button>

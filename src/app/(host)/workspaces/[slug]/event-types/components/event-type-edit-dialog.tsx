@@ -132,11 +132,11 @@ function EditForm({
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -152,11 +152,11 @@ function EditForm({
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px] lowercase"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px] lowercase"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -182,11 +182,11 @@ function EditForm({
                 max={480}
                 step={5}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}

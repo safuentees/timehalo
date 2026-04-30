@@ -154,11 +154,11 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 id={field.name}
                 type="text"
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -173,7 +173,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 {...field}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               >
                 {TRIGGERS.map((v) => (
                   <option key={v} value={v}>
@@ -183,7 +183,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
               </select>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -209,11 +209,11 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   min={0}
                   max={7 * 24 * 60}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                  className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 />
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
-                  className="bru-field-error"
+                  className="oh-field-error"
                 />
               </Field>
             )}
@@ -229,7 +229,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 {...field}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
-                className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               >
                 {ACTIONS.map((v) => (
                   <option key={v} value={v}>
@@ -239,7 +239,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
               </select>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
@@ -258,7 +258,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   value={field.value ?? ""}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                  className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   {TEMPLATES.map((v) => (
                     <option key={v} value={v}>
@@ -268,7 +268,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 </select>
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
-                  className="bru-field-error"
+                  className="oh-field-error"
                 />
               </Field>
             )}
@@ -286,7 +286,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   value={field.value ?? ""}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
-                  className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                  className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   <option value="">—</option>
                   {WEBHOOK_EVENTS.map((v) => (
@@ -297,7 +297,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                 </select>
                 <FieldError
                   errors={fieldState.error ? [fieldState.error] : undefined}
-                  className="bru-field-error"
+                  className="oh-field-error"
                 />
               </Field>
             )}
@@ -357,7 +357,7 @@ function FieldLabel({
   children: React.ReactNode;
 }) {
   return (
-    <label htmlFor={htmlFor} className="bru-legend">
+    <label htmlFor={htmlFor} className="oh-legend">
       {children}
     </label>
   );

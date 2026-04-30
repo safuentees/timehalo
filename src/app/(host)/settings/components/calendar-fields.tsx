@@ -70,9 +70,9 @@ export function CalendarFields() {
         >
           {connections.map((c) => (
             <li key={c.id}>
-              <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+              <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
                 <header className="flex min-w-0 flex-col gap-1.5">
-                  <p className="bru-eyebrow">
+                  <p className="oh-eyebrow">
                     {t(
                       `provider${c.provider}` as
                         | "providerGOOGLE"

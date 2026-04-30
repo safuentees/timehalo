@@ -67,18 +67,18 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bru-bg text-bru-content">
-      <header className="flex items-center justify-between border-b-[1.5px] border-bru-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
+    <div className="flex min-h-dvh flex-col bg-oh-bg text-oh-content">
+      <header className="flex items-center justify-between border-b-[1.5px] border-oh-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <Link
           href="/"
-          className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-bru-content underline-offset-4 transition-[text-decoration] hover:underline"
+          className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-oh-content underline-offset-4 transition-[text-decoration] hover:underline"
         >
           OH
         </Link>
         {booking.host.handle ? (
           <Link
             href={`/h/${booking.host.handle}`}
-            className="bru-legend transition-opacity hover:opacity-100"
+            className="oh-legend transition-opacity hover:opacity-100"
           >
             /h/{booking.host.handle}
           </Link>
@@ -90,17 +90,17 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           <div className="flex items-center gap-3">
             <span
               aria-hidden
-              className="grid size-7 place-items-center rounded-(--oh-r-xs) border-[1.5px] border-bru-content bg-bru-content text-bru-bg sm:size-8"
+              className="grid size-7 place-items-center rounded-(--oh-r-xs) border-[1.5px] border-oh-content bg-oh-content text-oh-bg sm:size-8"
             >
               <CheckIcon className="size-4 sm:size-[18px]" strokeWidth={3} />
             </span>
-            <span className="bru-legend sm:text-[12px]">
+            <span className="oh-legend sm:text-[12px]">
               Booked
             </span>
           </div>
 
           <div className="mt-10 sm:mt-14 lg:mt-20">
-            <p className="bru-legend sm:text-[13px]">
+            <p className="oh-legend sm:text-[13px]">
               {weekday}
             </p>
             <p className="mt-2 text-[clamp(48px,14vw,160px)] font-black leading-[0.88] tracking-[-0.045em] uppercase sm:mt-3">
@@ -109,19 +109,19 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             <p className="mt-4 font-[family-name:var(--oh-mono)] text-[16px] font-bold tabular-nums sm:mt-6 sm:text-[18px] lg:text-[20px]">
               {slotTime}
             </p>
-            <p className="mt-1 bru-eyebrow sm:text-[11px]">
+            <p className="mt-1 oh-eyebrow sm:text-[11px]">
               {tzLabel}
             </p>
           </div>
 
-          <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-bru-line pt-6 sm:mt-14 sm:gap-4 sm:pt-8 lg:mt-20">
+          <div className="mt-10 flex items-center gap-3 border-t-[1.5px] border-oh-line pt-6 sm:mt-14 sm:gap-4 sm:pt-8 lg:mt-20">
             <Avatar className="size-10 rounded-(--oh-r-xs) sm:size-12">
               <AvatarImage
                 src={booking.host.image ?? undefined}
                 alt={hostName}
                 className="rounded-(--oh-r-xs)"
               />
-              <AvatarFallback className="rounded-(--oh-r-xs) bg-bru-paper font-[family-name:var(--oh-mono)] text-[12px] font-extrabold text-bru-ink sm:text-[14px]">
+              <AvatarFallback className="rounded-(--oh-r-xs) bg-oh-paper font-[family-name:var(--oh-mono)] text-[12px] font-extrabold text-oh-ink sm:text-[14px]">
                 {toInitials(hostName)}
               </AvatarFallback>
             </Avatar>
@@ -130,7 +130,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 with {hostName}
               </p>
               {booking.host.handle ? (
-                <p className="mt-0.5 truncate bru-eyebrow sm:text-[11px]">
+                <p className="mt-0.5 truncate oh-eyebrow sm:text-[11px]">
                   /h/{booking.host.handle}
                 </p>
               ) : null}
@@ -175,7 +175,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
         </div>
       </main>
 
-      <footer className="hidden items-center justify-between border-t-[1.5px] border-bru-line px-8 py-5 bru-eyebrow sm:flex lg:px-12">
+      <footer className="hidden items-center justify-between border-t-[1.5px] border-oh-line px-8 py-5 oh-eyebrow sm:flex lg:px-12">
         <span>Officehours</span>
         <span className="tabular-nums">Receipt {fmtStamp(startDate)}</span>
       </footer>

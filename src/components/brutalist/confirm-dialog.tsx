@@ -53,7 +53,7 @@ export function ConfirmDialog({
         </ResponsiveModalHeader>
         <ResponsiveModalBody>
           {typeof description === "string" ? (
-            <p className="bru-description">{description}</p>
+            <p className="oh-description">{description}</p>
           ) : (
             description
           )}

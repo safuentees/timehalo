@@ -128,18 +128,18 @@ export function ResponsiveModalContent({
     return (
       <DrawerPrimitive.Portal>
         <DrawerPrimitive.Overlay
-          className={cn("bru-drawer-overlay", overlayClassName)}
+          className={cn("oh-drawer-overlay", overlayClassName)}
         />
         <DrawerPrimitive.Content
-          className={cn("bru-drawer-content", mobileClassName)}
+          className={cn("oh-drawer-content", mobileClassName)}
         >
           {showHandle ? (
-            <DrawerPrimitive.Handle className="bru-drawer-handle" />
+            <DrawerPrimitive.Handle className="oh-drawer-handle" />
           ) : null}
           {defaultClose ? (
             <>
               <ResponsiveModalClose floating />
-              <div className="bru-modal-close-bar" aria-hidden />
+              <div className="oh-modal-close-bar" aria-hidden />
             </>
           ) : null}
           {children}
@@ -150,7 +150,7 @@ export function ResponsiveModalContent({
 
   return (
     <DialogContent
-      className={cn("bru-modal-content", desktopClassName)}
+      className={cn("oh-modal-content", desktopClassName)}
       style={{
         position: "fixed",
         inset: 0,
@@ -166,7 +166,7 @@ export function ResponsiveModalContent({
       {defaultClose ? (
         <>
           <ResponsiveModalClose floating />
-          <div className="bru-modal-close-bar" aria-hidden />
+          <div className="oh-modal-close-bar" aria-hidden />
         </>
       ) : null}
       {children}

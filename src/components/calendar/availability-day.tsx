@@ -23,18 +23,18 @@ export function AvailabilityDay({
   const isFullyBooked = !isPast && !!density?.isFullyBooked;
 
   const numClass = isPast
-    ? "bru-day-num--past"
+    ? "oh-day-num--past"
     : isFullyBooked
-      ? "bru-day-num--full"
+      ? "oh-day-num--full"
       : isClosed
-      ? "bru-day-num--closed"
-      : "bru-day-num";
+      ? "oh-day-num--closed"
+      : "oh-day-num";
 
   return (
     <button
       {...buttonProps}
       type="button"
-      className={`bru-day-button ${className ?? ""}`}
+      className={`oh-day-button ${className ?? ""}`}
       disabled={disabled || !density}
       aria-label={
         !density

@@ -52,12 +52,12 @@ export function OnboardingChecklist() {
 
   return (
     <section
-      className="mt-6 border-2 border-bru-line-strong p-5"
+      className="mt-6 border-2 border-oh-line-strong p-5"
       aria-label="Getting started checklist"
     >
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="bru-eyebrow">
+          <p className="oh-eyebrow">
             Getting started · {done}/{total}
           </p>
           <h2 className="mt-2 text-[18px] font-black leading-tight">

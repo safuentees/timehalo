@@ -15,23 +15,23 @@ export function BrutalistDashboardLayout({
 }) {
   const { typeface, density, motion } = useBrutalistPrefs();
 
-  const insetClass = ["bru-root", motion ? "bru-motion" : ""]
+  const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
     .join(" ");
 
   return (
     <TooltipProvider delay={200}>
       <div
-        className="bru-app-shell"
+        className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
       >
         <BrutalistDashboardBar />
-        <SidebarProvider className="bru-app">
+        <SidebarProvider className="oh-app">
           <BrutalistAppSidebar />
           <SidebarInset className={insetClass}>
-            <div className="bru-host-content">
-              <ScrollArea className="bru-host-content-inner">
+            <div className="oh-host-content">
+              <ScrollArea className="oh-host-content-inner">
                 {children}
               </ScrollArea>
             </div>

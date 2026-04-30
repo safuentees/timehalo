@@ -32,7 +32,7 @@ export function BookingsList() {
       <div
         role="tablist"
         aria-label="Booking timeframe"
-        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--oh-r-sm) border-2 border-bru-line-strong"
+        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong"
       >
         <SegButton
           active={tab === "upcoming"}
@@ -94,11 +94,11 @@ function SegButton({
         "inline-flex items-center justify-center gap-2.5 px-4 py-2.5",
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
-        "border-r-2 border-bru-line-strong last:border-r-0",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",
+        "border-r-2 border-oh-line-strong last:border-r-0",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oh-line-strong focus-visible:ring-inset",
         active
-          ? "bg-bru-content text-bru-bg"
-          : "bg-bru-bg text-bru-content hover:bg-bru-tint",
+          ? "bg-oh-content text-oh-bg"
+          : "bg-oh-bg text-oh-content hover:bg-oh-tint",
       ].join(" ")}
     >
       <span className="leading-none">{children}</span>
@@ -132,18 +132,18 @@ function BookingRow({
   return (
     <Link
       href={`/bookings/${publicUid}`}
-      className="group block rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong focus-visible:outline-none focus-visible:border-bru-line-strong"
+      className="group block rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong focus-visible:outline-none focus-visible:border-oh-line-strong"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {visitorName}
         </h3>
-        <span className="bru-eyebrow tabular-nums">
+        <span className="oh-eyebrow tabular-nums">
           {fmtSlotTime(slotStart)}
         </span>
       </header>
 
-      <p className="bru-eyebrow mt-2 tabular-nums">{fmtSlotDate(slotStart)}</p>
+      <p className="oh-eyebrow mt-2 tabular-nums">{fmtSlotDate(slotStart)}</p>
 
       {question ? (
         <p className="mt-2 text-[13px] italic opacity-75 leading-relaxed">
@@ -220,7 +220,7 @@ function LiveDot({
       aria-hidden={isHidden ? true : undefined}
       aria-label={ariaLabel}
       className={[
-        "bru-live-dot inline-block size-2 shrink-0 rounded-full",
+        "oh-live-dot inline-block size-2 shrink-0 rounded-full",
         "transition-colors duration-200 ease-bru",
         tone,
       ].join(" ")}

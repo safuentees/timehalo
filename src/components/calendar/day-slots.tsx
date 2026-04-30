@@ -25,19 +25,19 @@ export function DaySlots({ date, slots, onPick }: Props) {
 
   return (
     <section
-      className="bru-day-slots"
+      className="oh-day-slots"
       aria-label={`Slots on ${date.toDateString()}`}
     >
       {slots.length === 0 ? (
-        <p className="bru-day-slots-empty">closed</p>
+        <p className="oh-day-slots-empty">closed</p>
       ) : (
         <>
           {openCount === 0 ? (
-            <p className="bru-day-slots-note">
+            <p className="oh-day-slots-note">
               No open times left on this day. These slots are already taken.
             </p>
           ) : null}
-          <div className="bru-day-slots-bands">
+          <div className="oh-day-slots-bands">
             {bands.map((band) =>
               band.slots.length > 0 ? (
                 <TimeBand key={band.id} band={band} onPick={onPick} />
@@ -65,12 +65,12 @@ function TimeBand({
   });
 
   return (
-    <div className="bru-time-band">
-      <span className="bru-kicker bru-time-band-kicker">{band.label}</span>
-      <div className="bru-time-band-chips" ref={emblaRef}>
-        <div className="bru-time-band-chips-track">
+    <div className="oh-time-band">
+      <span className="oh-kicker oh-time-band-kicker">{band.label}</span>
+      <div className="oh-time-band-chips" ref={emblaRef}>
+        <div className="oh-time-band-chips-track">
           {band.slots.map((s) => (
-            <div key={s.start} className="bru-time-band-chip-slide">
+            <div key={s.start} className="oh-time-band-chip-slide">
               <SlotChip slot={s} onPick={onPick} />
             </div>
           ))}
@@ -95,9 +95,9 @@ function SlotChip({
 
   if (isTakenSlot(slot)) {
     return (
-      <div className="bru-slot-chip bru-slot-chip--taken" aria-label={`${timeLabel}, taken`}>
+      <div className="oh-slot-chip oh-slot-chip--taken" aria-label={`${timeLabel}, taken`}>
         <span>{timeLabel}</span>
-        <span className="bru-slot-chip-badge">TAKEN</span>
+        <span className="oh-slot-chip-badge">TAKEN</span>
       </div>
     );
   }
@@ -105,7 +105,7 @@ function SlotChip({
   return (
     <button
       type="button"
-      className="bru-slot-chip"
+      className="oh-slot-chip"
       onClick={() => onPick(slot)}
       aria-label={`Book ${timeLabel}`}
     >

@@ -60,7 +60,7 @@ export function BrutalistAppSidebar() {
     <Sidebar
       collapsible="icon"
       className={[
-        "bru-app-sidebar",
+        "oh-app-sidebar",
         "[&_[data-slot=sidebar-gap]]:will-change-[width]",
         "[&_[data-slot=sidebar-container]]:will-change-[width]",
       ].join(" ")}
@@ -178,7 +178,7 @@ function FooterControls() {
       type="button"
       onClick={toggleSidebar}
       aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
-      className="inline-flex size-9 items-center justify-center text-bru-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-ink focus-visible:outline-offset-2 [&_svg]:size-4"
+      className="inline-flex size-9 items-center justify-center text-oh-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-ink focus-visible:outline-offset-2 [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />
     </button>

@@ -32,13 +32,13 @@ export function BrutalistSaveBar({
 
   return (
     <>
-      <div className="bru-dash-save-spacer" aria-hidden />
+      <div className="oh-dash-save-spacer" aria-hidden />
       <div
-        className="bru-dash-save-bar"
+        className="oh-dash-save-bar"
         role="region"
         aria-label={ariaLabel ?? labels.save}
       >
-        <div className="bru-dash-save-bar-inner">
+        <div className="oh-dash-save-bar-inner">
           <Button
             type="submit"
             variant="brutalist"
