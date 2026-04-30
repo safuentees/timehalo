@@ -252,6 +252,13 @@ export function MobileNavContent({
     <nav
       ref={container}
       aria-label="Main"
+      // Marker for the View Transitions opt-out rule in globals.css.
+      // When this nav is mounted, `:has([data-oh-mobile-menu="true"])`
+      // drops `oh-host-content-inner`'s view-transition-name so the
+      // route-change cross-fade doesn't conflict with the GSAP exit
+      // animation. Same structural pattern as commit 898cef8 used for
+      // the Sheet drawer; selector updated for the inline-menu case.
+      data-oh-mobile-menu="true"
       className="flex flex-col gap-6 px-4 py-6 sm:px-6"
     >
       {groups.map((group, index) => (

@@ -2971,13 +2971,28 @@
    border-bottom mid-transition; opting in only the page content
    avoids the issue at the source. */
 
-/* Mobile sidebar — content-replace mode (no Sheet drawer at <md).
-   The dashboard layout swaps the content slot to <MobileNavContent />
-   when `openMobile` is true, and `<OhAppSidebar />` returns null on
-   mobile. With no Sheet portal in play, there's no second snapshot
-   competing with `oh-host-content` in the View Transitions stack —
-   the previous `oh-mobile-sidebar` named group + `:has()` opt-out
-   rules are no longer needed. */
+/* Mobile inline menu — opt the page content out of its own
+   view-transition group while the menu is rendered. Same structural
+   pattern as commit 898cef8 (which opted out for the Sheet drawer).
+   Recurrence reason: the menu now lives INSIDE `oh-host-content-inner`,
+   so when the user clicks a Link from inside, the route-change
+   cross-fade snapshots oh-host-content twice — once with the menu, once
+   with whatever `ContentSlot` renders after the React commit (which
+   can include partially-exited menu rows from the GSAP reverse anim,
+   or in some timings leaked page content). The fade between the two
+   snapshots fights the GSAP exit animation and produces the visual
+   "page overlays sidebar" artifact the user reported.
+   Fix: when `<MobileNavContent />` is mounted (`data-oh-mobile-menu`
+   attribute present), drop `oh-host-content-inner`'s
+   view-transition-name. The page content joins `root`'s snapshot,
+   which already has `animation: none`. No competing group, no
+   cross-fade — the GSAP exit anim plays cleanly on the live DOM
+   once the transition (no-op) window ends.
+   :has() is a 2023+ feature, same browser floor as the View
+   Transitions API itself. */
+html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
+  view-transition-name: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
