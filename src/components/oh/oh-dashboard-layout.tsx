@@ -8,6 +8,17 @@ import { OhAppSidebar } from "./oh-app-sidebar";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
 
+// SidebarProvider is the OUTER wrapper now — it owns the sidebar
+// context (open/openMobile/toggleSidebar) and a sheet-portal for the
+// mobile drawer. Lifting it above the dashboard bar lets the bar
+// render a `<SidebarTrigger>` at <md so the mobile sheet has an
+// opener. Cal.com `Shell.tsx` follows the same pattern: provider at
+// the top, top bar inside, sidebar+inset row underneath. Audit
+// finding `§2.1 / §4.1 — mobile sidebar unreachable`.
+//
+// The shell is column-flex (oh-app-shell). The row container below the
+// bar (oh-app) carries the row-flex + sidebar token aliases that were
+// previously on the SidebarProvider's wrapper.
 export function OhDashboardLayout({
   children,
 }: {
@@ -19,20 +30,15 @@ export function OhDashboardLayout({
     .filter(Boolean)
     .join(" ");
 
-  // Outer flex-col: the dashboard bar sits above the sidebar+content
-  // row. Cal.com's Shell.tsx pattern — single column at viewport
-  // height, banner / bar as the first child, the dashboard's own
-  // flex-row as the second. data-typeface lifts to the shell so the
-  // bar inherits the same typography as the rest of the surface.
   return (
     <TooltipProvider delay={200}>
-      <div
+      <SidebarProvider
         className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
       >
         <OhDashboardBar />
-        <SidebarProvider className="oh-app">
+        <div className="oh-app flex min-h-0 flex-1">
           <OhAppSidebar />
           <SidebarInset className={insetClass}>
             {/* Two layers:
@@ -50,8 +56,8 @@ export function OhDashboardLayout({
               </ScrollArea>
             </div>
           </SidebarInset>
-        </SidebarProvider>
-      </div>
+        </div>
+      </SidebarProvider>
     </TooltipProvider>
   );
 }
