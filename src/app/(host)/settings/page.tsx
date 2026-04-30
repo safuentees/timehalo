@@ -15,9 +15,14 @@ export default async function SettingsPage() {
   // pattern (settings/developer/api-keys/page.tsx); Rallly stops at
   // parent-only and accepts the flash. We follow Cal — settings is
   // dense enough that a sub-section flashing alone reads as broken.
+  //
+  // `users.plan` (B.PT18) drives the workflow section's lock icon —
+  // without it prefetched, the icon flashes "unlocked" briefly while
+  // the query loads then settles to "locked" for FREE users.
   const [workspaces] = await Promise.all([
     trpc.workspaces.list.fetch(),
     trpc.users.me.prefetch(),
+    trpc.users.plan.prefetch(),
     trpc.workflows.list.prefetch(),
     trpc.calendar.connections.prefetch(),
   ]);
