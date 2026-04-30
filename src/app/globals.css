@@ -3002,6 +3002,23 @@
   animation: none !important;
 }
 
+/* Belt-and-suspenders: when the mobile sidebar is open, opt the page
+   content OUT of its own view-transition group. The page content
+   falls into `root`'s snapshot — which already has `animation: none`,
+   so it stays visually frozen for the 110ms window. With no competing
+   `oh-host-content` group in the stack, there's nothing whose paint
+   could end up above the sidebar regardless of z-index resolution.
+   The z-index lift above is still useful when the sidebar is opened
+   AFTER navigation lands (or for any browser quirk), but this
+   :has() rule is the structural fix for the sidebar-open + navigate
+   case the user reported.
+
+   :has() is supported in all evergreen browsers since 2023 (the same
+   floor as the View Transitions API itself), so no fallback needed. */
+html:has([data-slot="sidebar"][data-mobile="true"]) .oh-host-content-inner {
+  view-transition-name: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
