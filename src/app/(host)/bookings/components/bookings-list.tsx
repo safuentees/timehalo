@@ -14,19 +14,10 @@ import {
   OhEmptyMedia,
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
-import { OhPageHeader } from "@/components/oh/page-header";
-import { OhPageShell } from "@/components/oh/page-shell";
-import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 
-type Tab = "upcoming" | "past";
+export type Tab = "upcoming" | "past";
 
-type Booking = {
+export type Booking = {
   id: number;
   publicUid: string;
   visitorName: string;
@@ -35,112 +26,7 @@ type Booking = {
   slotStart: Date | string;
 };
 
-export function BookingsList() {
-  const t = useTranslations("Bookings");
-  const [tab, setTab] = useState<Tab>("upcoming");
-  const { data } = trpc.bookings.listForHost.useQuery();
-  const { data: flags } = trpc.users.featureFlags.useQuery();
-  const liveQueueEnabled = flags?.["live-queue"] ?? false;
-
-  return (
-    <OhPageShell>
-      <OhPageHeader
-        title={t("title")}
-        aside={liveQueueEnabled ? <LiveQueue /> : null}
-      />
-
-      <OnboardingChecklist />
-
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setTab(v as Tab)}
-        className="mt-8"
-      >
-        <TabsList
-          aria-label={t("tablistLabel")}
-          className="h-auto w-fit gap-0 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong bg-transparent p-0"
-        >
-          <BookingTabTrigger value="upcoming" count={data?.upcoming.length}>
-            {t("tabUpcoming")}
-          </BookingTabTrigger>
-          <BookingTabTrigger value="past" count={data?.past.length}>
-            {t("tabPast")}
-          </BookingTabTrigger>
-        </TabsList>
-
-        <TabsContent value="upcoming" className="mt-6">
-          <BookingsListPanel
-            tab="upcoming"
-            bookings={data?.upcoming ?? []}
-          />
-        </TabsContent>
-        <TabsContent value="past" className="mt-6">
-          <BookingsListPanel tab="past" bookings={data?.past ?? []} />
-        </TabsContent>
-      </Tabs>
-    </OhPageShell>
-  );
-}
-
-function BookingTabTrigger({
-  value,
-  count,
-  children,
-}: {
-  value: Tab;
-  count?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <TabsTrigger
-      value={value}
-      className={[
-        "h-auto flex-none rounded-none border-0 px-4 py-2.5",
-        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "border-r-2 border-oh-line-strong last:border-r-0",
-        "data-active:!bg-oh-content data-active:!text-oh-bg data-active:!shadow-none",
-        "hover:bg-oh-tint",
-      ].join(" ")}
-    >
-      <span className="leading-none">{children}</span>
-      {typeof count === "number" ? (
-        <span className="tabular-nums text-[11px] font-bold leading-none opacity-45 group-data-[state=active]:opacity-65 data-active:opacity-65">
-          {count}
-        </span>
-      ) : null}
-    </TabsTrigger>
-  );
-}
-
-function BookingsListPanel({
-  tab,
-  bookings,
-}: {
-  tab: Tab;
-  bookings: Booking[];
-}) {
-  if (bookings.length === 0) return <EmptyBookings tab={tab} />;
-  return (
-    <ul
-      role="list"
-      className="border-y border-oh-line divide-y divide-oh-line"
-    >
-      {bookings.map((b) => (
-        <li key={b.id}>
-          <BookingRow
-            publicUid={b.publicUid}
-            visitorName={b.visitorName}
-            visitorEmail={b.visitorEmail}
-            question={b.question}
-            slotStart={new Date(b.slotStart as unknown as string)}
-          />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function BookingRow({
+export function BookingRow({
   publicUid,
   visitorName,
   visitorEmail,
@@ -182,22 +68,27 @@ function BookingRow({
   );
 }
 
-function LiveQueue() {
+export function LiveQueue() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
+  const { data: flags } = trpc.users.featureFlags.useQuery();
+  const liveQueueEnabled = flags?.["live-queue"] ?? false;
+
   const [status, setStatus] = useState<
     "hidden" | "connecting" | "live" | "off"
   >("hidden");
   const [pulseKey, setPulseKey] = useState(0);
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    if (!liveQueueEnabled) return;
+    const handle = setTimeout(() => {
       setStatus((s) => (s === "hidden" ? "connecting" : s));
     }, 500);
-    return () => clearTimeout(t);
-  }, []);
+    return () => clearTimeout(handle);
+  }, [liveQueueEnabled]);
 
   trpc.bookings.queue.useSubscription(undefined, {
+    enabled: liveQueueEnabled,
     onStarted: () => setStatus("live"),
     onError: () => setStatus("off"),
     onData: ({ data: event }) => {
@@ -210,6 +101,8 @@ function LiveQueue() {
       setPulseKey((k) => k + 1);
     },
   });
+
+  if (!liveQueueEnabled) return null;
 
   return <LiveDot status={status} pulseKey={pulseKey} t={t} />;
 }
@@ -255,7 +148,7 @@ function LiveDot({
   );
 }
 
-function EmptyBookings({ tab }: { tab: Tab }) {
+export function EmptyBookings({ tab }: { tab: Tab }) {
   const t = useTranslations("Bookings");
   const { data: me } = trpc.users.me.useQuery();
 
@@ -287,6 +180,8 @@ function EmptyBookings({ tab }: { tab: Tab }) {
     </OhEmpty>
   );
 }
+
+export { MailIcon };
 
 const WEEKDAY_SHORT = [
   "SUN",
