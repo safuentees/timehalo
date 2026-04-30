@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/field";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
-import { OhSaveBar } from "@/components/oh/save-bar";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 import {
   HandleFields,
   handleFieldSchema,
@@ -79,16 +79,16 @@ export default function ProfileForm() {
               </FieldSet>
             </FieldGroup>
           </div>
+          <InlineFormSave
+            isPending={saveHandle.isPending}
+            isDirty={form.formState.isDirty}
+            labels={{
+              save: "Save changes",
+              saving: "Saving…",
+              saved: "Saved",
+            }}
+          />
         </OhPageShell>
-        <OhSaveBar
-          isPending={saveHandle.isPending}
-          isDirty={form.formState.isDirty}
-          labels={{
-            save: "Save changes",
-            saving: "Saving…",
-            saved: "Saved",
-          }}
-        />
       </form>
     </FormProvider>
   );

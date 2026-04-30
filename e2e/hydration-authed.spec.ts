@@ -6,7 +6,8 @@ const AUTHED_ROUTES = [
   "/bookings",
   "/availability",
   "/profile",
-  "/settings",
+  "/settings/general",
+  "/settings/billing",
 ];
 
 test.describe.configure({ mode: "serial" });

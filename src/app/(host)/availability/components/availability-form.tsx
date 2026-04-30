@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/field";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
-import { OhSaveBar } from "@/components/oh/save-bar";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -74,16 +74,16 @@ export default function AvailabilityForm() {
               </FieldSet>
             </FieldGroup>
           </div>
+          <InlineFormSave
+            isPending={saveSchedule.isPending}
+            isDirty={form.formState.isDirty || seededFromDefault}
+            labels={{
+              save: "Save changes",
+              saving: "Saving…",
+              saved: "Saved",
+            }}
+          />
         </OhPageShell>
-        <OhSaveBar
-          isPending={saveSchedule.isPending}
-          isDirty={form.formState.isDirty || seededFromDefault}
-          labels={{
-            save: "Save changes",
-            saving: "Saving…",
-            saved: "Saved",
-          }}
-        />
       </form>
     </FormProvider>
   );

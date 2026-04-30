@@ -4,7 +4,13 @@ import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
-import { Check, ChevronDown, Plus, Settings } from "lucide-react";
+import {
+  CalendarCheck,
+  Check,
+  ChevronDown,
+  Plus,
+  Settings,
+} from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
@@ -117,9 +123,33 @@ export function OhDashboardBar() {
         </Menu.Portal>
       </Menu.Root>
 
-      <OhUserMenu />
+      <div className="flex items-center gap-2">
+        <ChromeIconLink href="/bookings" label="Bookings" icon={CalendarCheck} />
+        <ChromeIconLink href="/settings" label="Settings" icon={Settings} />
+        <OhUserMenu />
+      </div>
 
       <WorkspaceCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
+  );
+}
+
+function ChromeIconLink({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: typeof Settings;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className="inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
+    >
+      <Icon aria-hidden strokeWidth={1.75} className="size-4" />
+    </Link>
   );
 }

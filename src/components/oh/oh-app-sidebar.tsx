@@ -11,14 +11,12 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { HalftoneMark } from "@/components/brand/halftone-mark";
-import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
+import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
 
 const menuButtonClass = [
   "relative rounded-(--oh-r-xs)",
@@ -55,6 +53,7 @@ export function OhAppSidebar() {
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
+  const groups = navGroupsForPath(pathname);
 
   return (
     <Sidebar
@@ -65,109 +64,69 @@ export function OhAppSidebar() {
         "[&_[data-slot=sidebar-container]]:will-change-[width]",
       ].join(" ")}
     >
-
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {PRIMARY_NAV.slice(0, 1).map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={groupLabelClass}>
-            LIBRARY
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {PRIMARY_NAV.slice(1).map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className={groupLabelClass}>
-            WORKSPACE
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {SECONDARY_NAV.map((item) => {
-                const active = activePath === item.href;
-                return (
-                  <SidebarMenuItem key={item.href} className="group/item">
-                    <SidebarMenuButton
-                      id={sidebarNavId(item.href)}
-                      isActive={active}
-                      tooltip={item.label}
-                      className={menuButtonClass}
-                      render={
-                        <Link href={item.href}>
-                          <item.icon
-                            aria-hidden
-                            strokeWidth={1.5}
-                            className="size-4 shrink-0"
-                          />
-                          <span>{item.label}</span>
-                        </Link>
-                      }
-                    />
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((group, index) => (
+          <NavGroupRender
+            key={group.label ?? `group-${index}`}
+            group={group}
+            activePath={activePath}
+          />
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
         <FooterControls />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function NavGroupRender({
+  group,
+  activePath,
+}: {
+  group: NavGroup;
+  activePath: string | null;
+}) {
+  return (
+    <SidebarGroup>
+      {group.label ? (
+        <SidebarGroupLabel className={groupLabelClass}>
+          {group.label}
+        </SidebarGroupLabel>
+      ) : null}
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-0.5">
+          {group.items.map((item) => {
+            const active =
+              activePath !== null &&
+              (activePath === item.href ||
+                (item.href !== "/" &&
+                  activePath.startsWith(`${item.href}/`)));
+            return (
+              <SidebarMenuItem key={item.href} className="group/item">
+                <SidebarMenuButton
+                  id={sidebarNavId(item.href)}
+                  isActive={active}
+                  tooltip={item.label}
+                  className={menuButtonClass}
+                  render={
+                    <Link href={item.href}>
+                      <item.icon
+                        aria-hidden
+                        strokeWidth={1.5}
+                        className="size-4 shrink-0"
+                      />
+                      <span>{item.label}</span>
+                    </Link>
+                  }
+                />
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
 

@@ -1,6 +1,12 @@
 {
   "Settings": {
     "title": "Account",
+    "subnavGeneral": "General",
+    "subnavWorkflows": "Workflows",
+    "subnavCalendars": "Calendars",
+    "subnavDeveloper": "Developer",
+    "subnavBilling": "Billing",
+    "subnavDanger": "Danger",
     "timezoneLegend": "Timezone",
     "timezoneDescription": "Used to schedule your availability and timestamp bookings.",
     "languageLegend": "Language",
@@ -260,7 +266,22 @@
     "role_OWNER": "Owner",
     "role_ADMIN": "Admin",
     "role_MEMBER": "Member",
-    "role_VIEWER": "Viewer"
+    "role_VIEWER": "Viewer",
+    "bulkInviteButton": "Bulk invite",
+    "bulkInviteTitle": "Bulk invite teammates",
+    "bulkInviteEmailsLabel": "Emails",
+    "bulkInvitePlaceholder": "alice@example.com\nbob@example.com\ncarol@example.com",
+    "bulkInviteValidCount": "{count, plural, =0 {No valid emails} one {1 email} other {# emails}}",
+    "bulkInviteInvalidCount": "{count, plural, one {1 invalid token ignored} other {# invalid tokens ignored}}",
+    "bulkInviteOverLimit": "Over the {max}-email limit per batch",
+    "bulkInviteSubmit": "{count, plural, =0 {Send invitations} one {Send 1 invitation} other {Send # invitations}}",
+    "bulkInviteSentSummary": "{count, plural, =0 {No new invitations sent.} one {1 invitation sent.} other {# invitations sent.}}",
+    "bulkInviteCreatedHeading": "Sent",
+    "bulkInviteSkippedHeading": "{count, plural, one {Skipped (1)} other {Skipped (#)}}",
+    "bulkInviteReason_already-member": "Already a member",
+    "bulkInviteReason_already-invited": "Already invited",
+    "bulkInviteReason_duplicate-in-batch": "Duplicate in this batch",
+    "done": "Done"
   },
   "Invitations": {
     "eyebrow": "Workspace invitation",
