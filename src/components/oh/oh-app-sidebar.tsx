@@ -165,6 +165,7 @@ export function MobileNavContent({
     <nav
       ref={container}
       aria-label="Main"
+      data-oh-mobile-menu="true"
       className="flex flex-col gap-6 px-4 py-6 sm:px-6"
     >
       {groups.map((group, index) => (
