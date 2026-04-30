@@ -28,6 +28,7 @@ import {
 } from "@/lib/event-types";
 import { selectHost } from "@/lib/round-robin";
 import { findBusyHostIds } from "@/lib/calendar";
+import { resolveActiveWorkspaceId } from "@/lib/active-workspace-server";
 import {
   emitBookingEvent,
   iterateBookingEvents,
@@ -533,6 +534,7 @@ export const bookings = router({
               type: "created",
               bookingPublicUid: booking.publicUid,
               hostId: host.id,
+              workspaceId,
               visitorName: input.visitorName,
               slotStart: booking.slotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -738,13 +740,17 @@ export const bookings = router({
       // Adjacent neighbours for prev/next nav (A5). Order by
       // slotStart with id as tiebreak. Filter `deleted: false` to
       // mirror the bookings-list invariant — cancelled rows aren't
-      // navigable from the detail page either. Each query touches
-      // the [hostId, slotStart, deleted] composite index from the
-      // §10.1 migration.
+      // navigable from the detail page either. Scoped to the
+      // *booking's own* workspace (B.PT16), not the user's currently
+      // active one — bookmarks must navigate inside a coherent
+      // workspace regardless of which workspace happens to be
+      // active. The filter touches the [workspaceId, slotStart]
+      // composite index from B1.
       const [previous, next] = await Promise.all([
         prisma.booking.findFirst({
           where: {
             hostId: ctx.user.id,
+            workspaceId: booking.workspaceId,
             deleted: false,
             OR: [
               { slotStart: { lt: booking.slotStart } },
@@ -757,6 +763,7 @@ export const bookings = router({
         prisma.booking.findFirst({
           where: {
             hostId: ctx.user.id,
+            workspaceId: booking.workspaceId,
             deleted: false,
             OR: [
               { slotStart: { gt: booking.slotStart } },
@@ -989,6 +996,7 @@ export const bookings = router({
             type: "cancelled",
             bookingPublicUid: result.publicUid,
             hostId: ctx.user.id,
+            workspaceId: result.workspaceId,
             visitorName: result.visitorName,
             slotStart: result.slotStart.toISOString(),
             occurredAt: new Date().toISOString(),
@@ -1423,6 +1431,7 @@ export const bookings = router({
               type: "cancelled",
               bookingPublicUid: original.publicUid,
               hostId: host.id,
+              workspaceId: original.workspaceId,
               visitorName: original.visitorName,
               slotStart: original.slotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -1431,6 +1440,10 @@ export const bookings = router({
               type: "created",
               bookingPublicUid: created.publicUid,
               hostId: host.id,
+              // Reschedule keeps the new booking inside the same
+              // workspace as the original (see the `workspaceId:
+              // original.workspaceId` on the inner tx.booking.create).
+              workspaceId: original.workspaceId,
               visitorName: original.visitorName,
               slotStart: newSlotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -1470,14 +1483,28 @@ export const bookings = router({
       ),
     ),
 
-  // Host-side: every booking against this host, split by upcoming vs
-  // past based on slotStart. No "pending/confirmed" yet — the data
-  // model has no status field; per the project guide we don't add it
-  // until a story actually demands the confirm flow.
+  // Host-side: every booking the host owns inside the *active*
+  // workspace, split by upcoming vs past based on slotStart. B.PT16
+  // — without the workspace filter the dashboard mixes bookings
+  // across every workspace the host is in, which made the topbar
+  // workspace switcher misleading on `/bookings`. Schema carries
+  // `Booking.workspaceId` since B1 plus a `[workspaceId, slotStart]`
+  // composite index, so the filter is one column wider with no
+  // additional cost. `resolveActiveWorkspaceId` falls back to the
+  // host's oldest membership when the cookie is unset or stale,
+  // mirroring `workspaces.list`'s `effectiveSlug` invariant.
+  //
+  // No "pending/confirmed" yet — the data model has no status field;
+  // per the project guide we don't add it until a story actually
+  // demands the confirm flow.
   listForHost: privateProcedure.query(async ({ ctx }) => {
+    const workspaceId = await resolveActiveWorkspaceId(
+      ctx.user.id,
+      ctx.activeWorkspaceSlug,
+    );
     const now = new Date();
     const rows = await prisma.booking.findMany({
-      where: { hostId: ctx.user.id, deleted: false },
+      where: { hostId: ctx.user.id, workspaceId, deleted: false },
       select: {
         id: true,
         publicUid: true,
@@ -1497,14 +1524,17 @@ export const bookings = router({
   }),
 
   // Live queue subscription — yields BookingBusEvent objects whenever
-  // a booking is created or cancelled for this host. Pattern follows
-  // tRPC v11's recommended SSE shape: privateProcedure + async
-  // generator + AbortSignal-driven cleanup + `tracked()` for
-  // reconnect recovery (Context7-verified against the v11
-  // subscriptions docs).
+  // a booking is created or cancelled for this host *inside the
+  // user's active workspace*. Pattern follows tRPC v11's recommended
+  // SSE shape: privateProcedure + async generator + AbortSignal-
+  // driven cleanup + `tracked()` for reconnect recovery
+  // (Context7-verified against the v11 subscriptions docs).
   //
-  // No `hostId` input — scoped to ctx.user.id from session. The bus
-  // channel is `host:${ctx.user.id}` (see src/trpc/bus.ts).
+  // Channel is `host:${ctx.user.id}:ws:${workspaceId}` (B.PT16); the
+  // workspace qualifier is resolved at subscribe time from
+  // `ctx.activeWorkspaceSlug`. When the user switches workspace, the
+  // client tears down + reconnects via tRPC cache invalidation
+  // (B.PT17) so the new connection picks up the new channel.
   //
   // `lastEventId` is provided by the SSE protocol on reconnect. We
   // currently don't replay missed events from a persistent log —
@@ -1523,9 +1553,18 @@ export const bookings = router({
       const enabled = await isFeatureEnabled("live-queue", ctx.user.id);
       if (!enabled) return;
 
+      const workspaceId = await resolveActiveWorkspaceId(
+        ctx.user.id,
+        ctx.activeWorkspaceSlug,
+      );
+
       // signal! is non-null inside subscription procedures — tRPC v11
       // wires the request abort signal automatically.
-      const iterable = iterateBookingEvents(ctx.user.id, signal!);
+      const iterable = iterateBookingEvents(
+        ctx.user.id,
+        workspaceId,
+        signal!,
+      );
       for await (const [event] of iterable) {
         const e = event as BookingBusEvent;
         // tracked() ID format `${publicUid}:${type}` — unique per
