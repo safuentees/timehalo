@@ -1954,7 +1954,7 @@
   height: 16px;
 }
 
-/* Empty state — outer spacing only; BrutalistEmpty owns the box now. */
+/* Empty state — outer spacing only; OhEmpty owns the box now. */
 .oh-profile-empty {
   padding: 8px 0 32px;
 }

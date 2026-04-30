@@ -2,24 +2,24 @@
 paths:
   - "src/app/**/*.tsx"
   - "src/components/ui/**/*.tsx"
-  - "src/components/brutalist/**/*.tsx"
+  - "src/components/oh/**/*.tsx"
 ---
 
 # Project UI rules (file name is historical)
 
-> The visual aesthetic walked away from the original brutalist palette. **New dashboard pages match the chrome of the most-recently-shipped pages** (`/bookings`, `/settings`, `/workspaces/*`) — see `AGENTS.md` *Visual identity* for the full directive. The component + utility names below (`BrutalistPageShell`, `bru-*` classes, `--bru-*` tokens) stay — they're real artifacts a planned refactor will rename. The engineering rules below (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are good discipline regardless of aesthetic.
+> The visual aesthetic walked away from the original brutalist palette. **New dashboard pages match the chrome of the most-recently-shipped pages** (`/bookings`, `/settings`, `/workspaces/*`) — see `AGENTS.md` *Visual identity* for the full directive. The component + utility names below (`OhPageShell`, `oh-*` classes, `--oh-*` tokens) stay — they're real artifacts a planned refactor will rename. The engineering rules below (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are good discipline regardless of aesthetic.
 >
 > The strong **paper-and-ink + thick borders + mono caps** look is now scoped to the **public visitor surface only** (`/h/[handle]`, `/booked/[uid]`) — don't extend it to new dashboard pages.
 
 ## Composition
 
 - Compose existing shadcn primitives and repo wrappers before inventing new structure.
-- Keep repo-specific overrides in `src/components/brutalist/` and keep wrappers thin. (Directory name is historical; the wrappers themselves are the canonical chrome for the dashboard surface.)
+- Keep repo-specific overrides in `src/components/oh/` and keep wrappers thin. (Directory name is historical; the wrappers themselves are the canonical chrome for the dashboard surface.)
 - Build mobile-first and avoid horizontal scroll at narrow widths.
 - Prefer container queries for layouts that live inside the host shell.
 - In InputGroup layouts, keep the input before the addon in DOM order.
 - For complex forms, keep the canonical `FieldGroup` and `FieldSet` structure intact.
-- For new authenticated pages: wrap content in `BrutalistPageShell` (owns `max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`) and lead with `BrutalistPageHeader title="..."`. Both in `src/components/brutalist/`. These wrappers ARE what shipped on `/bookings` + `/settings` — using them is the way to match the new chrome, not a forced brutalist override.
+- For new authenticated pages: wrap content in `OhPageShell` (owns `max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`) and lead with `OhPageHeader title="..."`. Both in `src/components/oh/`. These wrappers ARE what shipped on `/bookings` + `/settings` — using them is the way to match the new chrome, not a forced brutalist override.
 
 ## Visual language (split by surface)
 
@@ -33,50 +33,50 @@ paths:
 - Pills/avatars/circles/dots/switches/sliders: `rounded-full`.
 - Intentional sharp where it reads as a deliberate edge: `rounded-none`.
 - Do NOT introduce `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-4xl`. The tokens were dropped via `--radius-*: initial` in `@theme` (`src/app/globals.css`) — Tailwind generates no CSS for those classes and corners silently render at 0px.
-- In raw CSS, use `var(--bru-r-xs)` (2px, micro-rounding for chips/segments) or `var(--bru-r-sm)` (6px). `--bru-r-md` no longer exists.
+- In raw CSS, use `var(--oh-r-xs)` (2px, micro-rounding for chips/segments) or `var(--oh-r-sm)` (6px). `--oh-r-md` no longer exists.
 
 ## Typography (single family + mono accent)
 
 - Headings + body: Space Grotesk via `--font-grotesk`. Tailwind exposes it as both `font-sans` and `font-heading` — they're the same family. `font-heading` is a semantic alias kept so shadcn titles (Card/Dialog/Sheet/Drawer/Empty) read naturally.
-- Metadata/labels/uppercase chrome/tabular numbers: JetBrains Mono via `--font-jetbrains`, also reachable as `font-mono` or `var(--bru-mono)` in raw CSS.
-- No serif. Instrument Serif was removed. If a title needs more weight, use `font-bold` or `font-black` and bigger size — not a different family. Reference: the `/h/[handle]` hero (`bru-v1-name` in globals.css) — Space Grotesk weight 900, `clamp(40px, 12cqi, 64px)`, letter-spacing `-0.04em`, line-height `0.92`.
+- Metadata/labels/uppercase chrome/tabular numbers: JetBrains Mono via `--font-jetbrains`, also reachable as `font-mono` or `var(--oh-mono)` in raw CSS.
+- No serif. Instrument Serif was removed. If a title needs more weight, use `font-bold` or `font-black` and bigger size — not a different family. Reference: the `/h/[handle]` hero (`oh-v1-name` in globals.css) — Space Grotesk weight 900, `clamp(40px, 12cqi, 64px)`, letter-spacing `-0.04em`, line-height `0.92`.
 
 ### Typography utilities — single source of truth for chrome roles
 
 Three semantic CSS classes live in `src/app/globals.css`. Use them; do not inline the equivalent eight-class strings.
 
-- `bru-legend` — section / field label. Mono 11px, font-weight 800, letter-spacing 2.5px, uppercase, opacity 55. Replaces every verbatim `font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55`.
-- `bru-description` — section / field description. 13px, line-height 1.5, max-width 65ch, opacity 65. Replaces `text-[13px] leading-[1.5] opacity-65 max-w-prose`.
-- `bru-eyebrow` — small mono caps metadata badge. Mono 10px, font-weight 800, letter-spacing 2px, uppercase, opacity 55. Replaces `font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55`.
+- `oh-legend` — section / field label. Mono 11px, font-weight 800, letter-spacing 2.5px, uppercase, opacity 55. Replaces every verbatim `font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55`.
+- `oh-description` — section / field description. 13px, line-height 1.5, max-width 65ch, opacity 65. Replaces `text-[13px] leading-[1.5] opacity-65 max-w-prose`.
+- `oh-eyebrow` — small mono caps metadata badge. Mono 10px, font-weight 800, letter-spacing 2px, uppercase, opacity 55. Replaces `font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase opacity-55`.
 
-If a callsite needs to override one token (e.g. `tabular-nums` on a date eyebrow, `opacity-100` for an active state, a different size at sm+), compose: `className="bru-eyebrow tabular-nums opacity-100"`. Never re-inline the base.
+If a callsite needs to override one token (e.g. `tabular-nums` on a date eyebrow, `opacity-100` for an active state, a different size at sm+), compose: `className="oh-eyebrow tabular-nums opacity-100"`. Never re-inline the base.
 
 ## List patterns
 
 Two list shapes, picked by the shape of the row:
 
-- **Card-stack** — `<ul role="list" className="flex flex-col gap-2.5">` with `<li>` wrapping an `<article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">`. Use for variable-height items with mixed content (eyebrow + title + body + inline button row). References: `workflow-fields.tsx`, `api-keys-fields.tsx`, `calendar-fields.tsx`.
-- **Divided list** — `<ul className="border-2 border-bru-line divide-y-2 divide-bru-line">` with `<li>` rows that don't carry their own border. Use for compact, uniform rows (single label + control, e.g. a calendar-name + Switch row). Reference: `calendar-pick-dialog.tsx`.
+- **Card-stack** — `<ul role="list" className="flex flex-col gap-2.5">` with `<li>` wrapping an `<article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">`. Use for variable-height items with mixed content (eyebrow + title + body + inline button row). References: `workflow-fields.tsx`, `api-keys-fields.tsx`, `calendar-fields.tsx`.
+- **Divided list** — `<ul className="border-2 border-oh-line divide-y-2 divide-oh-line">` with `<li>` rows that don't carry their own border. Use for compact, uniform rows (single label + control, e.g. a calendar-name + Switch row). Reference: `calendar-pick-dialog.tsx`.
 
 When in doubt, use card-stack — it scales better as items gain affordances.
 
 ## Empty states + icons
 
 - Two patterns, picked by surface size:
-  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): use `<BrutalistInlineEmpty>` from `src/components/brutalist/inline-empty.tsx`. One-line muted text in a tight dashed border. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
-  - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `BrutalistEmpty` from `src/components/brutalist/brutalist-empty.tsx`. Renders icon (optional) + bold Space Grotesk title + 13px muted description in a `border-2 border-dashed border-bru-line-strong p-10` frame.
+  - **Sub-section empties** (a section inside a settings page or tab — e.g. "no workflows yet"): use `<OhInlineEmpty>` from `src/components/oh/inline-empty.tsx`. One-line muted text in a tight dashed border. Combine title + description into a single sentence rather than splitting them — splitting reads as a card.
+  - **Primary-surface empties** (a whole page or main route — e.g. `/bookings` with no bookings): use `OhEmpty` from `src/components/oh/oh-empty.tsx`. Renders icon (optional) + bold Space Grotesk title + 13px muted description in a `border-2 border-dashed border-oh-line-strong p-10` frame.
 - Icon convention (whenever an icon sits inside a placeholder/empty state):
   - Bare lucide line icon — never a muted-grey rounded background tile (that's stock shadcn).
   - Size: `size-8` (32px) for empties, `size-4` (16px) inline with text.
   - `strokeWidth={1.5}` — slimmer than lucide's default 2; matches the chrome's existing icon weight.
-  - Color: `text-[color:var(--bru-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--bru-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
+  - Color: `text-[color:var(--oh-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--oh-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
   - No fill, no halo, no ring, no rotation effects — the icon sits in flow.
 
 ## Destructive actions
 
 Three patterns, picked by reversibility:
 
-- **Single-click destructive (mid-stakes, recoverable)**: never. Always pair with a confirm. Use `<ConfirmDialog>` from `src/components/brutalist/confirm-dialog.tsx`. Reference: `workflow-fields.tsx` (delete) + `api-keys-fields.tsx` (revoke).
+- **Single-click destructive (mid-stakes, recoverable)**: never. Always pair with a confirm. Use `<ConfirmDialog>` from `src/components/oh/confirm-dialog.tsx`. Reference: `workflow-fields.tsx` (delete) + `api-keys-fields.tsx` (revoke).
 - **Typed-confirm (irreversible / account-level)**: render the typed-email or typed-handle confirmation pattern. Reference: `delete-account-dialog.tsx`.
 - **Native `window.confirm`**: never. Breaks the in-app chrome (looks like an OS modal injected at random) and is mobile-hostile. Audit on 2026-04-27 ripped the last one out.
 
