@@ -1,12 +1,15 @@
 
 import { DEFAULT_TIMEZONE } from "@/lib/timezone";
 
-export type OnboardingStepId =
-  | "handle"
-  | "timezone"
-  | "availability"
-  | "share"
-  | "first-booking";
+export const ONBOARDING_STEP_IDS = [
+  "handle",
+  "timezone",
+  "availability",
+  "share",
+  "first-booking",
+] as const;
+
+export type OnboardingStepId = (typeof ONBOARDING_STEP_IDS)[number];
 
 export type OnboardingStep = {
   id: OnboardingStepId;

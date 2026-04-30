@@ -5,10 +5,26 @@ import { Prisma } from "@/generated/prisma/client";
 import { planForUser } from "@/lib/billing";
 import { isAdminHandle } from "@/lib/admin";
 import { getEnabledFeatures } from "@/lib/feature-flags";
+import {
+  ONBOARDING_STEP_IDS,
+  type OnboardingStepId,
+} from "@/lib/onboarding";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
+
+function parseManualSteps(raw: string): OnboardingStepId[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((v): v is OnboardingStepId =>
+      (ONBOARDING_STEP_IDS as readonly string[]).includes(v),
+    );
+  } catch {
+    return [];
+  }
+}
 
 export const users = router({
   me: privateProcedure.query(async ({ ctx }) => {
@@ -21,10 +37,43 @@ export const users = router({
         email: true,
         name: true,
         image: true,
+        onboardingDismissed: true,
+        onboardingManualSteps: true,
       },
     });
-    return { ...user, isAdmin: isAdminHandle(user.handle) };
+    return {
+      ...user,
+      isAdmin: isAdminHandle(user.handle),
+      onboardingManualSteps: parseManualSteps(user.onboardingManualSteps),
+    };
   }),
+
+  setOnboardingState: privateProcedure
+    .input(
+      z
+        .object({
+          dismissed: z.boolean().optional(),
+          manualSteps: z.array(z.enum(ONBOARDING_STEP_IDS)).optional(),
+        })
+        .refine(
+          (v) => v.dismissed !== undefined || v.manualSteps !== undefined,
+          { message: "At least one of dismissed / manualSteps required" },
+        ),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const data: {
+        onboardingDismissed?: boolean;
+        onboardingManualSteps?: string;
+      } = {};
+      if (input.dismissed !== undefined)
+        data.onboardingDismissed = input.dismissed;
+      if (input.manualSteps !== undefined) {
+        const unique = Array.from(new Set(input.manualSteps)).sort();
+        data.onboardingManualSteps = JSON.stringify(unique);
+      }
+      await prisma.user.update({ where: { id: ctx.user.id }, data });
+      return { ok: true as const };
+    }),
 
   featureFlags: privateProcedure.query(async ({ ctx }) => {
     return getEnabledFeatures(ctx.user.id);

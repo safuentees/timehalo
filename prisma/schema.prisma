@@ -17,6 +17,8 @@ model User {
   invalidLoginAttempts Int                 @default(0)
   handle               String?             @unique
   timezone             String              @default("UTC")
+  onboardingDismissed  Boolean             @default(false)
+  onboardingManualSteps String             @default("[]")
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]

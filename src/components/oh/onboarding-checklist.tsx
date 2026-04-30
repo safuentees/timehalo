@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -17,17 +12,39 @@ import {
   type OnboardingStepId,
 } from "@/lib/onboarding";
 
-const HIDE_KEY = "officehours.onboarding.hide";
-const MANUAL_KEY = "officehours.onboarding.manual";
-
 export function OnboardingChecklist() {
+  const utils = trpc.useUtils();
   const me = trpc.users.me.useQuery();
   const ranges = trpc.schedule.get.useQuery();
   const bookings = trpc.bookings.listForHost.useQuery();
 
-  const [hidden, setHidden] = useLocalStorageBool(HIDE_KEY, false);
-  const [manuallyDone, setManuallyDone] = useLocalStorageStringSet(
-    MANUAL_KEY,
+  const setOnboardingState = trpc.users.setOnboardingState.useMutation({
+    onMutate: async (input) => {
+      await utils.users.me.cancel();
+      const prev = utils.users.me.getData();
+      if (prev) {
+        utils.users.me.setData(undefined, {
+          ...prev,
+          onboardingDismissed:
+            input.dismissed !== undefined
+              ? input.dismissed
+              : prev.onboardingDismissed,
+          onboardingManualSteps:
+            input.manualSteps !== undefined
+              ? input.manualSteps
+              : prev.onboardingManualSteps,
+        });
+      }
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prev) utils.users.me.setData(undefined, ctx.prev);
+    },
+  });
+
+  const manuallyDone = useMemo<ReadonlySet<OnboardingStepId>>(
+    () => new Set(me.data?.onboardingManualSteps ?? []),
+    [me.data?.onboardingManualSteps],
   );
 
   const steps = useMemo(() => {
@@ -42,10 +59,8 @@ export function OnboardingChecklist() {
     });
   }, [me.data, ranges.data, bookings.data, manuallyDone]);
 
-  if (hidden) return null;
-
   if (!me.data) return null;
-
+  if (me.data.onboardingDismissed) return null;
   if (isComplete(steps)) return null;
 
   const { done, total, percent } = progress(steps);
@@ -66,7 +81,7 @@ export function OnboardingChecklist() {
         </div>
         <button
           type="button"
-          onClick={() => setHidden(true)}
+          onClick={() => setOnboardingState.mutate({ dismissed: true })}
           aria-label="Hide checklist"
           className="opacity-55 hover:opacity-100 transition-opacity"
         >
@@ -80,10 +95,10 @@ export function OnboardingChecklist() {
             <StepRow
               step={step}
               onMark={() => {
-                setManuallyDone((prev) => {
-                  const next = new Set(prev);
-                  next.add(step.id);
-                  return next;
+                const next = new Set(manuallyDone);
+                next.add(step.id);
+                setOnboardingState.mutate({
+                  manualSteps: Array.from(next),
                 });
               }}
             />
@@ -150,121 +165,5 @@ function StepRow({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function subscribeToKey(key: string) {
-  return (notify: () => void) => {
-    const handler = (e: Event) => {
-      if (e instanceof StorageEvent && e.key !== key) return;
-      notify();
-    };
-    window.addEventListener("storage", handler);
-    window.addEventListener(`oh-localstorage:${key}`, handler);
-    return () => {
-      window.removeEventListener("storage", handler);
-      window.removeEventListener(`oh-localstorage:${key}`, handler);
-    };
-  };
-}
-
-function notifyKey(key: string) {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(`oh-localstorage:${key}`));
-  }
-}
-
-function useLocalStorageBool(key: string, initial: boolean) {
-  const subscribe = useMemo(() => subscribeToKey(key), [key]);
-  const value = useSyncExternalStore(
-    subscribe,
-    () => {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw === null ? initial : raw === "true";
-      } catch {
-        return initial;
-      }
-    },
-    () => initial,
-  );
-  const set = useCallback(
-    (next: boolean) => {
-      try {
-        localStorage.setItem(key, String(next));
-      } catch {
-      }
-      notifyKey(key);
-    },
-    [key],
-  );
-  return [value, set] as const;
-}
-
-function useLocalStorageStringSet(key: string) {
-  const subscribe = useMemo(() => subscribeToKey(key), [key]);
-  const cacheRef = useRef<{
-    raw: string | null | undefined;
-    value: ReadonlySet<OnboardingStepId>;
-  }>({ raw: undefined, value: EMPTY_SET });
-
-  const getSnapshot = useCallback((): ReadonlySet<OnboardingStepId> => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === cacheRef.current.raw) return cacheRef.current.value;
-      if (raw === null) {
-        cacheRef.current = { raw: null, value: EMPTY_SET };
-        return EMPTY_SET;
-      }
-      const parsed = JSON.parse(raw);
-      const next: ReadonlySet<OnboardingStepId> = Array.isArray(parsed)
-        ? (new Set(parsed.filter(isStepId)) as ReadonlySet<OnboardingStepId>)
-        : EMPTY_SET;
-      cacheRef.current = { raw, value: next };
-      return next;
-    } catch {
-      return EMPTY_SET;
-    }
-  }, [key]);
-
-  const value = useSyncExternalStore(subscribe, getSnapshot, () => EMPTY_SET);
-  const set = useCallback(
-    (
-      updater: (
-        prev: ReadonlySet<OnboardingStepId>,
-      ) => ReadonlySet<OnboardingStepId>,
-    ) => {
-      let prev: ReadonlySet<OnboardingStepId> = EMPTY_SET;
-      try {
-        const raw = localStorage.getItem(key);
-        if (raw !== null) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            prev = new Set(parsed.filter(isStepId));
-          }
-        }
-      } catch {
-      }
-      const next = updater(prev);
-      try {
-        localStorage.setItem(key, JSON.stringify(Array.from(next)));
-      } catch {
-      }
-      notifyKey(key);
-    },
-    [key],
-  );
-  return [value, set] as const;
-}
-
-const EMPTY_SET: ReadonlySet<OnboardingStepId> = new Set();
-
-function isStepId(value: unknown): value is OnboardingStepId {
-  return (
-    value === "handle" ||
-    value === "timezone" ||
-    value === "availability" ||
-    value === "share" ||
-    value === "first-booking"
   );
 }
