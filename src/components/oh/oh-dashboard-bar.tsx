@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
+import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
@@ -21,14 +22,16 @@ import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/worksp
 // `oh_active_workspace` cookie — B.PT6 — falling back to the first
 // row when the cookie is unset or stale). Click opens a Base UI
 // Menu with one row per workspace; clicking a row writes the cookie
-// via the setActiveWorkspace server action, then router.refresh()
-// so other workspace-aware surfaces (settings, billing, api-keys,
-// workflow plan-gate) re-read the new active context. We also
-// navigate to the chosen workspace's members page so the user lands
-// somewhere meaningful.
+// via the setActiveWorkspace server action, then `utils.invalidate()`
+// (broad — every workspace-aware query re-fetches with the new
+// ctx; B.PT17), `router.refresh()` (re-runs RSC + SSR prefetches),
+// and a smart `router.push` that rewrites the slug segment in place
+// when the current path is bound to the old workspace and stays put
+// everywhere else.
 export function OhDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
   const router = useRouter();
+  const pathname = usePathname();
   const [createOpen, setCreateOpen] = useState(false);
   const [, startTransition] = useTransition();
   const utils = trpc.useUtils();
@@ -37,19 +40,32 @@ export function OhDashboardBar() {
   const label = current?.name ?? "Workspaces";
 
   function handlePick(slug: string) {
+    const oldSlug = current?.slug;
     startTransition(async () => {
       const result = await setActiveWorkspace({ slug });
       if (!result.ok) {
         toast.error("Couldn't switch workspace.");
         return;
       }
-      // Invalidate the list query so any consumer sees the new
-      // isActive row immediately. router.refresh() re-fetches RSC
-      // data + re-runs SSR prefetches so /settings + /workspaces
-      // reflect the new context on the next render.
-      await utils.workspaces.list.invalidate();
+      // Broad invalidation (B.PT17). Without this, any client-cached
+      // tRPC query (api-keys.list, billing.currentPlan, eventTypes,
+      // bookings.listForHost) keeps showing the prior workspace's
+      // data until staleTime expires. The trade-off is a brief refetch
+      // of every mounted query — acceptable, since the workspace
+      // switch is a deliberate user action.
+      await utils.invalidate();
+      // Re-runs server components + SSR prefetches so per-section
+      // server-resolved data reflects the new active workspace.
       router.refresh();
-      router.push(`/workspaces/${slug}/members`);
+      // Smart navigation: only push when the current path is bound
+      // to the old workspace's slug (e.g. /workspaces/<oldSlug>/...).
+      // Otherwise stay — the user picked a switcher action, not a
+      // navigation, and ejecting them off /bookings or /settings
+      // every time would feel like a teleport.
+      const next = oldSlug
+        ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
+        : null;
+      if (next) router.push(next);
     });
   }
 

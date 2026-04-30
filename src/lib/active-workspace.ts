@@ -46,3 +46,41 @@ export function parseActiveWorkspaceSlug(
   const result = workspaceSlugSchema.safeParse(cookieValue);
   return result.success ? result.data : null;
 }
+
+/**
+ * B.PT17 — pure helper used by the topbar switcher to decide where
+ * to navigate after the cookie flip.
+ *
+ * Returns the target href when the current path is *bound* to the
+ * old workspace's slug (i.e. lives under `/workspaces/<oldSlug>/...`)
+ * — the slug segment is rewritten in place so the user keeps their
+ * sub-page (members → members, event-types → event-types). Returns
+ * `null` for every other path so the switcher stays put and lets
+ * `router.refresh()` re-fetch with the new ctx.
+ *
+ * Adapted from Dub's `pathname.replace(currentSlug, newSlug)` pattern
+ * (`apps/web/ui/layout/sidebar/workspace-dropdown.tsx`). Dub's URLs
+ * are slug-truth (`/<slug>/<resource>` everywhere); ours are mostly
+ * noun-based (`/bookings`, `/availability`, `/settings`) with the
+ * explicit `/workspaces/<slug>/*` shell as the only slug-bound
+ * surface. So we rewrite *only* under `/workspaces/<slug>` and stay
+ * everywhere else.
+ *
+ * Pure — no `usePathname`, `useRouter`, or other hook reach-in. Easy
+ * to unit-test in isolation.
+ */
+export function nextHrefAfterWorkspaceSwitch(
+  currentPath: string,
+  oldSlug: string,
+  newSlug: string,
+): string | null {
+  if (oldSlug === newSlug) return null;
+  const oldPrefix = `/workspaces/${oldSlug}`;
+  if (currentPath === oldPrefix) {
+    return `/workspaces/${newSlug}`;
+  }
+  if (currentPath.startsWith(`${oldPrefix}/`)) {
+    return `/workspaces/${newSlug}${currentPath.slice(oldPrefix.length)}`;
+  }
+  return null;
+}
