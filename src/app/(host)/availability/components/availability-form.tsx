@@ -74,7 +74,7 @@ export default function AvailabilityForm() {
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
-                <FieldLegend className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase">
+                <FieldLegend className="oh-legend opacity-100">
                   Weekly availability
                 </FieldLegend>
                 <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
