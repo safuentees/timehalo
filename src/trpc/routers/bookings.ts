@@ -28,6 +28,7 @@ import {
 } from "@/lib/event-types";
 import { selectHost } from "@/lib/round-robin";
 import { findBusyHostIds } from "@/lib/calendar";
+import { resolveActiveWorkspaceId } from "@/lib/active-workspace-server";
 import {
   emitBookingEvent,
   iterateBookingEvents,
@@ -381,6 +382,7 @@ export const bookings = router({
               type: "created",
               bookingPublicUid: booking.publicUid,
               hostId: host.id,
+              workspaceId,
               visitorName: input.visitorName,
               slotStart: booking.slotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -557,6 +559,7 @@ export const bookings = router({
         prisma.booking.findFirst({
           where: {
             hostId: ctx.user.id,
+            workspaceId: booking.workspaceId,
             deleted: false,
             OR: [
               { slotStart: { lt: booking.slotStart } },
@@ -569,6 +572,7 @@ export const bookings = router({
         prisma.booking.findFirst({
           where: {
             hostId: ctx.user.id,
+            workspaceId: booking.workspaceId,
             deleted: false,
             OR: [
               { slotStart: { gt: booking.slotStart } },
@@ -758,6 +762,7 @@ export const bookings = router({
             type: "cancelled",
             bookingPublicUid: result.publicUid,
             hostId: ctx.user.id,
+            workspaceId: result.workspaceId,
             visitorName: result.visitorName,
             slotStart: result.slotStart.toISOString(),
             occurredAt: new Date().toISOString(),
@@ -1141,6 +1146,7 @@ export const bookings = router({
               type: "cancelled",
               bookingPublicUid: original.publicUid,
               hostId: host.id,
+              workspaceId: original.workspaceId,
               visitorName: original.visitorName,
               slotStart: original.slotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -1149,6 +1155,7 @@ export const bookings = router({
               type: "created",
               bookingPublicUid: created.publicUid,
               hostId: host.id,
+              workspaceId: original.workspaceId,
               visitorName: original.visitorName,
               slotStart: newSlotStart.toISOString(),
               occurredAt: new Date().toISOString(),
@@ -1189,9 +1196,13 @@ export const bookings = router({
     ),
 
   listForHost: privateProcedure.query(async ({ ctx }) => {
+    const workspaceId = await resolveActiveWorkspaceId(
+      ctx.user.id,
+      ctx.activeWorkspaceSlug,
+    );
     const now = new Date();
     const rows = await prisma.booking.findMany({
-      where: { hostId: ctx.user.id, deleted: false },
+      where: { hostId: ctx.user.id, workspaceId, deleted: false },
       select: {
         id: true,
         publicUid: true,
@@ -1216,7 +1227,16 @@ export const bookings = router({
       const enabled = await isFeatureEnabled("live-queue", ctx.user.id);
       if (!enabled) return;
 
-      const iterable = iterateBookingEvents(ctx.user.id, signal!);
+      const workspaceId = await resolveActiveWorkspaceId(
+        ctx.user.id,
+        ctx.activeWorkspaceSlug,
+      );
+
+      const iterable = iterateBookingEvents(
+        ctx.user.id,
+        workspaceId,
+        signal!,
+      );
       for await (const [event] of iterable) {
         const e = event as BookingBusEvent;
         yield tracked(`${e.bookingPublicUid}:${e.type}`, e);
