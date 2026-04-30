@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { planForUser } from "@/lib/billing";
 import { getEnabledFeatures } from "@/lib/feature-flags";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
@@ -33,6 +34,20 @@ export const users = router({
   // refetch (or SSR boundary).
   featureFlags: privateProcedure.query(async ({ ctx }) => {
     return getEnabledFeatures(ctx.user.id);
+  }),
+
+  // B.PT18 — per-user plan resolver. User-scoped surfaces (workflows,
+  // future user-scoped webhooks) gate on the user's primary workspace
+  // plan via `planForUser` server-side. This procedure exposes the
+  // same resolution to the client so UI lock-icons stay consistent
+  // with the procedure-level gate. Distinct from
+  // `billing.currentPlan({ slug })` which keys off a specific
+  // workspace's Subscription — that's the right shape for
+  // workspace-scoped surfaces (api-keys, billing card, member-cap),
+  // but workflows aren't workspace-scoped today, so the workspace
+  // lookup was misleading the user about which switch flips the lock.
+  plan: privateProcedure.query(async ({ ctx }) => {
+    return { plan: await planForUser(ctx.user.id) };
   }),
 
   getByHandle: publicProcedure
