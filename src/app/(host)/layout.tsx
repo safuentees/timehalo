@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { BrutalistProviders } from "@/components/brutalist/providers";
-import { BrutalistDashboardLayout } from "@/components/brutalist/brutalist-dashboard-layout";
+import { OhProviders } from "@/components/oh/providers";
+import { OhDashboardLayout } from "@/components/oh/oh-dashboard-layout";
 
 // Parallel @modal slot (A7). The intercepted route at
 // (host)/@modal/(.)bookings/[publicUid] renders a Sheet here when
@@ -17,9 +17,9 @@ export default async function DashboardLayout({
   modal: ReactNode;
 }>) {
   return (
-    <BrutalistProviders>
-      <BrutalistDashboardLayout>{children}</BrutalistDashboardLayout>
+    <OhProviders>
+      <OhDashboardLayout>{children}</OhDashboardLayout>
       {modal}
-    </BrutalistProviders>
+    </OhProviders>
   );
 }

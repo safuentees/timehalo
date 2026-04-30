@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 // via CSS transforms inside the Viewport, so wheel/keyboard/touch
 // behave normally — no JS scroll hijack.
 //
-// Brutalist tweaks vs the shadcn default:
+// Oh tweaks vs the shadcn default:
 //   - Thinner thumb: w-1.5 (6px) instead of w-2.5
 //   - Ink-tinted thumb at 25% opacity (sits as a quiet line)
 //   - Hover bumps to 50% opacity for affordance

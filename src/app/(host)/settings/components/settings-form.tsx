@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
 import { TimezoneFields } from "./timezone-fields";
 import { LanguageFields } from "./language-fields";
 import { ThemeFields } from "./theme-fields";
@@ -11,7 +11,7 @@ import { CalendarFields } from "./calendar-fields";
 import { ApiKeysFields } from "./api-keys-fields";
 import { BillingFields } from "./billing-fields";
 import { DeleteAccountDialog } from "./delete-account-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 // Account settings page shell — pure layout, no form state. Each
 // section owns its own commit affordance (cal.com / dub.co pattern):
@@ -19,7 +19,7 @@ import { SectionHeader } from "@/components/brutalist/section-header";
 // pick, theme autosaves on click, workflows + calendar + api-keys
 // commit through dialogs and inline mutations.
 //
-// Previously this file owned a global <BrutalistSaveBar> that only
+// Previously this file owned a global <OhSaveBar> that only
 // committed the timezone but visually claimed to commit the whole
 // page — confusing for the user, untruthful affordance. Now there's
 // no global save bar on /settings; the pattern is reserved for pages
@@ -30,8 +30,8 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
   const tDanger = useTranslations("DangerZone");
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader title={tSettings("title")} />
+    <OhPageShell>
+      <OhPageHeader title={tSettings("title")} />
       <div className="mt-8 flex flex-col gap-12">
         <TimezoneFields timezones={timezones} />
         <LanguageFields />
@@ -52,6 +52,6 @@ export default function SettingsForm({ timezones }: { timezones: string[] }) {
           <DeleteAccountDialog />
         </div>
       </section>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }

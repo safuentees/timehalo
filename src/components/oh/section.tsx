@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // components, ~line 1087): every semantic block is a label + content
 // wrapper with consistent vertical rhythm.
 //
-// Brutalist mapping:
+// Oh mapping:
 //   - Title: mono uppercase, 10/2.5px tracking, opacity-55 (same as
 //     `oh-eyebrow` / `.oh-legend` from globals.css). Functions as
 //     section eyebrow.
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 // history yet" wants to show the heading + an inline empty). Caller
 // passes the empty placeholder as children.
 
-export function BrutalistSection({
+export function OhSection({
   title,
   children,
   className,

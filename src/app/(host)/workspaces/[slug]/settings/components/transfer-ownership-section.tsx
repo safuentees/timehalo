@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import { trpc } from "@/trpc/hooks";
 import { useTransferOwnership } from "@/lib/mutations/use-transfer-ownership";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
 
 // Transfer ownership picker. Eligible recipients = workspace members
 // other than the current owner. The user picks one + a ConfirmDialog
@@ -48,9 +48,9 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
 
       <div className="mt-5">
         {eligible.length === 0 ? (
-          <BrutalistInlineEmpty>
+          <OhInlineEmpty>
             {t("transferNoCandidates")}
-          </BrutalistInlineEmpty>
+          </OhInlineEmpty>
         ) : (
           <div className="flex flex-col gap-3">
             <label htmlFor="transfer-target" className="oh-legend">

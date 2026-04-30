@@ -269,7 +269,7 @@ type TitleProps = {
   desktopClassName?: string;
 };
 
-// Brutalist dialog title default: 20px black-weight uppercase, tight
+// Oh dialog title default: 20px black-weight uppercase, tight
 // tracking. Bakes the convention in so all four settings dialogs read
 // the same — previous state had three different treatments (one
 // override at 20px, two using the shadcn 16px medium default, one
@@ -344,7 +344,7 @@ type CloseProps = {
 };
 
 /**
- * Brutalist close button bound to the underlying `DrawerClose` /
+ * Oh close button bound to the underlying `DrawerClose` /
  * `DialogClose` primitive. Using the primitive (rather than a manual
  * `onClick` that calls a parent `onClose`) is what makes ESC, focus-
  * return, and pointer-down-outside behave correctly on both form factors.

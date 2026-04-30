@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
-import { BrutalistInlineEmpty } from "@/components/brutalist/inline-empty";
-import { ConfirmDialog } from "@/components/brutalist/confirm-dialog";
+import { SectionHeader } from "@/components/oh/section-header";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 
 // Settings → Workflows section. Lists user-scoped workflow rules
 // (trigger × action × offset) and exposes the create dialog.
@@ -51,7 +51,7 @@ export function WorkflowFields() {
         {isLoading ? (
           <p className="text-[13px] opacity-55">{t("loading")}</p>
         ) : !data || data.length === 0 ? (
-          <BrutalistInlineEmpty>{t("listEmpty")}</BrutalistInlineEmpty>
+          <OhInlineEmpty>{t("listEmpty")}</OhInlineEmpty>
         ) : (
           <ul
             role="list"
@@ -78,7 +78,7 @@ export function WorkflowFields() {
 
       <div className="mt-4">
         {isLocked ? (
-          <BrutalistInlineEmpty>
+          <OhInlineEmpty>
             {t("upgradePrompt")}{" "}
             <a
               href="#billing-legend"
@@ -86,7 +86,7 @@ export function WorkflowFields() {
             >
               {t("upgradeLink")}
             </a>
-          </BrutalistInlineEmpty>
+          </OhInlineEmpty>
         ) : (
           <WorkflowCreateDialog />
         )}

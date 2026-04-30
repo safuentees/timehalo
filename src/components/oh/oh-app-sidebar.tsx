@@ -61,7 +61,7 @@ function sidebarNavId(href: string) {
   return `sidebar-nav-${slug}`;
 }
 
-export function BrutalistAppSidebar() {
+export function OhAppSidebar() {
   // Pathname-driven active state must be deferred to post-mount.
   // Re-applies the fix from commit 28a83c3 — Next 16's hydration
   // ordering means usePathname() returning the same value on server

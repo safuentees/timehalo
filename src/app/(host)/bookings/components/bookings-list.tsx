@@ -5,10 +5,10 @@ import { Link } from "next-view-transitions";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { BrutalistEmpty } from "@/components/brutalist/brutalist-empty";
-import { BrutalistPageHeader } from "@/components/brutalist/page-header";
-import { BrutalistPageShell } from "@/components/brutalist/page-shell";
-import { OnboardingChecklist } from "@/components/brutalist/onboarding-checklist";
+import { OhEmpty } from "@/components/oh/oh-empty";
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 
 type Tab = "upcoming" | "past";
 
@@ -26,8 +26,8 @@ export function BookingsList() {
   const list = tab === "upcoming" ? (data?.upcoming ?? []) : (data?.past ?? []);
 
   return (
-    <BrutalistPageShell>
-      <BrutalistPageHeader
+    <OhPageShell>
+      <OhPageHeader
         title="Your bookings"
         aside={liveQueueEnabled ? <LiveQueue /> : null}
       />
@@ -84,7 +84,7 @@ export function BookingsList() {
           </ul>
         )}
       </div>
-    </BrutalistPageShell>
+    </OhPageShell>
   );
 }
 
@@ -123,7 +123,7 @@ function SegButton({
             // Typographic count — not a nested pill. Same line-height
             // as the label, slightly lighter so the LABEL is the
             // primary signal and the count plays second fiddle.
-            // Brutalist hierarchy: emphasize by de-emphasizing.
+            // Oh hierarchy: emphasize by de-emphasizing.
             "tabular-nums text-[11px] font-bold leading-none",
             active ? "opacity-65" : "opacity-45",
           ].join(" ")}
@@ -192,7 +192,7 @@ function BookingRow({
   );
 }
 
-// SSE subscription wrapper rendered as the `aside` of BrutalistPageHeader.
+// SSE subscription wrapper rendered as the `aside` of OhPageHeader.
 // Only mounts when the `live-queue` feature flag is on; flipping the
 // flag off unmounts cleanly, tearing down the subscription with no
 // `enabled` flag plumbing.
@@ -300,7 +300,7 @@ function LiveDot({
 
 function EmptyBookings({ tab }: { tab: Tab }) {
   return (
-    <BrutalistEmpty
+    <OhEmpty
       icon={CalendarIcon}
       title={tab === "upcoming" ? "No upcoming bookings" : "No past bookings"}
       description={

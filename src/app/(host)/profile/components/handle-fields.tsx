@@ -4,11 +4,11 @@ import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { Field, FieldError } from "@/components/ui/field";
 import {
-  BrutalistInputGroup,
-  BrutalistInputGroupAddon,
-  BrutalistInputGroupInput,
-  BrutalistInputGroupText,
-} from "@/components/brutalist/brutalist-input-group";
+  OhInputGroup,
+  OhInputGroupAddon,
+  OhInputGroupInput,
+  OhInputGroupText,
+} from "@/components/oh/oh-input-group";
 
 // Just the zod shape for the handle piece. The parent form composes this
 // with other section schemas into one combined schema.
@@ -33,8 +33,8 @@ export function HandleFields() {
       name="handle"
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <BrutalistInputGroup>
-            <BrutalistInputGroupInput
+          <OhInputGroup>
+            <OhInputGroupInput
               {...field}
               id={field.name}
               placeholder="alex"
@@ -43,10 +43,10 @@ export function HandleFields() {
               spellCheck={false}
               aria-invalid={fieldState.invalid}
             />
-            <BrutalistInputGroupAddon align="inline-start">
-              <BrutalistInputGroupText>/h/</BrutalistInputGroupText>
-            </BrutalistInputGroupAddon>
-          </BrutalistInputGroup>
+            <OhInputGroupAddon align="inline-start">
+              <OhInputGroupText>/h/</OhInputGroupText>
+            </OhInputGroupAddon>
+          </OhInputGroup>
           <FieldError
             errors={fieldState.error ? [fieldState.error] : undefined}
             className="font-[family-name:var(--oh-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"

@@ -9,7 +9,7 @@ import { useCalendarDisconnect } from "@/lib/mutations/use-calendar-disconnect";
 import { Button } from "@/components/ui/button";
 import { getQueryParam, updateQueryParams } from "@/lib/url-params";
 import { CalendarPickDialog } from "./calendar-pick-dialog";
-import { SectionHeader } from "@/components/brutalist/section-header";
+import { SectionHeader } from "@/components/oh/section-header";
 
 // Calendar connections section. Lists every CalendarCredential the
 // host has connected (Google + Microsoft), with per-connection

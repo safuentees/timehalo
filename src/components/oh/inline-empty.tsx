@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // Small "no items yet" placeholder — single-line dashed box used inside
 // a settings sub-section (workflows-empty, api-keys-empty, calendar-
-// empty, etc.). Sibling to <BrutalistEmpty>, which is the page-level
+// empty, etc.). Sibling to <OhEmpty>, which is the page-level
 // empty state with an icon + title + action. This one is the inline
 // variant: just a message, no chrome.
 //
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 // Use children as the message so callers can pass plain text or
 // composed nodes (e.g. with a "Connect Google" link inline).
 
-export function BrutalistInlineEmpty({
+export function OhInlineEmpty({
   children,
   className,
 }: {

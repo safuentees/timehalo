@@ -1,7 +1,7 @@
 import {
   ErrorShell,
   ErrorShellLink,
-} from "@/components/brutalist/error-shell";
+} from "@/components/oh/error-shell";
 
 export default function NotFound() {
   return (
