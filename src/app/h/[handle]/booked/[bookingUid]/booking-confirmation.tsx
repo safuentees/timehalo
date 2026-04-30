@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Link } from "next-view-transitions";
+import { useRouter } from "next/navigation";
 import { CalendarIcon, CheckIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 // Post-booking receipt. Apple HIG redesign: communicate the result,
@@ -41,6 +43,7 @@ type BookingConfirmationProps = {
 };
 
 export function BookingConfirmation({ booking }: BookingConfirmationProps) {
+  const router = useRouter();
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied">(
     "idle",
   );
@@ -189,14 +192,33 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                   and switches the slot click into a confirm-style
                   reschedule. The procedure carries the visitor's
                   identity over via the original Booking row, so no
-                  re-entered form fields. */}
+                  re-entered form fields.
+                  Confirm dialog (B.PT31): the visitor is about to leave a
+                  finished receipt and walk into the picker. Audit `§1.2`
+                  flagged the prior "tap-and-redirect" as visitor-side
+                  data-loss surface — easy to mis-tap on mobile, no way
+                  back to this exact receipt without re-finding the
+                  email link. */}
               {booking.host.handle ? (
-                <Link
-                  href={`/h/${booking.host.handle}?reschedule=${booking.publicUid}`}
-                  className="opacity-55 transition-opacity hover:opacity-100"
-                >
-                  Reschedule
-                </Link>
+                <ConfirmDialog
+                  trigger={
+                    <button
+                      type="button"
+                      className="opacity-55 transition-opacity hover:opacity-100"
+                    >
+                      Reschedule
+                    </button>
+                  }
+                  title="Find a new time?"
+                  description="We'll keep your reservation until you confirm a new slot."
+                  confirmLabel="Continue to picker"
+                  cancelLabel="Keep this slot"
+                  onConfirm={() => {
+                    router.push(
+                      `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                    );
+                  }}
+                />
               ) : null}
             </div>
             <span className="truncate opacity-40">#{booking.publicUid}</span>

@@ -83,8 +83,12 @@ test("visitor can book a slot end-to-end", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: /Add to calendar/i }),
   ).toBeVisible({ timeout: 5_000 });
+  // Reschedule is now a button (opens a ConfirmDialog from B.PT31)
+  // — semantically correct since the immediate action is opening
+  // an in-page UI surface, not navigating. The button still routes
+  // to the picker after confirm.
   await expect(
-    page.getByRole("link", { name: /Reschedule/i }),
+    page.getByRole("button", { name: /Reschedule/i }),
   ).toBeVisible();
 
   // Sanity: no React errors fired during the loop.
