@@ -13,7 +13,19 @@ const APP_NAME = "Officehours";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    GitHub,
+    // `allowDangerousEmailAccountLinking` lets Auth.js merge a GitHub
+    // OAuth sign-in into an existing User row when the verified emails
+    // match — so a host who registered with credentials and later
+    // taps "Continue with GitHub" lands on the same account instead of
+    // a fresh stub. Auth.js v5 default is to NOT link (per the
+    // `OAuthAccountNotLinked` error class) because some OAuth
+    // providers don't verify the address they hand back; GitHub does
+    // (verified primary email is the only one returned by the API),
+    // so the "dangerous" naming is overcautious for this specific
+    // provider. Same call cal.com + dub make. Reference: Auth.js
+    // docs `Define Email Account Linking` (Context7-verified
+    // 2026-04-30).
+    GitHub({ allowDangerousEmailAccountLinking: true }),
     // Magic-link sign-in (C4). Uses next-auth's `http-email` provider
     // type — same VerificationToken table dance as the canonical
     // Nodemailer provider, but the actual send is delegated to our
