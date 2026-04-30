@@ -121,7 +121,10 @@ function BookingsListPanel({
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
   return (
-    <ul role="list" className="flex flex-col gap-2.5">
+    <ul
+      role="list"
+      className="border-y border-oh-line divide-y divide-oh-line"
+    >
       {bookings.map((b) => (
         <li key={b.id}>
           <BookingRow
@@ -153,7 +156,7 @@ function BookingRow({
   return (
     <Link
       href={`/bookings/${publicUid}`}
-      className="group block rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong focus-visible:outline-none focus-visible:border-oh-line-strong"
+      className="group block px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">

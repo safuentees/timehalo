@@ -53,12 +53,13 @@ If a callsite needs to override one token (e.g. `tabular-nums` on a date eyebrow
 
 ## List patterns
 
-Two list shapes, picked by the shape of the row:
+Three list shapes, picked by the shape of the row + the visual weight you want:
 
-- **Card-stack** — `<ul role="list" className="flex flex-col gap-2.5">` with `<li>` wrapping an `<article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">`. Use for variable-height items with mixed content (eyebrow + title + body + inline button row). References: `workflow-fields.tsx`, `api-keys-fields.tsx`, `calendar-fields.tsx`.
-- **Divided list** — `<ul className="border-2 border-oh-line divide-y-2 divide-oh-line">` with `<li>` rows that don't carry their own border. Use for compact, uniform rows (single label + control, e.g. a calendar-name + Switch row). Reference: `calendar-pick-dialog.tsx`.
+- **Card-stack** — `<ul role="list" className="flex flex-col gap-2.5">` with `<li>` wrapping an `<article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">`. Use for variable-height items with mixed content + per-row inline affordances (status badge, edit button, etc.). The bordered card frames each item as its own thing. References: `workflow-fields.tsx`, `api-keys-fields.tsx`, `calendar-fields.tsx`.
+- **Divided list (structural)** — `<ul className="border-2 border-oh-line divide-y-2 divide-oh-line">` with `<li>` rows that don't carry their own border. Heavy 2px frame + 2px dividers. Use for compact uniform rows in dialog-scale surfaces (single label + control, e.g. a calendar-name + Switch row). Reference: `calendar-pick-dialog.tsx`.
+- **Divided list (content)** — `<ul className="border-y border-oh-line divide-y divide-oh-line">` with `<li>` rows that don't carry their own border. Hairline (1px) frame + 1px dividers. Use for content-feed surfaces where the row is a navigable item (whole row is a `<Link>`). Click cue is `hover:bg-oh-tint-hover` on the row, no per-row border. Reads as a continuous feed instead of a stack of cards. Reference: `bookings-list.tsx` (cal.com `BookingListItem` pattern — `hover:bg-cal-muted`, no per-row border, hairlines between).
 
-When in doubt, use card-stack — it scales better as items gain affordances.
+When in doubt, use card-stack — it scales better as items gain affordances. Switch to a divided list when the row is uniform-shape AND the dominant interaction is "tap to drill in" rather than "scan + use the per-row controls." Pick the structural variant for tight switch-rows in dialogs; pick the content variant for navigable feeds on dashboard pages.
 
 ## Empty states + icons
 
