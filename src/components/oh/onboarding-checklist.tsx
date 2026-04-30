@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -19,25 +14,63 @@ import {
 
 // Onboarding checklist surface — renders above the bookings list on
 // /bookings until either the host clicks "Hide" or every step is
-// complete. Dismiss state + manually-checked steps live in
-// localStorage. Five steps; tasks the host has already done show
+// complete. Five steps; tasks the host has already done show
 // auto-checked, tasks pending show as links.
+//
+// State source (B.PT43): the User row owns `onboardingDismissed` +
+// `onboardingManualSteps`. The previous localStorage shape
+// (`officehours.onboarding.{hide,manual}`) couldn't be read during
+// SSR — so the checklist server-rendered with `manuallyDone:
+// new Set()`, the "Share your link" step rendered unchecked, and
+// the post-hydration client read snap-flipped it to checked. Moving
+// to the DB lets `users.me`'s SSR prefetch carry the truth on first
+// paint. dub stores onboarding-completion on Workspace; cal.com
+// stores it on User. We follow cal.com — onboarding is a per-host
+// concern, not per-workspace.
 //
 // Pattern reference: dub /apps/web/ui/layout/toolbar/onboarding/
 // onboarding-button.tsx — same shape (progress fraction +
-// title/desc/CTA per task + localStorage hide), brutalist'd.
-
-const HIDE_KEY = "officehours.onboarding.hide";
-const MANUAL_KEY = "officehours.onboarding.manual";
+// title/desc/CTA per task), DB-backed.
 
 export function OnboardingChecklist() {
+  const utils = trpc.useUtils();
   const me = trpc.users.me.useQuery();
   const ranges = trpc.schedule.get.useQuery();
   const bookings = trpc.bookings.listForHost.useQuery();
 
-  const [hidden, setHidden] = useLocalStorageBool(HIDE_KEY, false);
-  const [manuallyDone, setManuallyDone] = useLocalStorageStringSet(
-    MANUAL_KEY,
+  // Optimistic dismiss + mark-done. Without `setData` here the card
+  // would linger ~50-300ms while the mutation round-trips, defeating
+  // the "click Hide → it's gone" expectation. Hooks.ts's global
+  // useMutation override invalidates every query on success, so the
+  // server-confirmed value lands automatically on the next refetch
+  // — we only need the optimistic write + onError rollback.
+  const setOnboardingState = trpc.users.setOnboardingState.useMutation({
+    onMutate: async (input) => {
+      await utils.users.me.cancel();
+      const prev = utils.users.me.getData();
+      if (prev) {
+        utils.users.me.setData(undefined, {
+          ...prev,
+          onboardingDismissed:
+            input.dismissed !== undefined
+              ? input.dismissed
+              : prev.onboardingDismissed,
+          onboardingManualSteps:
+            input.manualSteps !== undefined
+              ? input.manualSteps
+              : prev.onboardingManualSteps,
+        });
+      }
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prev) utils.users.me.setData(undefined, ctx.prev);
+    },
+  });
+
+  const manuallyDone = useMemo<ReadonlySet<OnboardingStepId>>(
+    () => new Set(me.data?.onboardingManualSteps ?? []),
+    [me.data?.onboardingManualSteps],
   );
 
   const steps = useMemo(() => {
@@ -52,12 +85,13 @@ export function OnboardingChecklist() {
     });
   }, [me.data, ranges.data, bookings.data, manuallyDone]);
 
-  if (hidden) return null;
-
-  // Don't flash the checklist on the very first paint while the three
-  // queries resolve — wait until at least the user query lands.
+  // SSR + first-render guard. `me.data` is hydrated by the layout's
+  // prefetch (B.PT41) so this should be truthy on first paint of every
+  // host route — but we still keep the guard for the rare cases where
+  // the cache hasn't landed (background refetches, route-level cache
+  // misses on stale pages).
   if (!me.data) return null;
-
+  if (me.data.onboardingDismissed) return null;
   if (isComplete(steps)) return null;
 
   const { done, total, percent } = progress(steps);
@@ -78,7 +112,7 @@ export function OnboardingChecklist() {
         </div>
         <button
           type="button"
-          onClick={() => setHidden(true)}
+          onClick={() => setOnboardingState.mutate({ dismissed: true })}
           aria-label="Hide checklist"
           className="opacity-55 hover:opacity-100 transition-opacity"
         >
@@ -92,10 +126,10 @@ export function OnboardingChecklist() {
             <StepRow
               step={step}
               onMark={() => {
-                setManuallyDone((prev) => {
-                  const next = new Set(prev);
-                  next.add(step.id);
-                  return next;
+                const next = new Set(manuallyDone);
+                next.add(step.id);
+                setOnboardingState.mutate({
+                  manualSteps: Array.from(next),
                 });
               }}
             />
@@ -162,143 +196,5 @@ function StepRow({
         ) : null}
       </div>
     </div>
-  );
-}
-
-// SSR-safe localStorage subscriptions via useSyncExternalStore.
-// Server snapshot returns the default; client snapshot reads
-// localStorage on every render but the value is cached behind the
-// subscription so re-reads don't force re-renders unless the stored
-// value actually changes. Updates dispatch a custom event on
-// `window` so any other component subscribed to the same key
-// re-snapshots immediately (cross-tab `storage` events also wired).
-
-function subscribeToKey(key: string) {
-  return (notify: () => void) => {
-    const handler = (e: Event) => {
-      if (e instanceof StorageEvent && e.key !== key) return;
-      notify();
-    };
-    window.addEventListener("storage", handler);
-    window.addEventListener(`oh-localstorage:${key}`, handler);
-    return () => {
-      window.removeEventListener("storage", handler);
-      window.removeEventListener(`oh-localstorage:${key}`, handler);
-    };
-  };
-}
-
-function notifyKey(key: string) {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(`oh-localstorage:${key}`));
-  }
-}
-
-function useLocalStorageBool(key: string, initial: boolean) {
-  const subscribe = useMemo(() => subscribeToKey(key), [key]);
-  const value = useSyncExternalStore(
-    subscribe,
-    () => {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw === null ? initial : raw === "true";
-      } catch {
-        return initial;
-      }
-    },
-    () => initial,
-  );
-  const set = useCallback(
-    (next: boolean) => {
-      try {
-        localStorage.setItem(key, String(next));
-      } catch {
-        // ignore
-      }
-      notifyKey(key);
-    },
-    [key],
-  );
-  return [value, set] as const;
-}
-
-function useLocalStorageStringSet(key: string) {
-  const subscribe = useMemo(() => subscribeToKey(key), [key]);
-  // useSyncExternalStore requires getSnapshot to return a stable
-  // reference when the underlying data is unchanged. Returning a
-  // fresh `new Set(...)` on every read tripped React's
-  // "result of getSnapshot should be cached" warning and infinite-
-  // looped through forceStoreRerender. The ref-based cache below
-  // returns the same Set instance until the raw localStorage string
-  // changes — useRef is React's escape hatch for "mutable box that
-  // doesn't trigger renders," exactly what useSyncExternalStore
-  // wants under the hood.
-  const cacheRef = useRef<{
-    raw: string | null | undefined;
-    value: ReadonlySet<OnboardingStepId>;
-  }>({ raw: undefined, value: EMPTY_SET });
-
-  const getSnapshot = useCallback((): ReadonlySet<OnboardingStepId> => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === cacheRef.current.raw) return cacheRef.current.value;
-      if (raw === null) {
-        cacheRef.current = { raw: null, value: EMPTY_SET };
-        return EMPTY_SET;
-      }
-      const parsed = JSON.parse(raw);
-      const next: ReadonlySet<OnboardingStepId> = Array.isArray(parsed)
-        ? (new Set(parsed.filter(isStepId)) as ReadonlySet<OnboardingStepId>)
-        : EMPTY_SET;
-      cacheRef.current = { raw, value: next };
-      return next;
-    } catch {
-      return EMPTY_SET;
-    }
-  }, [key]);
-
-  const value = useSyncExternalStore(subscribe, getSnapshot, () => EMPTY_SET);
-  const set = useCallback(
-    (
-      updater: (
-        prev: ReadonlySet<OnboardingStepId>,
-      ) => ReadonlySet<OnboardingStepId>,
-    ) => {
-      let prev: ReadonlySet<OnboardingStepId> = EMPTY_SET;
-      try {
-        const raw = localStorage.getItem(key);
-        if (raw !== null) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            prev = new Set(parsed.filter(isStepId));
-          }
-        }
-      } catch {
-        // ignore — start from empty
-      }
-      const next = updater(prev);
-      try {
-        localStorage.setItem(key, JSON.stringify(Array.from(next)));
-      } catch {
-        // ignore
-      }
-      notifyKey(key);
-    },
-    [key],
-  );
-  return [value, set] as const;
-}
-
-// Stable empty-set reference so useSyncExternalStore's caching
-// doesn't see a fresh `new Set()` on every read and tear.
-const EMPTY_SET: ReadonlySet<OnboardingStepId> = new Set();
-
-function isStepId(value: unknown): value is OnboardingStepId {
-  return (
-    value === "handle" ||
-    value === "timezone" ||
-    value === "availability" ||
-    value === "share" ||
-    value === "first-booking"
   );
 }

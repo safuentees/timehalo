@@ -5,10 +5,32 @@ import { Prisma } from "@/generated/prisma/client";
 import { planForUser } from "@/lib/billing";
 import { isAdminHandle } from "@/lib/admin";
 import { getEnabledFeatures } from "@/lib/feature-flags";
+import {
+  ONBOARDING_STEP_IDS,
+  type OnboardingStepId,
+} from "@/lib/onboarding";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
+
+// SQLite has no native array type so onboardingManualSteps is stored as
+// a JSON string. Parse defensively: malformed cell, non-array payload,
+// or a value the canonical step list doesn't recognise (legacy id from
+// a future schema rollback) all collapse to an empty array. The UI
+// treats `manuallyDone: []` as "user hasn't marked share-link yet" —
+// the safe / inert state on a parse failure.
+function parseManualSteps(raw: string): OnboardingStepId[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((v): v is OnboardingStepId =>
+      (ONBOARDING_STEP_IDS as readonly string[]).includes(v),
+    );
+  } catch {
+    return [];
+  }
+}
 
 export const users = router({
   // "Me" projection. Settings forms read handle/timezone/email; the
@@ -26,10 +48,56 @@ export const users = router({
         email: true,
         name: true,
         image: true,
+        // B.PT43 — onboarding checklist state. Was localStorage-only;
+        // moved to the User row so SSR can read it. Parsed manualSteps
+        // is a string-array stored as JSON because SQLite has no
+        // native array type. Defensive parse: malformed cell → empty.
+        onboardingDismissed: true,
+        onboardingManualSteps: true,
       },
     });
-    return { ...user, isAdmin: isAdminHandle(user.handle) };
+    return {
+      ...user,
+      isAdmin: isAdminHandle(user.handle),
+      onboardingManualSteps: parseManualSteps(user.onboardingManualSteps),
+    };
   }),
+
+  // B.PT43 — persist onboarding checklist state. Replaces the
+  // localStorage shape (`officehours.onboarding.{hide,manual}`) with
+  // a server-side write so the values are server-readable on next
+  // SSR pass + persist across browsers + devices. Both fields are
+  // optional on the input — caller sends only what changed
+  // (dismiss button → `dismissed: true`; mark-done → updated
+  // `manualSteps` array). Server validates step ids against the
+  // canonical list and de-duplicates.
+  setOnboardingState: privateProcedure
+    .input(
+      z
+        .object({
+          dismissed: z.boolean().optional(),
+          manualSteps: z.array(z.enum(ONBOARDING_STEP_IDS)).optional(),
+        })
+        .refine(
+          (v) => v.dismissed !== undefined || v.manualSteps !== undefined,
+          { message: "At least one of dismissed / manualSteps required" },
+        ),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const data: {
+        onboardingDismissed?: boolean;
+        onboardingManualSteps?: string;
+      } = {};
+      if (input.dismissed !== undefined)
+        data.onboardingDismissed = input.dismissed;
+      if (input.manualSteps !== undefined) {
+        // De-dup + sort for a stable on-disk representation.
+        const unique = Array.from(new Set(input.manualSteps)).sort();
+        data.onboardingManualSteps = JSON.stringify(unique);
+      }
+      await prisma.user.update({ where: { id: ctx.user.id }, data });
+      return { ok: true as const };
+    }),
 
   // Per-user feature flag map. Returns every known flag's resolved
   // state so the client can gate UI without a network roundtrip per

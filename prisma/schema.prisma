@@ -21,6 +21,16 @@ model User {
   // Default "UTC" is the historical no-op behavior — every host has
   // an explicit zone after this migration.
   timezone             String              @default("UTC")
+  // Onboarding checklist state (B.PT43). The /bookings inline
+  // checklist surfaces 5 setup steps; `dismissed` tracks the X-click,
+  // `manualSteps` tracks step ids the host marked complete by hand
+  // (currently just "share"). Stored on the User row instead of
+  // localStorage so SSR can read them — without server-readable
+  // state, the checklist server-renders with the wrong done flags
+  // and visibly snaps post-hydration. JSON-string for the array
+  // (SQLite has no native array type); parsed in `users.me`.
+  onboardingDismissed  Boolean             @default(false)
+  onboardingManualSteps String             @default("[]")
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
