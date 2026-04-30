@@ -64,4 +64,4 @@ The §10.1 work (commits `60c7e25` through `f6972cd` plus follow-ups) added ten 
 
 ## Don't ever revert without flagging
 - Idempotency tests caught a real race condition (commit `c2fe653`). The "obvious" simplification of moving the idempotency check OUTSIDE the transaction is wrong.
-- The `mounted` gate in `BrutalistAppSidebar` was removed once with a comment claiming `usePathname` is deterministic — that comment was wrong. Hydration test on `/settings` failed. Now backed by `useMounted()` from `src/hooks/use-mounted.ts`.
+- The `mounted` gate in `OhAppSidebar` was removed once with a comment claiming `usePathname` is deterministic — that comment was wrong. Hydration test on `/settings` failed. Now backed by `useMounted()` from `src/hooks/use-mounted.ts`.

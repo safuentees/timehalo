@@ -38,9 +38,9 @@ Two distinct surfaces, two different tones:
 - **Authenticated host shell** — `/(host)/*`. The new chrome lives here. Match `/bookings` and `/settings` for layout density, button weight, color saturation, spacing rhythm.
 - **Public visitor surface** — `/h/[handle]`, `/booked/[uid]`. The legacy stronger aesthetic stays — the visitor's first/last touch is intentionally bolder. Don't drag those motifs back into the dashboard.
 
-The component + utility names (`BrutalistPageShell`, `BrutalistPageHeader`, `<ConfirmDialog>`, `<SectionHeader>`, `bru-legend` / `bru-description` / `bru-eyebrow`, `bru-input`, `--bru-r-sm` radius, Space Grotesk + JetBrains Mono) **stay** — they're real artifacts a planned refactor will rename. Use them; don't speculatively rename in-flight.
+The component + utility names (`OhPageShell`, `OhPageHeader`, `<ConfirmDialog>`, `<SectionHeader>`, `oh-legend` / `oh-description` / `oh-eyebrow`, `oh-input`, `--oh-r-sm` radius, Space Grotesk + JetBrains Mono) **stay** — they're real artifacts a planned refactor will rename. Use them; don't speculatively rename in-flight.
 
-The engineering rules in `.claude/rules/brutalist-ui.md` (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are **good discipline regardless of aesthetic** — keep following them. The file name is historical; the rules apply to the current chrome too.
+The engineering rules in `.claude/rules/oh-ui.md` (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are **good discipline regardless of aesthetic** — keep following them. The file name is historical; the rules apply to the current chrome too.
 
 **Reject signal**: a new page reads more brutalist than `/bookings` or `/settings`.
 
@@ -60,12 +60,12 @@ The engineering rules in `.claude/rules/brutalist-ui.md` (radius scale, typograp
 - Use `fakeContext()` from `test/fixtures.ts` for synthetic tRPC contexts; never roll your own. The fixture inventory (`createTestHost`, `createTestUser`, `createTestEventTypeHostPool`, `safeTearDownByHandle`, `purgeTestWorkspaces`, `upgradeWorkspaceToPro`, etc.) is documented in `.claude/rules/testing.md` *Fixtures inventory*.
 - Reference `e2e/test-constants.ts` (`TEST_EMAIL`, `TEST_PASSWORD`, `TEST_HANDLE`) from Playwright specs and the seed script — never hardcode the test handle in spec files.
 - For Playwright auth: rely on the cached `storageState` from `e2e/auth.setup.ts`. Don't inline the credentials form login per spec; the `authed` project already loads `playwright/.auth/user.json`. See `.claude/rules/testing.md` *Auth caching*.
-- Use the project's structural styling tokens (documented in `.claude/rules/brutalist-ui.md` — file name is historical, rules apply to the current chrome): `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
+- Use the project's structural styling tokens (documented in `.claude/rules/oh-ui.md` — file name is historical, rules apply to the current chrome): `rounded-sm` (6px) for structural surfaces, `rounded-full` for pills, Space Grotesk for body + titles, JetBrains Mono for accents.
 - When a client tree branches on a browser-only signal (`useMediaQuery`, `useTheme`, `useMounted`, ICU data, `localStorage`), pick the SSR default that matches the hook's server snapshot, and resolve runtime-derived lists on the server. See `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
-- For section / field chrome inside a hub page, use the `bru-legend` / `bru-description` / `bru-eyebrow` CSS classes (defined in `globals.css`) and the `<SectionHeader>` component. Never inline the eight-class `font-[family-name:var(--bru-mono)] text-[Npx] font-extrabold tracking-[Npx] uppercase opacity-...` strings. See `.claude/rules/brutalist-ui.md` *Typography utilities*.
-- For destructive actions, use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never `window.confirm()`, never fire a destructive mutation on a single click without a confirm. Account-level / irreversible deletions use the typed-confirm pattern instead (`delete-account-dialog.tsx` reference). See `.claude/rules/brutalist-ui.md` *Destructive actions*.
+- For section / field chrome inside a hub page, use the `oh-legend` / `oh-description` / `oh-eyebrow` CSS classes (defined in `globals.css`) and the `<SectionHeader>` component. Never inline the eight-class `font-[family-name:var(--oh-mono)] text-[Npx] font-extrabold tracking-[Npx] uppercase opacity-...` strings. See `.claude/rules/oh-ui.md` *Typography utilities*.
+- For destructive actions, use `<ConfirmDialog>` from `@/components/oh/confirm-dialog`. Never `window.confirm()`, never fire a destructive mutation on a single click without a confirm. Account-level / irreversible deletions use the typed-confirm pattern instead (`delete-account-dialog.tsx` reference). See `.claude/rules/oh-ui.md` *Destructive actions*.
 - Compose dialogs from `<ResponsiveModalHeader/Title/Body/Footer>` primitives in `src/components/ui/responsive-modal.tsx`. For `<form>` bodies, apply the exported `RESPONSIVE_MODAL_BODY_CLASS` constant. See `.claude/rules/dashboard-forms.md` *Dialog composition*.
-- For hub pages with multiple independent sub-sections (e.g. `/settings`), use per-section save (inline Save button, autosave, or dialog flow) — NOT the global `<BrutalistSaveBar>`. The SaveBar lies about its scope on multi-section pages and is reserved for pages that ARE one form. See `.claude/rules/dashboard-forms.md` (the SaveBar rule).
+- For hub pages with multiple independent sub-sections (e.g. `/settings`), use per-section save (inline Save button, autosave, or dialog flow) — NOT the global `<OhSaveBar>`. The SaveBar lies about its scope on multi-section pages and is reserved for pages that ARE one form. See `.claude/rules/dashboard-forms.md` (the SaveBar rule).
 
 ## Never do
 
@@ -80,10 +80,10 @@ The engineering rules in `.claude/rules/brutalist-ui.md` (radius scale, typograp
 - Reach for a serif or "title" font — there is none. Bump weight + size on Space Grotesk.
 - Use the `useState(false) + useEffect(() => setMounted(true), [])` pattern. Use `useMounted()` from `src/hooks/use-mounted.ts` instead — React 19's compiler ESLint rule (`react-hooks/set-state-in-effect`) fails CI on the legacy pattern.
 - `if (!mounted) return null` from a client component when that subtree contains user-visible UI (buttons, inputs, links, dialog triggers). Render the SSR-safe default and let the effect upgrade in place — see `.claude/rules/dashboard-forms.md` *SSR-safe client branches*.
-- Inline the legend/description/eyebrow class strings (`font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55` and friends). Use `bru-legend` / `bru-description` / `bru-eyebrow` from `globals.css`. Audit on 2026-04-27 found 6+ verbatim duplications of the legend string and 7+ of the eyebrow with five competing tracking values — single source of truth lives in the utility class.
-- Use `window.confirm()` for destructive actions. Use `<ConfirmDialog>` from `@/components/brutalist/confirm-dialog`. Never fire a destructive mutation on a single click with no confirmation.
+- Inline the legend/description/eyebrow class strings (`font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-55` and friends). Use `oh-legend` / `oh-description` / `oh-eyebrow` from `globals.css`. Audit on 2026-04-27 found 6+ verbatim duplications of the legend string and 7+ of the eyebrow with five competing tracking values — single source of truth lives in the utility class.
+- Use `window.confirm()` for destructive actions. Use `<ConfirmDialog>` from `@/components/oh/confirm-dialog`. Never fire a destructive mutation on a single click with no confirmation.
 - Hand-roll dialog padding/footer strings (`px-5 pb-6 flex flex-col gap-5 sm:px-6`, `flex flex-col gap-2 sm:flex-row sm:justify-end`). Compose `<ResponsiveModalBody>` + `<ResponsiveModalFooter>` from the primitive instead.
-- Put `<BrutalistSaveBar>` on a hub page with multiple independent sub-sections — it claims to commit the whole page but only mutates one section's data. Per-section save instead.
+- Put `<OhSaveBar>` on a hub page with multiple independent sub-sections — it claims to commit the whole page but only mutates one section's data. Per-section save instead.
 - Mutate `process.env.X = ...` directly inside Vitest tests — leaks across tests if a test crashes mid-run. Use `vi.stubEnv` + `vi.unstubAllEnvs()` (Vitest 4 canon).
 - Roll your own context object inside a tRPC test — use `fakeContext()`. Bypassing it skips the unique-IP rate-limit isolation and breaks the `Context` type chain.
 - Re-login per route in Playwright authed specs — the `authed` project loads cached `storageState`. Inline login adds ~5s per test and re-litigates the credentials form selector.
@@ -132,7 +132,7 @@ The four legacy docs (`OFFICEHOURS-PROJECT-GUIDE.md`, `OFFICEHOURS-DEPTH-IDEAS.m
 - `src/trpc/AGENTS.md`
 - `src/app/(host)/AGENTS.md`
 - `src/components/ui/AGENTS.md`
-- `src/components/brutalist/AGENTS.md`
+- `src/components/oh/AGENTS.md`
 - `src/lib/mutations/AGENTS.md`
 - `prisma/AGENTS.md`
 
@@ -142,4 +142,4 @@ Shared project skills live in `.agents/skills/` and are mirrored into `.claude/s
 
 - `build-dashboard-page` for authenticated host routes and form shells.
 - `create-mutation-hook` for repo-style custom mutation hooks.
-- `compose-brutalist-ui` for brutalist shadcn composition and layout decisions.
+- `compose-oh-ui` for brutalist shadcn composition and layout decisions.

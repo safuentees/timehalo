@@ -1,22 +1,22 @@
 ---
-name: compose-brutalist-ui
-description: Compose or refactor UI in `src/app`, `src/components/ui`, or `src/components/brutalist` using this repo's brutalist design language on top of shadcn primitives. Use when choosing between `Field`, `InputGroup`, `Item`, `Empty`, `Card`, `Badge`, and `Avatar`, or when a page risks looking like stock shadcn.
+name: compose-oh-ui
+description: Compose or refactor UI in `src/app`, `src/components/ui`, or `src/components/oh` using this repo's brutalist design language on top of shadcn primitives. Use when choosing between `Field`, `InputGroup`, `Item`, `Empty`, `Card`, `Badge`, and `Avatar`, or when a page risks looking like stock shadcn.
 ---
 
-# Compose Brutalist UI
+# Compose Oh UI
 
 Use this skill for layout and composition work on brutalist pages and wrappers. If the task is mostly about data loading or dashboard form architecture, also consult `build-dashboard-page`.
 
 ## Start With Existing Primitives
 
 - Open the closest existing primitive in `src/components/ui/`.
-- Open the matching wrapper in `src/components/brutalist/` if one exists.
+- Open the matching wrapper in `src/components/oh/` if one exists.
 - Read `references/component-trees.md` before changing structure.
 
 ## Composition Rules
 
 - Extend existing shadcn primitives instead of rebuilding them from scratch.
-- Put brutalist-specific class overrides in `src/components/brutalist/`.
+- Put brutalist-specific class overrides in `src/components/oh/`.
 - Preserve accessibility and slot structure when editing `src/components/ui/`.
 - In InputGroup layouts, keep the input before the addon in DOM order.
 - For forms, keep the `FieldGroup`, `FieldSet`, and submit-row structure consistent.

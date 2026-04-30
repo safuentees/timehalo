@@ -21,8 +21,8 @@
   `/workspaces/*`). See `AGENTS.md` *Visual identity* — the
   aesthetic walked away from the original brutalist palette; new
   dashboard surfaces match the quieter chrome.
-- Wrap page content in `BrutalistPageShell` and lead with
-  `BrutalistPageHeader title="..."`. The shell owns the canonical
+- Wrap page content in `OhPageShell` and lead with
+  `OhPageHeader title="..."`. The shell owns the canonical
   width + padding (`max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`); never
   hand-roll those values inline. Future pages must match these two
   components — drift is a bug. (Component names are historical;
