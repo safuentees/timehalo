@@ -21,6 +21,7 @@ export default async function BookingsPage({
     trpc.bookings.listForHost.prefetch(),
     trpc.users.featureFlags.prefetch(),
     trpc.users.me.prefetch(),
+    trpc.schedule.get.prefetch(),
   ]);
 
   return (
