@@ -1200,6 +1200,7 @@ export const bookings = router({
       ctx.user.id,
       ctx.activeWorkspaceSlug,
     );
+    if (!workspaceId) return { upcoming: [], past: [] };
     const now = new Date();
     const rows = await prisma.booking.findMany({
       where: { hostId: ctx.user.id, workspaceId, deleted: false },
@@ -1231,6 +1232,7 @@ export const bookings = router({
         ctx.user.id,
         ctx.activeWorkspaceSlug,
       );
+      if (!workspaceId) return;
 
       const iterable = iterateBookingEvents(
         ctx.user.id,

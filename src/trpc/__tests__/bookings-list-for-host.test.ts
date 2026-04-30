@@ -158,6 +158,30 @@ describe("bookings.listForHost — workspace scope (B.PT16)", () => {
     expect(past).toHaveLength(0);
   });
 
+  it("returns empty lists (does NOT throw) when the user has no memberships", async () => {
+    await prisma.membership.deleteMany({ where: { userId: host.id } });
+    try {
+      const caller = callRouter(fakeContext({ userId: host.id }));
+      const result = await caller.bookings.listForHost();
+      expect(result).toEqual({ upcoming: [], past: [] });
+    } finally {
+      await prisma.membership.create({
+        data: {
+          workspaceId: primaryWorkspaceId,
+          userId: host.id,
+          role: "OWNER",
+        },
+      });
+      await prisma.membership.create({
+        data: {
+          workspaceId: sideWorkspaceId,
+          userId: host.id,
+          role: "OWNER",
+        },
+      });
+    }
+  });
+
   it("filters past bookings by workspace too", async () => {
     await createTestBooking({
       hostId: host.id,
