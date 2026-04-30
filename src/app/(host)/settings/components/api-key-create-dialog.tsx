@@ -56,7 +56,7 @@ export function ApiKeyCreateDialog({ slug }: Props) {
 
   return (
     <ResponsiveModal open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveModalTrigger asChild>
+      <ResponsiveModalTrigger asChild id="oh-create-api-key-trigger">
         <Button variant="oh" size="oh">
           {t("createButton")}
         </Button>

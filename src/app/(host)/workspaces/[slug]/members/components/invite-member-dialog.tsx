@@ -58,7 +58,7 @@ export function InviteMemberDialog({
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
-      <ResponsiveModalTrigger asChild>
+      <ResponsiveModalTrigger asChild id="oh-invite-member-trigger">
         <Button variant="oh" size="oh">
           {t("inviteButton")}
         </Button>

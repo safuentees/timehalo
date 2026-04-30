@@ -47,7 +47,7 @@ export function WorkspaceCreateDialog({
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       {!isControlled ? (
-        <ResponsiveModalTrigger asChild>
+        <ResponsiveModalTrigger asChild id="oh-create-workspace-trigger">
           <Button variant="oh" size="oh">
             {t("createButton")}
           </Button>
