@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { planForUser } from "@/lib/billing";
 import { getEnabledFeatures } from "@/lib/feature-flags";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
@@ -23,6 +24,10 @@ export const users = router({
 
   featureFlags: privateProcedure.query(async ({ ctx }) => {
     return getEnabledFeatures(ctx.user.id);
+  }),
+
+  plan: privateProcedure.query(async ({ ctx }) => {
+    return { plan: await planForUser(ctx.user.id) };
   }),
 
   getByHandle: publicProcedure

@@ -186,4 +186,31 @@ describe("A3 plan-gating", () => {
       ).rejects.toThrow(/Member cap reached for PRO.*\(5\)|FORBIDDEN/i);
     });
   });
+
+  describe("users.plan", () => {
+    it("FREE plan → returns FREE", async () => {
+      const caller = callRouter(fakeContext({ userId: owner.id }));
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("FREE");
+    });
+
+    it("PRO plan → returns PRO", async () => {
+      await setWorkspacePlan(await primaryWorkspaceId(owner.id), "PRO");
+      const caller = callRouter(fakeContext({ userId: owner.id }));
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("PRO");
+    });
+
+    it("ignores ctx.activeWorkspaceSlug — keys off the user's primary workspace", async () => {
+      await setWorkspacePlan(await primaryWorkspaceId(owner.id), "PRO");
+      const caller = callRouter(
+        fakeContext({
+          userId: owner.id,
+          activeWorkspaceSlug: "nonexistent-slug-cookie",
+        }),
+      );
+      const result = await caller.users.plan();
+      expect(result.plan).toBe("PRO");
+    });
+  });
 });

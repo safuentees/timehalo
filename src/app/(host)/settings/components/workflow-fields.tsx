@@ -13,14 +13,8 @@ import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
   const { data, isLoading } = trpc.workflows.list.useQuery();
-  const { data: workspaces } = trpc.workspaces.list.useQuery();
-  const activeSlug =
-    workspaces?.find((w) => w.isActive)?.slug ?? workspaces?.[0]?.slug;
-  const { data: plan } = trpc.billing.currentPlan.useQuery(
-    { slug: activeSlug ?? "" },
-    { enabled: Boolean(activeSlug) },
-  );
-  const isLocked = plan?.plan === "FREE";
+  const { data: planResp } = trpc.users.plan.useQuery();
+  const isLocked = planResp?.plan === "FREE";
 
   return (
     <section aria-labelledby="workflows-legend">
