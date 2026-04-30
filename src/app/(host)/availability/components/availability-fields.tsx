@@ -16,6 +16,7 @@ import {
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
+import { OhTimePicker } from "@/components/oh/oh-time-picker";
 import { cn } from "@/lib/utils";
 import { DAY_KEYS, defaultSchedule } from "@/lib/schedule";
 import type { DayKey, ScheduleValues } from "@/lib/schedule";
@@ -287,13 +288,13 @@ function BlockEditorContent({
             days={draft.days}
             onOpen={() => setDaysOpen(true)}
           />
-          <TimeColumn
+          <OhTimePicker
             label="From"
             value={draft.from}
             onChange={(value) => setDraft((prev) => ({ ...prev, from: value }))}
             ariaLabel="Start time"
           />
-          <TimeColumn
+          <OhTimePicker
             label="To"
             value={draft.to}
             onChange={(value) => setDraft((prev) => ({ ...prev, to: value }))}
@@ -489,43 +490,6 @@ function DayPickerDrawer({
         </div>
       </ResponsiveModalContent>
     </ResponsiveModal>
-  );
-}
-
-function TimeColumn({
-  label,
-  value,
-  onChange,
-  ariaLabel,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <label className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] has-[:focus-visible]:border-[var(--oh-ink)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--oh-ink)]">
-      <input
-        type="time"
-        step={900}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={ariaLabel}
-        className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent opacity-0 focus:outline-none [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
-      />
-      <span className="pointer-events-none flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="oh-eyebrow">
-          {label}
-        </span>
-        <span className="truncate text-[18px] leading-[1.1] font-black tabular-nums">
-          {formatTime(value)}
-        </span>
-      </span>
-      <ChevronRightIcon
-        className="pointer-events-none size-4 shrink-0 opacity-45 transition-opacity group-hover:opacity-100"
-        aria-hidden
-      />
-    </label>
   );
 }
 
