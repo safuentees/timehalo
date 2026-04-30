@@ -18,7 +18,7 @@ export default function AvailabilityLoading() {
           </div>
         ))}
       </div>
-      <div className="mt-10 flex justify-end border-t-2 border-oh-line-strong pt-6">
+      <div className="mt-10 flex justify-end">
         <Skeleton className="h-10 w-40" />
       </div>
     </OhPageShell>

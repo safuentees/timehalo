@@ -177,7 +177,7 @@ export default function BookingDetail({
 
       {!cancelled ? (
         isDrawer ? (
-          <div className="mt-8 flex gap-2 border-t-2 border-oh-line pt-5">
+          <div className="mt-8 flex gap-2">
             <ConfirmDialog
               title={t("cancelTitle")}
               description={t("cancelDescription", { name: data.visitorName })}

@@ -32,7 +32,7 @@ export function InlineFormSave({
 
   return (
     <div
-      className="mt-10 flex justify-end border-t-2 border-oh-line-strong pt-6"
+      className="mt-10 flex justify-end"
       role="region"
       aria-label={ariaLabel ?? labels.save}
     >
