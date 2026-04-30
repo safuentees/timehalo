@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { PanelLeft } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { useMounted } from "@/hooks/use-mounted";
 import {
   Sidebar,
@@ -17,6 +20,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
+
+gsap.registerPlugin(useGSAP);
 
 const menuButtonClass = [
   "relative rounded-(--oh-r-xs)",
@@ -86,21 +91,88 @@ export function OhAppSidebar() {
   );
 }
 
-export function MobileNavContent() {
+export function MobileNavContent({
+  closing,
+  onExitComplete,
+}: {
+  closing: boolean;
+  onExitComplete: () => void;
+}) {
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
   const groups = navGroupsForPath(pathname);
+  const container = useRef<HTMLElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const rows = gsap.utils.toArray<HTMLElement>(
+          ".oh-mobile-nav-label, .oh-mobile-nav-item",
+        );
+        if (rows.length === 0) return;
+
+        const tl = gsap.timeline({ paused: true });
+        rows.forEach((row, i) => {
+          const isLabel = row.classList.contains("oh-mobile-nav-label");
+          tl.fromTo(
+            row,
+            { opacity: 0, y: isLabel ? -4 : -10 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: isLabel ? 0.22 : 0.28,
+              ease: isLabel ? "power1.out" : "power3.out",
+            },
+            i * 0.04,
+          );
+        });
+        tlRef.current = tl;
+        tl.play();
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        tlRef.current = null;
+      });
+
+      return () => mm.revert();
+    },
+    { scope: container },
+  );
+
+  useEffect(() => {
+    const tl = tlRef.current;
+    if (!tl) {
+      if (closing) onExitComplete();
+      return;
+    }
+
+    if (closing) {
+      tl.timeScale(1.6);
+      tl.eventCallback("onReverseComplete", onExitComplete);
+      tl.reverse();
+    } else {
+      tl.timeScale(1);
+      tl.eventCallback("onReverseComplete", null);
+      tl.play();
+    }
+  }, [closing, onExitComplete]);
 
   return (
     <nav
+      ref={container}
       aria-label="Main"
       className="flex flex-col gap-6 px-4 py-6 sm:px-6"
     >
       {groups.map((group, index) => (
         <div key={group.label ?? `mobile-group-${index}`}>
           {group.label ? (
-            <p className="oh-eyebrow opacity-55 mb-3">{group.label}</p>
+            <p className="oh-mobile-nav-label oh-eyebrow opacity-55 mb-3">
+              {group.label}
+            </p>
           ) : null}
           <ul role="list" className="flex flex-col gap-0.5">
             {group.items.map((item) => {
@@ -110,7 +182,7 @@ export function MobileNavContent() {
                   (item.href !== "/" &&
                     activePath.startsWith(`${item.href}/`)));
               return (
-                <li key={item.href}>
+                <li key={item.href} className="oh-mobile-nav-item">
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import {
   SidebarInset,
@@ -50,6 +50,19 @@ export function OhDashboardLayout({
 function ContentSlot({ children }: { children: ReactNode }) {
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
+  const [navMounted, setNavMounted] = useState(false);
+
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      setNavMounted(true);
+    }
+  }, [isMobile, openMobile]);
+
+  useEffect(() => {
+    if (!isMobile && navMounted) {
+      setNavMounted(false);
+    }
+  }, [isMobile, navMounted]);
 
   useEffect(() => {
     if (openMobile) {
@@ -58,8 +71,17 @@ function ContentSlot({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  if (isMobile && openMobile) {
-    return <MobileNavContent />;
+  const handleExitComplete = useCallback(() => {
+    setNavMounted(false);
+  }, []);
+
+  if (isMobile && navMounted) {
+    return (
+      <MobileNavContent
+        closing={!openMobile}
+        onExitComplete={handleExitComplete}
+      />
+    );
   }
   return <>{children}</>;
 }
