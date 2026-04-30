@@ -48,7 +48,7 @@ export function EventTypeCreateDialog({ slug }: { slug: string }) {
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
-      <ResponsiveModalTrigger asChild>
+      <ResponsiveModalTrigger asChild id="oh-create-event-type-trigger">
         <Button variant="oh" size="oh">
           Add event type
         </Button>

@@ -57,7 +57,12 @@ export function WorkspaceCreateDialog({
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       {!isControlled ? (
-        <ResponsiveModalTrigger asChild>
+        // Stable id bypasses Base UI's useBaseUiId fallback (B.PT50).
+        // Without it, the trigger's auto-id is positional from useId
+        // and can mismatch between SSR and the first client paint when
+        // any upstream provider's tree shape drifts. Same fix as the
+        // dashboard chrome triggers (B.PT48).
+        <ResponsiveModalTrigger asChild id="oh-create-workspace-trigger">
           <Button variant="oh" size="oh">
             {t("createButton")}
           </Button>

@@ -98,7 +98,7 @@ export function WorkflowCreateDialog() {
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
-      <ResponsiveModalTrigger asChild>
+      <ResponsiveModalTrigger asChild id="oh-create-workflow-trigger">
         <Button variant="oh" size="oh">
           {t("addButton")}
         </Button>

@@ -57,7 +57,7 @@ export function DangerSection({
 
       <div className="mt-5 flex justify-end">
         <ResponsiveModal open={open} onOpenChange={setOpen}>
-          <ResponsiveModalTrigger asChild>
+          <ResponsiveModalTrigger asChild id="oh-delete-workspace-trigger">
             <Button variant="ohGhost" size="oh">
               {t("deleteAction")}
             </Button>
