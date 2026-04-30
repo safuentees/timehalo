@@ -6,7 +6,14 @@ import { Link } from "next-view-transitions";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { OhEmpty } from "@/components/oh/oh-empty";
+import {
+  OhEmpty,
+  OhEmptyContent,
+  OhEmptyDescription,
+  OhEmptyHeader,
+  OhEmptyMedia,
+  OhEmptyTitle,
+} from "@/components/oh/oh-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
@@ -236,27 +243,33 @@ function LiveDot({
 function EmptyBookings({ tab }: { tab: Tab }) {
   const t = useTranslations("Bookings");
   const { data: me } = trpc.users.me.useQuery();
-  const action =
-    tab === "upcoming" && me?.handle ? (
-      <Link
-        href={`/h/${me.handle}`}
-        className="oh-eyebrow border-[1.5px] border-oh-line-strong px-3 py-2 transition-colors hover:bg-oh-tint-hover"
-      >
-        {t("emptyCta")}
-      </Link>
-    ) : undefined;
 
   return (
-    <OhEmpty
-      icon={CalendarIcon}
-      title={tab === "upcoming" ? t("emptyUpcomingTitle") : t("emptyPastTitle")}
-      description={
-        tab === "upcoming"
-          ? t("emptyUpcomingDescription")
-          : t("emptyPastDescription")
-      }
-      action={action}
-    />
+    <OhEmpty>
+      <OhEmptyHeader>
+        <OhEmptyMedia>
+          <CalendarIcon />
+        </OhEmptyMedia>
+        <OhEmptyTitle>
+          {tab === "upcoming" ? t("emptyUpcomingTitle") : t("emptyPastTitle")}
+        </OhEmptyTitle>
+        <OhEmptyDescription>
+          {tab === "upcoming"
+            ? t("emptyUpcomingDescription")
+            : t("emptyPastDescription")}
+        </OhEmptyDescription>
+      </OhEmptyHeader>
+      {tab === "upcoming" && me?.handle ? (
+        <OhEmptyContent>
+          <Link
+            href={`/h/${me.handle}`}
+            className="oh-eyebrow border-[1.5px] border-oh-line-strong px-3 py-2 transition-colors hover:bg-oh-tint-hover"
+          >
+            {t("emptyCta")}
+          </Link>
+        </OhEmptyContent>
+      ) : null}
+    </OhEmpty>
   );
 }
 

@@ -8,7 +8,13 @@ import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { OhEmpty } from "@/components/oh/oh-empty";
+import {
+  OhEmpty,
+  OhEmptyDescription,
+  OhEmptyHeader,
+  OhEmptyMedia,
+  OhEmptyTitle,
+} from "@/components/oh/oh-empty";
 import {
   AvailabilityDrawer,
   TriggerCard,
@@ -277,11 +283,15 @@ function HostEmpty({
 
   return (
     <div className="oh-profile-empty">
-      <OhEmpty
-        icon={CalendarIcon}
-        title={title}
-        description={description}
-      />
+      <OhEmpty>
+        <OhEmptyHeader>
+          <OhEmptyMedia>
+            <CalendarIcon />
+          </OhEmptyMedia>
+          <OhEmptyTitle>{title}</OhEmptyTitle>
+          <OhEmptyDescription>{description}</OhEmptyDescription>
+        </OhEmptyHeader>
+      </OhEmpty>
     </div>
   );
 }
