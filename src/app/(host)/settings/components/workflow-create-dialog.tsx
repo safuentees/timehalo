@@ -317,7 +317,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   ref={field.ref}
                   className="size-4 accent-(--oh-ink)"
                 />
-                <span className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase opacity-65">
+                <span className="oh-legend opacity-65">
                   {t("fieldActive")}
                 </span>
               </label>
