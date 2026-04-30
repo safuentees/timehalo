@@ -21,13 +21,13 @@ export function OhDashboardLayout({
 
   return (
     <TooltipProvider delay={200}>
-      <div
+      <SidebarProvider
         className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
       >
         <OhDashboardBar />
-        <SidebarProvider className="oh-app">
+        <div className="oh-app flex min-h-0 flex-1">
           <OhAppSidebar />
           <SidebarInset className={insetClass}>
             <div className="oh-host-content">
@@ -36,8 +36,8 @@ export function OhDashboardLayout({
               </ScrollArea>
             </div>
           </SidebarInset>
-        </SidebarProvider>
-      </div>
+        </div>
+      </SidebarProvider>
     </TooltipProvider>
   );
 }

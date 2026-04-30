@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 import { OhUserMenu } from "./user-menu";
 
@@ -48,6 +49,10 @@ export function OhDashboardBar() {
 
   return (
     <div className="oh-dashboard-bar">
+      <SidebarTrigger
+        aria-label="Open menu"
+        className="-ml-1 mr-1 size-7 rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] md:hidden"
+      />
       <Menu.Root>
         <Menu.Trigger className="oh-dashboard-bar-trigger" type="button">
           <span className="oh-dashboard-bar-label">{label}</span>
