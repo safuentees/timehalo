@@ -43,10 +43,14 @@ export default defineConfig({
       },
     },
     {
-      // Authed hydration smoke + future flow specs. Reuses the cached
-      // storageState from the setup project.
+      // Authed hydration smoke + stress + future flow specs. Reuses the
+      // cached storageState from the setup project. testMatch covers
+      // the canonical `hydration-authed.spec.ts` plus the stress
+      // variant `hydration-stress.spec.ts` (B.PT51 — N reloads per
+      // route to catch the non-deterministic useId-counter-drift class
+      // of bug that single-reload smoke can miss).
       name: "authed",
-      testMatch: /hydration-authed\.spec\.ts/,
+      testMatch: /(?:hydration-authed|hydration-stress)\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
