@@ -11,3 +11,19 @@ export function parseActiveWorkspaceSlug(
   const result = workspaceSlugSchema.safeParse(cookieValue);
   return result.success ? result.data : null;
 }
+
+export function nextHrefAfterWorkspaceSwitch(
+  currentPath: string,
+  oldSlug: string,
+  newSlug: string,
+): string | null {
+  if (oldSlug === newSlug) return null;
+  const oldPrefix = `/workspaces/${oldSlug}`;
+  if (currentPath === oldPrefix) {
+    return `/workspaces/${newSlug}`;
+  }
+  if (currentPath.startsWith(`${oldPrefix}/`)) {
+    return `/workspaces/${newSlug}${currentPath.slice(oldPrefix.length)}`;
+  }
+  return null;
+}

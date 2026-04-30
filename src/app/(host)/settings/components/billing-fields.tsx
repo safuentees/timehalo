@@ -55,6 +55,18 @@ export function BillingFields() {
 
   const [pickedSlug, setPickedSlug] = useState<string | null>(null);
 
+  const activeSlug =
+    workspaces?.find((w) => w.isActive)?.slug ??
+    workspaces?.[0]?.slug ??
+    null;
+  const [prevActiveSlug, setPrevActiveSlug] = useState<string | null>(
+    activeSlug,
+  );
+  if (activeSlug !== prevActiveSlug) {
+    setPrevActiveSlug(activeSlug);
+    setPickedSlug(null);
+  }
+
   return (
     <section aria-labelledby="billing-legend">
       <SectionHeader
@@ -75,8 +87,7 @@ export function BillingFields() {
           slug={
             pickedSlug && workspaces.some((w) => w.slug === pickedSlug)
               ? pickedSlug
-              : (workspaces.find((w) => w.isActive)?.slug ??
-                  workspaces[0].slug)
+              : (activeSlug ?? workspaces[0].slug)
           }
           onSlugChange={setPickedSlug}
         />

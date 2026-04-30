@@ -2,17 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
+import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 
 export function OhDashboardBar() {
   const { data: workspaces } = trpc.workspaces.list.useQuery();
   const router = useRouter();
+  const pathname = usePathname();
   const [createOpen, setCreateOpen] = useState(false);
   const [, startTransition] = useTransition();
   const utils = trpc.useUtils();
@@ -21,15 +23,19 @@ export function OhDashboardBar() {
   const label = current?.name ?? "Workspaces";
 
   function handlePick(slug: string) {
+    const oldSlug = current?.slug;
     startTransition(async () => {
       const result = await setActiveWorkspace({ slug });
       if (!result.ok) {
         toast.error("Couldn't switch workspace.");
         return;
       }
-      await utils.workspaces.list.invalidate();
+      await utils.invalidate();
       router.refresh();
-      router.push(`/workspaces/${slug}/members`);
+      const next = oldSlug
+        ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
+        : null;
+      if (next) router.push(next);
     });
   }
 
