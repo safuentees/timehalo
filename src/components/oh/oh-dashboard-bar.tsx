@@ -107,8 +107,16 @@ export function OhDashboardBar() {
           <Menu.Positioner
             className="oh-menu-positioner"
             sideOffset={8}
-            align="start"
-            alignOffset={-8}
+            // align="center" so the popup centers under the trigger.
+            // On mobile (where the trigger is grid-centered in the
+            // dashboard bar) this puts the popup in the viewport
+            // center. On desktop the trigger sits at the bar's left
+            // edge — Base UI's collision avoidance flips/shifts the
+            // popup to keep it on-screen, so center is still the
+            // safe default vs. start (which left-justifies the popup
+            // and reads as off-balance now that the trigger isn't
+            // hugging the left rail on mobile).
+            align="center"
             // Inline z-index as belt-and-suspenders: the sidebar
             // primitive's [data-slot="sidebar-container"] is
             // position: fixed; z-index: 10. Base UI's Positioner is

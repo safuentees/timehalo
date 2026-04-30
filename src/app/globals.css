@@ -377,6 +377,37 @@
   /* background: var(--oh-frame); */
 }
 
+/* Mobile: 3 children (sidebar trigger, workspace switcher, icon group +
+   user menu). With flex `space-between` and unequal side-group widths
+   (1 icon left, 3 icons + avatar right), the middle child gets centered
+   between the two side groups — visually offset from the bar's true
+   center. Switch to a 3-column grid (1fr auto 1fr) so the middle column
+   self-centers relative to the container. Desktop keeps the existing
+   flex (sidebar trigger is md:hidden — only 2 visible children at md+, so
+   space-between gives the correct workspace-left / icons-right rhythm). */
+@media (max-width: 767px) {
+  .oh-dashboard-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 12px;
+  }
+  .oh-dashboard-bar > :first-child {
+    justify-self: start;
+  }
+  .oh-dashboard-bar > :nth-child(2) {
+    justify-self: center;
+  }
+  .oh-dashboard-bar > :last-child {
+    justify-self: end;
+  }
+  /* The trigger's -8px start margin flushes the label with the bar's
+     left edge on desktop. When centered on mobile, the negative margin
+     would pull it off-center by 8px — reset it. */
+  .oh-dashboard-bar-trigger {
+    margin-inline-start: 0;
+  }
+}
+
 /* Menu trigger — the workspace name + chevron. Bare button, no
    background until hover/open; mono label inherits typography from
    the shell. group/trigger lets the chevron rotate via
@@ -1440,7 +1471,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding-top: 18px;
-  border-top: 1px dashed var(--oh-line-dashed);
+  border-top: 1px dotted var(--oh-line-placeholder);
 }
 @media (max-width: 520px) {
   .oh-form-row {

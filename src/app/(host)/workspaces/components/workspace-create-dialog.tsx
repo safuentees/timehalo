@@ -154,7 +154,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         <ResponsiveModalFooter>
           <Button
             type="button"
-            variant="outline"
+            variant="ohGhost"
             size="oh"
             onClick={onDone}
             disabled={isPending}

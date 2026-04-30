@@ -110,14 +110,15 @@ export function OnboardingChecklist() {
             {percent}% set up
           </h2>
         </div>
-        <button
+        <Button
           type="button"
+          variant="ohGhost"
+          size="icon-sm"
           onClick={() => setOnboardingState.mutate({ dismissed: true })}
           aria-label="Hide checklist"
-          className="opacity-55 hover:opacity-100 transition-opacity"
         >
-          <XIcon className="size-4" />
-        </button>
+          <XIcon strokeWidth={1.5} />
+        </Button>
       </header>
 
       <ul role="list" className="mt-5 flex flex-col gap-3">
@@ -186,10 +187,10 @@ function StepRow({
         {!step.done && step.manual ? (
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant="ohGhost"
+            size="oh"
             onClick={onMark}
-            className="mt-2 h-auto py-1 text-[11px]"
+            className="mt-2"
           >
             Mark done
           </Button>

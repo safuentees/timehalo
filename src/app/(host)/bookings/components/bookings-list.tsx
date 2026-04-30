@@ -157,10 +157,13 @@ function BookingsListPanel({
   return (
     <ul
       role="list"
-      className="border-y border-oh-line divide-y divide-oh-line"
+      className="divide-y divide-oh-line"
     >
       {bookings.map((b) => (
-        <li key={b.id}>
+        <li
+          key={b.id}
+          className="[&:only-child]:border-b [&:only-child]:border-oh-line"
+        >
           <BookingRow
             publicUid={b.publicUid}
             visitorName={b.visitorName}

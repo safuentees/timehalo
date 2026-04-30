@@ -146,8 +146,11 @@ export function AvailabilityFields() {
             // at the bottom of the list, sized for thumb reach. Soft
             // placeholder border (--oh-line-placeholder, ~12% ink)
             // overrides the ohGhost variant's 100% ink border so the
-            // dots fade into the page bg.
-            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)]",
+            // dots fade into the page bg. On hover the variant fills
+            // with ink — drop the dots to transparent so they don't
+            // halo the inverted button (border-style can't transition
+            // smoothly, but border-color can).
+            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent",
             // Desktop: content-sized text affordance, left-aligned. No
             // border, no resting bg — gets out of the list's way and
             // doesn't compete with the visually weighted block chips
