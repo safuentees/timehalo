@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import {
   SidebarInset,
@@ -71,15 +71,44 @@ export function OhDashboardLayout({
 
 // Decides whether the content slot shows the page or the mobile nav.
 // Lives inside the SidebarProvider so it can read the context.
+//
+// Mount state is intentionally decoupled from `openMobile` so the
+// mobile nav's exit animation has runway: when the user closes (taps
+// hamburger again or navigates), `openMobile` flips false immediately
+// but `navMounted` stays true until <MobileNavContent /> calls
+// `onExitComplete` from its reverse-stagger animation. Without this
+// decoupling the nav would unmount the moment `openMobile` flipped,
+// killing the exit animation mid-flight.
 function ContentSlot({ children }: { children: ReactNode }) {
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
+  const [navMounted, setNavMounted] = useState(false);
+
+  // Mount the nav as soon as the user opens it. We don't need a
+  // matching "unmount on openMobile=false" effect — the nav itself
+  // tells us via onExitComplete.
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      setNavMounted(true);
+    }
+  }, [isMobile, openMobile]);
+
+  // If the viewport flips to desktop while the nav is open (rotate,
+  // resize), drop the nav state immediately — the desktop sidebar
+  // takes over and the content slot must render the page.
+  useEffect(() => {
+    if (!isMobile && navMounted) {
+      setNavMounted(false);
+    }
+  }, [isMobile, navMounted]);
 
   // Auto-close the mobile menu on route change. Without this the user
   // would tap a nav link, navigate, and the new page would still be
   // hidden behind the menu (openMobile is in React state across
   // navigation). Watching pathname covers both Link clicks and
-  // programmatic router.push from inside the nav.
+  // programmatic router.push from inside the nav. The exit animation
+  // plays before the unmount because navMounted stays true until
+  // MobileNavContent fires onExitComplete.
   useEffect(() => {
     if (openMobile) {
       setOpenMobile(false);
@@ -91,8 +120,17 @@ function ContentSlot({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  if (isMobile && openMobile) {
-    return <MobileNavContent />;
+  const handleExitComplete = useCallback(() => {
+    setNavMounted(false);
+  }, []);
+
+  if (isMobile && navMounted) {
+    return (
+      <MobileNavContent
+        closing={!openMobile}
+        onExitComplete={handleExitComplete}
+      />
+    );
   }
   return <>{children}</>;
 }

@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { PanelLeft } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { useMounted } from "@/hooks/use-mounted";
 import {
   Sidebar,
@@ -17,6 +20,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
+
+gsap.registerPlugin(useGSAP);
 
 // Mobile sidebar mode: content-replace, not Sheet drawer. Below the md
 // breakpoint the desktop rail doesn't render (returns null below); the
@@ -132,21 +137,129 @@ export function OhAppSidebar() {
 // openMobile. Same `Link` from next-view-transitions so navigation
 // runs through the existing transition machinery; the layout closes
 // `openMobile` on pathname change so a tap drops into the new page.
-export function MobileNavContent() {
+//
+// Motion (B.PT52 chisel pass):
+// • Single `gsap.timeline({ paused: true })` built once on mount.
+//   Played forward for entrance, reversed at timeScale 1.6 for exit
+//   — the canonical "leave faster than you arrived" mirror that
+//   makes the menu read as a designed unit, not an asymmetrical
+//   half-finished one. The exit travels the same distance back to
+//   the entrance start state but in ~62% of the entrance time.
+// • Hierarchy in motion: group labels (tertiary chrome) get a
+//   smaller travel + gentler ease + shorter duration than nav items
+//   (the actionable target). Encodes the static design hierarchy in
+//   the kinetic dimension. Same stagger cadence so they share
+//   rhythm.
+// • `gsap.matchMedia()` replaces a one-shot `window.matchMedia`
+//   check — handles the user toggling the OS reduce-motion setting
+//   mid-session, which the inline check missed.
+// • Document-order stagger via the timeline's position parameter
+//   (`i * 0.04`), not gsap's `stagger:` option, because we need
+//   per-row durations + eases that gsap's stagger doesn't accept as
+//   functions. Result: same visual cadence, more control.
+//
+// Lifecycle: ContentSlot mounts this when openMobile flips true and
+// keeps it mounted past openMobile=false until `onExitComplete`
+// fires. The `closing` prop drives the timeline direction; toggling
+// closing from true→false mid-exit interrupts cleanly (gsap reverses
+// the reverse — plays forward from current position).
+export function MobileNavContent({
+  closing,
+  onExitComplete,
+}: {
+  closing: boolean;
+  onExitComplete: () => void;
+}) {
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
   const groups = navGroupsForPath(pathname);
+  const container = useRef<HTMLElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const rows = gsap.utils.toArray<HTMLElement>(
+          ".oh-mobile-nav-label, .oh-mobile-nav-item",
+        );
+        if (rows.length === 0) return;
+
+        const tl = gsap.timeline({ paused: true });
+        rows.forEach((row, i) => {
+          const isLabel = row.classList.contains("oh-mobile-nav-label");
+          tl.fromTo(
+            row,
+            { opacity: 0, y: isLabel ? -4 : -10 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: isLabel ? 0.22 : 0.28,
+              ease: isLabel ? "power1.out" : "power3.out",
+            },
+            // Position parameter: each row starts at i * 0.04s into
+            // the timeline. Document-order stagger; reverse plays
+            // them out in reverse order automatically.
+            i * 0.04,
+          );
+        });
+        tlRef.current = tl;
+        tl.play();
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        // No animation: reduce-motion users see the nav arrive
+        // instantly at its natural state. The `closing` effect below
+        // also short-circuits exit when no timeline exists, so it
+        // calls onExitComplete synchronously when the layout sets
+        // closing=true.
+        tlRef.current = null;
+      });
+
+      return () => mm.revert();
+    },
+    { scope: container },
+  );
+
+  // Drive the timeline's direction from the `closing` prop. Forward
+  // play (timescale 1) on mount + on re-open during an in-flight
+  // exit; reverse (timescale 1.6) on close. `onReverseComplete` is
+  // the unmount signal; the layout removes us from the DOM after.
+  useEffect(() => {
+    const tl = tlRef.current;
+    if (!tl) {
+      // Reduced-motion path — no timeline exists. Fire the unmount
+      // signal synchronously so the layout doesn't leave us
+      // mounted forever.
+      if (closing) onExitComplete();
+      return;
+    }
+
+    if (closing) {
+      tl.timeScale(1.6);
+      tl.eventCallback("onReverseComplete", onExitComplete);
+      tl.reverse();
+    } else {
+      tl.timeScale(1);
+      tl.eventCallback("onReverseComplete", null);
+      tl.play();
+    }
+  }, [closing, onExitComplete]);
 
   return (
     <nav
+      ref={container}
       aria-label="Main"
       className="flex flex-col gap-6 px-4 py-6 sm:px-6"
     >
       {groups.map((group, index) => (
         <div key={group.label ?? `mobile-group-${index}`}>
           {group.label ? (
-            <p className="oh-eyebrow opacity-55 mb-3">{group.label}</p>
+            <p className="oh-mobile-nav-label oh-eyebrow opacity-55 mb-3">
+              {group.label}
+            </p>
           ) : null}
           <ul role="list" className="flex flex-col gap-0.5">
             {group.items.map((item) => {
@@ -156,7 +269,7 @@ export function MobileNavContent() {
                   (item.href !== "/" &&
                     activePath.startsWith(`${item.href}/`)));
               return (
-                <li key={item.href}>
+                <li key={item.href} className="oh-mobile-nav-item">
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
