@@ -367,6 +367,7 @@
     "emptyUpcomingDescription": "Visitors who book a slot will show up here.",
     "emptyPastTitle": "No past bookings",
     "emptyPastDescription": "Bookings that have come and gone live in this tab.",
+    "emptyCta": "Open your booking page",
     "liveConnected": "Live updates connected",
     "liveConnecting": "Connecting to live updates",
     "liveOff": "Live updates offline",

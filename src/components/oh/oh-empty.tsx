@@ -5,6 +5,7 @@ type OhEmptyProps = {
   icon?: ComponentType<SVGProps<SVGSVGElement> & { strokeWidth?: number }>;
   title: ReactNode;
   description?: ReactNode;
+  action?: ReactNode;
   className?: string;
   children?: ReactNode;
 };
@@ -13,6 +14,7 @@ export function OhEmpty({
   icon: Icon,
   title,
   description,
+  action,
   className,
   children,
 }: OhEmptyProps) {
@@ -38,6 +40,7 @@ export function OhEmpty({
           {description}
         </p>
       ) : null}
+      {action ? <div className="mt-2">{action}</div> : null}
       {children}
     </div>
   );

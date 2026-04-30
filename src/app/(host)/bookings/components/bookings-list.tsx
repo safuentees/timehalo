@@ -235,6 +235,17 @@ function LiveDot({
 
 function EmptyBookings({ tab }: { tab: Tab }) {
   const t = useTranslations("Bookings");
+  const { data: me } = trpc.users.me.useQuery();
+  const action =
+    tab === "upcoming" && me?.handle ? (
+      <Link
+        href={`/h/${me.handle}`}
+        className="oh-eyebrow border-[1.5px] border-oh-line-strong px-3 py-2 transition-colors hover:bg-oh-tint-hover"
+      >
+        {t("emptyCta")}
+      </Link>
+    ) : undefined;
+
   return (
     <OhEmpty
       icon={CalendarIcon}
@@ -244,6 +255,7 @@ function EmptyBookings({ tab }: { tab: Tab }) {
           ? t("emptyUpcomingDescription")
           : t("emptyPastDescription")
       }
+      action={action}
     />
   );
 }
