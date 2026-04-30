@@ -13,7 +13,7 @@ const APP_NAME = "Officehours";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    GitHub,
+    GitHub({ allowDangerousEmailAccountLinking: true }),
     {
       id: "magic-link",
       name: "Email",
