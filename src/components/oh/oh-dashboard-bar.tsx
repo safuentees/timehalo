@@ -95,7 +95,21 @@ export function OhDashboardBar() {
         className="-ml-1 mr-1 size-7 rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] md:hidden"
       />
       <Menu.Root>
-        <Menu.Trigger className="oh-dashboard-bar-trigger" type="button">
+        {/* Stable `id` prop bypasses Base UI's `useBaseUiId(idOverride)`
+            useId fallback. Without it, the trigger's auto-id is
+            positional (`base-ui-_R_xxxxx_`) and React 19's hydration
+            counter can disagree between SSR and the first client paint
+            when any earlier hook in the tree shifts the useId fiber
+            position — surfaces as the "tree hydrated but some
+            attributes of the server rendered HTML didn't match" error
+            on the trigger's `id`. Reference: Base UI Menu docs
+            "Multiple Triggers" (the `id` prop is the documented escape
+            hatch for stable trigger IDs). */}
+        <Menu.Trigger
+          id="oh-workspace-switcher-trigger"
+          className="oh-dashboard-bar-trigger"
+          type="button"
+        >
           <span className="oh-dashboard-bar-label">{label}</span>
           <ChevronDown
             aria-hidden

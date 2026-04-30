@@ -71,7 +71,11 @@ export function OhUserMenu() {
 
   return (
     <Menu.Root>
+      {/* Stable `id` — see comment in oh-dashboard-bar.tsx. Same fix:
+          bypass Base UI's useId fallback so the trigger's DOM id is
+          deterministic across SSR + first client paint. */}
       <Menu.Trigger
+        id="oh-user-menu-trigger"
         className="oh-user-menu-trigger"
         type="button"
         aria-label={t("trigger", { name: labelName })}
