@@ -2971,53 +2971,13 @@
    border-bottom mid-transition; opting in only the page content
    avoids the issue at the source. */
 
-/* Mobile sidebar — Sheet panel that opens off-canvas at <md. Without
-   a `view-transition-name`, the open Sheet is part of `root`'s
-   snapshot, which sits BELOW `oh-host-content`'s named group in the
-   View Transitions stacking order (named groups stack above root by
-   default — verified against MDN's `::view-transition-group()` ref +
-   nicchan.me "View transitions and stacking context"). Result: when
-   the user navigates while the mobile sidebar is open, the new page's
-   content snapshot paints OVER the sidebar mid-transition. Naming the
-   Sheet panel as its own transition group lifts it into the stack;
-   the explicit `z-index` is belt-and-suspenders against any portal
-   reordering. `animation: none` keeps the sidebar visually static
-   throughout — it's a UI overlay, not part of the page-content swap.
-
-   The shadcn Sheet renders the panel with `data-slot="sidebar"
-   data-mobile="true"` (set in `src/components/ui/sidebar.tsx`).
-   The Sheet's overlay (sheet-overlay) stays in root's snapshot —
-   acceptable since the dim is a background detail and the panel
-   itself is what the user is looking at during the 110ms transition. */
-[data-slot="sidebar"][data-mobile="true"] {
-  view-transition-name: oh-mobile-sidebar;
-}
-
-::view-transition-group(oh-mobile-sidebar) {
-  z-index: 100;
-}
-
-::view-transition-old(oh-mobile-sidebar),
-::view-transition-new(oh-mobile-sidebar) {
-  animation: none !important;
-}
-
-/* Belt-and-suspenders: when the mobile sidebar is open, opt the page
-   content OUT of its own view-transition group. The page content
-   falls into `root`'s snapshot — which already has `animation: none`,
-   so it stays visually frozen for the 110ms window. With no competing
-   `oh-host-content` group in the stack, there's nothing whose paint
-   could end up above the sidebar regardless of z-index resolution.
-   The z-index lift above is still useful when the sidebar is opened
-   AFTER navigation lands (or for any browser quirk), but this
-   :has() rule is the structural fix for the sidebar-open + navigate
-   case the user reported.
-
-   :has() is supported in all evergreen browsers since 2023 (the same
-   floor as the View Transitions API itself), so no fallback needed. */
-html:has([data-slot="sidebar"][data-mobile="true"]) .oh-host-content-inner {
-  view-transition-name: none;
-}
+/* Mobile sidebar — content-replace mode (no Sheet drawer at <md).
+   The dashboard layout swaps the content slot to <MobileNavContent />
+   when `openMobile` is true, and `<OhAppSidebar />` returns null on
+   mobile. With no Sheet portal in play, there's no second snapshot
+   competing with `oh-host-content` in the View Transitions stack —
+   the previous `oh-mobile-sidebar` named group + `:has()` opt-out
+   rules are no longer needed. */
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
