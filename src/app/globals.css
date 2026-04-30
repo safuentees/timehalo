@@ -129,6 +129,7 @@
   --oh-line-soft: var(--oh-line-default);
   --oh-line-firm: var(--oh-line-default);
   --oh-line-dashed: var(--oh-line-default);
+  --oh-line-placeholder: color-mix(in srgb, var(--oh-ink) 12%, transparent);
   --oh-tint-hover: var(--oh-tint);
   --oh-tint-active: var(--oh-tint);
   --oh-placeholder: var(--oh-content-subtle);

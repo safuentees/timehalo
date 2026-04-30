@@ -132,7 +132,7 @@ export function AvailabilityFields() {
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
           className={cn(
-            "w-full justify-center border-dashed",
+            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)]",
             "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
           )}
         >
@@ -157,7 +157,7 @@ export function AvailabilityFields() {
 
 function EmptyBlocks() {
   return (
-    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dashed border-[var(--oh-line-dashed)] px-5 py-7 text-left">
+    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
       <p className="oh-eyebrow">
         No hours set
       </p>
