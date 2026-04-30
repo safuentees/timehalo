@@ -2470,6 +2470,10 @@
   animation: none !important;
 }
 
+html:has([data-slot="sidebar"][data-mobile="true"]) .oh-host-content-inner {
+  view-transition-name: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
