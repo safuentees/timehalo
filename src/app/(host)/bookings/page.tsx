@@ -44,10 +44,21 @@ export default async function BookingsPage({
   // Parallel prefetch. featureFlags drives whether <LiveQueue /> mounts;
   // users.me feeds the empty-state CTA's `/h/<handle>` link without
   // a second roundtrip when the empty path renders.
+  //
+  // schedule.get (B.PT42) — the inline `<OnboardingChecklist>` reads
+  // the host's AvailabilityRange rows to auto-check the "Draw your
+  // weekly hours" step. Without this prefetch, the checklist
+  // server-renders with `availabilityCount: 0` (the query is
+  // unhydrated), the availability step shows unchecked, the card
+  // appears completed-but-pending, then client-side fetch resolves
+  // and the card disappears or the row updates — visible "card
+  // flashes back" + "checkbox briefly unmarked" on hard refresh.
+  // Adding it here closes the hydration gap for the checklist.
   await Promise.all([
     trpc.bookings.listForHost.prefetch(),
     trpc.users.featureFlags.prefetch(),
     trpc.users.me.prefetch(),
+    trpc.schedule.get.prefetch(),
   ]);
 
   return (
