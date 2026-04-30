@@ -123,6 +123,9 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 | B.PT13 | Distribution fairness lookback decay (cron) | SIGNAL-GATED | — | `EventTypeHost.recentAssignments` cron decay. ~60 LOC, half day. Window length (7d? 30d?) and decay shape (fixed window vs. exponential) need real round-robin usage data — single-host-per-event-type backfilled accounts don't generate the signal. Promote when multi-host event types accumulate enough bookings that distribution skew is measurable. |
 | **B.PT14** | **Upstash Redis swap for `createRatelimit`** | **SIGNAL-GATED** | — | `src/lib/rate-limit.ts:108` carries a memory-only fallback today. When prod traffic justifies multi-instance limiting, branch on `UPSTASH_REDIS_REST_URL` and return a Redis-backed Limiter with the same return shape — caller code doesn't change. ~40 LOC, half day. Trigger: multi-instance serverless deploy where the in-memory map can't share state across processes. |
 | **B.PT15** | **Chrome rename refactor (`bru-*`/`Brutalist*` → `oh-*`/`Oh*`)** | **SHIPPED** | (this commit) | The visual identity walked away from the brutalist aesthetic; file/class/component names now follow. **Stages**: ✅ stage 1 (CSS vars) `91b48a6`; ✅ stage 2 (CSS classes) `0df78e2`; ✅ stage 3 (components + dir move) `371c25d`; ✅ stage 4 (button variants + `ease-bru`) `c9b410c`; ✅ stage 5 (file renames via `git mv`) `9ba791b`; ✅ stage 6 (doc-text body cleanup `Brutalist`/`bru-` → `Oh`/`oh-` across active reference docs + variant references in `dashboard-forms.md` + `globals.css` `BrutalistEmpty` comment + flip SHIPPED). All gates green after every stage. Residual prose mentions of "brutalist" describe the historical aesthetic — kept intentionally. |
+| **B.PT16** | **Workspace-scoped booking reads + SSE channel** | **OPEN** | — | Switching workspace today is a half-truth on `/bookings`: schema carries `Booking.workspaceId` + `@@index([workspaceId, slotStart])` from B1, but `bookings.listForHost` (`bookings.ts:1477`) still filters on `hostId` only and shows every workspace's bookings mixed. Scope: `listForHost` + adjacent prev/next nav inside `getDetail` + the in-memory SSE channel (`src/trpc/bus.ts`) all key off the active workspace. Channel becomes `host:<userId>:ws:<workspaceId>` so a multi-workspace host's tab only toasts events from its own workspace. New `resolveActiveWorkspaceId(userId, slug)` helper falls back to oldest membership when cookie unset (matches `workspaces.list`'s `effectiveSlug` invariant). `getDetail` itself stays `hostId`-only — bookmarks must still resolve regardless of which workspace happens to be active. ~140 LOC + new vitest file `bookings-list-for-host.test.ts` + extension to `bus.test.ts`. Half day. |
+| **B.PT17** | **Smart switcher route + broad invalidation** | **OPEN** | — | `OhDashboardBar.handlePick` (`oh-dashboard-bar.tsx:39-54`) force-navigates to `/workspaces/<slug>/members` after every click, ejecting users off `/bookings` / `/settings` / `/availability`. Replace with Dub's slug-rewrite trick: stay on current path; rewrite `/workspaces/<oldSlug>/<seg>` → `/workspaces/<newSlug>/<seg>` in-place; fall back to `/bookings` (parent list) when on a deep id route bound to the old workspace's data. Also broaden the cache invalidation — today only `workspaces.list` is invalidated, so client-cached `apiKeys.list` / `billing.currentPlan` / `eventTypes.list` carry the prior workspace's data until staleTime. Replace with `await utils.invalidate()` (no filter). Drop the local `useState<string \| null>` picker overrides in `ApiKeysFields` + `BillingFields` so the dropdown defaults follow the cookie cleanly after each switch. ~80 LOC. Half day. |
+| **B.PT18** | **Workflow scope decision (personal vs workspace)** | **DECISION-FIRST** | — | Inconsistent today: `Workflow.userId` only in schema (`prisma/schema.prisma:660`), but `WorkflowFields` (`workflow-fields.tsx:34-40`) gates the create CTA on `billing.currentPlan({ slug: activeWorkspaceSlug })`. Switching workspace changes the lock icon on a list whose contents don't change. Two paths: **(A) Keep workflows personal** — drop the workspace plan-gate from `WorkflowFields`, key gate off any owned workspace's plan. ~40 LOC, no migration. Smallest surface; matches the actual data model; preserves "one host, one set of automations" mental model that fits Officehours' single-host identity. **(B) Make workflows workspace-scoped** — add `Workflow.workspaceId` non-null + data migration backfilling from `User.ownedWorkspaces[0]` + procedure rewrite + UI list scope. ~250 LOC + migration. Larger blast radius; consistent with eventTypes / webhooks / api-keys. Cal.com supports both via mutually-exclusive nullable FKs (`userId?`/`teamId?`) — overkill here. **Recommended: A.** Awaits product call before shipping. |
 
 ---
 
@@ -150,11 +153,16 @@ Items 1–10 from the original priority list. All shipped, no open deferrals.
 
 ## What's next (auto-derived)
 
-**There are no OPEN rows.** Every commit-flagged deferral is shipped.
+**Two OPEN rows queued for this loop:** B.PT16 (workspace-scoped booking
+reads + SSE channel) and B.PT17 (smart switcher route + broad
+invalidation). Pick top-down; B.PT16 ships the user-visible scope fix,
+B.PT17 ships the switcher UX. B.PT18 (workflow scope) is
+DECISION-FIRST — recommended option A documented in its row, blocked
+on a product call.
 
-What remains is Tier B's three SIGNAL-GATED rows (B.PT10 / B.PT11 /
-B.PT13) plus the entire Tier C surface — none of which should be
-started without the matching signal:
+What remains beyond those is Tier B's three SIGNAL-GATED rows (B.PT10
+/ B.PT11 / B.PT13) plus the entire Tier C surface — none of which
+should be started without the matching signal:
 
 | Signal | Promotes |
 |---|---|
