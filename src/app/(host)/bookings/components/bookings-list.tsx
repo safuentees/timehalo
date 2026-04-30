@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -14,27 +15,129 @@ import {
   OhEmptyMedia,
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
-
-// Shared bookings-page primitives. The page-level shape was
-// rewritten under B.PT39 (granular Suspense pattern) — the chrome
-// renders synchronously in `page.tsx` while the rows stream in
-// through a `<Suspense>` boundary. This file keeps the cross-cutting
-// pieces both halves consume:
-//
-//   • `BookingRow`         — divided-list row (cal.com pattern)
-//   • `EmptyBookings`      — empty-state with the per-tab CTA
-//   • `LiveQueue`          — SSE dot, mounted as the page-header aside
-//   • `fmtSlotTime/Date`   — wire-string-to-display helpers
-//   • `Booking` type       — narrowed wire shape, shared by client
-//                            useSuspenseQuery + the rows skeleton
+import { OhPageHeader } from "@/components/oh/page-header";
+import { OhPageShell } from "@/components/oh/page-shell";
+import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 export type Tab = "upcoming" | "past";
 
-// Mirrors the row shape returned by `bookings.listForHost.upcoming/past`.
-// `id` is the integer primary key (autoincrement); `slotStart` arrives
-// as an ISO string over the wire (no superjson transformer). Kept loose
-// on the date type so the panel doesn't have to re-narrow on the boundary.
-export type Booking = {
+const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
+
+// Page-level client component for /bookings. Reads bookings from the
+// hydrated React Query cache (set up by `page.tsx`'s
+// `<HydrationBoundary>`) via `useQuery` — NOT `useSuspenseQuery`.
+//
+// HISTORICAL NOTE (B.PT39 → B.PT40):
+// B.PT39 split this into a granular-Suspense pattern (chrome sync,
+// rows in a `<Suspense>` calling `useSuspenseQuery`). That broke
+// SSR: with our legacy `@trpc/react-query` proxy, the queryClient
+// inside the `<HydrationBoundary>` is a separate instance from the
+// one `createServerSideHelpers` populates. When the server-rendered
+// `BookingsRows` (client component) called `useSuspenseQuery`, the
+// cache it saw was empty (different queryClient than the prefetched
+// one), and `useSuspenseQuery` tried to call the queryFn — which
+// for tRPC is the `httpBatchLink` with a relative `/api/trpc/...`
+// URL. Node's `fetch` can't parse relative URLs, so SSR threw and
+// Next fell back to client rendering. Tanstack's modern fix
+// (`@tanstack/react-query-next-experimental` + the streaming
+// hydration provider) is a new dep + rewrite of `provider.tsx`;
+// the pragmatic fix is to use `useQuery` (no suspend, no SSR
+// fetch attempt) and rely on `HydrationBoundary`'s synchronous
+// hydration during client mount. Matches the upstream
+// `fix/next-pin-16.1.7` shape verbatim.
+//
+// Tab state lives in the URL (`?tab=upcoming|past`) — passed in via
+// the `activeTab` prop from `page.tsx`'s `searchParams` read; tab
+// changes push to the URL via `router.push`, which re-runs the
+// page's server tree without a full reload.
+export function BookingsList({ activeTab }: { activeTab: Tab }) {
+  const t = useTranslations("Bookings");
+  const router = useRouter();
+  const { data } = trpc.bookings.listForHost.useQuery();
+  const { data: flags } = trpc.users.featureFlags.useQuery();
+  const liveQueueEnabled = flags?.["live-queue"] ?? false;
+
+  return (
+    <OhPageShell>
+      <OhPageHeader
+        title={t("title")}
+        aside={liveQueueEnabled ? <LiveQueue /> : null}
+      />
+
+      <OnboardingChecklist />
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          if (value === activeTab) return;
+          if (!VALID_TABS.includes(value as Tab)) return;
+          router.push(`?tab=${value}`, { scroll: false });
+        }}
+        className="mt-8"
+      >
+        <TabsList
+          aria-label={t("tablistLabel")}
+          className="h-auto w-fit gap-0 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong bg-transparent p-0"
+        >
+          <BookingTabTrigger value="upcoming" count={data?.upcoming.length}>
+            {t("tabUpcoming")}
+          </BookingTabTrigger>
+          <BookingTabTrigger value="past" count={data?.past.length}>
+            {t("tabPast")}
+          </BookingTabTrigger>
+        </TabsList>
+
+        <TabsContent value="upcoming" className="mt-6">
+          <BookingsListPanel
+            tab="upcoming"
+            bookings={data?.upcoming ?? []}
+          />
+        </TabsContent>
+        <TabsContent value="past" className="mt-6">
+          <BookingsListPanel tab="past" bookings={data?.past ?? []} />
+        </TabsContent>
+      </Tabs>
+    </OhPageShell>
+  );
+}
+
+function BookingTabTrigger({
+  value,
+  count,
+  children,
+}: {
+  value: Tab;
+  count?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <TabsTrigger
+      value={value}
+      className={[
+        "h-auto flex-none rounded-none border-0 px-4 py-2.5",
+        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+        "border-r-2 border-oh-line-strong last:border-r-0",
+        "data-active:!bg-oh-content data-active:!text-oh-bg data-active:!shadow-none",
+        "hover:bg-oh-tint",
+      ].join(" ")}
+    >
+      <span className="leading-none">{children}</span>
+      {typeof count === "number" ? (
+        <span className="tabular-nums text-[11px] font-bold leading-none opacity-45 group-data-[state=active]:opacity-65 data-active:opacity-65">
+          {count}
+        </span>
+      ) : null}
+    </TabsTrigger>
+  );
+}
+
+type Booking = {
   id: number;
   publicUid: string;
   visitorName: string;
@@ -43,7 +146,35 @@ export type Booking = {
   slotStart: Date | string;
 };
 
-export function BookingRow({
+function BookingsListPanel({
+  tab,
+  bookings,
+}: {
+  tab: Tab;
+  bookings: Booking[];
+}) {
+  if (bookings.length === 0) return <EmptyBookings tab={tab} />;
+  return (
+    <ul
+      role="list"
+      className="border-y border-oh-line divide-y divide-oh-line"
+    >
+      {bookings.map((b) => (
+        <li key={b.id}>
+          <BookingRow
+            publicUid={b.publicUid}
+            visitorName={b.visitorName}
+            visitorEmail={b.visitorEmail}
+            question={b.question}
+            slotStart={new Date(b.slotStart as unknown as string)}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function BookingRow({
   publicUid,
   visitorName,
   visitorEmail,
@@ -56,18 +187,6 @@ export function BookingRow({
   question: string | null;
   slotStart: Date;
 }) {
-  // Row anatomy:
-  //   <header>      name (h3 font-black) | time (oh-eyebrow)
-  //   <p>           date (oh-eyebrow)
-  //   <p>           question (italic, only when present)
-  //   <p>           email (mono, muted)
-  // Whole row routes to the host-side detail page. Per chisel:
-  // "labels are a last resort" — no separate "View" button.
-  //
-  // B.PT37 — divided-list shape. Border + bg lifted to the parent
-  // <ul> as hairline dividers; the row itself just gets a hover bg
-  // tint as the click cue. Cal.com pattern: `hover:bg-cal-muted` on
-  // the row, no per-row border.
   return (
     <Link
       href={`/bookings/${publicUid}`}
@@ -97,45 +216,22 @@ export function BookingRow({
   );
 }
 
-// SSE subscription wrapper rendered as the `aside` of OhPageHeader.
-// Only mounts when the `live-queue` feature flag is on; flipping the
-// flag off unmounts cleanly, tearing down the subscription with no
-// `enabled` flag plumbing.
-//
-// State machine:
-//  - "hidden" (initial 500ms) — show nothing. Most connections finish
-//    within this window, so users never see a transient state on
-//    reload. If still hidden after 500ms, surface "connecting".
-//  - "live" — solid green dot. Heartbeat animation fires on each
-//    incoming event via the pulseKey remount trick.
-//  - "connecting" — amber dot. Only visible past the 500ms grace.
-//  - "off" — grey dot. Only on actual subscription error.
-export function LiveQueue() {
+function LiveQueue() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
-  const { data: flags } = trpc.users.featureFlags.useQuery();
-  const liveQueueEnabled = flags?.["live-queue"] ?? false;
-
   const [status, setStatus] = useState<
     "hidden" | "connecting" | "live" | "off"
   >("hidden");
   const [pulseKey, setPulseKey] = useState(0);
 
-  // Hidden-on-mount avoids flashing a "CONNECTING" state on fast
-  // connections. setTimeout schedules the upgrade to visible-
-  // connecting after 500ms; if `live` arrives first the state is
-  // already past hidden and the timer is a no-op via the closure
-  // check.
   useEffect(() => {
-    if (!liveQueueEnabled) return;
     const handle = setTimeout(() => {
       setStatus((s) => (s === "hidden" ? "connecting" : s));
     }, 500);
     return () => clearTimeout(handle);
-  }, [liveQueueEnabled]);
+  }, []);
 
   trpc.bookings.queue.useSubscription(undefined, {
-    enabled: liveQueueEnabled,
     onStarted: () => setStatus("live"),
     onError: () => setStatus("off"),
     onData: ({ data: event }) => {
@@ -148,8 +244,6 @@ export function LiveQueue() {
       setPulseKey((k) => k + 1);
     },
   });
-
-  if (!liveQueueEnabled) return null;
 
   return <LiveDot status={status} pulseKey={pulseKey} t={t} />;
 }
@@ -195,7 +289,7 @@ function LiveDot({
   );
 }
 
-export function EmptyBookings({ tab }: { tab: Tab }) {
+function EmptyBookings({ tab }: { tab: Tab }) {
   const t = useTranslations("Bookings");
   const { data: me } = trpc.users.me.useQuery();
 
@@ -228,12 +322,6 @@ export function EmptyBookings({ tab }: { tab: Tab }) {
   );
 }
 
-// `MailIcon` re-export keeps the import surface alive for callers
-// that historically pulled it through this file. It's not actually
-// used here anymore — the page-level header doesn't render an inbox
-// affordance — but a future row variant might. Leaving the import
-// to avoid a noisy `unused-import` churn during the granular-Suspense
-// refactor.
 export { MailIcon };
 
 const WEEKDAY_SHORT = [

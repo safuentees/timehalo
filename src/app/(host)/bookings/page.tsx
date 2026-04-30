@@ -1,33 +1,30 @@
-import { Suspense } from "react";
-import { getTranslations } from "next-intl/server";
-import { OhPageHeader } from "@/components/oh/page-header";
-import { OhPageShell } from "@/components/oh/page-shell";
-import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
-import { LiveQueue, type Tab } from "./components/bookings-list";
-import { BookingsTabs } from "./components/bookings-tabs";
-import { BookingsRowsBoundary } from "./components/bookings-rows-boundary";
-import { BookingsRowsSkeleton } from "./components/bookings-rows-skeleton";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { BookingsList, type Tab } from "./components/bookings-list";
 
 // Bookings — primary host surface. Apple HIG: the screen the user
 // "came for" is one tap from launch (here: zero, since `/` redirects).
 //
-// B.PT39 — granular Suspense pattern. The page is async only for
-// fast, sync-ish things (searchParams, locale). The slow data
-// fetching lives in `<BookingsRowsBoundary>`, wrapped in a
-// `<Suspense>` whose fallback covers ONLY the rows area. Chrome
-// (page header + tab strip + onboarding checklist) renders
-// synchronously above the boundary, so on hard refresh the user sees
-// the chrome instantly + a row-shaped skeleton briefly + then rows
-// — instead of the whole page flashing the route-level loading.tsx
-// fallback (which we removed alongside this commit).
+// SHAPE (B.PT40):
+// page.tsx is async at the top and awaits all prefetches before
+// returning JSX. No `loading.tsx`, no inner `<Suspense>`. The full
+// page renders server-side with hydrated data; client hydration is
+// instantaneous (HydrationBoundary populates the singleton browser
+// queryClient + useQuery reads it on first render). Matches the
+// `fix/next-pin-16.1.7` upstream behavior verbatim — page takes
+// slightly longer TTFB but no skeleton, no flash, no layout shift.
 //
-// Pattern reference: Tanstack Query *Advanced SSR* docs (verified
-// via Context7 against `/tanstack/query` + `/websites/trpc_io` —
-// the docs explicitly recommend `useSuspenseQuery` paired with a
-// `<Suspense>` boundary inside the page). cal.com routes status via
-// `/bookings/[status]` (heavier reshape we don't need yet); our
-// search-param tab encoding gives the same "URL is the source of
-// truth" without a route reshape.
+// B.PT39 attempted a granular Suspense pattern (chrome sync, rows
+// in a Suspense calling `useSuspenseQuery`). It broke SSR: the
+// queryClient inside the page-level `<HydrationBoundary>` is a
+// SEPARATE instance from the one `createServerSideHelpers`
+// populates, and on server-render of the rows client component the
+// cache was empty → useSuspenseQuery tried to invoke the queryFn →
+// tRPC's `httpBatchLink` with relative URL `/api/trpc/...` failed
+// to parse on Node fetch ("Failed to parse URL"). Tanstack's modern
+// fix is `@tanstack/react-query-next-experimental`'s
+// `ReactQueryStreamedHydration` provider; we don't ship that yet.
+// useQuery + the legacy hydration boundary works without it.
 
 const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
 
@@ -41,32 +38,23 @@ export default async function BookingsPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const params = await searchParams;
-  const tab: Tab = isTab(params.tab) ? params.tab : "upcoming";
-  const t = await getTranslations("Bookings");
+  const activeTab: Tab = isTab(params.tab) ? params.tab : "upcoming";
+
+  const trpc = await createPrivateSSRHelper();
+  // Parallel prefetch. featureFlags drives whether <LiveQueue /> mounts;
+  // users.me feeds the empty-state CTA's `/h/<handle>` link without
+  // a second roundtrip when the empty path renders.
+  await Promise.all([
+    trpc.bookings.listForHost.prefetch(),
+    trpc.users.featureFlags.prefetch(),
+    trpc.users.me.prefetch(),
+  ]);
 
   return (
     <main className="oh-main">
-      <OhPageShell>
-        <OhPageHeader title={t("title")} aside={<LiveQueue />} />
-
-        <OnboardingChecklist />
-
-        <BookingsTabs activeTab={tab} />
-
-        {/* Only the rows area suspends. Chrome above renders
-            synchronously in the first stream chunk — no skeleton
-            flash on the chrome. The Suspense fallback covers the
-            rows shape only. No `key={tab}` here because the
-            client `useSuspenseQuery` reads the same dehydrated
-            payload (server returns BOTH upcoming + past in one
-            query); flipping the tab is a pure URL update + client
-            re-filter, no re-suspend. */}
-        <div className="mt-6">
-          <Suspense fallback={<BookingsRowsSkeleton />}>
-            <BookingsRowsBoundary />
-          </Suspense>
-        </div>
-      </OhPageShell>
+      <HydrationBoundary state={dehydrate(trpc.queryClient)}>
+        <BookingsList activeTab={activeTab} />
+      </HydrationBoundary>
     </main>
   );
 }
