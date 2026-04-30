@@ -52,7 +52,7 @@ export function ErrorShellLink({
     <li>
       <Link
         href={href}
-        className="group block border-2 border-oh-line p-5 transition-colors duration-150 ease-bru hover:border-oh-line-strong hover:bg-oh-tint"
+        className="group block border-2 border-oh-line p-5 transition-colors duration-150 ease-oh hover:border-oh-line-strong hover:bg-oh-tint"
       >
         <p className="oh-eyebrow group-hover:opacity-90">
           {description}

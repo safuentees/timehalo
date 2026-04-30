@@ -71,8 +71,8 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
                 trigger={
                   <Button
                     type="button"
-                    variant="brutalistGhost"
-                    size="brutalist"
+                    variant="ohGhost"
+                    size="oh"
                     disabled={!target || transfer.isPending}
                   >
                     {transfer.isPending

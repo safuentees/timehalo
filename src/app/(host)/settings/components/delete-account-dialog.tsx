@@ -34,7 +34,7 @@ export function DeleteAccountDialog() {
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild>
-        <Button variant="brutalistGhost" size="brutalist">
+        <Button variant="ohGhost" size="oh">
           {t("deleteAccountButton")}
         </Button>
       </ResponsiveModalTrigger>
@@ -152,8 +152,8 @@ function DeleteForm({
         <ResponsiveModalFooter>
           <Button
             type="button"
-            variant="brutalistGhost"
-            size="brutalist"
+            variant="ohGhost"
+            size="oh"
             onClick={onCancel}
             disabled={isPending}
           >
@@ -161,8 +161,8 @@ function DeleteForm({
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={!isValid || isPending}
           >
             {isPending ? t("deleting") : t("confirm")}

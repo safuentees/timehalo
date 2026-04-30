@@ -301,7 +301,7 @@ export function ResponsiveModalClose({
       <DrawerPrimitive.Close asChild>
         <Button
           type="button"
-          variant="brutalistGhost"
+          variant="ohGhost"
           size="icon-sm"
           aria-label="Close"
           className={baseClass}
@@ -317,7 +317,7 @@ export function ResponsiveModalClose({
       render={
         <Button
           type="button"
-          variant="brutalistGhost"
+          variant="ohGhost"
           size="icon-sm"
           aria-label="Close"
           className={baseClass}

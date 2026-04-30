@@ -193,7 +193,7 @@ function CurrentPlanBanner({
       : null;
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-bru hover:border-oh-line-strong sm:p-6">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-oh hover:border-oh-line-strong sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0 flex-1">
           <p className="oh-eyebrow">{t("currentPlanLabel")}</p>
@@ -218,8 +218,8 @@ function CurrentPlanBanner({
           {isFree ? (
             <Button
               type="button"
-              variant="brutalist"
-              size="brutalist"
+              variant="oh"
+              size="oh"
               disabled={checkout.isPending}
               onClick={() =>
                 checkout.mutate({ slug, plan: "PRO" })
@@ -231,8 +231,8 @@ function CurrentPlanBanner({
             hasStripeCustomer && (
               <Button
                 type="button"
-                variant="brutalistGhost"
-                size="brutalist"
+                variant="ohGhost"
+                size="oh"
                 disabled={portal.isPending}
                 onClick={() => portal.mutate({ slug })}
               >
@@ -265,7 +265,7 @@ function PlanCard({
   return (
     <article
       className={[
-        "flex h-full flex-col rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-bru sm:p-6",
+        "flex h-full flex-col rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-oh sm:p-6",
         isCurrent
           ? "border-oh-line-strong"
           : "hover:border-oh-line-strong",
@@ -299,8 +299,8 @@ function PlanCard({
         ) : (
           <Button
             type="button"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={disabled || checkout.isPending}
             onClick={() => checkout.mutate({ slug, plan: tier })}
             className="w-full"

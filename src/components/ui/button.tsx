@@ -18,10 +18,10 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        brutalist:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-ink text-oh-paper transition-colors! duration-150 ease-bru hover:bg-oh-paper hover:text-oh-ink focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
-        brutalistGhost:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-paper text-oh-ink transition-colors! duration-150 ease-bru hover:bg-oh-ink hover:text-oh-paper focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
+        oh:
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-ink text-oh-paper transition-colors! duration-150 ease-oh hover:bg-oh-paper hover:text-oh-ink focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
+        ohGhost:
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-paper text-oh-ink transition-colors! duration-150 ease-oh hover:bg-oh-ink hover:text-oh-paper focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
       },
       size: {
         default:
@@ -35,9 +35,9 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7",
         "icon-lg": "size-9",
-        brutalist:
+        oh:
           "h-9 px-[14px] text-[11px] gap-1.5",
-        brutalistIcon: "size-9 p-0 gap-0",
+        ohIcon: "size-9 p-0 gap-0",
       },
     },
     defaultVariants: {

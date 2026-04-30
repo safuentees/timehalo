@@ -162,8 +162,8 @@ export function GeneralSection({
             <div className="mt-5 flex justify-end">
               <Button
                 type="submit"
-                variant="brutalist"
-                size="brutalist"
+                variant="oh"
+                size="oh"
                 disabled={isPending || !isDirty}
               >
                 {isPending

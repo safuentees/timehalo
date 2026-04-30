@@ -162,8 +162,8 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
           </FieldSet>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={book.isPending}
             className="oh-book-submit"
           >
@@ -225,8 +225,8 @@ function RescheduleConfirm({
       </div>
       <Button
         type="button"
-        variant="brutalist"
-        size="brutalist"
+        variant="oh"
+        size="oh"
         disabled={reschedule.isPending}
         className="oh-book-submit"
         onClick={() => {

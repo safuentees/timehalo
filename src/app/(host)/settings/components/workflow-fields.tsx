@@ -65,7 +65,7 @@ export function WorkflowFields() {
             {t("upgradePrompt")}{" "}
             <a
               href="#billing-legend"
-              className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-bru hover:opacity-100"
+              className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("upgradeLink")}
             </a>
@@ -114,7 +114,7 @@ function WorkflowRow({
   const isDeleting = remove.isPending;
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {name}
@@ -129,8 +129,8 @@ function WorkflowRow({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           type="button"
-          variant="brutalistGhost"
-          size="brutalist"
+          variant="ohGhost"
+          size="oh"
           disabled={isUpdating}
           onClick={() => update.mutate({ id, active: !active })}
         >
@@ -140,8 +140,8 @@ function WorkflowRow({
           trigger={
             <Button
               type="button"
-              variant="brutalistGhost"
-              size="brutalist"
+              variant="ohGhost"
+              size="oh"
               disabled={isDeleting}
             >
               {isDeleting ? t("deleting") : t("delete")}

@@ -49,7 +49,7 @@ export function EventTypeCreateDialog({ slug }: { slug: string }) {
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild>
-        <Button variant="brutalist" size="brutalist">
+        <Button variant="oh" size="oh">
           Add event type
         </Button>
       </ResponsiveModalTrigger>
@@ -184,7 +184,7 @@ function CreateForm({
           <Button
             type="button"
             variant="outline"
-            size="brutalist"
+            size="oh"
             onClick={onDone}
             disabled={isPending}
           >
@@ -192,8 +192,8 @@ function CreateForm({
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={isPending}
           >
             {isPending ? "Creating…" : "Create"}

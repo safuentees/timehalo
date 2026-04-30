@@ -41,8 +41,8 @@ export function OhSaveBar({
         <div className="oh-dash-save-bar-inner">
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             className="w-full"
             disabled={disabled}
           >

@@ -60,8 +60,8 @@ export function ConfirmDialog({
           <ResponsiveModalFooter>
             <Button
               type="button"
-              variant="brutalistGhost"
-              size="brutalist"
+              variant="ohGhost"
+              size="oh"
               onClick={() => setOpen(false)}
               disabled={pending}
             >
@@ -69,8 +69,8 @@ export function ConfirmDialog({
             </Button>
             <Button
               type="button"
-              variant="brutalist"
-              size="brutalist"
+              variant="oh"
+              size="oh"
               onClick={handleConfirm}
               disabled={pending}
             >

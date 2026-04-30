@@ -94,7 +94,7 @@ function ThemeCard({
   return (
     <label
       className={cn(
-        "group relative flex w-[110px] cursor-pointer flex-col gap-2 p-2 transition-colors duration-150 ease-bru",
+        "group relative flex w-[110px] cursor-pointer flex-col gap-2 p-2 transition-colors duration-150 ease-oh",
         "border-2",
         selected
           ? "border-oh-content bg-oh-content text-oh-bg"

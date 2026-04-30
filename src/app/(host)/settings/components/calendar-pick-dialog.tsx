@@ -156,8 +156,8 @@ function CalendarPickBody({
       <ResponsiveModalFooter>
         <Button
           type="button"
-          variant="brutalistGhost"
-          size="brutalist"
+          variant="ohGhost"
+          size="oh"
           onClick={onClose}
           disabled={isPending}
         >
@@ -165,8 +165,8 @@ function CalendarPickBody({
         </Button>
         <Button
           type="button"
-          variant="brutalist"
-          size="brutalist"
+          variant="oh"
+          size="oh"
           onClick={onSave}
           disabled={isPending}
         >

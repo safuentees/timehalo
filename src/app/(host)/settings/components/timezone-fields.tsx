@@ -83,8 +83,8 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button
               type="button"
-              variant="brutalistGhost"
-              size="brutalist"
+              variant="ohGhost"
+              size="oh"
               onClick={() => {
                 const detected = getBrowserTimezone();
                 form.setValue("timezone", detected, {
@@ -97,8 +97,8 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             </Button>
             <Button
               type="submit"
-              variant="brutalist"
-              size="brutalist"
+              variant="oh"
+              size="oh"
               disabled={isPending || !isDirty}
               className="ml-auto"
             >

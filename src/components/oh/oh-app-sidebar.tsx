@@ -26,7 +26,7 @@ const menuButtonClass = [
   "gap-[10px] px-[10px] py-[8px]",
   "border-l-2 border-l-transparent",
   "group-data-[collapsible=icon]:border-l-0",
-  "transition-colors duration-150 ease-bru",
+  "transition-colors duration-150 ease-oh",
   "hover:bg-[var(--oh-tint-hover)]",
   "data-[active=true]:bg-[var(--oh-tint-active)]",
   "data-[active=true]:border-l-[var(--oh-ink)]",

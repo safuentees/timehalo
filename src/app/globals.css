@@ -37,7 +37,7 @@
   --text-oh-h1: clamp(36px, 2rem + 2.5vw, 56px);
   --text-oh-h1--line-height: 1;
 
-  --ease-bru: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-oh: cubic-bezier(0.16, 1, 0.3, 1);
 
   --font-sans: var(--font-grotesk);
   --font-mono: var(--font-jetbrains);
@@ -246,7 +246,7 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: background-color 150ms var(--ease-bru, ease);
+  transition: background-color 150ms var(--ease-oh, ease);
 }
 .oh-dashboard-bar-trigger:hover,
 .oh-dashboard-bar-trigger[data-popup-open] {
@@ -257,7 +257,7 @@
   outline-offset: 2px;
 }
 .oh-dashboard-bar-chevron {
-  transition: transform 150ms var(--ease-bru, ease);
+  transition: transform 150ms var(--ease-oh, ease);
 }
 .oh-dashboard-bar-trigger[data-popup-open] .oh-dashboard-bar-chevron {
   transform: rotate(180deg);
@@ -312,7 +312,7 @@
   cursor: pointer;
   outline: none;
   user-select: none;
-  transition: background-color 120ms var(--ease-bru, ease);
+  transition: background-color 120ms var(--ease-oh, ease);
 }
 .oh-menu-item[data-highlighted] {
   background: var(--oh-tint-hover);

@@ -163,7 +163,7 @@ function MemberRow({
     : ROLE_OPTIONS.filter((r) => r === "MEMBER" || r === "VIEWER");
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[15px] leading-[1.2] font-black truncate">{name}</h3>
@@ -203,7 +203,7 @@ function MemberRow({
               <Button
                 type="button"
                 variant="outline"
-                size="brutalist"
+                size="oh"
                 disabled={remove.isPending}
                 className="ml-auto"
               >
@@ -262,7 +262,7 @@ function InvitationRow({
   return (
     <article
       className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-bru",
+        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-oh",
         accepted || expired ? "border-oh-line opacity-60" : "border-oh-line hover:border-oh-line-strong",
       ].join(" ")}
     >
@@ -304,7 +304,7 @@ function InvitationRow({
             <Button
               type="button"
               variant="outline"
-              size="brutalist"
+              size="oh"
               disabled={resend.isPending}
               onClick={() =>
                 resend.mutateAsync({ slug, invitationId })
@@ -319,7 +319,7 @@ function InvitationRow({
                 <Button
                   type="button"
                   variant="outline"
-                  size="brutalist"
+                  size="oh"
                   disabled={revoke.isPending}
                 >
                   {revoke.isPending ? t("revoking") : t("revoke")}
