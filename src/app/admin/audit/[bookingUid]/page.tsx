@@ -37,8 +37,9 @@ export default async function AdminAuditPage({
 
   return (
     <section>
-      <p className="oh-legend">
-        Audit · {bookingUid}
+      <p className="oh-legend">Audit</p>
+      <p className="mt-1 font-[family-name:var(--oh-mono)] text-[12px] opacity-75">
+        {bookingUid}
       </p>
       {trail.length === 0 ? (
         <p className="mt-6 text-[13px] opacity-65">
@@ -53,12 +54,16 @@ export default async function AdminAuditPage({
                 key={row.id}
                 className="border-[1.5px] border-oh-line p-4"
               >
-                <p className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase opacity-65">
-                  {row.actor} · {row.action} ·{" "}
-                  <time dateTime={stamp} className="opacity-90">
+                <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase opacity-65">
+                  <span>{row.actor}</span>
+                  <span aria-hidden="true" className="opacity-40">
+                    /
+                  </span>
+                  <span>{row.action}</span>
+                  <time dateTime={stamp} className="ml-auto opacity-90">
                     {stamp}
                   </time>
-                </p>
+                </header>
                 <p className="mt-1 font-[family-name:var(--oh-mono)] text-[10px] tracking-[1.5px] opacity-55">
                   op: {row.operationId}
                 </p>

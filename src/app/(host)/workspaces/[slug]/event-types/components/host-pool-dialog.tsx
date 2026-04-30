@@ -37,7 +37,10 @@ export function HostPoolDialog({
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Hosts · {eventTypeName}</ResponsiveModalTitle>
+          <ResponsiveModalTitle>Hosts</ResponsiveModalTitle>
+          <p className="px-5 mt-1 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase opacity-65 sm:px-6">
+            {eventTypeName}
+          </p>
           <ResponsiveModalDescription>
             Round-robin pool. Fixed hosts must be present; remaining members
             rotate by recent assignment ÷ weight.
