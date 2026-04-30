@@ -47,7 +47,7 @@ test("visitor can book a slot end-to-end", async ({ page }) => {
     page.getByRole("link", { name: /Add to calendar/i }),
   ).toBeVisible({ timeout: 5_000 });
   await expect(
-    page.getByRole("link", { name: /Reschedule/i }),
+    page.getByRole("button", { name: /Reschedule/i }),
   ).toBeVisible();
 
   expect(consoleErrors.filter((e) => /React|hydrat/i.test(e))).toEqual([]);

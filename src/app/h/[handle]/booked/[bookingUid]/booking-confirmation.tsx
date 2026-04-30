@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Link } from "next-view-transitions";
+import { useRouter } from "next/navigation";
 import { CalendarIcon, CheckIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type BookingConfirmationProps = {
@@ -21,6 +23,7 @@ type BookingConfirmationProps = {
 };
 
 export function BookingConfirmation({ booking }: BookingConfirmationProps) {
+  const router = useRouter();
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied">(
     "idle",
   );
@@ -162,12 +165,25 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                     : "Copied"}
               </button>
               {booking.host.handle ? (
-                <Link
-                  href={`/h/${booking.host.handle}?reschedule=${booking.publicUid}`}
-                  className="opacity-55 transition-opacity hover:opacity-100"
-                >
-                  Reschedule
-                </Link>
+                <ConfirmDialog
+                  trigger={
+                    <button
+                      type="button"
+                      className="opacity-55 transition-opacity hover:opacity-100"
+                    >
+                      Reschedule
+                    </button>
+                  }
+                  title="Find a new time?"
+                  description="We'll keep your reservation until you confirm a new slot."
+                  confirmLabel="Continue to picker"
+                  cancelLabel="Keep this slot"
+                  onConfirm={() => {
+                    router.push(
+                      `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                    );
+                  }}
+                />
               ) : null}
             </div>
             <span className="truncate opacity-40">#{booking.publicUid}</span>
