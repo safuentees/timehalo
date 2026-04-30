@@ -74,6 +74,19 @@ When in doubt, use card-stack — it scales better as items gain affordances. Sw
   - Color: `text-[color:var(--oh-content-subtle)]` (35% ink) for empty-state icons, `text-[color:var(--oh-content-muted)]` (55%) for inline accents. Never `text-muted-foreground` (shadcn default — wrong vocabulary).
   - No fill, no halo, no ring, no rotation effects — the icon sits in flow.
 
+## Button variants
+
+Two variants only across the dashboard surface — primary and secondary. The stock shadcn variants (`outline`, `secondary`, `ghost`, `default`, `destructive`, `link`) read as foreign against the oh chrome and are gated by the `no-restricted-syntax` rule in `eslint.config.mjs` (scoped to `src/app/(host)/**` and `src/components/oh/**`).
+
+- **Primary action** — `<Button variant="oh" size="oh">`. Solid ink fill, paper text, paper invert on hover. The dominant CTA in any column (Save, Create, Confirm).
+- **Secondary / cancel / icon-only** — `<Button variant="ohGhost" size="oh">` (or `size="icon-sm"` for X-dismiss / close affordances). Paper fill, ink border, ink invert on hover. Cancel buttons in dialog footers, "Add row" / "Remove row" in repeating field arrays, the modal close button. Reference: `src/components/ui/responsive-modal.tsx` (canonical close pattern).
+- **Destructive** — there is no separate `destructive` variant. Pair `ohGhost` with a `<ConfirmDialog>` (mid-stakes) or the typed-confirm pattern (account-level). The `Destructive actions` section below covers the full pattern.
+- **Tertiary chrome** (segmented controls, calendar day cells, block chips, sidebar collapse trigger, link-style inline buttons) — these legitimately use raw `<button>` because they are custom chrome, not "a button." Document the intent inline (`// Bare native button — …`) so it doesn't read as an oversight. The lint rule does not flag raw `<button>` because too many of these are intentional.
+
+For new visible buttons in the host shell, default to `ohGhost` for anything that isn't the dominant action on the screen. Use the lint error message as a forcing function — if you reach for `variant="outline"`, you almost always meant `ohGhost`.
+
+Auth pages (`/login`, `/register`) and the public visitor surface (`/h/[handle]`, `/booked/[uid]`) are NOT in the lint glob — they keep stock variants where the bolder shadcn baseline is intentional.
+
 ## Destructive actions
 
 Three patterns, picked by reversibility:

@@ -17,6 +17,23 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
   ]),
+  {
+    files: [
+      "src/app/(host)/**/*.{ts,tsx}",
+      "src/components/oh/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            'JSXOpeningElement[name.name="Button"] JSXAttribute[name.name="variant"][value.value=/^(default|outline|secondary|ghost|destructive|link)$/]',
+          message:
+            "<Button variant=\"…\"> must use an `oh` variant in the dashboard surface. Use `oh` for primary actions, `ohGhost` for secondary / cancel / icon-only. Stock shadcn variants (outline, secondary, ghost, default, destructive, link) read as foreign against the oh chrome.",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

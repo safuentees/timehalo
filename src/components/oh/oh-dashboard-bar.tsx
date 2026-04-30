@@ -66,8 +66,7 @@ export function OhDashboardBar() {
           <Menu.Positioner
             className="oh-menu-positioner"
             sideOffset={8}
-            align="start"
-            alignOffset={-8}
+            align="center"
             style={{ zIndex: 100 }}
           >
             <Menu.Popup className="oh-menu-popup">

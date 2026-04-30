@@ -122,7 +122,7 @@ function EventTypeRow({
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="ohGhost"
           size="oh"
           onClick={() => setHostsOpen(true)}
         >
@@ -133,7 +133,7 @@ function EventTypeRow({
           <>
             <Button
               type="button"
-              variant="outline"
+              variant="ohGhost"
               size="oh"
               onClick={() => setEditOpen(true)}
             >

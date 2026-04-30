@@ -132,7 +132,7 @@ export function AvailabilityFields() {
             setEditor({ mode: "new", draft: emptyDraft(blocks) })
           }
           className={cn(
-            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)]",
+            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent",
             "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
           )}
         >
