@@ -19,9 +19,9 @@ const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
         brutalist:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-bru-ink bg-clip-border bg-bru-ink text-bru-paper transition-colors! duration-150 ease-bru hover:bg-bru-paper hover:text-bru-ink focus-visible:ring-0 focus-visible:border-bru-ink disabled:opacity-35",
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-ink text-oh-paper transition-colors! duration-150 ease-bru hover:bg-oh-paper hover:text-oh-ink focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
         brutalistGhost:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-bru-ink bg-clip-border bg-bru-paper text-bru-ink transition-colors! duration-150 ease-bru hover:bg-bru-ink hover:text-bru-paper focus-visible:ring-0 focus-visible:border-bru-ink disabled:opacity-35",
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-[1.5px] border-oh-ink bg-clip-border bg-oh-paper text-oh-ink transition-colors! duration-150 ease-bru hover:bg-oh-ink hover:text-oh-paper focus-visible:ring-0 focus-visible:border-oh-ink disabled:opacity-35",
       },
       size: {
         default:

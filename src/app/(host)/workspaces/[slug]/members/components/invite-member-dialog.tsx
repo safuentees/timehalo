@@ -162,13 +162,13 @@ function InviteForm({
                       type="email"
                       placeholder={t("emailPlaceholder")}
                       aria-invalid={fieldState.invalid}
-                      className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
+                      className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
                     />
                     <FieldError
                       errors={
                         fieldState.error ? [fieldState.error] : undefined
                       }
-                      className="bru-field-error"
+                      className="oh-field-error"
                     />
                   </Field>
                 )}
@@ -186,7 +186,7 @@ function InviteForm({
                     <select
                       {...roleField}
                       id={roleField.name}
-                      className="bru-input mt-3 font-[family-name:var(--oh-mono)] text-[12px]"
+                      className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[12px]"
                     >
                       {roleOptions.map((r) => (
                         <option key={r} value={r}>
@@ -235,7 +235,7 @@ function InviteForm({
         </Button>
 
         {serverError ? (
-          <p className="bru-description text-[color:var(--oh-content-muted)]">
+          <p className="oh-description text-[color:var(--oh-content-muted)]">
             {serverError}
           </p>
         ) : null}

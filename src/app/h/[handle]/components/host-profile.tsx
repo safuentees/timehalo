@@ -163,11 +163,11 @@ export default function HostProfile({
   const hasOpenSlots = availableSlots.length > 0;
 
   return (
-    <main className="bru-main" id="top">
-      <div className="bru-topbar">
+    <main className="oh-main" id="top">
+      <div className="oh-topbar">
         <div className="flex items-center gap-3">
-          <div className="bru-monogram">OH</div>
-          <div className="bru-topbar-title">/h/{user.handle}</div>
+          <div className="oh-monogram">OH</div>
+          <div className="oh-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
 
@@ -178,13 +178,13 @@ export default function HostProfile({
       {rescheduleFromUid ? (
         <div
           role="status"
-          className="border-b-[1.5px] border-bru-line bg-bru-paper px-5 py-3 sm:px-8"
+          className="border-b-[1.5px] border-oh-line bg-oh-paper px-5 py-3 sm:px-8"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="bru-eyebrow">RESCHEDULING — PICK A NEW SLOT</span>
+            <span className="oh-eyebrow">RESCHEDULING — PICK A NEW SLOT</span>
             <a
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="bru-eyebrow opacity-55 transition-opacity hover:opacity-100"
+              className="oh-eyebrow opacity-55 transition-opacity hover:opacity-100"
             >
               CANCEL
             </a>
@@ -192,34 +192,34 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <article className="bru-v1">
-        <header className="bru-v1-hero bru-reveal">
+      <article className="oh-v1">
+        <header className="oh-v1-hero oh-reveal">
           <div className="flex flex-col gap-3">
-          <div className="bru-v1-kicker">
-            <div className="bru-v1-id">
-              <Avatar size="sm" className="bru-v1-avatar">
+          <div className="oh-v1-kicker">
+            <div className="oh-v1-id">
+              <Avatar size="sm" className="oh-v1-avatar">
                 <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                <AvatarFallback className="bru-v1-avatar-fallback">
+                <AvatarFallback className="oh-v1-avatar-fallback">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="bru-v1-handle">@{user.handle}</span>
+              <span className="oh-v1-handle">@{user.handle}</span>
             </div>
             <span
-              className={`bru-v1-status ${openToday ? "is-open" : "is-closed"}`}
+              className={`oh-v1-status ${openToday ? "is-open" : "is-closed"}`}
             >
-              <span className="bru-v1-status-dot" aria-hidden />
+              <span className="oh-v1-status-dot" aria-hidden />
               {openToday ? "OPEN NOW" : "CLOSED TODAY"}
             </span>
           </div>
 
-          <h1 className="bru-v1-name">{displayName}</h1>
-          <p className="bru-v1-bio">
+          <h1 className="oh-v1-name">{displayName}</h1>
+          <p className="oh-v1-bio">
             Book a short conversation — writing, software, or whatever&apos;s
             been rattling around your head lately.
           </p>
 
-          <p className="bru-v1-subtle">
+          <p className="oh-v1-subtle">
             <span>
               {daysWithOpenSlotsThisWeek}{" "}
               {daysWithOpenSlotsThisWeek === 1 ? "day" : "days"} with open slots
@@ -229,25 +229,25 @@ export default function HostProfile({
           </div>
         </header>
 
-        <dl className="bru-v1-meta">
-          <div className="bru-v1-meta-cell">
-            <dt className="bru-v1-meta-label">SESSION</dt>
-            <dd className="bru-v1-meta-value">15<span>M</span></dd>
+        <dl className="oh-v1-meta">
+          <div className="oh-v1-meta-cell">
+            <dt className="oh-v1-meta-label">SESSION</dt>
+            <dd className="oh-v1-meta-value">15<span>M</span></dd>
           </div>
-          <div className="bru-v1-meta-cell">
-            <dt className="bru-v1-meta-label">OPEN</dt>
-            <dd className="bru-v1-meta-value">
+          <div className="oh-v1-meta-cell">
+            <dt className="oh-v1-meta-label">OPEN</dt>
+            <dd className="oh-v1-meta-value">
               {availableSlots.length.toString().padStart(2, "0")}
             </dd>
           </div>
-          <div className="bru-v1-meta-cell">
-            <dt className="bru-v1-meta-label">TZ</dt>
-            <dd className="bru-v1-meta-value">{visitorTz}</dd>
+          <div className="oh-v1-meta-cell">
+            <dt className="oh-v1-meta-label">TZ</dt>
+            <dd className="oh-v1-meta-value">{visitorTz}</dd>
           </div>
         </dl>
       </article>
 
-      <section className="bru-profile-cta">
+      <section className="oh-profile-cta">
         {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
         {!hasSlots ? (
           <HostEmpty displayName={displayName} kind="closed" />
@@ -256,12 +256,12 @@ export default function HostProfile({
         ) : null}
       </section>
 
-      <div className="bru-v1-spacer" aria-hidden />
+      <div className="oh-v1-spacer" aria-hidden />
 
       {hasOpenSlots ? (
         <>
-          <div className="bru-v1-bar" role="region" aria-label="Pick a date">
-            <div className="bru-v1-bar-inner">
+          <div className="oh-v1-bar" role="region" aria-label="Pick a date">
+            <div className="oh-v1-bar-inner">
               <TriggerCard
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
@@ -307,7 +307,7 @@ function HostEmpty({
       : `${displayName} has availability, but every visible slot is already taken. Check back later for the next opening.`;
 
   return (
-    <div className="bru-profile-empty">
+    <div className="oh-profile-empty">
       <BrutalistEmpty
         icon={CalendarIcon}
         title={title}
@@ -320,11 +320,11 @@ function HostEmpty({
 function NextAvailable({ slot }: { slot: Slot }) {
   const startDate = new Date(slot.start);
   return (
-    <section className="bru-next-available bru-reveal" aria-label="Next available slot">
-      <span className="bru-next-available-kicker">NEXT AVAILABLE</span>
-      <div className="bru-next-available-body">
-        <span className="bru-next-available-time">{fmtTime(startDate)}</span>
-        <span className="bru-next-available-meta">
+    <section className="oh-next-available oh-reveal" aria-label="Next available slot">
+      <span className="oh-next-available-kicker">NEXT AVAILABLE</span>
+      <div className="oh-next-available-body">
+        <span className="oh-next-available-time">{fmtTime(startDate)}</span>
+        <span className="oh-next-available-meta">
           {fmtDayLabelShort(startDate)}
         </span>
       </div>

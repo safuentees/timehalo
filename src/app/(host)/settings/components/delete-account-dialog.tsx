@@ -117,7 +117,7 @@ function DeleteForm({
             ),
           })}
         </p>
-        <p className="bru-description">
+        <p className="oh-description">
           {t.rich("dialogTypeEmail", {
             email,
             code: (chunks) => (
@@ -152,7 +152,7 @@ function DeleteForm({
               </BrutalistInputGroup>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}

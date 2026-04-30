@@ -56,7 +56,7 @@ export function EmbedFrame({
   }, [handle]);
 
   return (
-    <main className="bru-embed-main" data-embed="true">
+    <main className="oh-embed-main" data-embed="true">
       <HostProfile
         handle={handle}
         initialUser={initialUser}

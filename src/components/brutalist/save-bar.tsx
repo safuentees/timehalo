@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 // Sticky bottom save bar — the canonical commit affordance for every
 // dashboard form (Settings, Profile, Availability, future ones). Lives
 // inside the <form>'s submit chain so Enter still submits naturally,
-// and pairs with .bru-dash-save-spacer so the last section never sits
+// and pairs with .oh-dash-save-spacer so the last section never sits
 // directly under the bar's island.
 //
 // Pattern is the same one cal.com / Vercel / Linear / Stripe / Notion
@@ -51,13 +51,13 @@ export function BrutalistSaveBar({
 
   return (
     <>
-      <div className="bru-dash-save-spacer" aria-hidden />
+      <div className="oh-dash-save-spacer" aria-hidden />
       <div
-        className="bru-dash-save-bar"
+        className="oh-dash-save-bar"
         role="region"
         aria-label={ariaLabel ?? labels.save}
       >
-        <div className="bru-dash-save-bar-inner">
+        <div className="oh-dash-save-bar-inner">
           <Button
             type="submit"
             variant="brutalist"

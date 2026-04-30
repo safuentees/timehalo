@@ -17,7 +17,7 @@ export default async function BookingsPage() {
   ]);
 
   return (
-    <main className="bru-main">
+    <main className="oh-main">
       <HydrationBoundary state={dehydrate(trpc.queryClient)}>
         <BookingsList />
       </HydrationBoundary>

@@ -105,14 +105,14 @@ function ApiKeysForWorkspace({
     <>
       {workspaces.length > 1 ? (
         <div className="mt-5">
-          <label htmlFor="api-keys-workspace" className="bru-legend">
+          <label htmlFor="api-keys-workspace" className="oh-legend">
             {t("workspaceLabel")}
           </label>
           <select
             id="api-keys-workspace"
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
-            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+            className="oh-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
           >
             {workspaces.map((w) => (
               <option key={w.slug} value={w.slug}>
@@ -193,7 +193,7 @@ function ApiKeyRow({
     .map((s) => s.trim())
     .filter(Boolean);
 
-  // Audit on 2026-04-27 found this row had two same-weight bru-eyebrow
+  // Audit on 2026-04-27 found this row had two same-weight oh-eyebrow
   // bands bracketing the content (created-at top, status pill bottom),
   // a scope-chip wall whose 2px borders outweighed the card's own
   // 1.5px border, and a prefix display competing with the name in the
@@ -210,10 +210,10 @@ function ApiKeyRow({
   return (
     <article
       className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-bru-bg p-4 transition-colors duration-150 ease-bru",
+        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-bru",
         revoked
-          ? "border-bru-line opacity-60"
-          : "border-bru-line hover:border-bru-line-strong",
+          ? "border-oh-line opacity-60"
+          : "border-oh-line hover:border-oh-line-strong",
       ].join(" ")}
     >
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
@@ -254,7 +254,7 @@ function ApiKeyRow({
       </p>
       {scopeList.length > 0 ? (
         <p
-          className="mt-1 truncate bru-eyebrow opacity-45"
+          className="mt-1 truncate oh-eyebrow opacity-45"
           aria-label={t("scopesLabel")}
         >
           {scopeList.join(" / ")}

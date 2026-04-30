@@ -51,10 +51,10 @@ export default function InvitationAccept({
   const callbackUrl = `/invitations/${token}`;
 
   return (
-    <div className="min-h-screen bg-bru-bg">
+    <div className="min-h-screen bg-oh-bg">
       <main className="mx-auto max-w-md px-6 pt-20 sm:pt-32">
         <header>
-          <p className="bru-eyebrow">
+          <p className="oh-eyebrow">
             {t("eyebrow")}
           </p>
           <h1 className="mt-4 font-heading text-3xl font-black tracking-tight leading-none">
@@ -65,7 +65,7 @@ export default function InvitationAccept({
           </p>
         </header>
 
-        <dl className="mt-8 flex flex-col gap-3 border-t-2 border-bru-line-strong pt-6">
+        <dl className="mt-8 flex flex-col gap-3 border-t-2 border-oh-line-strong pt-6">
           <Detail label={t("workspaceLabel")} value={workspaceName} />
           <Detail label={t("emailLabel")} value={email} />
           <Detail label={t("roleLabel")} value={t(`role_${role}`)} />
@@ -119,7 +119,7 @@ export default function InvitationAccept({
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-x-4">
-      <dt className="bru-eyebrow">
+      <dt className="oh-eyebrow">
         {label}
       </dt>
       <dd className="text-[13px] font-medium tabular-nums">{value}</dd>

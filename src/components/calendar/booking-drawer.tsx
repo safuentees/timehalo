@@ -39,13 +39,13 @@ export function BookingDrawer({
 
   return (
     <ResponsiveModal open={isOpen} onOpenChange={onOpenChange} nested>
-      <ResponsiveModalContent mobileClassName="bru-drawer-content-nested">
-        <ResponsiveModalHeader className="bru-drawer-head">
-          <ResponsiveModalTitle className="bru-drawer-title">
+      <ResponsiveModalContent mobileClassName="oh-drawer-content-nested">
+        <ResponsiveModalHeader className="oh-drawer-head">
+          <ResponsiveModalTitle className="oh-drawer-title">
             {isReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM BOOKING"}
           </ResponsiveModalTitle>
           {startDate ? (
-            <ResponsiveModalDescription className="bru-drawer-sub">
+            <ResponsiveModalDescription className="oh-drawer-sub">
               {fmtSlot(startDate)}
             </ResponsiveModalDescription>
           ) : (
@@ -55,7 +55,7 @@ export function BookingDrawer({
           )}
         </ResponsiveModalHeader>
 
-        <div className="bru-drawer-body">
+        <div className="oh-drawer-body">
           {slot ? (
             <BookingForm
               handle={handle}

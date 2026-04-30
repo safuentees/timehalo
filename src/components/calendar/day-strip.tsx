@@ -80,8 +80,8 @@ export function DayStrip({
   }, [emblaApi, days, selectedDate]);
 
   return (
-    <div className="bru-day-strip" ref={emblaRef} aria-label="Upcoming days">
-      <div className="bru-day-strip-track">
+    <div className="oh-day-strip" ref={emblaRef} aria-label="Upcoming days">
+      <div className="oh-day-strip-track">
         {days.map((d) => {
           const density = densityMap.get(toKey(d));
           const hasSlots = !!density;
@@ -91,7 +91,7 @@ export function DayStrip({
             <button
               key={d.toISOString()}
               type="button"
-              className="bru-day-strip-slide"
+              className="oh-day-strip-slide"
               data-state={isFullyBooked ? "full" : hasSlots ? "open" : "closed"}
               aria-pressed={selected}
               aria-disabled={!hasSlots}
@@ -104,12 +104,12 @@ export function DayStrip({
               }
               onClick={() => hasSlots && onSelectDate(d)}
             >
-              <span className="bru-day-strip-weekday">
+              <span className="oh-day-strip-weekday">
                 {d
                   .toLocaleDateString(undefined, { weekday: "narrow" })
                   .toUpperCase()}
               </span>
-              <span className="bru-day-strip-date">{d.getDate()}</span>
+              <span className="oh-day-strip-date">{d.getDate()}</span>
             </button>
           );
         })}

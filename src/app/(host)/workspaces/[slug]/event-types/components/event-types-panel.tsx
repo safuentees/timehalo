@@ -40,7 +40,7 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
       <div className="mt-4">
         <Link
           href="/workspaces"
-          className="bru-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
+          className="oh-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
         >
           <ArrowLeftIcon className="size-3" aria-hidden />
           Back to workspaces
@@ -107,17 +107,17 @@ function EventTypeRow({
   const deleteEventType = useDeleteEventType();
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {eventType.name}
         </h3>
-        <span className="bru-eyebrow tabular-nums">
+        <span className="oh-eyebrow tabular-nums">
           {eventType.durationMins}m
         </span>
       </header>
 
-      <p className="bru-eyebrow mt-2 tabular-nums opacity-55">
+      <p className="oh-eyebrow mt-2 tabular-nums opacity-55">
         /{eventType.slug}
       </p>
 

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 //
 // Brutalist mapping:
 //   - Title: mono uppercase, 10/2.5px tracking, opacity-55 (same as
-//     `bru-eyebrow` / `.bru-legend` from globals.css). Functions as
+//     `oh-eyebrow` / `.oh-legend` from globals.css). Functions as
 //     section eyebrow.
 //   - Content: full text contrast, regular weight.
 //   - Vertical rhythm: 12px between title and content; sections
@@ -34,7 +34,7 @@ export function BrutalistSection({
 }) {
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <p className="bru-eyebrow">{title}</p>
+      <p className="oh-eyebrow">{title}</p>
       <div>{children}</div>
     </section>
   );

@@ -80,8 +80,8 @@ export function AvailabilityDrawer({
   return (
     <ResponsiveModal open={open} onOpenChange={handleDrawerOpenChange}>
       <ResponsiveModalContent>
-        <ResponsiveModalHeader className="bru-drawer-head">
-          <ResponsiveModalTitle className="bru-drawer-title">
+        <ResponsiveModalHeader className="oh-drawer-head">
+          <ResponsiveModalTitle className="oh-drawer-title">
             SCHEDULE YOUR MEETING
           </ResponsiveModalTitle>
           <ResponsiveModalDescription className="sr-only">
@@ -89,8 +89,8 @@ export function AvailabilityDrawer({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <div className="bru-drawer-monthbar">
-          <span className="bru-drawer-monthbar-label">
+        <div className="oh-drawer-monthbar">
+          <span className="oh-drawer-monthbar-label">
             {fmtMonthYear(monthBarDate)}
           </span>
           <MonthDrawer
@@ -101,7 +101,7 @@ export function AvailabilityDrawer({
           >
             <button
               type="button"
-              className="bru-view-toggle"
+              className="oh-view-toggle"
               aria-label="Open month view"
             >
               <CalendarIcon />
@@ -109,7 +109,7 @@ export function AvailabilityDrawer({
           </MonthDrawer>
         </div>
 
-        <div className="bru-drawer-body">
+        <div className="oh-drawer-body">
           <DayStrip
             slots={slots}
             selectedDate={selectedDate}
@@ -123,7 +123,7 @@ export function AvailabilityDrawer({
               onPick={handlePickSlot}
             />
           ) : (
-            <p className="bru-drawer-hint">
+            <p className="oh-drawer-hint">
               — TAP A DATE ABOVE TO SEE TIMES —
             </p>
           )}

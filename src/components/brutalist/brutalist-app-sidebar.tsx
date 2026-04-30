@@ -21,7 +21,7 @@ import { HalftoneMark } from "@/components/brand/halftone-mark";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/brutalist";
 
 // Active state: left 2px ink accent + subtle tint bg. Hover: tint bg.
-// Matches the original .bru-nav-item aesthetic, driven by data-[active=true]
+// Matches the original .oh-nav-item aesthetic, driven by data-[active=true]
 // attributes set by shadcn's SidebarMenuButton.
 //
 // Collapsed (icon mode): drop the 2px left border. When the rail
@@ -88,15 +88,15 @@ export function BrutalistAppSidebar() {
       // animation can drop frames on slower machines, which reads as
       // the sidebar "snapping" instead of sliding.
       className={[
-        "bru-app-sidebar",
+        "oh-app-sidebar",
         "[&_[data-slot=sidebar-gap]]:will-change-[width]",
         "[&_[data-slot=sidebar-container]]:will-change-[width]",
       ].join(" ")}
     >
       {/* <SidebarHeader className="px-4 pt-5 pb-8">
-        <div className="bru-brand">
-          <HalftoneMark size={32} className="bru-brand-mark" />
-          <div className="bru-brand-name">
+        <div className="oh-brand">
+          <HalftoneMark size={32} className="oh-brand-mark" />
+          <div className="oh-brand-name">
             <div>OFFICEHOURS</div>
           </div>
         </div>
@@ -220,7 +220,7 @@ function FooterControls() {
       type="button"
       onClick={toggleSidebar}
       aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
-      className="inline-flex size-9 items-center justify-center text-bru-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-ink focus-visible:outline-offset-2 [&_svg]:size-4"
+      className="inline-flex size-9 items-center justify-center text-oh-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-ink focus-visible:outline-offset-2 [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />
     </button>

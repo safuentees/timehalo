@@ -138,7 +138,7 @@ function DeleteForm({
             ),
           })}
         </p>
-        <p className="bru-description">
+        <p className="oh-description">
           {t.rich("deleteTypeSlug", {
             slug: workspaceSlug,
             code: (chunks) => (
@@ -174,14 +174,14 @@ function DeleteForm({
               </BrutalistInputGroup>
               <FieldError
                 errors={fieldState.error ? [fieldState.error] : undefined}
-                className="bru-field-error"
+                className="oh-field-error"
               />
             </Field>
           )}
         />
 
         {serverError ? (
-          <p className="bru-description text-[color:var(--oh-content-muted)]">
+          <p className="oh-description text-[color:var(--oh-content-muted)]">
             {serverError}
           </p>
         ) : null}

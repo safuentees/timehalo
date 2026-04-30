@@ -17,45 +17,45 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-bru-paper: var(--oh-paper);
-  --color-bru-ink: var(--oh-ink);
+  --color-oh-paper: var(--oh-paper);
+  --color-oh-ink: var(--oh-ink);
 
   /* ─── Tier 1: Brutalist semantic surfaces. Each generates the full
      `bg-*` / `text-*` / `border-*` Tailwind utility family, so a
-     component reads `bg-bru-bg text-bru-content border-bru-line` and
+     component reads `bg-oh-bg text-oh-content border-oh-line` and
      dark mode flips for free. ─── */
-  --color-bru-bg: var(--oh-paper);
-  --color-bru-bg-muted: var(--oh-twdivider-bg);
-  --color-bru-content: var(--oh-ink);
-  --color-bru-content-muted: var(--oh-content-muted);
-  --color-bru-content-subtle: var(--oh-content-subtle);
-  --color-bru-line: var(--oh-line-default);
-  --color-bru-line-strong: var(--oh-line-strong);
-  --color-bru-tint: var(--oh-tint);
+  --color-oh-bg: var(--oh-paper);
+  --color-oh-bg-muted: var(--oh-twdivider-bg);
+  --color-oh-content: var(--oh-ink);
+  --color-oh-content-muted: var(--oh-content-muted);
+  --color-oh-content-subtle: var(--oh-content-subtle);
+  --color-oh-line: var(--oh-line-default);
+  --color-oh-line-strong: var(--oh-line-strong);
+  --color-oh-tint: var(--oh-tint);
 
   /* ─── Tier 1: Brutalist type scale. `--text-{name}` generates a
-     `text-bru-{name}` size utility; the paired `--line-height` carries
+     `text-oh-{name}` size utility; the paired `--line-height` carries
      a default leading. Fluid clamp() on display sizes; static numerics
      for the metadata / body floor where legibility wins. ─── */
-  --text-bru-meta: 10px;
-  --text-bru-meta--line-height: 1.4;
-  --text-bru-sub: 13px;
-  --text-bru-sub--line-height: 1.5;
-  --text-bru-body: 15px;
-  --text-bru-body--line-height: 1.55;
-  --text-bru-strong: clamp(18px, 1.1rem + 0.4vw, 22px);
-  --text-bru-strong--line-height: 1.25;
-  --text-bru-h3: clamp(22px, 1.4rem + 0.6vw, 28px);
-  --text-bru-h3--line-height: 1.1;
-  --text-bru-h2: clamp(26px, 1.5rem + 1vw, 32px);
-  --text-bru-h2--line-height: 1.05;
-  --text-bru-h1: clamp(36px, 2rem + 2.5vw, 56px);
-  --text-bru-h1--line-height: 1;
+  --text-oh-meta: 10px;
+  --text-oh-meta--line-height: 1.4;
+  --text-oh-sub: 13px;
+  --text-oh-sub--line-height: 1.5;
+  --text-oh-body: 15px;
+  --text-oh-body--line-height: 1.55;
+  --text-oh-strong: clamp(18px, 1.1rem + 0.4vw, 22px);
+  --text-oh-strong--line-height: 1.25;
+  --text-oh-h3: clamp(22px, 1.4rem + 0.6vw, 28px);
+  --text-oh-h3--line-height: 1.1;
+  --text-oh-h2: clamp(26px, 1.5rem + 1vw, 32px);
+  --text-oh-h2--line-height: 1.05;
+  --text-oh-h1: clamp(36px, 2rem + 2.5vw, 56px);
+  --text-oh-h1--line-height: 1;
 
   /* ─── Branded easing — gentle ease-out cubic, same shape vaul / Sonner
      use for sheet entrances. Generates the `ease-bru` Tailwind utility
      for inline JSX (`transition-colors duration-150 ease-bru`). Same
-     curve baked into the --oh-t-* timings above for the .bru-* CSS
+     curve baked into the --oh-t-* timings above for the .oh-* CSS
      rules, so the motion vocabulary stays single-sourced. ─── */
   --ease-bru: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -132,7 +132,7 @@
   --oh-paper: #eee7d5;
   --oh-ink: #0a0a0a;
 
-  /* Brutalist design tokens — shared across all .bru-* rules */
+  /* Brutalist design tokens — shared across all .oh-* rules */
   --oh-mono: var(--font-jetbrains), ui-monospace, monospace;
   --oh-twdivider-bg: color-mix(in oklab, var(--oh-ink) 8%, var(--oh-paper));
 
@@ -156,8 +156,8 @@
      hand-tuned opacity values. Old names below are kept as aliases so
      existing rules keep compiling — they each redirect to one of the
      three canonicals. New code reaches for the canonical names and
-     the matching Tailwind utilities (border-bru-line, border-bru-line-
-     strong, bg-bru-tint).
+     the matching Tailwind utilities (border-oh-line, border-oh-line-
+     strong, bg-oh-tint).
        line-default ─ everyday hairlines, separators, dashed dividers
        line-strong  ─ hard brutalist edges, full ink
        tint         ─ hover / active state backgrounds ─── */
@@ -179,7 +179,7 @@
      sm (6px) cards - ~4px padding = xs (2px) inner inputs/chips. */
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
-  /* Inner-window radius — only used by .bru-host-content for the
+  /* Inner-window radius — only used by .oh-host-content for the
      dub.co-style "page sits in a rounded panel" effect. Deliberately
      larger than the structural radius scale so the panel reads as a
      separate window rather than a card. Reference: dub uses
@@ -263,7 +263,7 @@
 
 /* ============================================================
    BRUTALIST WRITING DASHBOARD
-   Scoped to .bru-root and descendants. Isolated from shadcn base.
+   Scoped to .oh-root and descendants. Isolated from shadcn base.
    Ported from design_handoff_brutalist_writing/source/brutalist.css
    ============================================================ */
 
@@ -278,11 +278,11 @@
    vertical strip on the right.
    `overflow: hidden` hides any scrollbar that would appear.
    `scrollbar-gutter: auto` overrides the global `stable` so no slot
-   is reserved either. `:has(.bru-app)` scopes both to dashboard
+   is reserved either. `:has(.oh-app)` scopes both to dashboard
    routes; `/login`, `/register`, `/h/[handle]` keep the global
    stable-gutter behavior so their layouts don't jump on overflow
    toggles. */
-:where(html, body):has(.bru-app) {
+:where(html, body):has(.oh-app) {
   overflow: hidden;
   scrollbar-gutter: auto;
 }
@@ -291,8 +291,8 @@
    the sidebar+content row. h-svh anchors the column to the viewport;
    inner SidebarProvider takes the rest via the override below. The
    variable lifts here so the bar (a child of shell, sibling of
-   .bru-app) can read it. */
-.bru-app-shell {
+   .oh-app) can read it. */
+.oh-app-shell {
   /* --oh-dashboard-bar-height = inner content height (the trigger
      button slot). --oh-dashboard-bar-block = the bar's actual
      flex slot: content + top padding only. The 12px gap BELOW
@@ -312,17 +312,17 @@
   color: var(--oh-ink);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
-.bru-app-shell[data-typeface="serif"] {
+.oh-app-shell[data-typeface="serif"] {
   font-family: "Times New Roman", Times, serif;
 }
-.bru-app-shell[data-typeface="mono"] {
+.oh-app-shell[data-typeface="mono"] {
   font-family: var(--oh-mono);
 }
 
 /* SidebarProvider hardcodes `min-h-svh` on its wrapper. Since the
    shell already claims viewport, drop the inner min-height so the
    row collapses to the remaining 100svh - bar-height via flex-1. */
-.bru-app-shell > .bru-app {
+.oh-app-shell > .oh-app {
   flex: 1 1 0%;
   min-height: 0;
 }
@@ -334,7 +334,7 @@
    its SidebarHeader, so without this the first nav row is flush
    against the visible top edge. Convention echoes dub's `p-3`
    sidebar wrapper and cal.com's `py-3 lg:pt-4` aside. */
-.bru-app-sidebar [data-slot="sidebar-content"] {
+.oh-app-sidebar [data-slot="sidebar-content"] {
   padding-top: 12px;
 }
 
@@ -344,7 +344,7 @@
    panel's margin-top. Padding-bottom is intentionally 0 — the row
    below already pays its own 12px (sidebar `top:` adds it, content
    `margin-top:` adds it), so doubling here would stack to 24. */
-.bru-dashboard-bar {
+.oh-dashboard-bar {
   display: flex;
   align-items: center;
   flex: 0 0 var(--oh-dashboard-bar-block);
@@ -357,7 +357,7 @@
    background until hover/open; mono label inherits typography from
    the shell. group/trigger lets the chevron rotate via
    data-[popup-open]. */
-.bru-dashboard-bar-trigger {
+.oh-dashboard-bar-trigger {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -373,21 +373,21 @@
   cursor: pointer;
   transition: background-color 150ms var(--ease-bru, ease);
 }
-.bru-dashboard-bar-trigger:hover,
-.bru-dashboard-bar-trigger[data-popup-open] {
+.oh-dashboard-bar-trigger:hover,
+.oh-dashboard-bar-trigger[data-popup-open] {
   background: var(--oh-tint-hover);
 }
-.bru-dashboard-bar-trigger:focus-visible {
+.oh-dashboard-bar-trigger:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-dashboard-bar-chevron {
+.oh-dashboard-bar-chevron {
   transition: transform 150ms var(--ease-bru, ease);
 }
-.bru-dashboard-bar-trigger[data-popup-open] .bru-dashboard-bar-chevron {
+.oh-dashboard-bar-trigger[data-popup-open] .oh-dashboard-bar-chevron {
   transform: rotate(180deg);
 }
-.bru-dashboard-bar-label {
+.oh-dashboard-bar-label {
   font-family: var(--oh-mono);
   font-size: 11px;
   font-weight: 800;
@@ -405,11 +405,11 @@
    The Positioner is body-portaled — needs an explicit z-index above
    the sidebar's z-10, otherwise the dropdown renders behind the
    fixed sidebar rail on the left edge. */
-.bru-menu-positioner {
+.oh-menu-positioner {
   z-index: 100;
   outline: none;
 }
-.bru-menu-popup {
+.oh-menu-popup {
   min-width: 240px;
   /* Asymmetric optical correction. Top stretches popup-pad-top (6)
      + label-pad-top (8) = 14px; bottom now stretches item-pad-bot
@@ -436,7 +436,7 @@
   outline: none;
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
-.bru-menu-label {
+.oh-menu-label {
   display: block;
   padding: 8px 10px 6px;
   font-family: var(--oh-mono);
@@ -446,7 +446,7 @@
   text-transform: uppercase;
   opacity: 0.55;
 }
-.bru-menu-item {
+.oh-menu-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -461,10 +461,10 @@
   user-select: none;
   transition: background-color 120ms var(--ease-bru, ease);
 }
-.bru-menu-item[data-highlighted] {
+.oh-menu-item[data-highlighted] {
   background: var(--oh-tint-hover);
 }
-.bru-menu-item-glyph {
+.oh-menu-item-glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,7 +473,7 @@
   height: 16px;
   opacity: 0.85;
 }
-.bru-menu-separator {
+.oh-menu-separator {
   margin: 6px 8px;
   height: 1px;
   /* Quieter than --oh-line-default (22% ink). Without a popup border
@@ -482,7 +482,7 @@
   border: 0;
 }
 
-.bru-app {
+.oh-app {
   --oh-dashboard-bar-height: 32px;
   --sidebar: var(--oh-frame);
   --sidebar-foreground: var(--oh-ink);
@@ -494,9 +494,9 @@
      (sidebar.tsx:310). The default shadcn token is white, which left
      a visible white seam where the sidebar (--oh-frame, cream) met
      the inset (--background, white). Re-aliasing --background to
-     --oh-frame within the .bru-app scope makes the seam disappear:
+     --oh-frame within the .oh-app scope makes the seam disappear:
      sidebar + inset paint the same cream surface, the rounded white
-     panel inside (bru-host-content) reads as a window over it. */
+     panel inside (oh-host-content) reads as a window over it. */
   --background: var(--oh-frame);
   /* Paint the wrapper itself the same cream so the 12px gap at the
      top + bottom of the fixed sidebar (left exposed by the
@@ -515,14 +515,14 @@
    between sidebar and inset. Override the right border to 0 so the
    sidebar (--oh-frame) merges seamlessly with the inset
    (--oh-frame) — both are the same color, no edge to draw. */
-.bru-app [data-slot="sidebar-container"] {
+.oh-app [data-slot="sidebar-container"] {
   border-right-width: 0;
   /* Match the inner panel's 12px top + bottom gap from the screen
      edge. The shadcn primitive renders the container as
      `position: fixed; inset-y-0; h-svh` (top:0, bottom:0,
      full-viewport height). Override top/bottom to 12px and let the
      height auto-compute as viewport - 24px so the sidebar floats
-     between the same horizontal edges as bru-host-content's
+     between the same horizontal edges as oh-host-content's
      12px margin. Left edge stays at 0 — the sidebar still hugs the
      screen on that side. */
   /* bar-block (40) + 12px gap = sidebar visible top. The 12px is
@@ -534,12 +534,12 @@
   height: auto;
 }
 
-.bru-root {
+.oh-root {
   position: relative;
   width: 100%;
   min-height: 100vh;
   /* Frame color (was --oh-paper) — visible in the margin gap around
-     the inner panel that .bru-host-content paints below. The inner
+     the inner panel that .oh-host-content paints below. The inner
      panel still uses --oh-paper so the working surface keeps the
      existing paper-and-ink palette. */
   background: var(--oh-frame);
@@ -548,30 +548,30 @@
   /* Name the container so children adapt to the inset width (what actually
      changes when the sidebar collapses), not the viewport. */
   container-type: inline-size;
-  container-name: bru-root;
+  container-name: oh-root;
 }
-.bru-dashboard-inset {
+.oh-dashboard-inset {
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
-.bru-app[data-typeface="serif"] {
+.oh-app[data-typeface="serif"] {
   font-family: "Times New Roman", Times, serif;
 }
-.bru-app[data-typeface="mono"] {
+.oh-app[data-typeface="mono"] {
   font-family: var(--oh-mono);
 }
-:where(.bru-root a) {
+:where(.oh-root a) {
   text-decoration: none;
 }
 
 /* ——— brand block (used inside SidebarHeader) ——— */
-.bru-brand {
+.oh-brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.bru-brand-mark {
+.oh-brand-mark {
   flex-shrink: 0;
   /* The SVG uses fill="currentColor" — drives the mark from the
      surrounding text color so it inherits ink on paper / paper on ink
@@ -582,39 +582,39 @@
   padding: 2px;
   background: var(--oh-paper);
 }
-.bru-brand-name {
+.oh-brand-name {
   font-weight: 800;
   font-size: 12.5px;
   letter-spacing: 2px;
   line-height: 1.15;
 }
 /* ——— main ——— */
-.bru-main {
+.oh-main {
   position: relative;
   z-index: 2;
   min-width: 0;
 }
 
 /* top bar */
-.bru-topbar {
+.oh-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 18px 36px;
   border-bottom: 1px solid var(--oh-line-soft);
 }
-.bru-topbar-title {
+.oh-topbar-title {
   font-family: var(--oh-mono);
   font-size: 11px;
   letter-spacing: 2.5px;
   font-weight: 800;
 }
-.bru-topbar-right {
+.oh-topbar-right {
   display: flex;
   gap: 8px;
 }
 
-.bru-btn {
+.oh-btn {
   padding: 9px 14px;
   border: 1.5px solid var(--oh-ink);
   background: var(--oh-paper);
@@ -633,25 +633,25 @@
   gap: 6px;
   border-radius: var(--oh-r-sm);
 }
-.bru-btn:hover:not(:disabled) {
+.oh-btn:hover:not(:disabled) {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-btn-solid {
+.oh-btn-solid {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-btn-solid:hover:not(:disabled) {
+.oh-btn-solid:hover:not(:disabled) {
   background: var(--oh-paper);
   color: var(--oh-ink);
 }
-.bru-btn:disabled {
+.oh-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
 /* ticker */
-.bru-ticker {
+.oh-ticker {
   overflow: hidden;
   border-bottom: 1px solid var(--oh-line-firm);
   padding: 10px 0;
@@ -670,46 +670,46 @@
     transparent
   );
 }
-.bru-ticker-track {
+.oh-ticker-track {
   display: flex;
   width: max-content;
-  animation: bru-ticker 90s linear infinite;
+  animation: oh-ticker 90s linear infinite;
   font-family: var(--oh-mono);
   font-size: 11px;
   letter-spacing: 2px;
   font-weight: 700;
   opacity: 0.75;
 }
-.bru-ticker-item {
+.oh-ticker-item {
   display: inline-flex;
   align-items: center;
   gap: 18px;
   white-space: nowrap;
 }
-.bru-ticker-item > span:first-child {
+.oh-ticker-item > span:first-child {
   padding: 0 4px;
 }
-.bru-ticker-sep {
+.oh-ticker-sep {
   opacity: 0.4;
   padding: 0 14px;
 }
-@keyframes bru-ticker {
+@keyframes oh-ticker {
   to {
     transform: translateX(-33.333%);
   }
 }
-.bru-root:not(.bru-motion) .bru-ticker-track {
+.oh-root:not(.oh-motion) .oh-ticker-track {
   animation: none;
 }
 
 /* ——— inverted utility ——— */
-.bru-inverted {
+.oh-inverted {
   --oh-paper: #0a0a0a;
   --oh-ink: #eee7d5;
   background: #0a0a0a;
   color: #eee7d5;
 }
-.dark .bru-inverted {
+.dark .oh-inverted {
   --oh-paper: #eee7d5;
   --oh-ink: #0a0a0a;
   background: #eee7d5;
@@ -717,13 +717,13 @@
 }
 
 /* ——— DOTTED HERO ——— */
-.bru-hero {
+.oh-hero {
   position: relative;
   padding: 64px 44px 56px;
   overflow: hidden;
   min-height: 460px;
 }
-.bru-hero-dotted::before {
+.oh-hero-dotted::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -732,11 +732,11 @@
   opacity: 0.16;
   pointer-events: none;
 }
-.bru-hero-dotted:has(.bru-halftone-canvas)::before {
+.oh-hero-dotted:has(.oh-halftone-canvas)::before {
   opacity: 0;
 }
 
-.bru-halftone-canvas {
+.oh-halftone-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -746,21 +746,21 @@
   z-index: 0;
 }
 @media print {
-  .bru-halftone-canvas {
+  .oh-halftone-canvas {
     display: none;
   }
-  .bru-hero-dotted:has(.bru-halftone-canvas)::before {
+  .oh-hero-dotted:has(.oh-halftone-canvas)::before {
     opacity: 0.16;
   }
 }
 
-.bru-hero-inner {
+.oh-hero-inner {
   position: relative;
   z-index: 1;
   max-width: 1400px;
 }
 
-.bru-headline {
+.oh-headline {
   margin: 0;
   /* Scale with container inline size so the headline never overflows a narrow
      inset when the sidebar is open. Floor is small enough for mobile. */
@@ -774,15 +774,15 @@
      on arbitrary chars rather than overflowing. */
   overflow-wrap: anywhere;
 }
-.bru-app[data-typeface="serif"] .bru-headline {
+.oh-app[data-typeface="serif"] .oh-headline {
   letter-spacing: -0.04em;
 }
-.bru-app[data-typeface="mono"] .bru-headline {
+.oh-app[data-typeface="mono"] .oh-headline {
   font-size: clamp(32px, 12cqi, 180px);
   letter-spacing: -0.04em;
 }
 
-.bru-hero-foot {
+.oh-hero-foot {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -790,14 +790,14 @@
   margin-top: 28px;
   flex-wrap: wrap;
 }
-.bru-dek {
+.oh-dek {
   margin: 0;
   font-size: 16px;
   line-height: 1.4;
   max-width: 460px;
   opacity: 0.78;
 }
-.bru-hero-meta {
+.oh-hero-meta {
   display: flex;
   gap: 24px;
   font-family: var(--oh-mono);
@@ -809,10 +809,10 @@
 }
 
 /* ——— post list — alternating rhythm ——— */
-.bru-posts {
+.oh-posts {
   border-bottom: 1px solid var(--oh-line-strong);
 }
-.bru-post {
+.oh-post {
   position: relative;
   display: grid;
   grid-template-columns: 160px 1fr 180px;
@@ -823,41 +823,41 @@
   align-items: start;
   transition: padding-left 140ms cubic-bezier(0.2, 0.9, 0.2, 1);
 }
-.bru-app[data-density="dense"] .bru-post {
+.oh-app[data-density="dense"] .oh-post {
   padding: 26px 44px;
   gap: 24px;
 }
-.bru-post:hover {
+.oh-post:hover {
   padding-left: 56px;
 }
-.bru-post:hover .bru-post-title-inner {
+.oh-post:hover .oh-post-title-inner {
   text-decoration: underline;
   text-decoration-thickness: 2.5px;
   text-underline-offset: 5px;
 }
-.bru-post:hover .bru-open {
+.oh-post:hover .oh-open {
   transform: translateX(6px);
 }
-.bru-post:hover .bru-tag {
+.oh-post:hover .oh-tag {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
 
-.bru-post-num {
+.oh-post-num {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.bru-num-big {
+.oh-num-big {
   font-size: 88px;
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.04em;
 }
-.bru-app[data-density="dense"] .bru-num-big {
+.oh-app[data-density="dense"] .oh-num-big {
   font-size: 64px;
 }
-.bru-post-date {
+.oh-post-date {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   letter-spacing: 2px;
@@ -865,10 +865,10 @@
   opacity: 0.65;
 }
 
-.bru-post-body {
+.oh-post-body {
   min-width: 0;
 }
-.bru-post-title {
+.oh-post-title {
   margin: 0;
   font-size: 30px;
   font-weight: 900;
@@ -876,16 +876,16 @@
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
-.bru-app[data-density="dense"] .bru-post-title {
+.oh-app[data-density="dense"] .oh-post-title {
   font-size: 24px;
 }
-.bru-app[data-typeface="serif"] .bru-post-title {
+.oh-app[data-typeface="serif"] .oh-post-title {
   text-transform: none;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.bru-post-excerpt {
+.oh-post-excerpt {
   margin: 12px 0 0;
   font-size: 14.5px;
   line-height: 1.5;
@@ -893,13 +893,13 @@
   opacity: 0.78;
 }
 
-.bru-post-aside {
+.oh-post-aside {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
 }
-.bru-tag {
+.oh-tag {
   padding: 4px 10px;
   border: 1.5px solid var(--oh-ink);
   border-radius: var(--oh-r-xs);
@@ -911,24 +911,24 @@
     background var(--oh-t-fast),
     color var(--oh-t-fast);
 }
-.bru-read {
+.oh-read {
   text-align: right;
 }
-.bru-read-label {
+.oh-read-label {
   font-family: var(--oh-mono);
   font-size: 10px;
   letter-spacing: 2px;
   font-weight: 700;
   opacity: 0.55;
 }
-.bru-read-big {
+.oh-read-big {
   font-size: 34px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.02em;
   margin-top: 4px;
 }
-.bru-read-big em {
+.oh-read-big em {
   font-style: normal;
   font-size: 12px;
   letter-spacing: 1.5px;
@@ -936,7 +936,7 @@
   margin-left: 4px;
   opacity: 0.7;
 }
-.bru-open {
+.oh-open {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   letter-spacing: 2px;
@@ -946,7 +946,7 @@
 }
 
 /* inline delete */
-.bru-post-delete {
+.oh-post-delete {
   position: absolute;
   right: 12px;
   top: 12px;
@@ -968,18 +968,18 @@
     color var(--oh-t-fast);
   font-family: var(--oh-mono);
 }
-.bru-post:hover .bru-post-delete,
-.bru-post-delete:focus-visible {
+.oh-post:hover .oh-post-delete,
+.oh-post-delete:focus-visible {
   opacity: 0.85;
 }
-.bru-post-delete:hover {
+.oh-post-delete:hover {
   background: var(--oh-ink);
   color: var(--oh-paper);
   opacity: 1;
 }
 
 /* end rule */
-.bru-endrule {
+.oh-endrule {
   position: relative;
   display: flex;
   justify-content: space-between;
@@ -992,7 +992,7 @@
   opacity: 0.65;
   overflow: hidden;
 }
-.bru-endrule::before {
+.oh-endrule::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1001,12 +1001,12 @@
   opacity: 0.1;
   pointer-events: none;
 }
-.bru-endrule > span {
+.oh-endrule > span {
   position: relative;
 }
 
 /* ——— tweaks panel ——— */
-.bru-tweaks {
+.oh-tweaks {
   position: fixed;
   bottom: 16px;
   right: 16px;
@@ -1025,7 +1025,7 @@
   border-radius: var(--oh-r-sm);
   font-family: var(--oh-mono);
 }
-.bru-tweaks-head {
+.oh-tweaks-head {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -1043,7 +1043,7 @@
      the parent clips both bg and shadow to the same 6px curve. */
   border-radius: var(--oh-r-sm) var(--oh-r-sm) 0 0;
 }
-.bru-twdivider {
+.oh-twdivider {
   padding: 10px 12px 6px;
   font-size: 10px;
   letter-spacing: 3px;
@@ -1052,7 +1052,7 @@
   border-bottom: 1px dashed var(--oh-ink);
   background: var(--oh-twdivider-bg);
 }
-.bru-twrow {
+.oh-twrow {
   display: grid;
   grid-template-columns: 72px 1fr;
   gap: 10px;
@@ -1060,24 +1060,24 @@
   padding: 10px 12px;
   border-bottom: 1px dashed var(--oh-ink);
 }
-.bru-twrow.bru-twslider {
+.oh-twrow.oh-twslider {
   grid-template-columns: 72px 1fr 38px;
 }
-.bru-twrow:last-child {
+.oh-twrow:last-child {
   border-bottom: 0;
 }
-.bru-twlabel {
+.oh-twlabel {
   font-size: 10px;
   letter-spacing: 2px;
   font-weight: 800;
 }
-.bru-twvalue {
+.oh-twvalue {
   font-size: 10px;
   font-weight: 700;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.bru-tweaks-head button {
+.oh-tweaks-head button {
   background: transparent;
   border: 0;
   color: inherit;
@@ -1086,13 +1086,13 @@
   line-height: 1;
   padding: 0 4px;
 }
-.bru-seg {
+.oh-seg {
   display: flex;
   border: 1.5px solid var(--oh-ink);
   border-radius: var(--oh-r-xs);
   overflow: hidden;
 }
-.bru-seg button {
+.oh-seg button {
   flex: 1;
   background: var(--oh-paper);
   color: var(--oh-ink);
@@ -1108,15 +1108,15 @@
     background var(--oh-t-fast),
     color var(--oh-t-fast);
 }
-.bru-seg button:last-child {
+.oh-seg button:last-child {
   border-right: 0;
 }
-.bru-seg button.on,
-.bru-seg button:hover {
+.oh-seg button.on,
+.oh-seg button:hover {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-twslider input[type="range"] {
+.oh-twslider input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -1124,15 +1124,15 @@
   background: transparent;
   margin: 0;
 }
-.bru-twslider input[type="range"]::-webkit-slider-runnable-track {
+.oh-twslider input[type="range"]::-webkit-slider-runnable-track {
   height: 2px;
   background: var(--oh-ink);
 }
-.bru-twslider input[type="range"]::-moz-range-track {
+.oh-twslider input[type="range"]::-moz-range-track {
   height: 2px;
   background: var(--oh-ink);
 }
-.bru-twslider input[type="range"]::-webkit-slider-thumb {
+.oh-twslider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 10px;
@@ -1142,7 +1142,7 @@
   margin-top: -6px;
   cursor: pointer;
 }
-.bru-twslider input[type="range"]::-moz-range-thumb {
+.oh-twslider input[type="range"]::-moz-range-thumb {
   width: 10px;
   height: 14px;
   background: var(--oh-ink);
@@ -1152,7 +1152,7 @@
 }
 
 /* ——— new post modal pieces (layered under shadcn Dialog) ——— */
-.bru-modal-shell {
+.oh-modal-shell {
   width: min(560px, 100%);
   background: var(--oh-paper);
   color: var(--oh-ink);
@@ -1160,20 +1160,20 @@
   border-radius: var(--oh-r-sm);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
 }
-.bru-modal-head {
+.oh-modal-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   padding: 22px 26px 6px;
 }
-.bru-modal-h {
+.oh-modal-h {
   margin: 0;
   font-size: 32px;
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1;
 }
-.bru-modal-x {
+.oh-modal-x {
   background: transparent;
   border: 0;
   width: 36px;
@@ -1189,23 +1189,23 @@
     color var(--oh-t-fast);
   font-family: var(--oh-mono);
 }
-.bru-modal-x:hover {
+.oh-modal-x:hover {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
 
-.bru-form {
+.oh-form {
   padding: 18px 26px 22px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
-.bru-field {
+.oh-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.bru-field-label {
+.oh-field-label {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   letter-spacing: 2px;
@@ -1219,7 +1219,7 @@
    on 2026-04-27 found 6+ places repeating the legend string and 7+
    places repeating the eyebrow string with five different tracking
    values — single source of truth here. ─── */
-.bru-legend {
+.oh-legend {
   font-family: var(--oh-mono);
   font-size: 11px;
   font-weight: 800;
@@ -1227,13 +1227,13 @@
   text-transform: uppercase;
   opacity: 0.55;
 }
-.bru-description {
+.oh-description {
   font-size: 13px;
   line-height: 1.5;
   max-width: 65ch;
   opacity: 0.65;
 }
-.bru-eyebrow {
+.oh-eyebrow {
   font-family: var(--oh-mono);
   font-size: 10px;
   font-weight: 800;
@@ -1242,7 +1242,7 @@
   opacity: 0.55;
 }
 
-.bru-input {
+.oh-input {
   width: 100%;
   background: var(--oh-paper);
   color: var(--oh-ink);
@@ -1257,24 +1257,24 @@
     box-shadow var(--oh-t-fast),
     transform var(--oh-t-fast);
 }
-.bru-input::placeholder {
+.oh-input::placeholder {
   color: var(--oh-placeholder);
 }
-.bru-input:focus {
+.oh-input:focus {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-textarea {
+.oh-textarea {
   resize: vertical;
   min-height: 78px;
   font-family: inherit;
 }
-.bru-form-row {
+.oh-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
-.bru-modal-actions {
+.oh-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -1282,44 +1282,44 @@
   border-top: 1px dashed var(--oh-line-dashed);
 }
 @media (max-width: 520px) {
-  .bru-form-row {
+  .oh-form-row {
     grid-template-columns: 1fr;
   }
-  .bru-modal-h {
+  .oh-modal-h {
     font-size: 26px;
   }
 }
 
 /* ——— a11y focus ——— */
-.bru-btn:focus-visible,
-.bru-tag:focus-visible,
-.bru-modal-x:focus-visible,
-.bru-post-delete:focus-visible,
-.bru-seg button:focus-visible,
-.bru-tweaks-head button:focus-visible {
+.oh-btn:focus-visible,
+.oh-tag:focus-visible,
+.oh-modal-x:focus-visible,
+.oh-post-delete:focus-visible,
+.oh-seg button:focus-visible,
+.oh-tweaks-head button:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-post:focus-visible {
+.oh-post:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: -6px;
 }
-.bru-post-delete:focus-visible {
+.oh-post-delete:focus-visible {
   opacity: 1;
 }
 
 /* ——— reveal ———
-   Entry animation disabled. The JS-toggled `body.bru-ready` gate was
+   Entry animation disabled. The JS-toggled `body.oh-ready` gate was
    interacting badly with Next.js 16 soft navigation between route
    groups, leaving the topbar and hero stuck at opacity:0 on client
    nav back to the dashboard. Content is now always visible on render;
    reintroduce a CSS-only animation here when we have a stable trigger
    that doesn't depend on JS timing. */
-.bru-reveal {
+.oh-reveal {
   opacity: 1;
   transform: none;
 }
-@keyframes bru-in {
+@keyframes oh-in {
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1327,33 +1327,33 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bru-ticker-track {
+  .oh-ticker-track {
     animation: none !important;
   }
 }
 
 /* Container-based responsive — adapts to the SidebarInset width, not viewport.
-   Fires whenever .bru-root is narrow, including when the sidebar is open and
+   Fires whenever .oh-root is narrow, including when the sidebar is open and
    eating horizontal space. */
-@container bru-root (max-width: 720px) {
-  .bru-hero {
+@container oh-root (max-width: 720px) {
+  .oh-hero {
     padding: 48px 24px 40px;
     min-height: 360px;
   }
-  .bru-topbar {
+  .oh-topbar {
     padding: 14px 20px;
   }
-  .bru-post {
+  .oh-post {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 28px 20px;
   }
-  .bru-post-aside {
+  .oh-post-aside {
     flex-direction: row;
     align-items: center;
     gap: 16px;
   }
-  .bru-endrule {
+  .oh-endrule {
     padding: 24px 20px;
     font-size: 9px;
     letter-spacing: 2px;
@@ -1361,27 +1361,27 @@
 }
 
 /* Extra-narrow tier — phone-sized insets. Tighten post numbering, topbar. */
-@container bru-root (max-width: 480px) {
-  .bru-topbar {
+@container oh-root (max-width: 480px) {
+  .oh-topbar {
     padding: 12px 16px;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  .bru-topbar-right {
+  .oh-topbar-right {
     width: 100%;
     justify-content: flex-start;
   }
-  .bru-num-big {
+  .oh-num-big {
     font-size: 56px;
   }
-  .bru-post {
+  .oh-post {
     padding: 20px 16px;
   }
-  .bru-endrule {
+  .oh-endrule {
     padding: 20px 16px;
   }
-  .bru-hero {
+  .oh-hero {
     padding: 36px 18px 28px;
     min-height: 280px;
   }
@@ -1408,25 +1408,25 @@
    Brutalist paper/ink palette without the dashboard sidebar.
    ============================================================ */
 
-.bru-profile-shell {
+.oh-profile-shell {
   min-height: 100vh;
   /* Bezel breathing room — adapted from Apple's iOS 26 ConcentricRectangle
      concept (WWDC 2025) for the web. Brutalist sharp 90° corners look
      wrong kissing the device's rounded screen bezel, so we pad the
      bordered content inward via safe-area insets. The paper background
-     still bleeds full-edge (set on .bru-root); only bordered chrome
+     still bleeds full-edge (set on .oh-root); only bordered chrome
      insets. min(12px) gives Android / non-notched devices the same
      breathing room. Bottom is owned by the floating CTA bar. */
   padding-top: max(0px, env(safe-area-inset-top));
   padding-left: max(12px, env(safe-area-inset-left));
   padding-right: max(12px, env(safe-area-inset-right));
 }
-.bru-profile-shell .bru-topbar {
+.oh-profile-shell .oh-topbar {
   padding: 18px 44px;
 }
 
 /* Avatar style retained — re-used by the booking-confirm host card. */
-.bru-profile-avatar {
+.oh-profile-avatar {
   width: 96px !important;
   height: 96px !important;
   border-radius: var(--oh-r-sm) !important;
@@ -1434,16 +1434,16 @@
   flex-shrink: 0;
   background: var(--oh-paper);
 }
-.bru-profile-avatar::after {
+.oh-profile-avatar::after {
   display: none !important;
 }
-.bru-profile-avatar > [data-slot="avatar-image"],
-.bru-profile-avatar > [data-slot="avatar-fallback"] {
+.oh-profile-avatar > [data-slot="avatar-image"],
+.oh-profile-avatar > [data-slot="avatar-fallback"] {
   border-radius: var(--oh-r-sm) !important;
 }
 
 /* Kicker label retained — re-used by the booking-confirm sections. */
-.bru-profile-kicker {
+.oh-profile-kicker {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   letter-spacing: 2.5px;
@@ -1457,40 +1457,40 @@
    Avatar in kicker (Airbnb pattern) anchors trust without fighting the
    giant name. No FAQ section — we have no per-host FAQ data, so we keep
    the page truthful and quiet. */
-.bru-v1 {
+.oh-v1 {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
   /* Soft-brutalist outer card frame — matches the curved bordered cards
      on /bookings so the public profile reads as part of the same system,
      not a one-off page. overflow:hidden clips the halftone canvas (which
-     fills .bru-v1-hero) to the rounded corners. */
+     fills .oh-v1-hero) to the rounded corners. */
   border: 1.5px solid var(--oh-line);
   border-radius: var(--oh-r-sm);
   overflow: hidden;
 }
 
-.bru-v1-hero {
+.oh-v1-hero {
   padding: 24px 22px 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   border-bottom: 1px solid var(--oh-line-soft);
 }
-.bru-v1-kicker {
+.oh-v1-kicker {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 6px;
 }
-.bru-v1-id {
+.oh-v1-id {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
-.bru-v1-avatar {
+.oh-v1-avatar {
   width: 32px !important;
   height: 32px !important;
   border-radius: 50% !important;
@@ -1499,11 +1499,11 @@
   flex-shrink: 0;
   overflow: hidden;
 }
-.bru-v1-avatar > [data-slot="avatar-image"],
-.bru-v1-avatar > [data-slot="avatar-fallback"] {
+.oh-v1-avatar > [data-slot="avatar-image"],
+.oh-v1-avatar > [data-slot="avatar-fallback"] {
   border-radius: 50% !important;
 }
-.bru-v1-avatar-fallback {
+.oh-v1-avatar-fallback {
   background: var(--oh-paper) !important;
   color: var(--oh-ink) !important;
   font-family: var(--oh-mono) !important;
@@ -1511,7 +1511,7 @@
   font-weight: 800 !important;
   letter-spacing: 1px !important;
 }
-.bru-v1-handle {
+.oh-v1-handle {
   font-family: var(--oh-mono);
   font-size: 11px;
   font-weight: 800;
@@ -1522,7 +1522,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bru-v1-status {
+.oh-v1-status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1536,21 +1536,21 @@
   flex-shrink: 0;
   border-radius: var(--oh-r-xs);
 }
-.bru-v1-status-dot {
+.oh-v1-status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
 }
-.bru-v1-status.is-open .bru-v1-status-dot {
+.oh-v1-status.is-open .oh-v1-status-dot {
   background: var(--oh-ink);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 22%, transparent);
-  animation: bru-v1-pulse 2.2s ease-in-out infinite;
+  animation: oh-v1-pulse 2.2s ease-in-out infinite;
 }
-.bru-v1-status.is-closed .bru-v1-status-dot {
+.oh-v1-status.is-closed .oh-v1-status-dot {
   background: transparent;
   border: 1.5px solid var(--oh-ink);
 }
-@keyframes bru-v1-pulse {
+@keyframes oh-v1-pulse {
   0%,
   100% {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--oh-ink) 28%, transparent);
@@ -1560,7 +1560,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bru-v1-status.is-open .bru-v1-status-dot {
+  .oh-v1-status.is-open .oh-v1-status-dot {
     animation: none;
   }
 }
@@ -1568,11 +1568,11 @@
 /* Live-queue heartbeat — fires on each SSE event via the `key={pulseKey}`
    remount trick. Single-shot scale beat tied to actual data, not idle
    decoration. Reduced-motion users get a static dot. */
-.bru-live-dot {
-  animation: bru-live-pulse 520ms cubic-bezier(0.4, 0, 0.2, 1);
+.oh-live-dot {
+  animation: oh-live-pulse 520ms cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
-@keyframes bru-live-pulse {
+@keyframes oh-live-pulse {
   0% {
     transform: scale(1);
   }
@@ -1584,12 +1584,12 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bru-live-dot {
+  .oh-live-dot {
     animation: none;
   }
 }
 
-.bru-v1-name {
+.oh-v1-name {
   margin: 4px 0 2px;
   font-weight: 900;
   font-size: clamp(40px, 12cqi, 64px);
@@ -1598,7 +1598,7 @@
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
-.bru-v1-bio {
+.oh-v1-bio {
   margin: 0;
   font-size: 15px;
   line-height: 1.55;
@@ -1606,7 +1606,7 @@
   max-width: 36ch;
   text-wrap: pretty;
 }
-.bru-v1-subtle {
+.oh-v1-subtle {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1623,14 +1623,14 @@
 /* 3-cell horizontal metric strip — equal columns via minmax(0,1fr).
    Vertical hairlines + centered tabular values keep the row symmetric
    regardless of value width (digit pairs vs short TZ abbrev). */
-.bru-v1-meta {
+.oh-v1-meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  /* Outer frame on .bru-v1 now provides the bottom edge — drop the
+  /* Outer frame on .oh-v1 now provides the bottom edge — drop the
      redundant hairline below the meta strip. */
 }
-.bru-v1-meta-cell {
+.oh-v1-meta-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1640,10 +1640,10 @@
   min-width: 0;
   border-right: 1px solid var(--oh-line-soft);
 }
-.bru-v1-meta-cell:last-child {
+.oh-v1-meta-cell:last-child {
   border-right: 0;
 }
-.bru-v1-meta-label {
+.oh-v1-meta-label {
   margin: 0;
   font-family: var(--oh-mono);
   font-size: 9px;
@@ -1652,7 +1652,7 @@
   text-transform: uppercase;
   opacity: 0.5;
 }
-.bru-v1-meta-value {
+.oh-v1-meta-value {
   margin: 0;
   font-family: var(--oh-mono);
   font-size: 16px;
@@ -1666,7 +1666,7 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
-.bru-v1-meta-value > span {
+.oh-v1-meta-value > span {
   font-size: 0.65em;
   opacity: 0.55;
   margin-left: 1px;
@@ -1677,7 +1677,7 @@
    position. Paper gradient mask above blends content into the bar.
    Safe-area inset honors iOS home indicator (requires viewportFit:
    "cover" in the root viewport meta). */
-.bru-v1-bar {
+.oh-v1-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -1691,7 +1691,7 @@
   background: transparent;
   pointer-events: none;
 }
-.bru-v1-bar-inner {
+.oh-v1-bar-inner {
   pointer-events: auto;
   width: 100%;
   max-width: 520px;
@@ -1700,20 +1700,20 @@
 }
 /* Spacer keeps the last in-flow content above the floating bar. Tuned
    to match the bar's padding + the TriggerCard's intrinsic height. */
-.bru-v1-spacer {
+.oh-v1-spacer {
   height: 140px;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .bru-v1-bar {
+  .oh-v1-bar {
     transition: padding-bottom 200ms ease;
   }
 }
 
 /* Dashboard save bar — mirrors the /h/ floating-island pattern but
-   uses sticky positioning so it flows within .bru-main (respecting
+   uses sticky positioning so it flows within .oh-main (respecting
    the sidebar) instead of covering it. Same scroll-edge gradient and
    centered paper island read, consistent with the profile CTA. */
-.bru-dash-save-bar {
+.oh-dash-save-bar {
   position: sticky;
   bottom: 0;
   z-index: 20;
@@ -1722,20 +1722,20 @@
   background: transparent;
   pointer-events: none;
 }
-.bru-dash-save-bar-inner {
+.oh-dash-save-bar-inner {
   pointer-events: auto;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
   border-radius: var(--oh-r-sm);
 }
-.bru-dash-save-spacer {
+.oh-dash-save-spacer {
   height: 120px;
 }
 
 /* CTA section — NextAvailable info pill + PICK A DATE drawer trigger.
    Centered under the v4-minimal hero so the column reads as one unit. */
-.bru-profile-cta {
+.oh-profile-cta {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1747,7 +1747,7 @@
 /* Primary "BOOK NOW" CTA below the trigger card. Disabled state is
    tied to `!selectedSlot` in host-profile.tsx — muted + not clickable
    until both a day and a time are picked. */
-.bru-book-now {
+.oh-book-now {
   width: 100%;
   justify-content: space-between;
   padding: 18px 22px;
@@ -1755,11 +1755,11 @@
   letter-spacing: 2.5px;
   gap: 12px;
 }
-.bru-book-now svg {
+.oh-book-now svg {
   width: 16px;
   height: 16px;
 }
-.bru-book-now:disabled {
+.oh-book-now:disabled {
   opacity: 0.35;
   cursor: not-allowed;
   box-shadow: none;
@@ -1767,13 +1767,13 @@
 }
 
 /* Booking form inside the BookingDrawer. */
-.bru-booking-form {
+.oh-booking-form {
   display: flex;
   flex-direction: column;
   gap: 18px;
   padding: 8px 4px 16px;
 }
-.bru-field-label {
+.oh-field-label {
   display: block;
   font-family: var(--oh-mono);
   font-size: 11px;
@@ -1784,11 +1784,11 @@
   opacity: 0.7;
   margin-bottom: 6px;
 }
-.bru-field-label-opt {
+.oh-field-label-opt {
   opacity: 0.5;
   margin-left: 6px;
 }
-.bru-field-error {
+.oh-field-error {
   font-family: var(--oh-mono);
   font-size: 9.5px;
   font-weight: 800;
@@ -1797,7 +1797,7 @@
   margin-top: 6px;
   color: var(--oh-ink);
 }
-.bru-textarea {
+.oh-textarea {
   width: 100%;
   min-height: 88px;
   padding: 10px 12px;
@@ -1811,14 +1811,14 @@
   border-radius: var(--oh-r-xs);
   transition: box-shadow var(--oh-t-fast);
 }
-.bru-textarea:focus {
+.oh-textarea:focus {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-textarea[aria-invalid="true"] {
+.oh-textarea[aria-invalid="true"] {
   border-color: var(--oh-ink);
 }
-.bru-book-submit {
+.oh-book-submit {
   width: 100%;
   justify-content: center;
   padding: 16px 22px;
@@ -1828,7 +1828,7 @@
 }
 
 /* Next-available pill (info-only). */
-.bru-next-available {
+.oh-next-available {
   display: grid;
   gap: 10px;
   padding: 18px 20px;
@@ -1838,7 +1838,7 @@
   position: relative;
   overflow: hidden;
 }
-.bru-next-available::before {
+.oh-next-available::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1847,24 +1847,24 @@
   opacity: 0.08;
   pointer-events: none;
 }
-.bru-next-available > * {
+.oh-next-available > * {
   position: relative;
   z-index: 1;
 }
-.bru-next-available-kicker {
+.oh-next-available-kicker {
   font-family: var(--oh-mono);
   font-size: 10px;
   letter-spacing: 2.5px;
   font-weight: 800;
   opacity: 0.6;
 }
-.bru-next-available-body {
+.oh-next-available-body {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.bru-next-available-time {
+.oh-next-available-time {
   font-size: clamp(1.5rem, 1rem + 3vw, 2.5rem);
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -1872,7 +1872,7 @@
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }
-.bru-next-available-meta {
+.oh-next-available-meta {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   letter-spacing: 2px;
@@ -1882,7 +1882,7 @@
 }
 
 /* TriggerCard — Airbnb-style inline card that updates in place. */
-.bru-trigger-card {
+.oh-trigger-card {
   all: unset;
   box-sizing: border-box;
   width: 100%;
@@ -1900,36 +1900,36 @@
     color var(--oh-t-fast);
   border-radius: var(--oh-r-sm);
 }
-.bru-trigger-card:hover,
-.bru-trigger-card:focus-visible {
+.oh-trigger-card:hover,
+.oh-trigger-card:focus-visible {
   background: var(--oh-ink);
   color: var(--oh-paper);
   outline: none;
 }
-.bru-trigger-card--full {
+.oh-trigger-card--full {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-trigger-card--full:hover,
-.bru-trigger-card--full:focus-visible {
+.oh-trigger-card--full:hover,
+.oh-trigger-card--full:focus-visible {
   background: var(--oh-paper);
   color: var(--oh-ink);
 }
-.bru-trigger-card-body {
+.oh-trigger-card-body {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
   text-align: left;
 }
-.bru-trigger-card-line-top {
+.oh-trigger-card-line-top {
   font-family: var(--oh-mono);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
-.bru-trigger-card-line-bottom {
+.oh-trigger-card-line-bottom {
   font-family: var(--oh-mono);
   font-size: 10.5px;
   font-weight: 700;
@@ -1937,30 +1937,30 @@
   opacity: 0.65;
   text-transform: uppercase;
 }
-.bru-trigger-card-time {
+.oh-trigger-card-time {
   font-size: 16px;
   font-weight: 800;
   letter-spacing: 1.5px;
   opacity: 1;
   font-variant-numeric: tabular-nums;
 }
-.bru-trigger-card-glyph {
+.oh-trigger-card-glyph {
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
-.bru-trigger-card-glyph svg {
+.oh-trigger-card-glyph svg {
   width: 16px;
   height: 16px;
 }
 
 /* Empty state — outer spacing only; BrutalistEmpty owns the box now. */
-.bru-profile-empty {
+.oh-profile-empty {
   padding: 8px 0 32px;
 }
 
 /* End rule */
-.bru-profile-shell .bru-endrule {
+.oh-profile-shell .oh-endrule {
   border-top: 1px solid var(--oh-line-strong);
 }
 
@@ -1975,7 +1975,7 @@
    full-saturation paper pulls the eye. Applied to vaul Drawer.Overlay
    (mobile) and to shadcn DialogOverlay's data-slot (desktop) so both
    form factors share the same vocabulary. */
-.bru-drawer-overlay,
+.oh-drawer-overlay,
 [data-slot="dialog-overlay"] {
   position: fixed !important;
   inset: 0 !important;
@@ -1984,7 +1984,7 @@
   backdrop-filter: blur(8px) saturate(80%);
   -webkit-backdrop-filter: blur(8px) saturate(80%);
 }
-.bru-drawer-content {
+.oh-drawer-content {
   position: fixed;
   left: 0;
   right: 0;
@@ -2003,14 +2003,14 @@
   overflow: hidden;
   box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.28);
 }
-.dark .bru-drawer-content {
+.dark .oh-drawer-content {
   background: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
 }
 /* Nested drawer sits meaningfully shorter than parent so the parent's
    header strip ("SCHEDULE YOUR MEETING") stays visible behind the
    stacked sheet — canonical vaul nested peek pattern. Vaul also scales
    the parent slightly on open, which compounds with this delta. */
-.bru-drawer-content-nested {
+.oh-drawer-content-nested {
   max-height: 94%;
 }
 
@@ -2021,7 +2021,7 @@
    based centering utilities. `transform: none` neutralises
    Tailwind's `-translate-{x,y}-1/2` defaults from <DialogContent>.
    ============================================================ */
-.bru-modal-content {
+.oh-modal-content {
   /* Positioning lives in the inline `style` prop on <DialogContent> in
      `responsive-modal.tsx` — that's the only reliable way to beat the
      `top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2` utilities the
@@ -2042,7 +2042,7 @@
      shadow that biased weight to the bottom-right. */
   box-shadow: none !important;
 }
-.bru-drawer-handle {
+.oh-drawer-handle {
   width: 72px;
   height: 4px;
   margin: 10px auto 0;
@@ -2050,15 +2050,15 @@
   opacity: 0.5;
   border-radius: var(--oh-r-xs);
 }
-.bru-drawer-head {
+.oh-drawer-head {
   position: relative;
-  /* No top padding — the reservation moved into `.bru-modal-close-bar`
+  /* No top padding — the reservation moved into `.oh-modal-close-bar`
      so it applies automatically to every modal/drawer that opts into
      the default close button (most of them). */
   padding: 0 20px 14px;
 }
 @media (min-width: 768px) {
-  .bru-drawer-head {
+  .oh-drawer-head {
     padding: 0 24px 18px;
   }
 }
@@ -2068,24 +2068,24 @@
    Same 44/56px height as the close button's footprint (`top:12px` +
    `size-7`). Flex-shrink 0 so collapsing flex parents don't crush it.
    Aria-hidden in JSX since this is a pure layout spacer. */
-.bru-modal-close-bar {
+.oh-modal-close-bar {
   height: 44px;
   flex-shrink: 0;
 }
 @media (min-width: 768px) {
-  .bru-modal-close-bar {
+  .oh-modal-close-bar {
     height: 56px;
   }
 }
 /* Weekday row that sits below the month-year bar when the month view is
    active. Uses the same 20px horizontal padding as the drawer body so
    the seven cells line up with the day grid columns below. */
-.bru-drawer-weekdays {
+.oh-drawer-weekdays {
   display: flex;
   width: 100%;
   padding: 4px 20px 6px;
 }
-.bru-drawer-weekdays-cell {
+.oh-drawer-weekdays-cell {
   flex: 1 1 0;
   min-width: 0;
   text-align: center;
@@ -2104,7 +2104,7 @@
   text-transform: uppercase;
   color: var(--oh-ink);
 }
-.bru-drawer-title {
+.oh-drawer-title {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
   font-size: 26px;
   font-weight: 900;
@@ -2114,11 +2114,11 @@
   margin: 0;
 }
 @media (min-width: 768px) {
-  .bru-drawer-title {
+  .oh-drawer-title {
     font-size: 32px;
   }
 }
-.bru-drawer-sub {
+.oh-drawer-sub {
   font-family: var(--oh-mono);
   font-size: 10px;
   letter-spacing: 2px;
@@ -2127,7 +2127,7 @@
   text-transform: uppercase;
   margin: 4px 0 0;
 }
-.bru-drawer-body {
+.oh-drawer-body {
   flex: 1;
   min-height: 0;
   overflow-x: hidden;
@@ -2137,20 +2137,20 @@
 }
 /* Month-year bar with view toggle. Sits between the drawer head and the
    day strip / month stack. Mono uppercase on the left, toggle on the right. */
-.bru-drawer-monthbar {
+.oh-drawer-monthbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px 10px;
 }
-.bru-drawer-monthbar-label {
+.oh-drawer-monthbar-label {
   font-family: var(--oh-mono);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
-.bru-view-toggle {
+.oh-view-toggle {
   all: unset;
   width: 36px;
   height: 36px;
@@ -2164,19 +2164,19 @@
     background-color var(--oh-t-fast),
     color var(--oh-t-fast);
 }
-.bru-view-toggle[aria-pressed="true"] {
+.oh-view-toggle[aria-pressed="true"] {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-view-toggle:focus-visible {
+.oh-view-toggle:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-view-toggle svg {
+.oh-view-toggle svg {
   width: 16px;
   height: 16px;
 }
-.bru-drawer-hint {
+.oh-drawer-hint {
   margin: 24px 0 0;
   text-align: center;
   font-family: var(--oh-mono);
@@ -2187,42 +2187,42 @@
 }
 
 /* Month stack: N separate <Calendar/> instances stacked vertically. */
-.bru-month-stack {
+.oh-month-stack {
   display: flex;
   flex-direction: column;
 }
-.bru-month {
+.oh-month {
   --cell-size: 44px;
   padding: 16px 0 !important;
   background: transparent !important;
 }
-.bru-month-root {
+.oh-month-root {
   width: 100%;
 }
 /* RDP v9 renders the grid as <table class="rdp-month_grid"> which
    shadcn's default `w-full` on `table` no longer targets — without this,
    the table falls back to intrinsic 7*cell-size width and sits left-
    aligned inside the drawer. */
-.bru-month table {
+.oh-month table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
-.bru-month-months {
+.oh-month-months {
   width: 100%;
 }
-.bru-month-col {
+.oh-month-col {
   width: 100%;
   gap: 10px !important;
 }
 
 /* Caption */
-.bru-month-caption {
+.oh-month-caption {
   justify-content: flex-start !important;
   padding: 4px 0 12px !important;
   height: auto !important;
 }
-.bru-month-caption-label {
+.oh-month-caption-label {
   font-family: var(--font-grotesk), "Neue Haas Grotesk", sans-serif;
   font-size: 14px !important;
   font-weight: 900;
@@ -2232,7 +2232,7 @@
 @media (min-width: 768px) {
   /* Modal is wider — give the per-month caption ("APRIL") room to read
      as a section heading rather than a label. */
-  .bru-month-caption-label {
+  .oh-month-caption-label {
     font-size: 18px !important;
     letter-spacing: 1.5px;
   }
@@ -2241,16 +2241,16 @@
 /* Weekday labels — `classNames` prop replaces shadcn's `flex w-full`
    defaults, so we restore both flex + full width here. */
 /* Per-month weekday row is hidden — one shared weekday header lives
-   above the grid in `.bru-drawer-weekdays` so it doesn't repeat for
+   above the grid in `.oh-drawer-weekdays` so it doesn't repeat for
    every month in the stack. */
-.bru-weekdays {
+.oh-weekdays {
   display: none !important;
   width: 100%;
   border-bottom: 1px solid var(--oh-line-dashed);
   padding-bottom: 6px;
   margin-bottom: 4px;
 }
-.bru-weekday {
+.oh-weekday {
   flex: 1 1 0 !important;
   min-width: 0;
   text-align: center;
@@ -2265,12 +2265,12 @@
 
 /* Week rows + cells — override the browser <tr>/<td> table layout with
    flex so cells distribute evenly across 7 columns. */
-.bru-week {
+.oh-week {
   display: flex !important;
   width: 100%;
   margin-top: 4px !important;
 }
-.bru-day {
+.oh-day {
   flex: 1 1 0 !important;
   min-width: 0;
   padding: 2px !important;
@@ -2279,7 +2279,7 @@
 }
 
 /* DayButton — our custom component */
-.bru-day-button {
+.oh-day-button {
   all: unset;
   box-sizing: border-box;
   width: 100%;
@@ -2301,76 +2301,76 @@
     color var(--oh-t-fast),
     border-color var(--oh-t-fast);
   /* Container-query context — day numbers scale with cell width, same
-     pattern as `.bru-day-strip-slide`. ~50px cell → 14px digit on mobile,
+     pattern as `.oh-day-strip-slide`. ~50px cell → 14px digit on mobile,
      ~95px cell → 24px digit on desktop. */
   container-type: inline-size;
 }
-.bru-day-button:disabled {
+.oh-day-button:disabled {
   cursor: not-allowed;
 }
-.bru-day-num,
-.bru-day-num--past,
-.bru-day-num--full,
-.bru-day-num--closed {
+.oh-day-num,
+.oh-day-num--past,
+.oh-day-num--full,
+.oh-day-num--closed {
   font-size: clamp(14px, 28cqi, 26px);
   font-weight: 700;
   line-height: 1;
 }
-.bru-day-num--past {
+.oh-day-num--past {
   opacity: 0.3;
 }
-.bru-day-num--closed {
+.oh-day-num--closed {
   opacity: 0.35;
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
-.bru-day-num--full {
+.oh-day-num--full {
   opacity: 0.72;
 }
 /* Modifiers — available days invert on hover; today has a 2px inset border. */
-.bru-day-available {
+.oh-day-available {
   cursor: pointer;
 }
-.bru-day-available .bru-day-button {
+.oh-day-available .oh-day-button {
   border-color: var(--oh-ink);
 }
-.bru-day-available .bru-day-button:hover,
-.bru-day-available .bru-day-button:focus-visible {
+.oh-day-available .oh-day-button:hover,
+.oh-day-available .oh-day-button:focus-visible {
   background: var(--oh-ink);
   color: var(--oh-paper);
   outline: none;
 }
-.bru-day-today .bru-day-button {
+.oh-day-today .oh-day-button {
   border-color: var(--oh-ink);
   border-width: 2px;
 }
-.bru-day-selected .bru-day-button,
-.bru-day-button[data-selected-single="true"] {
+.oh-day-selected .oh-day-button,
+.oh-day-button[data-selected-single="true"] {
   background: var(--oh-ink) !important;
   color: var(--oh-paper) !important;
 }
-.bru-day-booked .bru-day-button {
+.oh-day-booked .oh-day-button {
   border-style: dashed;
   cursor: pointer;
   background: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
 }
-.bru-day-booked .bru-day-button:hover,
-.bru-day-booked .bru-day-button:focus-visible {
+.oh-day-booked .oh-day-button:hover,
+.oh-day-booked .oh-day-button:focus-visible {
   background: color-mix(in srgb, var(--oh-paper) 82%, var(--oh-ink) 18%);
   color: var(--oh-ink);
   outline: none;
 }
-.bru-day-closed .bru-day-button {
+.oh-day-closed .oh-day-button {
   cursor: default;
   background: transparent;
 }
-.bru-day-disabled {
+.oh-day-disabled {
   opacity: 0.5;
 }
-.bru-day-outside {
+.oh-day-outside {
   visibility: hidden;
 }
-.bru-day-hidden {
+.oh-day-hidden {
   visibility: hidden;
 }
 
@@ -2378,7 +2378,7 @@
    week). Symmetric 20px edges so Mon and Sun have equal margins. Next
    Monday peeks through the right padding as a scroll hint — this falls
    out naturally from `overflow: hidden` clipping at the padding box. */
-.bru-day-strip {
+.oh-day-strip {
   --strip-edge: 20px;
   --strip-gap: 6px;
   --strip-visible: 7;
@@ -2387,11 +2387,11 @@
   padding: 4px var(--strip-edge) 14px;
   margin: 0 calc(var(--strip-edge) * -1);
 }
-.bru-day-strip-track {
+.oh-day-strip-track {
   display: flex;
   gap: var(--strip-gap);
 }
-.bru-day-strip-slide {
+.oh-day-strip-slide {
   /* 7 slides + 6 gaps fill the padded inner area exactly. Monday's left
      edge and Sunday's right edge both sit at --strip-edge from the
      viewport sides. The 8th slide (next Monday) starts in the right
@@ -2424,7 +2424,7 @@
      width, not the viewport's. `cqi` = 1% of inline size of this box. */
   container-type: inline-size;
 }
-.bru-day-strip-weekday {
+.oh-day-strip-weekday {
   /* 10px at ~45px chip (mobile drawer) → 16px at ~90px chip (desktop modal).
      Min/max keep it legible at the extremes. */
   font-size: clamp(10px, 22cqi, 16px);
@@ -2433,7 +2433,7 @@
   font-weight: 700;
   opacity: 0.6;
 }
-.bru-day-strip-date {
+.oh-day-strip-date {
   /* 18px → 32px across the same range. Tighter line-height so the bigger
      weights don't push the chip's vertical rhythm out. */
   font-size: clamp(18px, 35cqi, 32px);
@@ -2442,33 +2442,33 @@
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
-.bru-day-strip-slide[aria-pressed="true"] {
+.oh-day-strip-slide[aria-pressed="true"] {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-day-strip-slide[aria-pressed="true"] .bru-day-strip-weekday {
+.oh-day-strip-slide[aria-pressed="true"] .oh-day-strip-weekday {
   opacity: 0.8;
 }
-.bru-day-strip-slide[aria-disabled="true"] {
+.oh-day-strip-slide[aria-disabled="true"] {
   opacity: 0.32;
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
   cursor: not-allowed;
 }
-.bru-day-strip-slide[data-state="full"] {
+.oh-day-strip-slide[data-state="full"] {
   border-style: dashed;
   background: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
 }
-.bru-day-strip-slide[data-state="full"] .bru-day-strip-weekday {
+.oh-day-strip-slide[data-state="full"] .oh-day-strip-weekday {
   opacity: 0.72;
 }
-.bru-day-strip-slide:focus-visible {
+.oh-day-strip-slide:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
 
 /* Day slots below calendar */
-.bru-day-slots {
+.oh-day-slots {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1.5px solid var(--oh-ink);
@@ -2476,24 +2476,24 @@
   flex-direction: column;
   gap: 16px;
 }
-.bru-day-slots-head {
+.oh-day-slots-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
 }
-.bru-day-slots-date {
+.oh-day-slots-date {
   font-family: var(--oh-mono);
   font-size: 11px;
   letter-spacing: 2px;
   font-weight: 800;
   opacity: 0.7;
 }
-.bru-day-slots-bands {
+.oh-day-slots-bands {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
-.bru-day-slots-empty {
+.oh-day-slots-empty {
   margin: 0;
   font-family: var(--oh-mono);
   font-size: 11px;
@@ -2502,7 +2502,7 @@
   opacity: 0.55;
   text-transform: uppercase;
 }
-.bru-day-slots-note {
+.oh-day-slots-note {
   margin: -4px 0 2px;
   font-family: var(--oh-sans);
   font-size: 14px;
@@ -2511,16 +2511,16 @@
 }
 
 /* Time bands + chips (shared with day-slots + drawer) */
-.bru-time-band {
+.oh-time-band {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 /* Base kicker — small mono uppercase label sized to feel proportional
    to the bordered chip buttons it sits above. The variant kickers
-   (.bru-profile-kicker, .bru-next-available-kicker) override sizing
+   (.oh-profile-kicker, .oh-next-available-kicker) override sizing
    for their specific contexts. */
-.bru-kicker {
+.oh-kicker {
   font-family: var(--oh-mono);
   font-size: 11px;
   letter-spacing: 2px;
@@ -2529,7 +2529,7 @@
   opacity: 0.6;
   color: var(--oh-ink);
 }
-.bru-time-band-kicker {
+.oh-time-band-kicker {
   display: inline-block;
 }
 /* Time band chips — Embla horizontal carousel. Embla's docs recommend
@@ -2537,7 +2537,7 @@
    clamps without leaving blank space. To preserve the 20px drawer inset
    while doing that, spacing is expressed on the slide wrappers
    themselves instead of via viewport padding + container gap. */
-.bru-time-band-chips {
+.oh-time-band-chips {
   --oh-chip-edge: 20px;
   --oh-chip-gap: 8px;
 
@@ -2545,23 +2545,23 @@
   padding: 4px 0;
   margin: 0 -20px;
 }
-.bru-time-band-chips-track {
+.oh-time-band-chips-track {
   display: flex;
 }
-.bru-time-band-chip-slide {
+.oh-time-band-chip-slide {
   flex: 0 0 auto;
   min-width: 0;
 }
-.bru-time-band-chip-slide + .bru-time-band-chip-slide {
+.oh-time-band-chip-slide + .oh-time-band-chip-slide {
   padding-left: var(--oh-chip-gap);
 }
-.bru-time-band-chip-slide:first-child {
+.oh-time-band-chip-slide:first-child {
   padding-left: var(--oh-chip-edge);
 }
-.bru-time-band-chip-slide:last-child {
+.oh-time-band-chip-slide:last-child {
   padding-right: var(--oh-chip-edge);
 }
-.bru-slot-chip {
+.oh-slot-chip {
   appearance: none;
   min-height: 48px;
   padding: 10px 14px;
@@ -2584,25 +2584,25 @@
     color var(--oh-t-fast);
   border-radius: var(--oh-r-xs);
 }
-.bru-slot-chip:hover {
+.oh-slot-chip:hover {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
-.bru-slot-chip:focus-visible {
+.oh-slot-chip:focus-visible {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
-.bru-slot-chip--taken {
+.oh-slot-chip--taken {
   border-style: dashed;
   background: color-mix(in srgb, var(--oh-paper) 90%, var(--oh-ink) 10%);
   color: color-mix(in srgb, var(--oh-ink) 76%, transparent);
   cursor: default;
 }
-.bru-slot-chip--taken:hover {
+.oh-slot-chip--taken:hover {
   background: color-mix(in srgb, var(--oh-paper) 90%, var(--oh-ink) 10%);
   color: color-mix(in srgb, var(--oh-ink) 76%, transparent);
 }
-.bru-slot-chip-badge {
+.oh-slot-chip-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2615,47 +2615,47 @@
   letter-spacing: 1px;
 }
 /* Tablet+ — bound drawer width so it's not a stretched wall on iPads. */
-@container bru-root (min-width: 720px) {
-  .bru-profile-cta {
+@container oh-root (min-width: 720px) {
+  .oh-profile-cta {
     padding: 36px 22px 56px;
   }
 }
 /* Mobile */
-@container bru-root (max-width: 720px) {
-  .bru-profile-shell .bru-topbar {
+@container oh-root (max-width: 720px) {
+  .oh-profile-shell .oh-topbar {
     padding: 14px 20px;
   }
-  .bru-profile-avatar {
+  .oh-profile-avatar {
     width: 72px !important;
     height: 72px !important;
   }
-  .bru-profile-cta {
+  .oh-profile-cta {
     padding: 28px 20px 32px;
   }
 }
-@container bru-root (max-width: 480px) {
-  .bru-v1-hero {
+@container oh-root (max-width: 480px) {
+  .oh-v1-hero {
     padding: 20px 18px 18px;
   }
-  .bru-v1-meta-cell {
+  .oh-v1-meta-cell {
     padding: 14px 4px;
   }
-  .bru-v1-meta-value {
+  .oh-v1-meta-value {
     font-size: 14px;
   }
-  .bru-v1-bar {
+  .oh-v1-bar {
     padding: 24px max(14px, env(safe-area-inset-right))
       max(14px, env(safe-area-inset-bottom))
       max(14px, env(safe-area-inset-left));
   }
-  .bru-next-available {
+  .oh-next-available {
     padding: 14px 16px;
   }
-  .bru-slot-chip {
+  .oh-slot-chip {
     padding: 9px 12px;
     font-size: 11.5px;
   }
-  .bru-month {
+  .oh-month {
     --cell-size: 40px;
   }
 }
@@ -2677,7 +2677,7 @@
      transitions on snappy user actions are the #1 chisel anti-pattern. */
 
 /* Root contains all persistent chrome (sidebar, topbar, body bg) plus
-   the page content. We OPT IN the page content via .bru-host-content
+   the page content. We OPT IN the page content via .oh-host-content
    below, which lifts it out of root. Root then has animation:none, so
    the chrome never gets snapshotted into a transition — no double
    strokes, no ghosted icons, no edge artifacts at the topbar seam. */
@@ -2692,7 +2692,7 @@
    1% inset shows the body bg (var(--oh-paper)), which matches the
    page bg, so the scale reads as depth without exposing a contrasting
    frame. */
-.bru-host-content {
+.oh-host-content {
   /* STATIC frame — paper bg + rounded corners + margin from the
      surrounding --oh-frame. NOT a view-transition target so the
      panel doesn't fade between routes; only its children do. */
@@ -2725,12 +2725,12 @@
    Match the right-side 12px gap so the panel has consistent
    breathing room from all four screen edges. */
 @media (max-width: 767px) {
-  .bru-host-content {
+  .oh-host-content {
     margin-left: 12px;
   }
 }
 
-.bru-host-content-inner {
+.oh-host-content-inner {
   /* View-transition target + sizing for the Radix ScrollArea Root.
      Radix sets `position: relative` inline on Root (verified in
      node_modules/@radix-ui/react-scroll-area/dist/index.mjs) — inline
@@ -2739,9 +2739,9 @@
      (github.com/radix-ui/primitives/discussions/1485): set explicit
      height/width on Root, then the Viewport's `size-full` resolves
      and `overflow-y: scroll` kicks in when content exceeds Root's
-     height. Parent (.bru-host-content) is exactly viewport-anchored,
+     height. Parent (.oh-host-content) is exactly viewport-anchored,
      so 100% here = exactly 100svh - 24px. */
-  view-transition-name: bru-host-content;
+  view-transition-name: oh-host-content;
   width: 100%;
   height: 100%;
 }
@@ -2753,20 +2753,20 @@
    fades out, then new fades in via animation-delay equal to the
    out-duration. Total transition stays short (~220ms) but with no
    visual overlap between the old and new content. */
-::view-transition-old(bru-host-content) {
-  animation: bru-vt-fade-out 110ms cubic-bezier(0.4, 0, 1, 1) both;
+::view-transition-old(oh-host-content) {
+  animation: oh-vt-fade-out 110ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-::view-transition-new(bru-host-content) {
-  animation: bru-vt-fade-in 110ms cubic-bezier(0, 0, 0.2, 1) 110ms both;
+::view-transition-new(oh-host-content) {
+  animation: oh-vt-fade-in 110ms cubic-bezier(0, 0, 0.2, 1) 110ms both;
 }
 
-@keyframes bru-vt-fade-out {
+@keyframes oh-vt-fade-out {
   to {
     opacity: 0;
   }
 }
-@keyframes bru-vt-fade-in {
+@keyframes oh-vt-fade-in {
   from {
     opacity: 0;
   }

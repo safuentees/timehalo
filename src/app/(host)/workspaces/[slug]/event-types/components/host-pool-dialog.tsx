@@ -132,22 +132,22 @@ function HostRow({
   const removeHost = useRemoveEventTypeHost();
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h4 className="text-[14px] font-bold truncate">
           {host.user.name ?? host.user.handle ?? host.user.email}
         </h4>
-        <span className="bru-eyebrow tabular-nums opacity-55">
+        <span className="oh-eyebrow tabular-nums opacity-55">
           {host.recentAssignments} recent
         </span>
       </header>
 
-      <p className="bru-eyebrow mt-2 opacity-55 truncate">
+      <p className="oh-eyebrow mt-2 opacity-55 truncate">
         {host.user.email}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <label className="bru-eyebrow inline-flex items-center gap-2">
+        <label className="oh-eyebrow inline-flex items-center gap-2">
           <input
             type="checkbox"
             checked={host.isFixed}
@@ -163,7 +163,7 @@ function HostRow({
           />
           Fixed
         </label>
-        <label className="bru-eyebrow inline-flex items-center gap-2">
+        <label className="oh-eyebrow inline-flex items-center gap-2">
           Priority
           <select
             value={host.priority}
@@ -176,7 +176,7 @@ function HostRow({
                 priority: Number(e.target.value),
               })
             }
-            className="bru-input font-[family-name:var(--oh-mono)] text-[12px]"
+            className="oh-input font-[family-name:var(--oh-mono)] text-[12px]"
           >
             {[0, 1, 2, 3, 4].map((p) => (
               <option key={p} value={p}>
@@ -185,7 +185,7 @@ function HostRow({
             ))}
           </select>
         </label>
-        <label className="bru-eyebrow inline-flex items-center gap-2">
+        <label className="oh-eyebrow inline-flex items-center gap-2">
           Weight
           <input
             type="number"
@@ -212,7 +212,7 @@ function HostRow({
             // Defer to onBlur for the actual mutation so spinning the
             // input doesn't fire one mutate per tick.
             onChange={() => {}}
-            className="bru-input w-20 font-[family-name:var(--oh-mono)] text-[12px]"
+            className="oh-input w-20 font-[family-name:var(--oh-mono)] text-[12px]"
           />
         </label>
       </div>
@@ -272,21 +272,21 @@ function AddHostPicker({
 
   if (candidates.length === 0) {
     return (
-      <p className="bru-eyebrow opacity-55">
+      <p className="oh-eyebrow opacity-55">
         Every workspace member is already in the pool.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-t-2 border-bru-line pt-5">
-      <label className="bru-eyebrow inline-flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3 border-t-2 border-oh-line pt-5">
+      <label className="oh-eyebrow inline-flex items-center gap-2">
         Add member
         <select
           value={picked}
           disabled={addHost.isPending}
           onChange={(e) => setPicked(e.target.value)}
-          className="bru-input min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
+          className="oh-input min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
         >
           <option value="">Select…</option>
           {candidates.map((m) => (

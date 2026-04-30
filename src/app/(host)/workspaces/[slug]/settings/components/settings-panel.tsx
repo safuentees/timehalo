@@ -43,7 +43,7 @@ export default function SettingsPanel({ slug }: { slug: string }) {
       <div className="mt-4">
         <Link
           href={`/workspaces/${slug}/members`}
-          className="bru-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
+          className="oh-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
         >
           <ArrowLeftIcon className="size-3" aria-hidden />
           {tWorkspaces("backToMembers")}
