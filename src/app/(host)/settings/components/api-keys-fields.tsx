@@ -161,7 +161,7 @@ function UpgradePrompt() {
       {t("upgradePrompt")}{" "}
       <a
         href="#billing-legend"
-        className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-bru hover:opacity-100"
+        className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-oh hover:opacity-100"
       >
         {t("upgradeLink")}
       </a>
@@ -210,7 +210,7 @@ function ApiKeyRow({
   return (
     <article
       className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-bru",
+        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-oh",
         revoked
           ? "border-oh-line opacity-60"
           : "border-oh-line hover:border-oh-line-strong",
@@ -225,8 +225,8 @@ function ApiKeyRow({
             trigger={
               <Button
                 type="button"
-                variant="brutalistGhost"
-                size="brutalist"
+                variant="ohGhost"
+                size="oh"
                 disabled={revokeApiKey.isPending}
               >
                 {revokeApiKey.isPending ? t("revoking") : t("revoke")}

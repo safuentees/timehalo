@@ -107,7 +107,7 @@ function EventTypeRow({
   const deleteEventType = useDeleteEventType();
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {eventType.name}
@@ -132,7 +132,7 @@ function EventTypeRow({
         <Button
           type="button"
           variant="outline"
-          size="brutalist"
+          size="oh"
           onClick={() => setHostsOpen(true)}
         >
           <UsersIcon className="size-3.5" />
@@ -143,7 +143,7 @@ function EventTypeRow({
             <Button
               type="button"
               variant="outline"
-              size="brutalist"
+              size="oh"
               onClick={() => setEditOpen(true)}
             >
               Edit
@@ -163,8 +163,8 @@ function EventTypeRow({
               trigger={
                 <Button
                   type="button"
-                  variant="brutalistGhost"
-                  size="brutalist"
+                  variant="ohGhost"
+                  size="oh"
                   disabled={deleteEventType.isPending}
                 >
                   Delete

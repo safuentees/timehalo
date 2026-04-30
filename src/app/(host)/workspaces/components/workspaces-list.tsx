@@ -79,7 +79,7 @@ function WorkspaceRow({
   return (
     <Link
       href={`/workspaces/${slug}/members`}
-      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong"
+      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong"
     >
       <div className="flex min-w-0 flex-col gap-1.5">
         <span className="oh-eyebrow tabular-nums">{t(`role_${role}`)}</span>
@@ -89,7 +89,7 @@ function WorkspaceRow({
         </span>
       </div>
       <ArrowRightIcon
-        className="size-4 shrink-0 opacity-40 transition-opacity duration-150 ease-bru group-hover:opacity-100"
+        className="size-4 shrink-0 opacity-40 transition-opacity duration-150 ease-oh group-hover:opacity-100"
         aria-hidden
       />
     </Link>

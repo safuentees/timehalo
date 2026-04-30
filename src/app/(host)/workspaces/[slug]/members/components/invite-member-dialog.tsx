@@ -69,7 +69,7 @@ export function InviteMemberDialog({
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild>
-        <Button variant="brutalist" size="brutalist">
+        <Button variant="oh" size="oh">
           {t("inviteButton")}
         </Button>
       </ResponsiveModalTrigger>
@@ -202,7 +202,7 @@ function InviteForm({
                 <Button
                   type="button"
                   variant="outline"
-                  size="brutalistIcon"
+                  size="ohIcon"
                   onClick={() => remove(index)}
                   aria-label={t("removeInviteRow")}
                   disabled={isPending}
@@ -221,7 +221,7 @@ function InviteForm({
         <Button
           type="button"
           variant="outline"
-          size="brutalist"
+          size="oh"
           onClick={() => append(defaultRow())}
           disabled={isPending || fields.length >= 50}
           className="self-start"
@@ -244,7 +244,7 @@ function InviteForm({
           <Button
             type="button"
             variant="outline"
-            size="brutalist"
+            size="oh"
             onClick={onDone}
             disabled={isPending}
           >
@@ -252,8 +252,8 @@ function InviteForm({
           </Button>
           <Button
             type="submit"
-            variant="brutalist"
-            size="brutalist"
+            variant="oh"
+            size="oh"
             disabled={isPending}
           >
             {isPending

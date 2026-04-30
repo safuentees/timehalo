@@ -42,8 +42,8 @@ export function LeaveSection({
           trigger={
             <Button
               type="button"
-              variant="brutalistGhost"
-              size="brutalist"
+              variant="ohGhost"
+              size="oh"
               disabled={leave.isPending}
             >
               {leave.isPending ? t("leaving") : t("leaveAction")}

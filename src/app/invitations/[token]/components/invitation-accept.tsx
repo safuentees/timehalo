@@ -76,7 +76,7 @@ export default function InvitationAccept({
           {accepted ? (
             <Link
               href={`/workspaces/${workspaceSlug}/members`}
-              className={`${buttonVariants({ variant: "outline", size: "brutalist" })} w-full`}
+              className={`${buttonVariants({ variant: "outline", size: "oh" })} w-full`}
             >
               {t("openWorkspace")}
             </Link>
@@ -87,8 +87,8 @@ export default function InvitationAccept({
           ) : isAuthed ? (
             <Button
               type="button"
-              variant="brutalist"
-              size="brutalist"
+              variant="oh"
+              size="oh"
               className="w-full"
               onClick={() => accept.mutate({ token })}
               disabled={accept.isPending}
@@ -98,7 +98,7 @@ export default function InvitationAccept({
           ) : (
             <Link
               href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-              className={`${buttonVariants({ variant: "brutalist", size: "brutalist" })} w-full`}
+              className={`${buttonVariants({ variant: "oh", size: "oh" })} w-full`}
             >
               {t("signInToAccept")}
             </Link>

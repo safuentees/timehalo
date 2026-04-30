@@ -88,7 +88,7 @@ export function CalendarFields() {
         >
           {connections.map((c) => (
             <li key={c.id}>
-              <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-bru hover:border-oh-line-strong">
+              <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong">
                 <header className="flex min-w-0 flex-col gap-1.5">
                   <p className="oh-eyebrow">
                     {t(
@@ -107,8 +107,8 @@ export function CalendarFields() {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
-                    variant="brutalistGhost"
-                    size="brutalist"
+                    variant="ohGhost"
+                    size="oh"
                     onClick={() =>
                       setPickFor({
                         credentialId: c.id,
@@ -120,8 +120,8 @@ export function CalendarFields() {
                   </Button>
                   <Button
                     type="button"
-                    variant="brutalistGhost"
-                    size="brutalist"
+                    variant="ohGhost"
+                    size="oh"
                     onClick={() =>
                       disconnect.mutate({ credentialId: c.id })
                     }
@@ -142,8 +142,8 @@ export function CalendarFields() {
             <Button
               key={provider}
               type="button"
-              variant="brutalist"
-              size="brutalist"
+              variant="oh"
+              size="oh"
               onClick={() => onConnect(provider)}
               disabled={authUrl.isPending}
             >
