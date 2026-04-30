@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
@@ -13,6 +14,7 @@ import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 type Tab = "upcoming" | "past";
 
 export function BookingsList() {
+  const t = useTranslations("Bookings");
   const [tab, setTab] = useState<Tab>("upcoming");
   const { data } = trpc.bookings.listForHost.useQuery();
   // Feature flag query — when live-queue is off, we don't even mount
@@ -28,7 +30,7 @@ export function BookingsList() {
   return (
     <OhPageShell>
       <OhPageHeader
-        title="Your bookings"
+        title={t("title")}
         aside={liveQueueEnabled ? <LiveQueue /> : null}
       />
 
@@ -44,7 +46,7 @@ export function BookingsList() {
           button itself, no baseline-alignment math needed. */}
       <div
         role="tablist"
-        aria-label="Booking timeframe"
+        aria-label={t("tablistLabel")}
         className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong"
       >
         <SegButton
@@ -52,14 +54,14 @@ export function BookingsList() {
           count={data?.upcoming.length}
           onClick={() => setTab("upcoming")}
         >
-          Upcoming
+          {t("tabUpcoming")}
         </SegButton>
         <SegButton
           active={tab === "past"}
           count={data?.past.length}
           onClick={() => setTab("past")}
         >
-          Past
+          {t("tabPast")}
         </SegButton>
       </div>
 
@@ -209,6 +211,7 @@ function BookingRow({
 // No labels — color carries the state. ARIA describes it for screen
 // readers. Per chisel: labels are a last resort.
 function LiveQueue() {
+  const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
   const [status, setStatus] = useState<
     "hidden" | "connecting" | "live" | "off"
@@ -234,9 +237,9 @@ function LiveQueue() {
     onError: () => setStatus("off"),
     onData: ({ data: event }) => {
       if (event.type === "created") {
-        toast.success(`New booking from ${event.visitorName}`);
+        toast.success(t("toastNewBooking", { name: event.visitorName }));
       } else {
-        toast(`Cancelled: ${event.visitorName}`);
+        toast(t("toastCancelled", { name: event.visitorName }));
       }
       utils.bookings.listForHost.invalidate();
       setPulseKey((k) => k + 1);
@@ -249,15 +252,17 @@ function LiveQueue() {
   // pure color crossfade with zero CLS. Returning null here on first
   // render and then conditionally re-rendering would shift the title
   // row when the dot first lands.
-  return <LiveDot status={status} pulseKey={pulseKey} />;
+  return <LiveDot status={status} pulseKey={pulseKey} t={t} />;
 }
 
 function LiveDot({
   status,
   pulseKey,
+  t,
 }: {
   status: "hidden" | "connecting" | "live" | "off";
   pulseKey: number;
+  t: ReturnType<typeof useTranslations<"Bookings">>;
 }) {
   const isHidden = status === "hidden";
   const tone =
@@ -273,10 +278,10 @@ function LiveDot({
   const ariaLabel = isHidden
     ? undefined
     : status === "live"
-      ? "Live updates connected"
+      ? t("liveConnected")
       : status === "connecting"
-        ? "Connecting to live updates"
-        : "Live updates offline";
+        ? t("liveConnecting")
+        : t("liveOff");
 
   return (
     <span
@@ -299,14 +304,15 @@ function LiveDot({
 }
 
 function EmptyBookings({ tab }: { tab: Tab }) {
+  const t = useTranslations("Bookings");
   return (
     <OhEmpty
       icon={CalendarIcon}
-      title={tab === "upcoming" ? "No upcoming bookings" : "No past bookings"}
+      title={tab === "upcoming" ? t("emptyUpcomingTitle") : t("emptyPastTitle")}
       description={
         tab === "upcoming"
-          ? "Visitors who book a slot will show up here."
-          : "Bookings that have come and gone live in this tab."
+          ? t("emptyUpcomingDescription")
+          : t("emptyPastDescription")
       }
     />
   );

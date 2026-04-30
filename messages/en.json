@@ -357,5 +357,36 @@
     "systemStatus": "System status",
     "adminConsole": "Admin console",
     "signOut": "Sign out"
+  },
+  "Bookings": {
+    "title": "Your bookings",
+    "tabUpcoming": "Upcoming",
+    "tabPast": "Past",
+    "tablistLabel": "Booking timeframe",
+    "emptyUpcomingTitle": "No upcoming bookings",
+    "emptyUpcomingDescription": "Visitors who book a slot will show up here.",
+    "emptyPastTitle": "No past bookings",
+    "emptyPastDescription": "Bookings that have come and gone live in this tab.",
+    "liveConnected": "Live updates connected",
+    "liveConnecting": "Connecting to live updates",
+    "liveOff": "Live updates offline",
+    "toastNewBooking": "New booking from {name}",
+    "toastCancelled": "Cancelled: {name}"
+  },
+  "HostProfile": {
+    "openNow": "Open now",
+    "closedToday": "Closed today",
+    "rescheduling": "Rescheduling — pick a new slot",
+    "cancel": "Cancel",
+    "defaultBio": "Book a short conversation — pick a time that works.",
+    "daysWithSlots": "{count, plural, =0 {No days with open slots this week} one {1 day with open slots this week} other {# days with open slots this week}}",
+    "emptyClosedTitle": "No slots this week",
+    "emptyClosedDescription": "{name} hasn't opened any time yet. Check back later.",
+    "emptyBookedTitle": "Fully booked this week",
+    "emptyBookedDescription": "{name} has availability, but every visible slot is already taken. Check back later for the next opening.",
+    "nextAvailable": "Next available",
+    "pickADate": "Pick a date",
+    "nextSlotAria": "Next available slot",
+    "brandLabel": "Officehours"
   }
 }
