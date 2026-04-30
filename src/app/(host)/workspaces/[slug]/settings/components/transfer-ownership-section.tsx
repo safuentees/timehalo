@@ -52,7 +52,7 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
               value={pickedUserId}
               onChange={(e) => setPickedUserId(e.target.value)}
               disabled={transfer.isPending}
-              className="bru-input w-full font-[family-name:var(--bru-mono)] text-[13px]"
+              className="bru-input w-full font-[family-name:var(--oh-mono)] text-[13px]"
             >
               <option value="">{t("transferPlaceholder")}</option>
               {eligible.map((m) => {

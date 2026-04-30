@@ -35,7 +35,7 @@ export function LanguageFields() {
             await setLocaleAction(next);
           });
         }}
-        className="bru-input mt-5 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
+        className="bru-input mt-5 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>

@@ -113,7 +113,7 @@ function DeleteForm({
           {t.rich("dialogTypeEmail", {
             email,
             code: (chunks) => (
-              <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+              <code className="font-[family-name:var(--oh-mono)] text-[12px]">
                 {chunks}
               </code>
             ),

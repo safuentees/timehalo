@@ -56,7 +56,7 @@ export function ThemeFields() {
       {mounted && divergesFromOs && osPref ? (
         <p
           aria-live="polite"
-          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--bru-mono)] text-[10px] tracking-[2px] uppercase"
+          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--oh-mono)] text-[10px] tracking-[2px] uppercase"
         >
           <span className="opacity-65">
             {t("themeOsHint", {
@@ -69,7 +69,7 @@ export function ThemeFields() {
           <button
             type="button"
             onClick={() => setTheme("system")}
-            className="rounded-(--bru-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-bru-tint focus-visible:bg-bru-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-content focus-visible:outline-offset-2"
+            className="rounded-(--oh-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-bru-tint focus-visible:bg-bru-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-bru-content focus-visible:outline-offset-2"
           >
             {t("themeFollowOs")}
           </button>
@@ -112,7 +112,7 @@ function ThemeCard({
       />
       <ThemeSwatch value={value} />
       <div className="flex items-center justify-between gap-1.5 px-0.5">
-        <span className="font-[family-name:var(--bru-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase">
+        <span className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase">
           {label}
         </span>
         <Icon className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden />

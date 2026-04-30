@@ -83,7 +83,7 @@ export default async function StatusPage() {
         >
           {overallCopy}
         </h1>
-        <p className="mt-3 text-[13px] leading-[1.5] opacity-65 font-[family-name:var(--bru-mono)] tabular-nums">
+        <p className="mt-3 text-[13px] leading-[1.5] opacity-65 font-[family-name:var(--oh-mono)] tabular-nums">
           As of {new Date().toISOString()}
         </p>
 
@@ -97,7 +97,7 @@ export default async function StatusPage() {
                 <p className="text-[16px] font-black">{check.label}</p>
                 <span
                   className={[
-                    "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+                    "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
                     check.kind === "ok"
                       ? ""
                       : check.kind === "degraded"
@@ -133,11 +133,11 @@ export default async function StatusPage() {
           </p>
           <p className="mt-3 max-w-prose text-[13px] leading-[1.55] opacity-75">
             Programmatic consumers can poll{" "}
-            <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+            <code className="font-[family-name:var(--oh-mono)] text-[12px]">
               GET /api/health
             </code>{" "}
             (always 200 when the process is alive) or{" "}
-            <code className="font-[family-name:var(--bru-mono)] text-[12px]">
+            <code className="font-[family-name:var(--oh-mono)] text-[12px]">
               GET /api/ready
             </code>{" "}
             (200 ready / 503 not ready, JSON body with per-check

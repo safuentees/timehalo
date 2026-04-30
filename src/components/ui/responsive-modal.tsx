@@ -156,10 +156,10 @@ export function ResponsiveModalContent({
         inset: 0,
         margin: "auto",
         translate: "none",
-        width: "var(--bru-modal-w)",
-        maxWidth: "calc(100vw - 2 * var(--bru-modal-edge))",
-        height: "calc(100vh - 2 * var(--bru-modal-vinset))",
-        maxHeight: "calc(100vh - 2 * var(--bru-modal-vinset))",
+        width: "var(--oh-modal-w)",
+        maxWidth: "calc(100vw - 2 * var(--oh-modal-edge))",
+        height: "calc(100vh - 2 * var(--oh-modal-vinset))",
+        maxHeight: "calc(100vh - 2 * var(--oh-modal-vinset))",
       }}
       showCloseButton={showCloseButton}
     >
@@ -283,7 +283,7 @@ export function ResponsiveModalClose({
 }: CloseProps) {
   const { isMobile } = useResponsiveModal();
   const baseClass = cn(
-    "rounded-(--bru-r-xs)",
+    "rounded-(--oh-r-xs)",
     floating &&
       "absolute top-3 right-3 z-10 [&]:translate-x-0 [&]:translate-y-0",
     className,

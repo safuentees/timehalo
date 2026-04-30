@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             Operator surface
           </h1>
         </div>
-        <nav className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase">
+        <nav className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase">
           <Link href="/admin/feature-flags" className="underline-offset-4 hover:underline">
             Feature flags
           </Link>

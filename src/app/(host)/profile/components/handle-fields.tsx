@@ -41,7 +41,7 @@ export function HandleFields() {
           </BrutalistInputGroup>
           <FieldError
             errors={fieldState.error ? [fieldState.error] : undefined}
-            className="font-[family-name:var(--bru-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
+            className="font-[family-name:var(--oh-mono)] text-[9.5px] font-bold tracking-[2.5px] uppercase"
           />
         </Field>
       )}

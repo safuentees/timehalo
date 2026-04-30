@@ -32,7 +32,7 @@ export function BookingsList() {
       <div
         role="tablist"
         aria-label="Booking timeframe"
-        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+        className="mt-8 grid w-fit grid-cols-2 overflow-hidden rounded-(--oh-r-sm) border-2 border-bru-line-strong"
       >
         <SegButton
           active={tab === "upcoming"}
@@ -92,7 +92,7 @@ function SegButton({
       onClick={onClick}
       className={[
         "inline-flex items-center justify-center gap-2.5 px-4 py-2.5",
-        "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
         "border-r-2 border-bru-line-strong last:border-r-0",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",
@@ -132,7 +132,7 @@ function BookingRow({
   return (
     <Link
       href={`/bookings/${publicUid}`}
-      className="group block rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong focus-visible:outline-none focus-visible:border-bru-line-strong"
+      className="group block rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong focus-visible:outline-none focus-visible:border-bru-line-strong"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
@@ -151,7 +151,7 @@ function BookingRow({
         </p>
       ) : null}
 
-      <p className="mt-2 font-[family-name:var(--bru-mono)] text-[12px] tabular-nums opacity-55 truncate">
+      <p className="mt-2 font-[family-name:var(--oh-mono)] text-[12px] tabular-nums opacity-55 truncate">
         {visitorEmail}
       </p>
     </Link>

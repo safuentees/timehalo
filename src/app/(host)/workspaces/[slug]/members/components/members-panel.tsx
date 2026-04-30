@@ -163,7 +163,7 @@ function MemberRow({
     : ROLE_OPTIONS.filter((r) => r === "MEMBER" || r === "VIEWER");
 
   return (
-    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4 transition-colors duration-150 ease-bru hover:border-bru-line-strong">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[15px] leading-[1.2] font-black truncate">{name}</h3>
@@ -190,7 +190,7 @@ function MemberRow({
               setRole.mutate({ slug, userId, role: next });
             }}
             disabled={setRole.isPending}
-            className="bru-input min-w-[140px] font-[family-name:var(--bru-mono)] text-[12px]"
+            className="bru-input min-w-[140px] font-[family-name:var(--oh-mono)] text-[12px]"
           >
             {allowedTargets.map((r) => (
               <option key={r} value={r}>
@@ -262,7 +262,7 @@ function InvitationRow({
   return (
     <article
       className={[
-        "rounded-(--bru-r-sm) border-[1.5px] bg-bru-bg p-4 transition-colors duration-150 ease-bru",
+        "rounded-(--oh-r-sm) border-[1.5px] bg-bru-bg p-4 transition-colors duration-150 ease-bru",
         accepted || expired ? "border-bru-line opacity-60" : "border-bru-line hover:border-bru-line-strong",
       ].join(" ")}
     >
@@ -289,7 +289,7 @@ function InvitationRow({
                 })
               }
               disabled={updateRole.isPending}
-              className="bru-input font-[family-name:var(--bru-mono)] text-[12px]"
+              className="bru-input font-[family-name:var(--oh-mono)] text-[12px]"
             >
               {ROLE_OPTIONS.map((r) => (
                 <option key={r} value={r}>

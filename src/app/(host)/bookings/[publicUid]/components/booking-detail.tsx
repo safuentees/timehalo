@@ -147,7 +147,7 @@ export default function BookingDetail({
       <div
         role="tablist"
         aria-label={t("tabsLabel")}
-        className="mt-8 inline-flex overflow-hidden rounded-(--bru-r-sm) border-2 border-bru-line-strong"
+        className="mt-8 inline-flex overflow-hidden rounded-(--oh-r-sm) border-2 border-bru-line-strong"
       >
         <SegButton active={tab === "info"} onClick={() => setTab("info")}>
           {t("tabInfo")}
@@ -254,7 +254,7 @@ function NeighbourLink({
 }) {
   const Icon = direction === "previous" ? ChevronLeftIcon : ChevronRightIcon;
   const baseClass =
-    "inline-flex size-7 items-center justify-center rounded-(--bru-r-xs) transition-opacity";
+    "inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) transition-opacity";
   if (!uid) {
     return (
       <span
@@ -269,7 +269,7 @@ function NeighbourLink({
     <Link
       href={`/bookings/${uid}`}
       aria-label={label}
-      className={`${baseClass} opacity-55 hover:bg-[var(--bru-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--bru-ink)] focus-visible:outline-offset-2`}
+      className={`${baseClass} opacity-55 hover:bg-[var(--oh-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2`}
     >
       <Icon className="size-3.5" strokeWidth={1.75} />
     </Link>
@@ -309,7 +309,7 @@ function SegButton({
       onClick={onClick}
       className={[
         "inline-flex items-center gap-2.5 px-4 py-2.5",
-        "font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
+        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
         "transition-colors duration-150 ease-bru",
         "border-r-2 border-bru-line-strong last:border-r-0",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bru-line-strong focus-visible:ring-inset",

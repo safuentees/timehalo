@@ -46,7 +46,7 @@ export default function ErrorPage({
         description="If you're a host"
       />
       {error.digest ? (
-        <li className="font-[family-name:var(--bru-mono)] text-[10px] tracking-[1.5px] uppercase opacity-55">
+        <li className="font-[family-name:var(--oh-mono)] text-[10px] tracking-[1.5px] uppercase opacity-55">
           digest: {error.digest}
         </li>
       ) : null}

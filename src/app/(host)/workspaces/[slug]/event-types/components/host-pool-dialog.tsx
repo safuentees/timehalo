@@ -125,7 +125,7 @@ function HostRow({
   const removeHost = useRemoveEventTypeHost();
 
   return (
-    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h4 className="text-[14px] font-bold truncate">
           {host.user.name ?? host.user.handle ?? host.user.email}
@@ -169,7 +169,7 @@ function HostRow({
                 priority: Number(e.target.value),
               })
             }
-            className="bru-input font-[family-name:var(--bru-mono)] text-[12px]"
+            className="bru-input font-[family-name:var(--oh-mono)] text-[12px]"
           >
             {[0, 1, 2, 3, 4].map((p) => (
               <option key={p} value={p}>
@@ -203,7 +203,7 @@ function HostRow({
               }
             }}
             onChange={() => {}}
-            className="bru-input w-20 font-[family-name:var(--bru-mono)] text-[12px]"
+            className="bru-input w-20 font-[family-name:var(--oh-mono)] text-[12px]"
           />
         </label>
       </div>
@@ -277,7 +277,7 @@ function AddHostPicker({
           value={picked}
           disabled={addHost.isPending}
           onChange={(e) => setPicked(e.target.value)}
-          className="bru-input min-w-48 font-[family-name:var(--bru-mono)] text-[12px]"
+          className="bru-input min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
         >
           <option value="">Select…</option>
           {candidates.map((m) => (

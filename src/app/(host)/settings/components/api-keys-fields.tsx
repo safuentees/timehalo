@@ -80,7 +80,7 @@ function ApiKeysForWorkspace({
             id="api-keys-workspace"
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
-            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
+            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
           >
             {workspaces.map((w) => (
               <option key={w.slug} value={w.slug}>
@@ -164,7 +164,7 @@ function ApiKeyRow({
   return (
     <article
       className={[
-        "rounded-(--bru-r-sm) border-[1.5px] bg-bru-bg p-4 transition-colors duration-150 ease-bru",
+        "rounded-(--oh-r-sm) border-[1.5px] bg-bru-bg p-4 transition-colors duration-150 ease-bru",
         revoked
           ? "border-bru-line opacity-60"
           : "border-bru-line hover:border-bru-line-strong",
@@ -197,7 +197,7 @@ function ApiKeyRow({
         )}
       </header>
 
-      <p className="mt-2 truncate font-[family-name:var(--bru-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
+      <p className="mt-2 truncate font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
         {prefix}
         <span aria-hidden className="ml-0.5 tracking-[3px]">...</span>
       </p>

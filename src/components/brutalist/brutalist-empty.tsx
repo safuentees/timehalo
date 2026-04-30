@@ -19,7 +19,7 @@ export function BrutalistEmpty({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-(--bru-r-sm) border-2 border-dashed border-bru-line-strong p-10 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-(--oh-r-sm) border-2 border-dashed border-bru-line-strong p-10 text-center",
         className,
       )}
     >
@@ -27,14 +27,14 @@ export function BrutalistEmpty({
         <Icon
           aria-hidden
           strokeWidth={1.5}
-          className="size-8 text-[color:var(--bru-content-subtle)]"
+          className="size-8 text-[color:var(--oh-content-subtle)]"
         />
       ) : null}
       <h3 className="font-heading text-base font-bold tracking-tight">
         {title}
       </h3>
       {description ? (
-        <p className="max-w-xs text-[13px] leading-relaxed text-[color:var(--bru-content-muted)]">
+        <p className="max-w-xs text-[13px] leading-relaxed text-[color:var(--oh-content-muted)]">
           {description}
         </p>
       ) : null}

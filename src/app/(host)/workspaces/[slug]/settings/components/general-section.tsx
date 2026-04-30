@@ -139,7 +139,7 @@ export function GeneralSection({
                     disabled={!canEdit || isPending}
                     aria-invalid={fieldState.invalid}
                     aria-describedby={`${field.name}-hint`}
-                    className="bru-input mt-2 w-full font-[family-name:var(--bru-mono)] text-[13px] tracking-tight"
+                    className="bru-input mt-2 w-full font-[family-name:var(--oh-mono)] text-[13px] tracking-tight"
                   />
                   <p
                     id={`${field.name}-hint`}

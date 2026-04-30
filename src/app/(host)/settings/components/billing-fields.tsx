@@ -109,7 +109,7 @@ function BillingForWorkspace({
             id="billing-workspace"
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
-            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--bru-mono)] text-[14px]"
+            className="bru-input mt-2 min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
           >
             {workspaces.map((w) => (
               <option key={w.slug} value={w.slug}>
@@ -193,11 +193,11 @@ function CurrentPlanBanner({
       : null;
 
   return (
-    <article className="rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong sm:p-6">
+    <article className="rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru hover:border-bru-line-strong sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0 flex-1">
           <p className="bru-eyebrow">{t("currentPlanLabel")}</p>
-          <h3 className="mt-2 font-[family-name:var(--bru-mono)] text-[28px] font-black uppercase leading-none tracking-[1px]">
+          <h3 className="mt-2 font-[family-name:var(--oh-mono)] text-[28px] font-black uppercase leading-none tracking-[1px]">
             {t(`tier.${plan}`)}
           </h3>
           <p className="mt-2 text-[13px] opacity-65">
@@ -265,7 +265,7 @@ function PlanCard({
   return (
     <article
       className={[
-        "flex h-full flex-col rounded-(--bru-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru sm:p-6",
+        "flex h-full flex-col rounded-(--oh-r-sm) border-[1.5px] border-bru-line bg-bru-bg p-5 transition-colors duration-150 ease-bru sm:p-6",
         isCurrent
           ? "border-bru-line-strong"
           : "hover:border-bru-line-strong",
@@ -274,7 +274,7 @@ function PlanCard({
       <header>
         <p className="bru-eyebrow">{t(`tier.${tier}`)}</p>
         <p className="mt-3 flex items-baseline gap-1">
-          <span className="font-[family-name:var(--bru-mono)] text-[28px] font-black tabular-nums leading-none">
+          <span className="font-[family-name:var(--oh-mono)] text-[28px] font-black tabular-nums leading-none">
             {formatPrice(display.priceCents)}
           </span>
           <span className="bru-eyebrow opacity-55">{t("perMonth")}</span>

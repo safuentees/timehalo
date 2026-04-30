@@ -64,7 +64,7 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
                   id={field.name}
                   aria-labelledby="timezone-legend"
                   aria-invalid={fieldState.invalid}
-                  className="bru-input w-full min-w-[260px] font-[family-name:var(--bru-mono)] text-[14px]"
+                  className="bru-input w-full min-w-[260px] font-[family-name:var(--oh-mono)] text-[14px]"
                 >
                   {timezones.map((z) => (
                     <option key={z} value={z}>
