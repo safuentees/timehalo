@@ -13,7 +13,7 @@ export default function ProfileLoading() {
         <Skeleton className="h-3 w-72" />
         <Skeleton className="mt-2 h-11 w-full max-w-md" />
       </div>
-      <div className="mt-10 flex justify-end border-t-2 border-oh-line-strong pt-6">
+      <div className="mt-10 flex justify-end">
         <Skeleton className="h-10 w-40" />
       </div>
     </OhPageShell>

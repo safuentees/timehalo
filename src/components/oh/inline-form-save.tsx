@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 
 // Inline commit affordance for full-page forms (`/profile`,
 // `/availability`, future single-purpose pages). Sits at the bottom of
-// the page-shell, scrolls with content, separated from the last field by
-// a 2px ink rule so the action reads as the closer to the form.
+// the page-shell, scrolls with content, separated from the last field
+// by whitespace alone — the prominent filled button reads as the
+// action zone without a hard rule.
 //
 // Replaces the previous sticky `OhSaveBar` island. Audit on
 // 2026-04-29: cal.com (`SectionBottomActions` → `apps/web/modules/...`)
@@ -54,7 +55,7 @@ export function InlineFormSave({
 
   return (
     <div
-      className="mt-10 flex justify-end border-t-2 border-oh-line-strong pt-6"
+      className="mt-10 flex justify-end"
       role="region"
       aria-label={ariaLabel ?? labels.save}
     >
