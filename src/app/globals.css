@@ -2669,6 +2669,10 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   margin: 12px;
 }
 
+:root.oh-firefox {
+  view-transition-name: none !important;
+}
+
 :root.oh-firefox .oh-dashboard-bar,
 :root.oh-firefox [data-slot="sidebar-gap"],
 :root.oh-firefox [data-slot="sidebar-container"],
