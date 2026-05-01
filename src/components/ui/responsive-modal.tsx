@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useState,
   type ComponentProps,
   type ReactElement,
   type ReactNode,
@@ -27,6 +28,8 @@ const MOBILE_QUERY = "(max-width: 767px)";
 type ModalCtx = {
   isMobile: boolean;
   nested: boolean;
+  mobilePortalContainer: HTMLElement | null;
+  setMobilePortalContainer: (el: HTMLElement | null) => void;
 };
 
 const Ctx = createContext<ModalCtx | null>(null);
@@ -39,6 +42,12 @@ function useResponsiveModal() {
     );
   }
   return ctx;
+}
+
+export function useResponsiveModalPortalContainer(): HTMLElement | null {
+  const ctx = useContext(Ctx);
+  if (!ctx) return null;
+  return ctx.isMobile ? ctx.mobilePortalContainer : null;
 }
 
 type RootProps = {
@@ -55,6 +64,8 @@ export function ResponsiveModal({
   nested = false,
 }: RootProps) {
   const isMobile = useMediaQuery(MOBILE_QUERY);
+  const [mobilePortalContainer, setMobilePortalContainer] =
+    useState<HTMLElement | null>(null);
 
   const Root = isMobile
     ? nested
@@ -63,7 +74,14 @@ export function ResponsiveModal({
     : null;
 
   return (
-    <Ctx.Provider value={{ isMobile, nested }}>
+    <Ctx.Provider
+      value={{
+        isMobile,
+        nested,
+        mobilePortalContainer,
+        setMobilePortalContainer,
+      }}
+    >
       {isMobile && Root ? (
         <Root open={open} onOpenChange={onOpenChange}>
           {children}
@@ -122,7 +140,7 @@ export function ResponsiveModalContent({
   showCloseButton = false,
   defaultClose = true,
 }: ContentProps) {
-  const { isMobile } = useResponsiveModal();
+  const { isMobile, setMobilePortalContainer } = useResponsiveModal();
 
   if (isMobile) {
     return (
@@ -131,6 +149,7 @@ export function ResponsiveModalContent({
           className={cn("oh-drawer-overlay", overlayClassName)}
         />
         <DrawerPrimitive.Content
+          ref={setMobilePortalContainer}
           className={cn("oh-drawer-content", mobileClassName)}
         >
           {showHandle ? (

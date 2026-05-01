@@ -533,66 +533,6 @@
   transform: scale(0.96) translateY(-4px);
 }
 
-.oh-time-picker-divider {
-  background: color-mix(in srgb, var(--oh-ink) 14%, transparent);
-}
-
-.oh-time-picker-column {
-  display: flex;
-  flex-direction: column;
-  padding: 4px 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--oh-ink) 22%, transparent) transparent;
-}
-.oh-time-picker-column--periods {
-  justify-content: center;
-  padding: 0 0;
-}
-.oh-time-picker-column::-webkit-scrollbar {
-  width: 4px;
-}
-.oh-time-picker-column::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--oh-ink) 22%, transparent);
-  border-radius: 2px;
-}
-
-.oh-time-picker-cell {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 10px;
-  font-family: var(--oh-mono);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--oh-ink);
-  opacity: 0.65;
-  cursor: pointer;
-  font-variant-numeric: tabular-nums;
-  transition:
-    background-color 120ms var(--ease-oh, ease),
-    opacity 120ms var(--ease-oh, ease),
-    color 120ms var(--ease-oh, ease);
-}
-.oh-time-picker-cell:hover {
-  background: var(--oh-tint-hover);
-  opacity: 1;
-}
-.oh-time-picker-cell:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: -2px;
-  opacity: 1;
-}
-.oh-time-picker-cell.is-active {
-  background: var(--oh-ink);
-  color: var(--oh-paper);
-  opacity: 1;
-}
-
 .oh-time-picker-input {
   appearance: none;
   width: 48px;

@@ -13,6 +13,7 @@ import {
 import { ChevronRightIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
+import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 export type OhTimePickerProps = {
   value: string;
@@ -42,6 +43,8 @@ export function OhTimePicker({
   const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
 
+  const portalContainer = useResponsiveModalPortalContainer();
+
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -61,7 +64,7 @@ export function OhTimePicker({
           aria-hidden
         />
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal container={portalContainer}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}
