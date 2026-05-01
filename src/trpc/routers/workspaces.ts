@@ -19,7 +19,7 @@ import {
   planForWorkspace,
   requireFeature,
 } from "@/lib/billing";
-import { privateProcedure, router } from "@/trpc/trpc";
+import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 const workspaceMembershipRoleSchema = z.enum([
   "OWNER",
@@ -148,6 +148,53 @@ export const workspaces = router({
         name: membership.workspace.name,
         callerRole: membership.role,
         callerScopes: scopesFor(membership.role),
+      };
+    }),
+
+  publicGetBySlug: publicProcedure
+    .input(z.object({ slug: workspaceSlugSchema }))
+    .query(async ({ input }) => {
+      const workspace = await prisma.workspace.findUnique({
+        where: { slug: input.slug },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          memberships: {
+            select: {
+              role: true,
+              assignedAt: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  handle: true,
+                  image: true,
+                  timezone: true,
+                },
+              },
+            },
+            orderBy: [{ role: "asc" }, { assignedAt: "asc" }],
+          },
+        },
+      });
+      if (!workspace) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const members = workspace.memberships
+        .filter((m) => m.user.handle !== null)
+        .map((m) => ({
+          role: m.role,
+          id: m.user.id,
+          name: m.user.name,
+          handle: m.user.handle as string,
+          image: m.user.image,
+          timezone: m.user.timezone,
+        }));
+
+      return {
+        slug: workspace.slug,
+        name: workspace.name,
+        members,
       };
     }),
 

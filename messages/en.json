@@ -378,6 +378,15 @@
     "exit": "Exit preview, return to dashboard",
     "exitLabel": "Exit preview"
   },
+  "TeamProfile": {
+    "eyebrow": "Team",
+    "description": "Pick a member to book time with. Each name leads to their own page where you can choose a slot.",
+    "memberCount": "{count, plural, =0 {No members} one {1 member} other {# members}}",
+    "listLabel": "Team members",
+    "listHeading": "Members",
+    "emptyDescription": "This team hasn't added anyone yet. Check back later.",
+    "ownerBadge": "Owner"
+  },
   "HostProfile": {
     "openNow": "Open now",
     "closedToday": "Closed today",

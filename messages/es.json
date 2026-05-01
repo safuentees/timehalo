@@ -378,6 +378,15 @@
     "exit": "Salir de la vista previa, volver al panel",
     "exitLabel": "Salir de la vista previa"
   },
+  "TeamProfile": {
+    "eyebrow": "Equipo",
+    "description": "Elige a un miembro para reservar tiempo. Cada nombre lleva a su página, donde puedes escoger un horario.",
+    "memberCount": "{count, plural, =0 {Sin miembros} one {1 miembro} other {# miembros}}",
+    "listLabel": "Miembros del equipo",
+    "listHeading": "Miembros",
+    "emptyDescription": "Este equipo aún no tiene miembros. Vuelve más tarde.",
+    "ownerBadge": "Propietario"
+  },
   "HostProfile": {
     "openNow": "Disponible ahora",
     "closedToday": "Cerrado hoy",
