@@ -19,6 +19,8 @@ export function OhDashboardLayout({
   children: ReactNode;
 }) {
   const { typeface, density, motion } = useOhPrefs();
+  const pathname = usePathname();
+  const isPreview = pathname?.startsWith("/preview/") ?? false;
 
   const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
@@ -30,6 +32,7 @@ export function OhDashboardLayout({
         className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
+        data-oh-preview={isPreview ? "true" : undefined}
       >
         <OhDashboardBar />
         <div className="oh-app flex min-h-0 flex-1">

@@ -377,7 +377,7 @@ function EmptyBookings({ tab }: { tab: Tab }) {
       {tab === "upcoming" && me?.handle ? (
         <OhEmptyContent>
           <Link
-            href={`/h/${me.handle}`}
+            href={`/preview/${me.handle}`}
             className="text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
           >
             {t("emptyCta")}
