@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { trpc } from "@/trpc/hooks";
 import {
   OhEmpty,
@@ -54,17 +56,14 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
         }}
         className="mt-8"
       >
-        <TabsList
-          aria-label={t("tablistLabel")}
-          className="h-auto w-fit gap-0 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong bg-transparent p-0"
-        >
-          <BookingTabTrigger value="upcoming" count={data?.upcoming.length}>
-            {t("tabUpcoming")}
-          </BookingTabTrigger>
-          <BookingTabTrigger value="past" count={data?.past.length}>
-            {t("tabPast")}
-          </BookingTabTrigger>
-        </TabsList>
+        <BookingsTabBar
+          activeTab={activeTab}
+          upcomingCount={data?.upcoming.length ?? 0}
+          pastCount={data?.past.length ?? 0}
+          tablistLabel={t("tablistLabel")}
+          upcomingLabel={t("tabUpcoming")}
+          pastLabel={t("tabPast")}
+        />
 
         <TabsContent value="upcoming" className="mt-6">
           <BookingsListPanel
@@ -80,35 +79,147 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   );
 }
 
-function BookingTabTrigger({
-  value,
-  count,
-  children,
+function formatCount(n: number): string {
+  if (n >= 100) return "99+";
+  return String(n).padStart(2, "0");
+}
+
+function BookingsTabBar({
+  activeTab,
+  upcomingCount,
+  pastCount,
+  tablistLabel,
+  upcomingLabel,
+  pastLabel,
 }: {
-  value: Tab;
-  count?: number;
-  children: React.ReactNode;
+  activeTab: Tab;
+  upcomingCount: number;
+  pastCount: number;
+  tablistLabel: string;
+  upcomingLabel: string;
+  pastLabel: string;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const upcomingRef = useRef<HTMLButtonElement>(null);
+  const pastRef = useRef<HTMLButtonElement>(null);
+  const underlineRef = useRef<HTMLSpanElement>(null);
+  const firstRunRef = useRef(true);
+
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const measureFor = (which: Tab) => {
+    const target = which === "upcoming" ? upcomingRef.current : pastRef.current;
+    if (!target) return null;
+    return { x: target.offsetLeft, width: target.offsetWidth };
+  };
+
+  useGSAP(
+    () => {
+      const geom = measureFor(activeTab);
+      if (!geom || !underlineRef.current) return;
+
+      if (firstRunRef.current) {
+        firstRunRef.current = false;
+        gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
+        return;
+      }
+
+      const reduceMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      gsap.to(underlineRef.current, {
+        x: geom.x,
+        width: geom.width,
+        duration: reduceMotion ? 0 : 0.35,
+        ease: "power3.inOut",
+        overwrite: true,
+      });
+    },
+    { scope: listRef, dependencies: [activeTab] },
+  );
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    let initialFire = true;
+    const observer = new ResizeObserver(() => {
+      if (initialFire) {
+        initialFire = false;
+        return;
+      }
+      const geom = measureFor(activeTabRef.current);
+      if (!geom || !underlineRef.current) return;
+      gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
+    });
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <TabsList
+      ref={listRef}
+      aria-label={tablistLabel}
+      variant="line"
+      className="relative h-auto w-fit gap-4 p-0"
+    >
+      <BookingTabTrigger
+        ref={upcomingRef}
+        value="upcoming"
+        count={upcomingCount}
+      >
+        {upcomingLabel}
+      </BookingTabTrigger>
+      <span
+        aria-hidden
+        className="inline-block h-3.5 w-px self-center bg-oh-line"
+      />
+      <BookingTabTrigger ref={pastRef} value="past" count={pastCount}>
+        {pastLabel}
+      </BookingTabTrigger>
+      <span
+        ref={underlineRef}
+        aria-hidden
+        className="pointer-events-none absolute bottom-[-5px] left-0 h-0.5 bg-[var(--oh-ink)]"
+      />
+    </TabsList>
+  );
+}
+
+const BookingTabTrigger = forwardRef<
+  HTMLButtonElement,
+  {
+    value: Tab;
+    count: number;
+    children: React.ReactNode;
+  }
+>(function BookingTabTrigger({ value, count, children }, ref) {
   return (
     <TabsTrigger
+      ref={ref}
       value={value}
       className={[
-        "h-auto flex-none rounded-none border-0 px-4 py-2.5",
-        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "border-r-2 border-oh-line-strong last:border-r-0",
-        "data-active:!bg-oh-content data-active:!text-oh-bg data-active:!shadow-none",
-        "hover:bg-oh-tint",
+        "group/tab inline-flex items-center gap-2 h-auto rounded-none border-0 bg-transparent p-0 py-1",
+        "shadow-none data-active:shadow-none after:hidden",
+        "cursor-pointer",
+        "before:content-[''] before:absolute before:-inset-x-2 before:-inset-y-4",
+        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase tabular-nums",
+        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)]",
+        "transition-colors duration-150 ease-oh",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-4",
+        "[-webkit-tap-highlight-color:transparent]",
       ].join(" ")}
     >
       <span className="leading-none">{children}</span>
-      {typeof count === "number" ? (
-        <span className="tabular-nums text-[11px] font-bold leading-none opacity-45 group-data-[state=active]:opacity-65 data-active:opacity-65">
-          {count}
-        </span>
-      ) : null}
+      <span className="leading-none group-data-[state=active]/tab:opacity-65">
+        {formatCount(count)}
+      </span>
     </TabsTrigger>
   );
-}
+});
 
 type Booking = {
   id: number;
@@ -288,7 +399,7 @@ function EmptyBookings({ tab }: { tab: Tab }) {
         <OhEmptyContent>
           <Link
             href={`/h/${me.handle}`}
-            className="oh-eyebrow border-[1.5px] border-oh-line-strong px-3 py-2 transition-colors hover:bg-oh-tint-hover"
+            className="text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
           >
             {t("emptyCta")}
           </Link>
