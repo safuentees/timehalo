@@ -36,7 +36,7 @@ function OhEmptyMedia({
     <div
       data-slot="oh-empty-media"
       className={cn(
-        "flex items-center justify-center text-[color:var(--oh-content-subtle)] [&_svg]:size-8 [&_svg:not([class*='stroke-'])]:[stroke-width:1.5]",
+        "flex items-center justify-center text-[color:var(--oh-ink)] [&_svg]:size-8 [&_svg]:opacity-[0.35] [&_svg:not([class*='stroke-'])]:[stroke-width:1.5]",
         className,
       )}
       {...props}

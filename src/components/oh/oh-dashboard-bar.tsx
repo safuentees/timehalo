@@ -15,8 +15,8 @@ import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
+import { OhMenuTrigger } from "./oh-menu-trigger";
 import { OhUserMenu } from "./user-menu";
 
 export function OhDashboardBar() {
@@ -49,10 +49,7 @@ export function OhDashboardBar() {
 
   return (
     <div className="oh-dashboard-bar">
-      <SidebarTrigger
-        aria-label="Open menu"
-        className="-ml-1 mr-1 size-7 rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] md:hidden"
-      />
+      <OhMenuTrigger className="-ml-1 mr-1 md:hidden" />
       <Menu.Root>
         <Menu.Trigger
           id="oh-workspace-switcher-trigger"
@@ -155,7 +152,7 @@ function ChromeIconLink({
     <Link
       href={href}
       aria-label={label}
-      className="inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
+      className="group/chrome inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2 [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh group-hover/chrome:[&_svg]:opacity-100 hover:[&_svg]:opacity-100"
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
     </Link>

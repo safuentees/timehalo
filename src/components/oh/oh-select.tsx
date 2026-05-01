@@ -26,7 +26,7 @@ export function OhSelect({
       <ChevronDown
         aria-hidden
         strokeWidth={1.75}
-        className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-[color:var(--oh-content-muted)]"
+        className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-[color:var(--oh-ink)] opacity-[0.55]"
       />
     </span>
   );

@@ -191,8 +191,8 @@ const BookingTabTrigger = forwardRef<
         "cursor-pointer",
         "before:content-[''] before:absolute before:-inset-x-2 before:-inset-y-4",
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase tabular-nums",
-        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)]",
-        "transition-colors duration-150 ease-oh",
+        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)] focus:text-[color:var(--oh-ink)]",
+        "transition-none",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-4",
         "[-webkit-tap-highlight-color:transparent]",
       ].join(" ")}
