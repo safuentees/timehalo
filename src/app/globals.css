@@ -3127,6 +3127,21 @@
 ::view-transition-group(oh-chrome-panel) {
   border-radius: var(--oh-r-window);
   overflow: hidden;
+  /* Solid paper background BEHIND the cross-fading snapshots (B.PT67).
+     The group pseudo-element is the container that morphs position +
+     size during the transition; the snapshots inside it fade in/out
+     per the sequenced keyframes. Without this bg, when the OLD
+     snapshot fades from opacity 1 → 0 (and before the NEW one fades
+     in), the panel area becomes transparent and the surrounding cream
+     frame (`--oh-frame`) shows through — reads as the panel's paper
+     bg "fading away with the content," which the user flagged as the
+     remaining choppy artifact on desktop. Painting paper on the group
+     itself means the morphing container always shows paper-colored
+     fill regardless of snapshot opacity. The snapshots' own paper bg
+     stacks on top of this; both layers are paper, so the cross-fade
+     reads as content-only swap with a stable bg — exactly the visual
+     contract the chrome morph should have. */
+  background: var(--oh-paper);
 }
 
 /* Group runs the position/size morph (the visible chrome motion). */
