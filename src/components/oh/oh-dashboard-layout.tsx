@@ -22,6 +22,13 @@ export function OhDashboardLayout({
   const pathname = usePathname();
   const isPreview = pathname?.startsWith("/preview/") ?? false;
 
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    if (/firefox/i.test(navigator.userAgent)) {
+      document.documentElement.classList.add("oh-firefox");
+    }
+  }, []);
+
   const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
     .join(" ");

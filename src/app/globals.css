@@ -2669,6 +2669,23 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   margin: 12px;
 }
 
+:root.oh-firefox .oh-dashboard-bar,
+:root.oh-firefox [data-slot="sidebar-gap"],
+:root.oh-firefox [data-slot="sidebar-container"],
+:root.oh-firefox .oh-host-content {
+  view-transition-name: none;
+}
+
+:root.oh-firefox .oh-host-content {
+  transition: margin 380ms var(--ease-oh);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.oh-firefox .oh-host-content {
+    transition-duration: 0ms;
+  }
+}
+
 .oh-preview-exit {
   position: absolute;
   top: 14px;
