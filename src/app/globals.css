@@ -2572,6 +2572,7 @@
 ::view-transition-group(oh-chrome-panel) {
   border-radius: var(--oh-r-window);
   overflow: hidden;
+  background: var(--oh-paper);
 }
 
 ::view-transition-group(oh-chrome-bar),
