@@ -3153,6 +3153,26 @@
   animation-timing-function: var(--ease-oh);
 }
 
+/* Stacking order for the chrome-morph snapshots (B.PT68). Per the View
+   Transitions API spec, `::view-transition-group(name)` inherits z-stacking
+   from the captured element's original z-index. The shadcn sidebar
+   primitive ships `fixed inset-y-0 z-10` on `[data-slot="sidebar-container"]`
+   (sidebar.tsx:233) so the sidebar's snapshot lands at z=10 — ABOVE the
+   panel snapshot (z auto = 0). When the sidebar fades out during preview
+   entry, its snapshot overlays the panel during the cross-fade — visually
+   reads as the disappearing sidebar floating on top of the morph instead
+   of receding behind it. Override: send sidebar groups under the panel
+   group so the fade-out happens behind the chrome that's becoming the
+   focal point. */
+::view-transition-group(oh-chrome-sidebar),
+::view-transition-group(oh-chrome-sidebar-gap) {
+  z-index: 0;
+}
+
+::view-transition-group(oh-chrome-panel) {
+  z-index: 1;
+}
+
 /* Sequenced cross-fade (B.PT66): old fully fades out, then new fades in
    — no overlap window. The default UA cross-fade runs old AND new
    simultaneously over the same window with `mix-blend-mode: plus-lighter`,
