@@ -13,6 +13,7 @@ import {
 import { ChevronRightIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
+import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 // Custom oh-themed time picker. Replaces the previous opacity-0
 // `<input type="time">` overlay that worked on iOS Safari but not on
@@ -72,6 +73,16 @@ export function OhTimePicker({
   const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
 
+  // When the picker is rendered inside a Vaul drawer (mobile), the
+  // popover must portal INTO the drawer's content. Vaul applies
+  // `pointer-events: none` to body siblings while the drawer is
+  // open — a popover portaled to body becomes unclickable, and
+  // taps register as outside-clicks that the drawer eats and
+  // dismiss the picker. Returns null on desktop / outside a
+  // ResponsiveModal — Base UI defaults to body, which is fine
+  // there since Dialog doesn't suppress sibling pointer-events.
+  const portalContainer = useResponsiveModalPortalContainer();
+
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -91,7 +102,7 @@ export function OhTimePicker({
           aria-hidden
         />
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal container={portalContainer}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}

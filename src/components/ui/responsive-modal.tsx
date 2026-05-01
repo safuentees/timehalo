@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useState,
   type ComponentProps,
   type ReactElement,
   type ReactNode,
@@ -42,6 +43,19 @@ const MOBILE_QUERY = "(max-width: 767px)";
 type ModalCtx = {
   isMobile: boolean;
   nested: boolean;
+  /**
+   * On mobile, this is the `<Drawer.Content>` DOM element once it
+   * mounts. Nested popovers / menus / select panels rendered inside
+   * the drawer should portal HERE instead of `document.body`. Vaul
+   * applies `pointer-events: none` to body siblings while the drawer
+   * is open — popovers portaled to body become unclickable, taps
+   * register as outside-clicks, the drawer eats them and dismisses
+   * the picker. Portaling INTO the drawer content keeps the popover
+   * inside the drawer's interactive subtree. Null on desktop and
+   * before the drawer's content ref settles.
+   */
+  mobilePortalContainer: HTMLElement | null;
+  setMobilePortalContainer: (el: HTMLElement | null) => void;
 };
 
 const Ctx = createContext<ModalCtx | null>(null);
@@ -54,6 +68,19 @@ function useResponsiveModal() {
     );
   }
   return ctx;
+}
+
+/**
+ * Returns the element nested popovers/menus should portal into when
+ * inside a mobile drawer, or null otherwise (desktop dialogs portal
+ * to body fine — Base UI Dialog doesn't suppress pointer-events on
+ * siblings the way Vaul does). Safe to call outside a ResponsiveModal
+ * — returns null instead of throwing.
+ */
+export function useResponsiveModalPortalContainer(): HTMLElement | null {
+  const ctx = useContext(Ctx);
+  if (!ctx) return null;
+  return ctx.isMobile ? ctx.mobilePortalContainer : null;
 }
 
 type RootProps = {
@@ -80,6 +107,12 @@ export function ResponsiveModal({
   // Pattern matches dub.co's modal (always-rendered trigger, controlled
   // open) and cal.com's CSS-first responsive Dialog.
   const isMobile = useMediaQuery(MOBILE_QUERY);
+  // State (not ref) so consumers re-render when the drawer's content
+  // element settles. The popover container prop is read on every render
+  // — passing a static null then mutating it via ref wouldn't trigger
+  // the re-render that re-portals the popup.
+  const [mobilePortalContainer, setMobilePortalContainer] =
+    useState<HTMLElement | null>(null);
 
   const Root = isMobile
     ? nested
@@ -88,7 +121,14 @@ export function ResponsiveModal({
     : null;
 
   return (
-    <Ctx.Provider value={{ isMobile, nested }}>
+    <Ctx.Provider
+      value={{
+        isMobile,
+        nested,
+        mobilePortalContainer,
+        setMobilePortalContainer,
+      }}
+    >
       {isMobile && Root ? (
         <Root open={open} onOpenChange={onOpenChange}>
           {children}
@@ -166,7 +206,7 @@ export function ResponsiveModalContent({
   showCloseButton = false,
   defaultClose = true,
 }: ContentProps) {
-  const { isMobile } = useResponsiveModal();
+  const { isMobile, setMobilePortalContainer } = useResponsiveModal();
 
   if (isMobile) {
     return (
@@ -175,6 +215,12 @@ export function ResponsiveModalContent({
           className={cn("oh-drawer-overlay", overlayClassName)}
         />
         <DrawerPrimitive.Content
+          // Callback ref publishes the content element to the modal
+          // context so nested popovers/menus can portal into the
+          // drawer instead of body — see `useResponsiveModalPortalContainer`.
+          // Setting null on unmount keeps the context tidy when the
+          // drawer closes.
+          ref={setMobilePortalContainer}
           className={cn("oh-drawer-content", mobileClassName)}
         >
           {showHandle ? (
