@@ -19,7 +19,7 @@ import {
   planForWorkspace,
   requireFeature,
 } from "@/lib/billing";
-import { privateProcedure, router } from "@/trpc/trpc";
+import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 // Workspace sub-router (B1). Workspaces, memberships, and invitations
 // are new primitives — booking / webhook / audit surfaces stay
@@ -167,6 +167,76 @@ export const workspaces = router({
         name: membership.workspace.name,
         callerRole: membership.role,
         callerScopes: scopesFor(membership.role),
+      };
+    }),
+
+  // Public workspace surface (B.PT61). Powers `/w/<slug>` — the
+  // visitor-facing team page that mirrors `/h/<handle>` but funnels
+  // bookings to one of N members. This first cut is a directory: it
+  // returns the workspace name + the public-safe member projection so
+  // the visitor can pick which host to book with. The team-level
+  // round-robin booking flow (visitor picks a slot, system picks the
+  // host) is deferred — the directory route lands first because it's
+  // a self-contained surface that proves out the workspace public
+  // identity, and the booking flow is a separate (heavier) procedure
+  // change to bookings.create + slot-generation that warrants its own
+  // commit + tests.
+  //
+  // Public-safe projection (mirrors `users.getByHandle` shape per
+  // member): id, name, handle, image, timezone. No email, no auth
+  // internals. The workspace itself returns slug + name only —
+  // ownership / billing / membership counts stay private.
+  //
+  // Cascading sort: members ordered by role (OWNER → ADMIN → MEMBER →
+  // VIEWER), then by membership createdAt ascending so the list reads
+  // in the natural "founders first, recent additions last" order.
+  publicGetBySlug: publicProcedure
+    .input(z.object({ slug: workspaceSlugSchema }))
+    .query(async ({ input }) => {
+      const workspace = await prisma.workspace.findUnique({
+        where: { slug: input.slug },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          memberships: {
+            select: {
+              role: true,
+              assignedAt: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  handle: true,
+                  image: true,
+                  timezone: true,
+                },
+              },
+            },
+            orderBy: [{ role: "asc" }, { assignedAt: "asc" }],
+          },
+        },
+      });
+      if (!workspace) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Members without a handle can't be booked yet (handle is the
+      // booking surface key — `/h/<handle>`). Filter them out of the
+      // public directory so the visitor only sees actionable rows.
+      const members = workspace.memberships
+        .filter((m) => m.user.handle !== null)
+        .map((m) => ({
+          role: m.role,
+          id: m.user.id,
+          name: m.user.name,
+          handle: m.user.handle as string,
+          image: m.user.image,
+          timezone: m.user.timezone,
+        }));
+
+      return {
+        slug: workspace.slug,
+        name: workspace.name,
+        members,
       };
     }),
 
