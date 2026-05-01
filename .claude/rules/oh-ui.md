@@ -7,9 +7,9 @@ paths:
 
 # Project UI rules (file name is historical)
 
-> The visual aesthetic walked away from the original brutalist palette. **New dashboard pages match the chrome of the most-recently-shipped pages** (`/bookings`, `/settings`, `/workspaces/*`) — see `AGENTS.md` *Visual identity* for the full directive. The component + utility names below (`OhPageShell`, `oh-*` classes, `--oh-*` tokens) stay — they're real artifacts a planned refactor will rename. The engineering rules below (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are good discipline regardless of aesthetic.
+> The visual aesthetic walked away from the original brutalist palette. **Every surface — dashboard AND visitor — matches the chrome of the most-recently-shipped pages** (`/bookings`, `/settings`, `/workspaces/*`) — see `AGENTS.md` *Visual identity* for the full directive. As of B.PT59 the public visitor surface (`/h/[handle]`) joined the unified vocabulary; the strong paper-and-ink + thick-border + mono-caps look is no longer in production anywhere.
 >
-> The strong **paper-and-ink + thick borders + mono caps** look is now scoped to the **public visitor surface only** (`/h/[handle]`, `/booked/[uid]`) — don't extend it to new dashboard pages.
+> The component + utility names below (`OhPageShell`, `oh-*` classes, `--oh-*` tokens) stay — they're real artifacts a planned refactor will rename. The engineering rules below (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) apply to every surface.
 
 ## Composition
 
@@ -21,11 +21,11 @@ paths:
 - For complex forms, keep the canonical `FieldGroup` and `FieldSet` structure intact.
 - For new authenticated pages: wrap content in `OhPageShell` (owns `max-w-[760px] px-4 py-8 sm:px-6 sm:py-10`) and lead with `OhPageHeader title="..."`. Both in `src/components/oh/`. These wrappers ARE what shipped on `/bookings` + `/settings` — using them is the way to match the new chrome, not a forced brutalist override.
 
-## Visual language (split by surface)
+## Visual language (unified)
 
-- **Dashboard surface** (`/(host)/*`) — quieter chrome, hairline borders (1.5px structural), Space Grotesk for body + headings, JetBrains Mono reserved for metadata + labels (eyebrows, mono numbers, monospace technical strings). Match `/bookings` row density, `/settings` section rhythm, `/workspaces` card stack — those are the canonical references.
-- **Public visitor surface** (`/h/[handle]`, `/booked/[uid]`) — keeps the stronger paper-and-ink palette, thicker borders (2.5px), uppercase display type. The visitor's first/last touch stays bold by design. Don't drag these motifs into dashboard pages.
-- Do not ship stock shadcn visuals on either surface — if a surface could land in a generic shadcn starter unchanged, it isn't finished.
+- **All surfaces** — quieter chrome, hairline borders (1px content / 1.5px structural / 2px page header), Space Grotesk for body + headings, JetBrains Mono reserved for metadata + labels (eyebrows, mono numbers, monospace technical strings). Match `/bookings` row density, `/settings` section rhythm, `/workspaces` card stack, `/h/<handle>` hero — those are the canonical references for both dashboard and visitor pages. Sentence-case headings except where mono-caps deliberately reads as chrome (page-title eyebrows, table headers, the dashboard h1).
+- The legacy paper-and-ink + 2.5px borders + uppercase display look retired in B.PT59 — it lives in git history if a reference is needed.
+- Do not ship stock shadcn visuals — if a surface could land in a generic shadcn starter unchanged, it isn't finished.
 
 ## Radius scale (one structural token)
 

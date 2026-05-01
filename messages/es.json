@@ -388,6 +388,8 @@
     "nextAvailable": "Próximo disponible",
     "pickADate": "Elige una fecha",
     "nextSlotAria": "Próximo horario disponible",
-    "brandLabel": "Officehours"
+    "metaSession": "Sesión",
+    "metaOpen": "Abiertos",
+    "metaTz": "Zona horaria"
   }
 }

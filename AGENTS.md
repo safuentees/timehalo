@@ -31,16 +31,20 @@ Keep this root file small. Put file-local rules in nested `AGENTS.md` files. Put
 
 ## Visual identity (read this before building any UI)
 
-The visual aesthetic has evolved away from the early-MVP brutalist palette. **New pages match the chrome of the most-recently-shipped dashboard pages** (`/bookings`, `/settings`, `/workspaces/*`) — quieter, denser, ChatGPT-dashboard-inspired. Don't extend the original brutalist motifs (paper-and-ink hero blocks, thick 2.5px borders everywhere, mono-caps display type on chrome elements) to new surfaces.
+The visual aesthetic has evolved away from the early-MVP brutalist palette. **Every surface — dashboard AND visitor — now matches the chrome of the most-recently-shipped dashboard pages** (`/bookings`, `/settings`, `/workspaces/*`) — quieter, denser, ChatGPT-dashboard-inspired. Don't extend the original brutalist motifs (paper-and-ink hero blocks, thick 2.5px borders everywhere, mono-caps display type on chrome elements) anywhere. As of B.PT59 the public visitor surface (`/h/[handle]`) adopts the same chrome as the dashboard; future visitor pages (`/booked/[uid]`, `/w/[slug]`) follow the same rule.
 
-Two distinct surfaces, two different tones:
+The unified vocabulary across both surfaces:
 
-- **Authenticated host shell** — `/(host)/*`. The new chrome lives here. Match `/bookings` and `/settings` for layout density, button weight, color saturation, spacing rhythm.
-- **Public visitor surface** — `/h/[handle]`, `/booked/[uid]`. The legacy stronger aesthetic stays — the visitor's first/last touch is intentionally bolder. Don't drag those motifs back into the dashboard.
+- `OhPageShell` for the page column (760px default, tight/wide variants).
+- Hairline `border-oh-line` (1px) for structural rules; `border-y border-oh-line divide-x divide-oh-line` for meta strips.
+- `oh-legend` / `oh-description` / `oh-eyebrow` typography utilities — never inline the eight-class variants.
+- Sentence-case headings with Space Grotesk weight 800-900 + tight tracking; JetBrains Mono reserved for metadata + numerals only.
+- `bg-oh-bg` page paper, `--oh-tint` (~6% ink) for subtle status banners, `--oh-tint-hover` for row hover.
+- Status indicators are 2px coloured dots (`bg-emerald-500` / `bg-neutral-400`) paired with `oh-eyebrow` — never status-pills with thick borders.
 
 The component + utility names (`OhPageShell`, `OhPageHeader`, `<ConfirmDialog>`, `<SectionHeader>`, `oh-legend` / `oh-description` / `oh-eyebrow`, `oh-input`, `--oh-r-sm` radius, Space Grotesk + JetBrains Mono) **stay** — they're real artifacts a planned refactor will rename. Use them; don't speculatively rename in-flight.
 
-The engineering rules in `.claude/rules/oh-ui.md` (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) are **good discipline regardless of aesthetic** — keep following them. The file name is historical; the rules apply to the current chrome too.
+The engineering rules in `.claude/rules/oh-ui.md` (radius scale, typography utilities, list patterns, empty states, destructive-action patterns, copy rules) apply to every surface.
 
 **Reject signal**: a new page reads more brutalist than `/bookings` or `/settings`.
 
