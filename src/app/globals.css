@@ -2583,6 +2583,15 @@
   animation-timing-function: var(--ease-oh);
 }
 
+::view-transition-group(oh-chrome-sidebar),
+::view-transition-group(oh-chrome-sidebar-gap) {
+  z-index: 0;
+}
+
+::view-transition-group(oh-chrome-panel) {
+  z-index: 1;
+}
+
 ::view-transition-old(oh-chrome-bar),
 ::view-transition-old(oh-chrome-sidebar),
 ::view-transition-old(oh-chrome-sidebar-gap),
