@@ -25,9 +25,27 @@ const GOOGLE_EVENT = (calendarId: string, eventId: string) =>
 // just-expired token into a 401.
 const REFRESH_LEEWAY_MS = 60_000;
 
+// Split-grain scope set — reads the calendar list (so the "Manage
+// calendars" modal can populate) AND reads/writes events (so two-way
+// calendar write actually works: bookings.create / .reschedule /
+// .cancel call adapter.createEvent / updateEvent / deleteEvent).
+//
+// Original scopes were `.readonly` only and blocked events.insert
+// with `ACCESS_TOKEN_SCOPE_INSUFFICIENT` at write time. cal.com uses
+// the broader `https://www.googleapis.com/auth/calendar` (full RW
+// across calendar list + events); we split-grain because the user
+// only needs events RW + calendar list READ — no need to grant the
+// calendar settings tampering permission that the broader scope
+// implies.
+//
+// `calendar.events` is read+write on events (subsumes the previous
+// `calendar.events.readonly`, so that scope is dropped).
+// `calendar.readonly` covers calendarList + read access for the
+// busy-times pull. Reference: developers.google.com/identity/protocols
+// /oauth2/scopes#calendar.
 export const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
+  "https://www.googleapis.com/auth/calendar.events",
   "openid",
   "email",
   "profile",
