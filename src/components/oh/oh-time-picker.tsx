@@ -1,52 +1,41 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { ChevronRightIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
 
 // Custom oh-themed time picker. Replaces the previous opacity-0
-// `<input type="time">` overlay (B.PT52) — that pattern relied on the
-// browser's native picker, which iOS Safari opens reliably but Chrome
-// + Firefox + Safari desktop don't open on click of an arbitrary
-// container (only on click of the calendar-picker-indicator pseudo
-// element, with quirks across engines). Hosts couldn't change the
-// hour from desktop.
+// `<input type="time">` overlay that worked on iOS Safari but not on
+// desktop browsers (Chrome / Firefox / Safari desktop don't open a
+// picker on container click — only on the calendar-picker-indicator
+// pseudo-element, which is unreliably positioned).
 //
-// Three columns: hour (1-12, scrollable), minute (00/15/30/45),
-// period (AM/PM). 15-min increments match cal.com's `INCREMENT = 15`
-// at `packages/features/schedules/components/ScheduleComponent.tsx`.
+// Pattern adapted from OpenStatus's `time-picker`
+// (github.com/openstatusHQ/time-picker — the de-facto shadcn time
+// picker). Keyboard-first spinner inputs: type digits, arrow up/down
+// to step (with 15-min step on minutes), arrow left/right to move
+// between fields. Auto-advance from hours → minutes after the second
+// digit. Wrap-around at boundaries (12↔1 hour, 45↔00 minute).
 //
-// 12-hour format matches the trigger's display ("9:00 AM"). The
-// internal value stays "HH:MM" 24-hour to keep the form schema +
-// availability logic unchanged.
-
-const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
-const MINUTES = [0, 15, 30, 45] as const;
-const PERIODS = ["AM", "PM"] as const;
-
-type Period = (typeof PERIODS)[number];
-
-function parse(value: string): { period: Period; hour12: number; minute: number } {
-  const match = /^(\d{2}):(\d{2})$/.exec(value);
-  if (!match) return { period: "AM", hour12: 12, minute: 0 };
-  const h = Number(match[1]);
-  const minute = Number(match[2]);
-  const period: Period = h < 12 ? "AM" : "PM";
-  const hour12 = ((h + 11) % 12) + 1;
-  return { period, hour12, minute };
-}
-
-function compose(period: Period, hour12: number, minute: number): string {
-  const baseHour = hour12 === 12 ? 0 : hour12;
-  const h24 = period === "PM" ? baseHour + 12 : baseHour;
-  return `${String(h24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-function formatDisplay(value: string): string {
-  const { period, hour12, minute } = parse(value);
-  return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
-}
+// Shape: still the card trigger (eyebrow + bold time + chevron)
+// users tap to reveal the popover. Inside the popover, three small
+// fields side-by-side: hour, minute, AM/PM. Compact (~180px wide),
+// keyboard-fast on desktop, numeric-keyboard on mobile.
+//
+// Internal value contract stays "HH:MM" 24-hour string to match the
+// availability schema; we convert to Date at the boundary because
+// OpenStatus's spinner inputs are Date-based and that math is what's
+// already battle-tested upstream.
 
 export type OhTimePickerProps = {
   value: string;
@@ -66,14 +55,22 @@ export function OhTimePicker({
   // Stable trigger id (B.PT48 / B.PT50 lesson) — bypasses Base UI's
   // useBaseUiId fallback so SSR/CSR ids match.
   const reactId = useId();
-  const { period, hour12, minute } = parse(value);
 
-  const setHour = (next: number) =>
-    onChange(compose(period, next, minute));
-  const setMinute = (next: number) =>
-    onChange(compose(period, hour12, next));
-  const setPeriod = (next: Period) =>
-    onChange(compose(next, hour12, minute));
+  const date = useMemo(() => stringToDate(value), [value]);
+  const setDate = (next: Date | undefined) => {
+    if (!next) return;
+    onChange(dateToString(next));
+  };
+
+  // Period is derived from `date.getHours()`, no local state — the
+  // upstream value is the single source of truth. Toggling AM↔PM
+  // via the segmented toggle below calls `setDate` directly with
+  // the converted hours, which round-trips back through the value
+  // prop and re-derives period on the next render.
+  const period: Period = date.getHours() >= 12 ? "PM" : "AM";
+
+  const hourRef = useRef<HTMLInputElement>(null);
+  const minuteRef = useRef<HTMLInputElement>(null);
 
   return (
     <Popover.Root>
@@ -99,47 +96,53 @@ export function OhTimePicker({
           className="oh-time-picker-positioner"
           sideOffset={8}
           align="start"
-          // Inline z-index belt-and-suspenders — the dialog/drawer the
-          // picker lives inside has its own stacking context. Same
-          // pattern the workspace switcher menu uses.
+          // Inline z-index: dialog/drawer hosting the picker has its
+          // own stacking context; same belt-and-suspenders the
+          // workspace switcher menu uses (oh-dashboard-bar.tsx).
           style={{ zIndex: 100 }}
         >
           <Popover.Popup className="oh-time-picker-popup">
-            <PickColumn
-              ariaLabel="Hour"
-              values={HOURS}
-              activeValue={hour12}
-              onSelect={setHour}
-            />
-            <div className="oh-time-picker-divider" aria-hidden />
-            <PickColumn
-              ariaLabel="Minute"
-              values={MINUTES}
-              activeValue={minute}
-              onSelect={setMinute}
-              format={(v) => String(v).padStart(2, "0")}
-            />
-            <div className="oh-time-picker-divider" aria-hidden />
-            <div
-              role="listbox"
-              aria-label="AM or PM"
-              className="oh-time-picker-column oh-time-picker-column--periods"
-            >
-              {PERIODS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  role="option"
-                  aria-selected={p === period}
-                  onClick={() => setPeriod(p)}
-                  className={cn(
-                    "oh-time-picker-cell",
-                    p === period && "is-active",
-                  )}
-                >
-                  {p}
-                </button>
-              ))}
+            <div className="flex items-end gap-2">
+              <FieldStack labelText="Hour">
+                <OhTimePickerInput
+                  ref={hourRef}
+                  picker="12hours"
+                  period={period}
+                  date={date}
+                  setDate={setDate}
+                  onRightFocus={() => minuteRef.current?.focus()}
+                />
+              </FieldStack>
+              <span
+                aria-hidden
+                className="select-none pb-2 text-[18px] font-black opacity-55"
+              >
+                :
+              </span>
+              <FieldStack labelText="Minute">
+                <OhTimePickerInput
+                  ref={minuteRef}
+                  picker="minutes"
+                  date={date}
+                  setDate={setDate}
+                  onLeftFocus={() => hourRef.current?.focus()}
+                />
+              </FieldStack>
+              <FieldStack labelText="Period">
+                <PeriodToggle
+                  period={period}
+                  onChange={(next) => {
+                    // OpenStatus pattern: re-set the date with the
+                    // 12-hour value held but the new period applied,
+                    // so AM↔PM swap lands at the right 24-hour value.
+                    // No local state to sync — period derives from
+                    // date on the next render.
+                    const tempDate = new Date(date);
+                    const hours = display12HourValue(date.getHours());
+                    setDate(setDateByType(tempDate, hours, "12hours", next));
+                  }}
+                />
+              </FieldStack>
             </div>
           </Popover.Popup>
         </Popover.Positioner>
@@ -148,59 +151,297 @@ export function OhTimePicker({
   );
 }
 
-function PickColumn({
-  ariaLabel,
-  values,
-  activeValue,
-  onSelect,
-  format,
+// ─── Field wrapper ──────────────────────────────────────────────────
+
+function FieldStack({
+  labelText,
+  children,
 }: {
-  ariaLabel: string;
-  values: ReadonlyArray<number>;
-  activeValue: number;
-  onSelect: (v: number) => void;
-  format?: (v: number) => string;
+  labelText: string;
+  children: ReactNode;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Scroll active row into view when the popup mounts. The Popover's
-  // Portal unmounts on close, so this effect fires every time the
-  // user reopens — putting the current value at center of the
-  // scroll viewport without animation (instant feels right; smooth
-  // scroll inside a freshly-mounted popup reads as motion glitch).
-  useEffect(() => {
-    const active = ref.current?.querySelector<HTMLButtonElement>(
-      '[data-active="true"]',
-    );
-    active?.scrollIntoView({ block: "center", behavior: "auto" });
-  }, []);
-
   return (
-    <div
-      ref={ref}
-      role="listbox"
-      aria-label={ariaLabel}
-      className="oh-time-picker-column"
-    >
-      {values.map((v) => {
-        const isActive = v === activeValue;
-        return (
-          <button
-            key={v}
-            type="button"
-            role="option"
-            aria-selected={isActive}
-            data-active={isActive}
-            onClick={() => onSelect(v)}
-            className={cn(
-              "oh-time-picker-cell",
-              isActive && "is-active",
-            )}
-          >
-            {format ? format(v) : String(v)}
-          </button>
-        );
-      })}
+    <div className="flex flex-col items-center gap-1.5">
+      <span className="oh-eyebrow opacity-55">{labelText}</span>
+      {children}
     </div>
   );
+}
+
+// ─── AM/PM toggle (segmented, not native select) ────────────────────
+// Two-button segmented toggle is more compact for the popover and
+// fits the brutalist chrome better than a dropdown — same vibe as
+// the existing tab-strip pattern on /bookings.
+
+function PeriodToggle({
+  period,
+  onChange,
+}: {
+  period: Period;
+  onChange: (next: Period) => void;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="AM or PM"
+      className="oh-time-picker-period"
+    >
+      {PERIODS.map((p) => (
+        <button
+          key={p}
+          type="button"
+          role="radio"
+          aria-checked={p === period}
+          onClick={() => onChange(p)}
+          className={cn(
+            "oh-time-picker-period-cell",
+            p === period && "is-active",
+          )}
+        >
+          {p}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Spinner input (OpenStatus pattern, adapted) ────────────────────
+// Type digits to set; ArrowUp/Down to step (15-min for minutes,
+// 1-hour for hours, looping at boundaries); ArrowLeft/Right to move
+// between fields. The `flag` two-digit grace window is verbatim
+// from OpenStatus — gives the user 2 seconds to enter a second
+// digit before the field resets to single-digit input.
+
+type TimePickerType = "minutes" | "hours" | "12hours";
+type Period = "AM" | "PM";
+const PERIODS: ReadonlyArray<Period> = ["AM", "PM"];
+
+interface OhTimePickerInputProps {
+  picker: TimePickerType;
+  date: Date;
+  setDate: (date: Date | undefined) => void;
+  period?: Period;
+  onRightFocus?: () => void;
+  onLeftFocus?: () => void;
+}
+
+const OhTimePickerInput = forwardRef<HTMLInputElement, OhTimePickerInputProps>(
+  (
+    { picker, period, date, setDate, onLeftFocus, onRightFocus },
+    ref,
+  ) => {
+    const [flag, setFlag] = useState(false);
+    const [prevIntKey, setPrevIntKey] = useState("0");
+
+    useEffect(() => {
+      if (!flag) return;
+      const t = setTimeout(() => setFlag(false), 2000);
+      return () => clearTimeout(t);
+    }, [flag]);
+
+    const calculatedValue = useMemo(
+      () => getDateByType(date, picker),
+      [date, picker],
+    );
+
+    const calculateNewValue = (key: string) => {
+      // 12-hour first-digit "0" → expect 1-9 next; if user types
+      // 1 then waits, the 2nd digit can shift to 10/11/12.
+      if (picker === "12hours") {
+        if (flag && calculatedValue.slice(1, 2) === "1" && prevIntKey === "0")
+          return "0" + key;
+      }
+      return !flag ? "0" + key : calculatedValue.slice(1, 2) + key;
+    };
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Tab") return;
+      e.preventDefault();
+      if (e.key === "ArrowRight") onRightFocus?.();
+      if (e.key === "ArrowLeft") onLeftFocus?.();
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        const direction = e.key === "ArrowUp" ? 1 : -1;
+        const step = picker === "minutes" ? 15 * direction : direction;
+        const newValue = getArrowByType(calculatedValue, step, picker);
+        if (flag) setFlag(false);
+        const tempDate = new Date(date);
+        setDate(setDateByType(tempDate, newValue, picker, period));
+      }
+      if (e.key >= "0" && e.key <= "9") {
+        if (picker === "12hours") setPrevIntKey(e.key);
+        const newValue = calculateNewValue(e.key);
+        if (flag) onRightFocus?.();
+        setFlag((prev) => !prev);
+        const tempDate = new Date(date);
+        setDate(setDateByType(tempDate, newValue, picker, period));
+      }
+    };
+
+    return (
+      <input
+        ref={ref}
+        type="tel"
+        inputMode="decimal"
+        value={calculatedValue}
+        // Read-only at the change-event level (we drive value via
+        // keyDown). onChange is required for controlled inputs;
+        // preventing default mirrors OpenStatus's behavior.
+        onChange={(e) => e.preventDefault()}
+        onKeyDown={handleKeyDown}
+        aria-label={picker === "12hours" ? "Hour" : picker}
+        className="oh-time-picker-input"
+      />
+    );
+  },
+);
+
+OhTimePickerInput.displayName = "OhTimePickerInput";
+
+// ─── Utils (adapted from OpenStatus's time-picker-utils.ts) ─────────
+
+function isValid12Hour(v: string) {
+  return /^(0[1-9]|1[0-2])$/.test(v);
+}
+function isValidMinute(v: string) {
+  return /^[0-5][0-9]$/.test(v);
+}
+
+function getValidNumber(
+  v: string,
+  { max, min = 0, loop = false }: { max: number; min?: number; loop?: boolean },
+) {
+  let n = parseInt(v, 10);
+  if (Number.isNaN(n)) return "00";
+  if (loop) {
+    if (n > max) n = min;
+    if (n < min) n = max;
+  } else {
+    if (n > max) n = max;
+    if (n < min) n = min;
+  }
+  return n.toString().padStart(2, "0");
+}
+
+function getValid12Hour(v: string) {
+  if (isValid12Hour(v)) return v;
+  return getValidNumber(v, { min: 1, max: 12 });
+}
+
+function getValidMinute(v: string) {
+  if (isValidMinute(v)) return v;
+  return getValidNumber(v, { max: 59 });
+}
+
+function getValidArrowNumber(
+  v: string,
+  { min, max, step }: { min: number; max: number; step: number },
+) {
+  let n = parseInt(v, 10);
+  if (Number.isNaN(n)) return "00";
+  n += step;
+  return getValidNumber(String(n), { min, max, loop: true });
+}
+
+function getArrowByType(v: string, step: number, t: TimePickerType) {
+  switch (t) {
+    case "minutes":
+      // Minute arrow steps land on the 15-min grid: snap current
+      // value to nearest grid point first, then add ±15. Keeps the
+      // sequence tidy even if the user typed a non-grid value.
+      return getValidArrowNumber(snapToGrid(v, 15), { min: 0, max: 59, step });
+    case "hours":
+      return getValidArrowNumber(v, { min: 0, max: 23, step });
+    case "12hours":
+      return getValidArrowNumber(v, { min: 1, max: 12, step });
+    default:
+      return "00";
+  }
+}
+
+function snapToGrid(v: string, step: number) {
+  const n = parseInt(v, 10);
+  if (Number.isNaN(n)) return "00";
+  return String(Math.round(n / step) * step).padStart(2, "0");
+}
+
+function getDateByType(date: Date, t: TimePickerType) {
+  switch (t) {
+    case "minutes":
+      return getValidMinute(String(date.getMinutes()));
+    case "hours":
+      return getValidNumber(String(date.getHours()), { max: 23 });
+    case "12hours":
+      return getValid12Hour(String(display12HourValue(date.getHours())));
+    default:
+      return "00";
+  }
+}
+
+function setDateByType(
+  date: Date,
+  value: string,
+  type: TimePickerType,
+  period?: Period,
+) {
+  switch (type) {
+    case "minutes":
+      date.setMinutes(parseInt(getValidMinute(value), 10));
+      return date;
+    case "hours":
+      date.setHours(parseInt(getValidNumber(value, { max: 23 }), 10));
+      return date;
+    case "12hours": {
+      if (!period) return date;
+      const hour12 = parseInt(getValid12Hour(value), 10);
+      date.setHours(convert12HourTo24Hour(hour12, period));
+      return date;
+    }
+    default:
+      return date;
+  }
+}
+
+function convert12HourTo24Hour(hour: number, period: Period) {
+  if (period === "PM") return hour <= 11 ? hour + 12 : hour;
+  if (hour === 12) return 0;
+  return hour;
+}
+
+function display12HourValue(hours: number) {
+  if (hours === 0 || hours === 12) return "12";
+  if (hours >= 22) return `${hours - 12}`;
+  if (hours % 12 > 9) return `${hours}`;
+  return `0${hours % 12}`;
+}
+
+// ─── String ↔ Date adapter ──────────────────────────────────────────
+// The form schema stores availability as "HH:MM" 24-hour strings;
+// OpenStatus's spinners are Date-based. Convert at the boundary.
+
+function stringToDate(v: string): Date {
+  const match = /^(\d{2}):(\d{2})$/.exec(v);
+  const d = new Date();
+  d.setSeconds(0, 0);
+  if (!match) {
+    d.setHours(9, 0);
+    return d;
+  }
+  d.setHours(Number(match[1]), Number(match[2]));
+  return d;
+}
+
+function dateToString(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes(),
+  ).padStart(2, "0")}`;
+}
+
+function formatDisplay(value: string): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return "9:00 AM";
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  const period: Period = h < 12 ? "AM" : "PM";
+  const hour12 = ((h + 11) % 12) + 1;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 }
