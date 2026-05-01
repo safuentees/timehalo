@@ -2632,20 +2632,25 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
   overflow: hidden;
 }
 
-.oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"] {
-  width: 0;
+.oh-app-shell [data-slot="sidebar-gap"] {
+  transition-property: width;
   transition-duration: 380ms;
   transition-timing-function: var(--ease-oh);
+}
+
+.oh-app-shell [data-slot="sidebar-container"] {
+  transition-property: left, right, width, opacity;
+  transition-duration: 380ms;
+  transition-timing-function: var(--ease-oh);
+}
+
+.oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"] {
+  width: 0;
 }
 
 .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-container"] {
   opacity: 0;
   pointer-events: none;
-  transition:
-    opacity 280ms var(--ease-oh),
-    left 380ms var(--ease-oh),
-    right 380ms var(--ease-oh),
-    width 380ms var(--ease-oh);
 }
 
 .oh-host-content {
@@ -2719,8 +2724,8 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
 @media (prefers-reduced-motion: reduce) {
   .oh-app-shell,
   .oh-dashboard-bar,
-  .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"],
-  .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-container"],
+  .oh-app-shell [data-slot="sidebar-gap"],
+  .oh-app-shell [data-slot="sidebar-container"],
   .oh-host-content {
     transition-duration: 0ms !important;
   }
