@@ -3091,12 +3091,38 @@
    fades out, then new fades in via animation-delay equal to the
    out-duration. Total transition stays short (~220ms) but with no
    visual overlap between the old and new content. */
+/* Clip the snapshot pair to the panel's rounded corners (B.PT63). View
+   Transitions API renders snapshots as `::view-transition-old/new` inside
+   `::view-transition-group(name)` which lives at the document root —
+   OUTSIDE the parent `.oh-host-content`'s `overflow: hidden` clip. Without
+   this rule, the inner snapshot is a square rectangle and shows past the
+   panel's rounded corners during the cross-fade (most visibly on entry
+   to `/preview/<handle>` where the chrome morph stretches the visible
+   timing). `::view-transition-group(name)` is the containing block for
+   the snapshot pair; setting `border-radius` + `overflow: hidden` clips
+   the pair to the panel's edges. Affects only the transition pseudo-
+   elements; real DOM rendering is unchanged. */
+::view-transition-group(oh-host-content) {
+  border-radius: var(--oh-r-window);
+  overflow: hidden;
+}
+
+/* Cross-fade duration matched to the preview-mode chrome morph (B.PT63).
+   The chrome morph (`.oh-host-content` margin equalize + bar collapse +
+   sidebar fade) runs 380ms with `var(--ease-oh)`. The VT cross-fade
+   originally ran 110ms out + 110ms in = 220ms, ending well before the
+   chrome morph landed — the snapshot showed the END-of-morph layout
+   while the real DOM was still at ~58% morph progress, so the
+   snapshot-to-real-DOM swap had a subtle position jump. Matching VT
+   duration to the chrome morph (190ms out + 190ms in = 380ms) makes
+   the cross-fade end exactly when the morph lands; the snap-frame is
+   imperceptible because the real DOM has reached its final position. */
 ::view-transition-old(oh-host-content) {
-  animation: oh-vt-fade-out 110ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation: oh-vt-fade-out 190ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(oh-host-content) {
-  animation: oh-vt-fade-in 110ms cubic-bezier(0, 0, 0.2, 1) 110ms both;
+  animation: oh-vt-fade-in 190ms cubic-bezier(0, 0, 0.2, 1) 190ms both;
 }
 
 @keyframes oh-vt-fade-out {
