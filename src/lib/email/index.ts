@@ -22,6 +22,8 @@ function devSubjectPrefix(): string {
 
 function resolveRecipient(to: string): string {
   if (process.env.VERCEL_ENV === "production") return to;
+  const devRedirect = process.env.EMAIL_DEV_REDIRECT;
+  if (devRedirect) return devRedirect;
   return "delivered@resend.dev";
 }
 
