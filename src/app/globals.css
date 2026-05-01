@@ -3147,7 +3147,6 @@
 /* Group runs the position/size morph (the visible chrome motion). */
 ::view-transition-group(oh-chrome-bar),
 ::view-transition-group(oh-chrome-sidebar),
-::view-transition-group(oh-chrome-sidebar-gap),
 ::view-transition-group(oh-chrome-panel) {
   animation-duration: 380ms;
   animation-timing-function: var(--ease-oh);
@@ -3164,8 +3163,7 @@
    of receding behind it. Override: send sidebar groups under the panel
    group so the fade-out happens behind the chrome that's becoming the
    focal point. */
-::view-transition-group(oh-chrome-sidebar),
-::view-transition-group(oh-chrome-sidebar-gap) {
+::view-transition-group(oh-chrome-sidebar) {
   z-index: 0;
 }
 
@@ -3188,16 +3186,32 @@
    the B.PT65 restructure flattened it into the UA default. */
 ::view-transition-old(oh-chrome-bar),
 ::view-transition-old(oh-chrome-sidebar),
-::view-transition-old(oh-chrome-sidebar-gap),
 ::view-transition-old(oh-chrome-panel) {
   animation: oh-vt-fade-out 190ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(oh-chrome-bar),
 ::view-transition-new(oh-chrome-sidebar),
-::view-transition-new(oh-chrome-sidebar-gap),
 ::view-transition-new(oh-chrome-panel) {
   animation: oh-vt-fade-in 190ms cubic-bezier(0, 0, 0.2, 1) 190ms both;
+}
+
+/* Panel snapshot aspect-ratio fix (B.PT71). Per Jake Archibald
+   (jakearchibald.com/2024/view-transitions-handling-aspect-ratio-changes/),
+   the View Transitions API default sets `width: 100%` on
+   `::view-transition-old/new` snapshots but leaves `height: auto` to
+   preserve the snapshot's intrinsic aspect ratio. When the panel morphs
+   from full-bleed (preview aspect) to dashboard-shaped bounds (different
+   aspect), the snapshot's fixed aspect doesn't match the morphing group
+   bounds — vertical gap or overflow during the morph reads as a "twitch."
+   Forcing `height: 100%` makes both snapshots fill the group's morphing
+   height; combined with the existing `overflow: hidden` on the group,
+   any aspect distortion is contained within the rounded clip. The
+   content slightly stretches but the morph reads as continuous, not
+   jittery. */
+::view-transition-old(oh-chrome-panel),
+::view-transition-new(oh-chrome-panel) {
+  height: 100%;
 }
 
 @keyframes oh-vt-fade-out {
@@ -3229,15 +3243,24 @@
 .oh-dashboard-bar {
   view-transition-name: oh-chrome-bar;
 }
-[data-slot="sidebar-gap"] {
-  view-transition-name: oh-chrome-sidebar-gap;
-}
 [data-slot="sidebar-container"] {
   view-transition-name: oh-chrome-sidebar;
 }
 .oh-host-content {
   view-transition-name: oh-chrome-panel;
 }
+
+/* `[data-slot="sidebar-gap"]` was previously named `oh-chrome-sidebar-gap`
+   for the VT API, but it's a transparent flex placeholder — its width
+   morph (0 ↔ 192px) has no visual content. Snapshotting it added an
+   adjacent VT group whose right edge sat against the panel group's left
+   edge during the morph; sub-pixel rounding between the two independent
+   groups produced a 1px boundary jitter that compounded the panel's
+   aspect-ratio twitch (B.PT71). Removing the VT name lets the gap
+   width snap instantly in real DOM (no animation, no thrash because
+   it's a one-time layout change while the panel's VT snapshot covers
+   the visible area). The panel's NEW group bounds are computed AFTER
+   the DOM update so it still morphs to the correct dashboard position. */
 
 /* Mobile inline menu — opt the panel content out of its own VT group
    while the menu is rendered. Original B.PT49-era reasoning still
