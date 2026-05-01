@@ -374,6 +374,10 @@
     "toastNewBooking": "Nueva reserva de {name}",
     "toastCancelled": "Cancelada: {name}"
   },
+  "HostPreview": {
+    "exit": "Salir de la vista previa, volver al panel",
+    "exitLabel": "Salir de la vista previa"
+  },
   "HostProfile": {
     "openNow": "Disponible ahora",
     "closedToday": "Cerrado hoy",

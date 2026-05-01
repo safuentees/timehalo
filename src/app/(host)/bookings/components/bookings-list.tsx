@@ -513,7 +513,7 @@ function EmptyBookings({ tab }: { tab: Tab }) {
       {tab === "upcoming" && me?.handle ? (
         <OhEmptyContent>
           <Link
-            href={`/h/${me.handle}`}
+            href={`/preview/${me.handle}`}
             // `!underline` + `!decoration-...` because globals.css line 756
             // has an unlayered `:where(.oh-root a) { text-decoration: none }`
             // shell reset. Unlayered CSS beats Tailwind's utilities layer

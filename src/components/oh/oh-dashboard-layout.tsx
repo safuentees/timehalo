@@ -26,12 +26,25 @@ import { useOhPrefs } from "./prefs-context";
 // `<MobileNavContent />` based on `openMobile`. This avoids the View
 // Transitions API stacking conflict the Sheet drawer caused, and
 // matches the iOS-style mental model where the menu IS the page.
+//
+// Preview-mode chrome morph (B.PT60). When the pathname matches
+// `/preview/<handle>`, the shell carries `data-oh-preview="true"`. CSS
+// rules on `[data-oh-preview="true"]` (in globals.css) drive the morph:
+// topbar slides up + height collapses, sidebar fades + sidebar-gap
+// width animates to 0, panel margin-left equalizes from 0 → 12px. The
+// state is read from pathname instead of from a context flag so the
+// CSS toggles in step with route navigation — no useEffect race, no
+// extra context plumbing. View Transitions API still wraps the route
+// change for the inner content snapshot; the chrome morph runs
+// alongside it as a longer 380ms transition.
 export function OhDashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
   const { typeface, density, motion } = useOhPrefs();
+  const pathname = usePathname();
+  const isPreview = pathname?.startsWith("/preview/") ?? false;
 
   const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
@@ -43,6 +56,7 @@ export function OhDashboardLayout({
         className="oh-app-shell"
         data-typeface={typeface}
         data-density={density}
+        data-oh-preview={isPreview ? "true" : undefined}
       >
         <OhDashboardBar />
         <div className="oh-app flex min-h-0 flex-1">
