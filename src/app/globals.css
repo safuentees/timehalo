@@ -3069,17 +3069,21 @@
 }
 
 .oh-host-content-inner {
-  /* View-transition target + sizing for the Radix ScrollArea Root.
-     Radix sets `position: relative` inline on Root (verified in
-     node_modules/@radix-ui/react-scroll-area/dist/index.mjs) — inline
-     style beats className, so an `position: absolute` override here
-     is silently ignored. Per the Radix maintainers' guidance
-     (github.com/radix-ui/primitives/discussions/1485): set explicit
-     height/width on Root, then the Viewport's `size-full` resolves
-     and `overflow-y: scroll` kicks in when content exceeds Root's
-     height. Parent (.oh-host-content) is exactly viewport-anchored,
-     so 100% here = exactly 100svh - 24px. */
-  view-transition-name: oh-host-content;
+  /* Sizing for the Radix ScrollArea Root. Radix sets `position: relative`
+     inline on Root (verified in node_modules/@radix-ui/react-scroll-area
+     /dist/index.mjs) — inline style beats className, so an `position:
+     absolute` override here is silently ignored. Per the Radix maintainers'
+     guidance (github.com/radix-ui/primitives/discussions/1485): set
+     explicit height/width on Root, then the Viewport's `size-full`
+     resolves and `overflow-y: scroll` kicks in when content exceeds
+     Root's height. Parent (.oh-host-content) is exactly viewport-anchored,
+     so 100% here = exactly 100svh - 24px.
+
+     B.PT65: the `view-transition-name: oh-host-content` previously here
+     moved up to `.oh-host-content` (renamed `oh-chrome-panel`). The
+     chrome morph was reworked from layout-thrashing CSS transitions to
+     View Transitions API named groups — see the chrome-morph block at
+     the bottom of this file for the full rationale. */
   width: 100%;
   height: 100%;
 }
@@ -3091,78 +3095,93 @@
    fades out, then new fades in via animation-delay equal to the
    out-duration. Total transition stays short (~220ms) but with no
    visual overlap between the old and new content. */
-/* Clip the snapshot pair to the panel's rounded corners (B.PT63). View
-   Transitions API renders snapshots as `::view-transition-old/new` inside
-   `::view-transition-group(name)` which lives at the document root —
-   OUTSIDE the parent `.oh-host-content`'s `overflow: hidden` clip. Without
-   this rule, the inner snapshot is a square rectangle and shows past the
-   panel's rounded corners during the cross-fade (most visibly on entry
-   to `/preview/<handle>` where the chrome morph stretches the visible
-   timing). `::view-transition-group(name)` is the containing block for
-   the snapshot pair; setting `border-radius` + `overflow: hidden` clips
-   the pair to the panel's edges. Affects only the transition pseudo-
-   elements; real DOM rendering is unchanged. */
-::view-transition-group(oh-host-content) {
+/* Chrome-morph view-transition groups (B.PT65). The previous CSS-
+   transition approach (B.PT60/B.PT63/B.PT64) animated layout-affecting
+   properties (margin, width, flex-basis, height) on multiple elements
+   simultaneously. On desktop with a visible sidebar this caused per-frame
+   layout thrash — the row's flex distribution recalculated every frame
+   while the panel's margin and the bar's flex slot also recalculated.
+   Frame budget (~16ms at 60Hz) was routinely blown, frames dropped, the
+   morph read as choppy / "snaps in between." Mobile didn't show the
+   issue because `<OhAppSidebar />` returns null at <md — only the bar
+   and panel transitioned, half the layout work.
+
+   Solution: hand the morph to the View Transitions API. Each chrome
+   element (bar, sidebar-gap, sidebar-container, panel) carries a
+   `view-transition-name`. On route change between (host)/* and
+   (host)/preview/<handle>, the API snapshots each named element at its
+   OLD bounds + visual state and at its NEW bounds + visual state, then
+   morphs between them on the GPU compositor. Zero main-thread layout
+   work during the transition — the real DOM is hidden behind the
+   snapshots and resumes at the END state when the transition ends.
+
+   The `[data-oh-preview="true"]` rules now declare ONLY the END state
+   (no `transition` declarations) — the property changes are what the
+   browser uses to compute the NEW snapshot. Reverse direction (exit
+   preview) works automatically because the API snapshots both directions.
+
+   The clip rule below targets `oh-chrome-panel` (the rounded panel) so
+   the panel snapshot stays inside the rounded corners during the
+   cross-fade (same B.PT63 fix applied to the renamed group). */
+
+::view-transition-group(oh-chrome-panel) {
   border-radius: var(--oh-r-window);
   overflow: hidden;
 }
 
-/* Cross-fade duration matched to the preview-mode chrome morph (B.PT63).
-   The chrome morph (`.oh-host-content` margin equalize + bar collapse +
-   sidebar fade) runs 380ms with `var(--ease-oh)`. The VT cross-fade
-   originally ran 110ms out + 110ms in = 220ms, ending well before the
-   chrome morph landed — the snapshot showed the END-of-morph layout
-   while the real DOM was still at ~58% morph progress, so the
-   snapshot-to-real-DOM swap had a subtle position jump. Matching VT
-   duration to the chrome morph (190ms out + 190ms in = 380ms) makes
-   the cross-fade end exactly when the morph lands; the snap-frame is
-   imperceptible because the real DOM has reached its final position. */
-::view-transition-old(oh-host-content) {
-  animation: oh-vt-fade-out 190ms cubic-bezier(0.4, 0, 1, 1) both;
+::view-transition-group(oh-chrome-bar),
+::view-transition-group(oh-chrome-sidebar),
+::view-transition-group(oh-chrome-sidebar-gap),
+::view-transition-group(oh-chrome-panel),
+::view-transition-old(oh-chrome-bar),
+::view-transition-old(oh-chrome-sidebar),
+::view-transition-old(oh-chrome-sidebar-gap),
+::view-transition-old(oh-chrome-panel),
+::view-transition-new(oh-chrome-bar),
+::view-transition-new(oh-chrome-sidebar),
+::view-transition-new(oh-chrome-sidebar-gap),
+::view-transition-new(oh-chrome-panel) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--ease-oh);
 }
 
-::view-transition-new(oh-host-content) {
-  animation: oh-vt-fade-in 190ms cubic-bezier(0, 0, 0.2, 1) 190ms both;
+/* Chrome elements opt INTO named view-transition groups (B.PT65). The
+   API snapshots each at OLD bounds + visual state and at NEW bounds +
+   visual state, then morphs between them on the GPU compositor.
+   - `.oh-dashboard-bar`: top bar; in preview the snapshot shows it
+     translated up + faded out (set by [data-oh-preview="true"] rules).
+   - `[data-slot="sidebar-gap"]`: flex placeholder; snapshot shows it
+     collapsed to 0 width in preview.
+   - `[data-slot="sidebar-container"]`: the visible fixed-positioned
+     sidebar; snapshot shows it faded out in preview.
+   - `.oh-host-content`: the rounded panel; snapshot shows it pulled in
+     to uniform 12px margin in preview.
+   At <md the sidebar primitive renders with `display: none` (hidden md:block);
+   the browser doesn't capture snapshots of non-rendered elements, so
+   the sidebar VT names are no-ops on mobile — no need to scope them. */
+.oh-dashboard-bar {
+  view-transition-name: oh-chrome-bar;
+}
+[data-slot="sidebar-gap"] {
+  view-transition-name: oh-chrome-sidebar-gap;
+}
+[data-slot="sidebar-container"] {
+  view-transition-name: oh-chrome-sidebar;
+}
+.oh-host-content {
+  view-transition-name: oh-chrome-panel;
 }
 
-@keyframes oh-vt-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes oh-vt-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Persistent chrome (sidebar, topbar) doesn't need view-transition-name
-   anymore — it's part of `root`, and root has animation:none, so the
-   chrome stays static for free. The previous opt-out approach was
-   leaving the topbar with double-rendered icons + a doubled
-   border-bottom mid-transition; opting in only the page content
-   avoids the issue at the source. */
-
-/* Mobile inline menu — opt the page content out of its own
-   view-transition group while the menu is rendered. Same structural
-   pattern as commit 898cef8 (which opted out for the Sheet drawer).
-   Recurrence reason: the menu now lives INSIDE `oh-host-content-inner`,
-   so when the user clicks a Link from inside, the route-change
-   cross-fade snapshots oh-host-content twice — once with the menu, once
-   with whatever `ContentSlot` renders after the React commit (which
-   can include partially-exited menu rows from the GSAP reverse anim,
-   or in some timings leaked page content). The fade between the two
-   snapshots fights the GSAP exit animation and produces the visual
-   "page overlays sidebar" artifact the user reported.
-   Fix: when `<MobileNavContent />` is mounted (`data-oh-mobile-menu`
-   attribute present), drop `oh-host-content-inner`'s
-   view-transition-name. The page content joins `root`'s snapshot,
-   which already has `animation: none`. No competing group, no
-   cross-fade — the GSAP exit anim plays cleanly on the live DOM
-   once the transition (no-op) window ends.
-   :has() is a 2023+ feature, same browser floor as the View
-   Transitions API itself. */
-html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
+/* Mobile inline menu — opt the panel content out of its own VT group
+   while the menu is rendered. Original B.PT49-era reasoning still
+   applies: the route-change cross-fade snapshots panel content twice
+   (once with the menu, once with whatever ContentSlot renders after
+   the React commit), producing a fight with the GSAP exit animation
+   on the menu rows. With B.PT65 the VT name moved from the inner
+   ScrollArea to the panel — the opt-out follows. The bar + sidebar
+   VT names stay (they're outside the menu's content area, never
+   render the menu). */
+html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   view-transition-name: none;
 }
 
@@ -3197,69 +3216,26 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
    block at the bottom of this section.
    ──────────────────────────────────────────────────────────────────── */
 
-.oh-app-shell {
-  /* The variable owns the bar's flex slot; transitioning ourselves on
-     this element propagates to all descendants that read it (the bar's
-     flex-basis/height, the panel's calc()-based height). */
-  transition: --oh-dashboard-bar-block 380ms var(--ease-oh);
-}
+/* Property overrides for the preview state (B.PT65). NO `transition`
+   declarations — the View Transitions API drives the morph via GPU
+   snapshots. These rules just declare WHAT the chrome looks like in
+   preview mode; the API computes the OLD vs NEW bounds + visuals and
+   morphs between them. Real DOM is hidden behind the snapshots during
+   the transition, so the property changes are effectively instant on
+   the real DOM (transitions on layout-affecting properties were the
+   source of the desktop chop in B.PT60-B.PT64). */
 
 .oh-app-shell[data-oh-preview="true"] {
   --oh-dashboard-bar-block: 0px;
 }
 
-.oh-dashboard-bar {
-  transition:
-    transform 380ms var(--ease-oh),
-    opacity 240ms var(--ease-oh),
-    height 380ms var(--ease-oh),
-    flex-basis 380ms var(--ease-oh),
-    padding-block 380ms var(--ease-oh);
-}
-
 .oh-app-shell[data-oh-preview="true"] .oh-dashboard-bar {
-  /* Slide up + fade. The flex-basis collapse via the variable above
-     drops the bar's flow allocation; `transform` makes the slide
-     visible during the duration before flow resolves. */
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
   height: 0;
   padding-block: 0;
   overflow: hidden;
-}
-
-/* Sidebar's chrome-morph integration (B.PT64). Transition rules live
-   OUTSIDE the [data-oh-preview="true"] scope so they apply both on
-   entry AND exit of preview mode — when the attribute is removed on
-   exit, a CSS transition rule scoped INSIDE that selector stops
-   matching and the property snaps to its default value with no
-   interpolation. That was the desktop "snaps back with a fading
-   effect" bug: opacity was in my transition list only inside the
-   preview scope, so on exit it teleported from 0 → 1 instantly while
-   width/left/right interpolated over the primitive's default 200ms.
-   Lifting the transitions out keeps both directions symmetric.
-   Mobile was unaffected because `<OhAppSidebar />` returns null at
-   <md, so the gap + container elements don't render — only the bar
-   + panel transitions (already lifted) drove the morph there.
-   The sidebar primitive's own transition list (`transition-[left,
-   right,width] duration-200`) is replaced by ours: 380ms with
-   `var(--ease-oh)`, plus `opacity` added so the chrome morph fade
-   has a transition surface. Side effect: sidebar primitive's normal
-   collapse/expand toggle (icon mode, footer trigger) inherits the
-   380ms duration instead of its native 200ms. Acceptable — 380ms
-   reads as deliberate, not slow, and unifies the dashboard's motion
-   vocabulary. */
-.oh-app-shell [data-slot="sidebar-gap"] {
-  transition-property: width;
-  transition-duration: 380ms;
-  transition-timing-function: var(--ease-oh);
-}
-
-.oh-app-shell [data-slot="sidebar-container"] {
-  transition-property: left, right, width, opacity;
-  transition-duration: 380ms;
-  transition-timing-function: var(--ease-oh);
 }
 
 .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"] {
@@ -3271,25 +3247,9 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
   pointer-events: none;
 }
 
-.oh-host-content {
-  transition:
-    margin 380ms var(--ease-oh),
-    height 380ms var(--ease-oh);
-}
-
 .oh-app-shell[data-oh-preview="true"] .oh-host-content {
-  /* `margin: 12px` is the target shape — uniform on all four sides.
-     The shorthand triggers transitions on each side individually; the
-     left side (was 0) is the visibly-animating one. */
+  /* Uniform 12px margin on all four sides — the END state of the morph. */
   margin: 12px;
-}
-
-@media (max-width: 767px) {
-  /* On mobile, margin-left is already 12px outside preview, and the
-     sidebar lives off-canvas anyway — only the bar morph applies. */
-  .oh-app-shell[data-oh-preview="true"] .oh-host-content {
-    margin: 12px;
-  }
 }
 
 /* Floating exit affordance — top-left of the panel while in preview.
@@ -3357,13 +3317,11 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .oh-app-shell,
-  .oh-dashboard-bar,
-  .oh-app-shell [data-slot="sidebar-gap"],
-  .oh-app-shell [data-slot="sidebar-container"],
-  .oh-host-content {
-    transition-duration: 0ms !important;
-  }
+  /* The chrome-morph CSS transitions were removed in B.PT65 — the View
+     Transitions API drives the morph and already has a global reduced-
+     motion rule earlier in this file (`::view-transition-group(*) {
+     animation: none !important; }`). Only the exit-pill keyframe needs
+     an explicit override here. */
   .oh-preview-exit {
     animation: none;
   }
