@@ -15,6 +15,7 @@ import {
   OhEmptyMedia,
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
+import { OhPageShell } from "@/components/oh/page-shell";
 import {
   AvailabilityDrawer,
   TriggerCard,
@@ -29,6 +30,7 @@ import {
   updateQueryParam,
   updateQueryParams,
 } from "@/lib/url-params";
+import { cn } from "@/lib/utils";
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -171,27 +173,43 @@ export default function HostProfile({
   const hasOpenSlots = availableSlots.length > 0;
 
   return (
-    <main className="oh-main" id="top">
-      <div className="oh-topbar">
-        <div className="flex items-center gap-3">
-          <div className="oh-monogram" aria-label={t("brandLabel")}>
-            OH
+    <main className="min-h-screen bg-oh-bg" id="top">
+      {/* Slim profile bar. Mirrors the dashboard's hairline-rule rhythm
+          (`/bookings`, `/settings`) — 1px structural border instead of the
+          earlier 1.5px paper-and-ink slab. Eyebrow on the left carries the
+          handle (the page's permanent address); right side carries the
+          live open/closed indicator so it's the first thing scanned. */}
+      <div className="border-b border-oh-line">
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <span className="oh-eyebrow tabular-nums opacity-100">
+            /h/{user.handle}
+          </span>
+          <div className="flex items-center gap-2" role="status">
+            <span
+              aria-hidden
+              className={cn(
+                "size-2 shrink-0 rounded-full transition-colors duration-200 ease-oh",
+                openToday ? "bg-emerald-500" : "bg-neutral-400",
+              )}
+            />
+            <span className="oh-eyebrow opacity-100">
+              {openToday ? t("openNow") : t("closedToday")}
+            </span>
           </div>
-          <div className="oh-topbar-title">/h/{user.handle}</div>
         </div>
       </div>
 
-      {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>`
-          is in the URL so the visitor knows they're picking a NEW
-          slot to swap into, not booking fresh. The slot-picker
-          drawer's confirm panel shows the from→to delta. */}
+      {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>` is in
+          the URL so the visitor knows they're picking a NEW slot to swap
+          into, not booking fresh. Subtle tint (oh-tint, ~6% ink) reads as
+          a status strip without competing with the page's content. */}
       {rescheduleFromUid ? (
         <div
           role="status"
-          className="border-b-[1.5px] border-oh-line bg-oh-paper px-5 py-3 sm:px-8"
+          className="border-b border-oh-line bg-[color:var(--oh-tint)]"
         >
-          <div className="flex items-center justify-between gap-3">
-            <span className="oh-eyebrow">{t("rescheduling")}</span>
+          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <span className="oh-eyebrow opacity-100">{t("rescheduling")}</span>
             <a
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
               className="oh-eyebrow opacity-55 transition-opacity hover:opacity-100"
@@ -202,97 +220,115 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <article className="oh-v1">
-        <header className="oh-v1-hero oh-reveal">
-          <div className="flex flex-col gap-3">
-          <div className="oh-v1-kicker">
-            <div className="oh-v1-id">
-              <Avatar size="sm" className="oh-v1-avatar">
-                <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                <AvatarFallback className="oh-v1-avatar-fallback">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="oh-v1-handle">@{user.handle}</span>
+      <OhPageShell>
+        <header className="flex flex-col gap-7">
+          <div className="flex items-center gap-3">
+            <Avatar size="lg">
+              <AvatarImage src={user.image ?? undefined} alt={displayName} />
+              <AvatarFallback className="bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col leading-tight">
+              <span className="oh-eyebrow opacity-100">@{user.handle}</span>
+              <span className="mt-1 text-[12px] tabular-nums opacity-55">
+                {t("daysWithSlots", { count: daysWithOpenSlotsThisWeek })}
+              </span>
             </div>
-            <span
-              role="status"
-              className={`oh-v1-status ${openToday ? "is-open" : "is-closed"}`}
-            >
-              <span className="oh-v1-status-dot" aria-hidden />
-              {openToday ? t("openNow") : t("closedToday")}
-            </span>
           </div>
 
-          <h1 className="oh-v1-name">{displayName}</h1>
-          <p className="oh-v1-bio">{t("defaultBio")}</p>
-
-          <p className="oh-v1-subtle">
-            <span>{t("daysWithSlots", { count: daysWithOpenSlotsThisWeek })}</span>
-          </p>
+          <div className="flex flex-col gap-3">
+            <h1 className="text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.05] tracking-tight">
+              {displayName}
+            </h1>
+            <p className="oh-description">{t("defaultBio")}</p>
           </div>
         </header>
 
-        <dl className="oh-v1-meta">
-          <div className="oh-v1-meta-cell">
-            <dt className="oh-v1-meta-label">SESSION</dt>
-            <dd className="oh-v1-meta-value">15<span>M</span></dd>
-          </div>
-          <div className="oh-v1-meta-cell">
-            <dt className="oh-v1-meta-label">OPEN</dt>
-            <dd className="oh-v1-meta-value">
-              {availableSlots.length.toString().padStart(2, "0")}
-            </dd>
-          </div>
-          <div className="oh-v1-meta-cell">
-            <dt className="oh-v1-meta-label">TZ</dt>
-            <dd className="oh-v1-meta-value">{visitorTz}</dd>
-          </div>
+        {/* Meta strip — three hairline cells, mono numerals. Same vocabulary
+            as the dashboard's `/settings` legend rhythm: oh-eyebrow label,
+            mono-numeral value, hairline dividers. No card chrome. */}
+        <dl className="mt-10 grid grid-cols-3 divide-x divide-oh-line border-y border-oh-line">
+          <MetaCell
+            label={t("metaSession")}
+            value={
+              <>
+                15
+                <span className="ml-0.5 text-[12px] opacity-55">m</span>
+              </>
+            }
+          />
+          <MetaCell
+            label={t("metaOpen")}
+            value={availableSlots.length.toString().padStart(2, "0")}
+          />
+          <MetaCell label={t("metaTz")} value={visitorTz} compact />
         </dl>
-      </article>
 
-      <section className="oh-profile-cta">
-        {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
-        {!hasSlots ? (
-          <HostEmpty displayName={displayName} kind="closed" />
-        ) : !hasOpenSlots ? (
-          <HostEmpty displayName={displayName} kind="booked" />
-        ) : null}
-      </section>
-
-      <div className="oh-v1-spacer" aria-hidden />
+        <section
+          className="mt-10 flex flex-col gap-6"
+          aria-label={t("pickADate")}
+        >
+          {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
+          {!hasSlots ? (
+            <HostEmpty displayName={displayName} kind="closed" />
+          ) : !hasOpenSlots ? (
+            <HostEmpty displayName={displayName} kind="booked" />
+          ) : null}
+          {hasOpenSlots ? (
+            <TriggerCard
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              onClick={() => setDrawerOpen(true)}
+            />
+          ) : null}
+        </section>
+      </OhPageShell>
 
       {hasOpenSlots ? (
-        <>
-          <div className="oh-v1-bar" role="region" aria-label={t("pickADate")}>
-            <div className="oh-v1-bar-inner">
-              <TriggerCard
-                selectedDate={selectedDate}
-                selectedSlot={selectedSlot}
-                onClick={() => setDrawerOpen(true)}
-              />
-            </div>
-          </div>
-          <AvailabilityDrawer
-            handle={handle}
-            slots={slots}
-            open={drawerOpen}
-            onOpenChange={setDrawerOpen}
-            selectedDate={selectedDate}
-            onSelectDate={handleSelectDate}
-            selectedSlot={selectedSlot}
-            rescheduleFromUid={rescheduleFromUid}
-            onPickSlot={(s) => {
-              setSelectedSlot(s);
-              // Slot pick is commit-ish — pushState so browser back
-              // returns to "date picked, no slot" instead of skipping
-              // straight back to the page entry.
-              updateQueryParam("slot", s.start, { pushEntry: true });
-            }}
-          />
-        </>
+        <AvailabilityDrawer
+          handle={handle}
+          slots={slots}
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+          selectedSlot={selectedSlot}
+          rescheduleFromUid={rescheduleFromUid}
+          onPickSlot={(s) => {
+            setSelectedSlot(s);
+            // Slot pick is commit-ish — pushState so browser back
+            // returns to "date picked, no slot" instead of skipping
+            // straight back to the page entry.
+            updateQueryParam("slot", s.start, { pushEntry: true });
+          }}
+        />
       ) : null}
     </main>
+  );
+}
+
+function MetaCell({
+  label,
+  value,
+  compact = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  compact?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 px-4 py-4">
+      <dt className="oh-eyebrow">{label}</dt>
+      <dd
+        className={cn(
+          "font-[family-name:var(--oh-mono)] font-bold tabular-nums truncate",
+          compact ? "text-[13px]" : "text-[16px]",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
@@ -312,17 +348,15 @@ function HostEmpty({
       : t("emptyBookedDescription", { name: displayName });
 
   return (
-    <div className="oh-profile-empty">
-      <OhEmpty>
-        <OhEmptyHeader>
-          <OhEmptyMedia>
-            <CalendarIcon />
-          </OhEmptyMedia>
-          <OhEmptyTitle>{title}</OhEmptyTitle>
-          <OhEmptyDescription>{description}</OhEmptyDescription>
-        </OhEmptyHeader>
-      </OhEmpty>
-    </div>
+    <OhEmpty>
+      <OhEmptyHeader>
+        <OhEmptyMedia>
+          <CalendarIcon />
+        </OhEmptyMedia>
+        <OhEmptyTitle>{title}</OhEmptyTitle>
+        <OhEmptyDescription>{description}</OhEmptyDescription>
+      </OhEmptyHeader>
+    </OhEmpty>
   );
 }
 
@@ -331,13 +365,15 @@ function NextAvailable({ slot }: { slot: Slot }) {
   const startDate = new Date(slot.start);
   return (
     <section
-      className="oh-next-available oh-reveal"
       aria-label={t("nextSlotAria")}
+      className="flex items-baseline justify-between gap-4 border-b border-oh-line pb-4"
     >
-      <span className="oh-next-available-kicker">{t("nextAvailable")}</span>
-      <div className="oh-next-available-body">
-        <span className="oh-next-available-time">{fmtTime(startDate)}</span>
-        <span className="oh-next-available-meta">
+      <span className="oh-eyebrow opacity-100">{t("nextAvailable")}</span>
+      <div className="flex items-baseline gap-3">
+        <span className="font-[family-name:var(--oh-mono)] text-[18px] font-bold tabular-nums">
+          {fmtTime(startDate)}
+        </span>
+        <span className="oh-eyebrow tabular-nums">
           {fmtDayLabelShort(startDate)}
         </span>
       </div>

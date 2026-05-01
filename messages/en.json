@@ -388,6 +388,8 @@
     "nextAvailable": "Next available",
     "pickADate": "Pick a date",
     "nextSlotAria": "Next available slot",
-    "brandLabel": "Officehours"
+    "metaSession": "Session",
+    "metaOpen": "Open",
+    "metaTz": "Time zone"
   }
 }
