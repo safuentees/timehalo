@@ -46,6 +46,24 @@ export function OhDashboardLayout({
   const pathname = usePathname();
   const isPreview = pathname?.startsWith("/preview/") ?? false;
 
+  // B.PT69 — Firefox fallback. Firefox's same-document View Transitions
+  // API support (133+) still hits known limitations on `position: fixed`
+  // elements (Bugzilla #1688813 / storybookjs/storybook#33631) — our
+  // sidebar primitive's `[data-slot="sidebar-container"]` is fixed-
+  // positioned, so Firefox's VT snapshot of it can render at the wrong
+  // coordinates or fail entirely. Chrome/Safari handle it correctly.
+  // Tag the documentElement so the CSS in globals.css can opt Firefox
+  // out of the VT-driven morph and apply a CSS-transition fallback on
+  // the panel margin. UA detection is the most reliable signal (CSS
+  // `@supports` doesn't distinguish Firefox 133+ from Chrome reliably
+  // because both implement the same baseline feature set).
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    if (/firefox/i.test(navigator.userAgent)) {
+      document.documentElement.classList.add("oh-firefox");
+    }
+  }, []);
+
   const insetClass = ["oh-root", motion ? "oh-motion" : ""]
     .filter(Boolean)
     .join(" ");

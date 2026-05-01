@@ -3319,6 +3319,45 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   margin: 12px;
 }
 
+/* Firefox fallback (B.PT69). Firefox's same-document View Transitions
+   API (133+) has known issues with `position: fixed` element snapshots
+   (Mozilla Bugzilla #1688813; storybookjs/storybook#33631 confirmed
+   Firefox 134+ miscalculates VT snapshot coordinates when transformed
+   parents create containing blocks). Our sidebar primitive's
+   `[data-slot="sidebar-container"]` is `position: fixed; z-10` — exactly
+   the bug class. Even Firefox 144 (Oct 2025), which shipped more
+   complete VT support, still hits the corner case for our setup.
+
+   Strategy: detect Firefox at runtime (in oh-dashboard-layout via UA
+   string), tag documentElement with `.oh-firefox`. In Firefox, drop the
+   view-transition-name on the chrome elements so the API doesn't try
+   (and fail) to snapshot them, and instead run a simple CSS-transition
+   on the panel's margin. Bar/sidebar snap (no morph) — acceptable
+   degradation since they're secondary to the panel's expansion. The
+   CSS-transition is a single property on a single element so the
+   layout-thrash that motivated B.PT65's VT-API rewrite isn't an issue.
+
+   When Firefox's VT implementation fully matches Chrome/Safari (likely
+   a future release post-144), we can remove `.oh-firefox` and the
+   detection effect — every browser falls into the GPU-driven morph. */
+
+:root.oh-firefox .oh-dashboard-bar,
+:root.oh-firefox [data-slot="sidebar-gap"],
+:root.oh-firefox [data-slot="sidebar-container"],
+:root.oh-firefox .oh-host-content {
+  view-transition-name: none;
+}
+
+:root.oh-firefox .oh-host-content {
+  transition: margin 380ms var(--ease-oh);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.oh-firefox .oh-host-content {
+    transition-duration: 0ms;
+  }
+}
+
 /* Floating exit affordance — top-left of the panel while in preview.
    Sits over `<HostProfile>`'s slim profile bar; absolute positioning
    keeps it out of the document flow so the visitor surface inside
