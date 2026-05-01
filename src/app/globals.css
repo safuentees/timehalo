@@ -3229,27 +3229,46 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
   overflow: hidden;
 }
 
-/* Sidebar fades out and the placeholder gap collapses to 0 width so
-   the panel can pull margin-left to 12px without overlapping. The
-   sidebar primitive ships its own `transition-[width] duration-200`
-   on the gap; we override with our 380ms cubic so the chrome morph
-   reads as one motion. */
-.oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"] {
-  width: 0;
+/* Sidebar's chrome-morph integration (B.PT64). Transition rules live
+   OUTSIDE the [data-oh-preview="true"] scope so they apply both on
+   entry AND exit of preview mode — when the attribute is removed on
+   exit, a CSS transition rule scoped INSIDE that selector stops
+   matching and the property snaps to its default value with no
+   interpolation. That was the desktop "snaps back with a fading
+   effect" bug: opacity was in my transition list only inside the
+   preview scope, so on exit it teleported from 0 → 1 instantly while
+   width/left/right interpolated over the primitive's default 200ms.
+   Lifting the transitions out keeps both directions symmetric.
+   Mobile was unaffected because `<OhAppSidebar />` returns null at
+   <md, so the gap + container elements don't render — only the bar
+   + panel transitions (already lifted) drove the morph there.
+   The sidebar primitive's own transition list (`transition-[left,
+   right,width] duration-200`) is replaced by ours: 380ms with
+   `var(--ease-oh)`, plus `opacity` added so the chrome morph fade
+   has a transition surface. Side effect: sidebar primitive's normal
+   collapse/expand toggle (icon mode, footer trigger) inherits the
+   380ms duration instead of its native 200ms. Acceptable — 380ms
+   reads as deliberate, not slow, and unifies the dashboard's motion
+   vocabulary. */
+.oh-app-shell [data-slot="sidebar-gap"] {
+  transition-property: width;
   transition-duration: 380ms;
   transition-timing-function: var(--ease-oh);
+}
+
+.oh-app-shell [data-slot="sidebar-container"] {
+  transition-property: left, right, width, opacity;
+  transition-duration: 380ms;
+  transition-timing-function: var(--ease-oh);
+}
+
+.oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"] {
+  width: 0;
 }
 
 .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-container"] {
   opacity: 0;
   pointer-events: none;
-  /* Override the primitive's `transition-[left,right,width]` set so
-     opacity gets a transition surface and the duration matches. */
-  transition:
-    opacity 280ms var(--ease-oh),
-    left 380ms var(--ease-oh),
-    right 380ms var(--ease-oh),
-    width 380ms var(--ease-oh);
 }
 
 .oh-host-content {
@@ -3340,8 +3359,8 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content-inner {
 @media (prefers-reduced-motion: reduce) {
   .oh-app-shell,
   .oh-dashboard-bar,
-  .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-gap"],
-  .oh-app-shell[data-oh-preview="true"] [data-slot="sidebar-container"],
+  .oh-app-shell [data-slot="sidebar-gap"],
+  .oh-app-shell [data-slot="sidebar-container"],
   .oh-host-content {
     transition-duration: 0ms !important;
   }
