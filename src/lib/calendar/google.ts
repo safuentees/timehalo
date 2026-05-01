@@ -15,7 +15,7 @@ const REFRESH_LEEWAY_MS = 60_000;
 
 export const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
+  "https://www.googleapis.com/auth/calendar.events",
   "openid",
   "email",
   "profile",
