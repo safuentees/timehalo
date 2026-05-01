@@ -3341,6 +3341,23 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
    a future release post-144), we can remove `.oh-firefox` and the
    detection effect — every browser falls into the GPU-driven morph. */
 
+/* B.PT70 — opt the ROOT element out of VT in Firefox. The html element
+   has an implicit `view-transition-name: root` per spec. When a VT runs,
+   the root snapshot covers the page (~250ms default) and the real DOM
+   is rendered as `visibility: hidden` underneath — so any CSS transition
+   on a real DOM element runs INVISIBLY during the VT window. Our B.PT69
+   fix added `transition: margin 380ms` on `.oh-host-content`, but that
+   transition was running behind the root snapshot — by the time the
+   snapshot was removed, the CSS transition had ~130ms left, which read
+   as a "snap." Setting `view-transition-name: none` on `:root.oh-firefox`
+   excludes root from VT participation; with no participants in Firefox
+   (chrome elements + root all opted out), there's no snapshot overlay,
+   real DOM stays painted, and the CSS transition plays fully visible.
+   `!important` belt-and-suspenders against the implicit-root default. */
+:root.oh-firefox {
+  view-transition-name: none !important;
+}
+
 :root.oh-firefox .oh-dashboard-bar,
 :root.oh-firefox [data-slot="sidebar-gap"],
 :root.oh-firefox [data-slot="sidebar-container"],
