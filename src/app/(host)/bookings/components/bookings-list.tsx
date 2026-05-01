@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { trpc } from "@/trpc/hooks";
 import {
   OhEmpty,
@@ -81,17 +83,14 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
         }}
         className="mt-8"
       >
-        <TabsList
-          aria-label={t("tablistLabel")}
-          className="h-auto w-fit gap-0 overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong bg-transparent p-0"
-        >
-          <BookingTabTrigger value="upcoming" count={data?.upcoming.length}>
-            {t("tabUpcoming")}
-          </BookingTabTrigger>
-          <BookingTabTrigger value="past" count={data?.past.length}>
-            {t("tabPast")}
-          </BookingTabTrigger>
-        </TabsList>
+        <BookingsTabBar
+          activeTab={activeTab}
+          upcomingCount={data?.upcoming.length ?? 0}
+          pastCount={data?.past.length ?? 0}
+          tablistLabel={t("tablistLabel")}
+          upcomingLabel={t("tabUpcoming")}
+          pastLabel={t("tabPast")}
+        />
 
         <TabsContent value="upcoming" className="mt-6">
           <BookingsListPanel
@@ -107,35 +106,243 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   );
 }
 
-function BookingTabTrigger({
-  value,
-  count,
-  children,
+// Format the count beside the tab label.
+// 0–99 → `00`, `01`, …, `99` (padded so digit width is stable across
+// updates and tabular-nums keeps the rest from shimmying).
+// ≥100  → `99+` (more than 99 in either tab is a long-tail edge case
+// for a single-host scheduling app; clamp so the tab label doesn't
+// blow out the bar's width).
+function formatCount(n: number): string {
+  if (n >= 100) return "99+";
+  return String(n).padStart(2, "0");
+}
+
+// Tablist + shared underline that slides between active tabs.
+//
+// Pattern: single underline element (one DOM node, one `::after` would
+// have been per-trigger) absolute-positioned inside the relative
+// TabsList, x + width animated via gsap.to() when activeTab changes.
+// Conceptually FLIP for one element with two known target positions —
+// plain `gsap.to()` is cleaner than gsap's Flip plugin for this case
+// since there's no layout-flow change to measure, just two known
+// offsetLeft/offsetWidth values.
+//
+// Why not view-transitions API: this project already runs view-
+// transitions on route changes (oh-host-content named group + the
+// :has() opt-out for the mobile menu). Wrapping a tab swap in
+// document.startViewTransition() would interact with that snapshot
+// system in subtle ways. Plain gsap.to() is browser-agnostic and
+// sandboxed to this component.
+//
+// First render: snap (no animation) so the bar appears at the active
+// tab's position without sliding from x=0. Subsequent activeTab
+// changes: tween via gsap. Window/element resize: snap to current
+// active tab's geometry via ResizeObserver (no animation — resizes
+// shouldn't read as state changes).
+function BookingsTabBar({
+  activeTab,
+  upcomingCount,
+  pastCount,
+  tablistLabel,
+  upcomingLabel,
+  pastLabel,
 }: {
-  value: Tab;
-  count?: number;
-  children: React.ReactNode;
+  activeTab: Tab;
+  upcomingCount: number;
+  pastCount: number;
+  tablistLabel: string;
+  upcomingLabel: string;
+  pastLabel: string;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const upcomingRef = useRef<HTMLButtonElement>(null);
+  const pastRef = useRef<HTMLButtonElement>(null);
+  const underlineRef = useRef<HTMLSpanElement>(null);
+  const firstRunRef = useRef(true);
+
+  // Mirror activeTab to a ref so the resize observer (mount-only)
+  // can read the current value without re-binding on every change.
+  // Re-binding the observer on activeTab change would re-trigger its
+  // initial callback, which would snap the underline mid-tween and
+  // visibly truncate the slide animation.
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const measureFor = (which: Tab) => {
+    const target = which === "upcoming" ? upcomingRef.current : pastRef.current;
+    if (!target) return null;
+    return { x: target.offsetLeft, width: target.offsetWidth };
+  };
+
+  // Slide on activeTab change. First run: snap, no animation (so the
+  // bar appears under the active tab without a 350ms slide-in from
+  // x=0). useGSAP wraps useLayoutEffect — runs synchronously after
+  // commit, before paint, so the user never sees an unset position.
+  useGSAP(
+    () => {
+      const geom = measureFor(activeTab);
+      if (!geom || !underlineRef.current) return;
+
+      if (firstRunRef.current) {
+        firstRunRef.current = false;
+        gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
+        return;
+      }
+
+      const reduceMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      gsap.to(underlineRef.current, {
+        x: geom.x,
+        width: geom.width,
+        duration: reduceMotion ? 0 : 0.35,
+        ease: "power3.inOut",
+        overwrite: true,
+      });
+    },
+    { scope: listRef, dependencies: [activeTab] },
+  );
+
+  // Resize observer: re-measure when the tab strip reflows (e.g., the
+  // count flips from "01" to "99+" widening the active tab, or
+  // viewport rotates). Snap, don't animate — resizes aren't state
+  // changes the user initiated. Mount-only (no activeTab dep) so the
+  // observer doesn't re-bind on every tab change — re-binding would
+  // re-trigger the initial measurement callback and clobber the
+  // in-flight tween. Reads `activeTabRef.current` for the current tab.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    let initialFire = true;
+    const observer = new ResizeObserver(() => {
+      // Skip the first callback (ResizeObserver fires once on observe
+      // with the initial size). The useGSAP firstRunRef path already
+      // snaps on mount; redundant snap here is fine but skipping
+      // avoids any accidental tween-vs-set fighting.
+      if (initialFire) {
+        initialFire = false;
+        return;
+      }
+      const geom = measureFor(activeTabRef.current);
+      if (!geom || !underlineRef.current) return;
+      gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
+    });
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <TabsList
+      ref={listRef}
+      aria-label={tablistLabel}
+      // variant="line" kills the primitive's default bg-muted fill +
+      // active pill. We override the per-trigger `::after` (each
+      // trigger gets one from the line variant) by hiding it — the
+      // shared underline below replaces it.
+      variant="line"
+      className="relative h-auto w-fit gap-4 p-0"
+    >
+      <BookingTabTrigger
+        ref={upcomingRef}
+        value="upcoming"
+        count={upcomingCount}
+      >
+        {upcomingLabel}
+      </BookingTabTrigger>
+      {/* Hairline vertical rule — 1px, 22% ink. Drawn at the
+          cap-height of the mono labels so it reads as a visual
+          separator between two equal text affordances. aria-hidden
+          because it's decorative; tablist keyboard nav skips it. */}
+      <span
+        aria-hidden
+        className="inline-block h-3.5 w-px self-center bg-oh-line"
+      />
+      <BookingTabTrigger ref={pastRef} value="past" count={pastCount}>
+        {pastLabel}
+      </BookingTabTrigger>
+      {/* Shared underline. Absolute-positioned 5px below the trigger
+          row (matches the `::after`'s `bottom: -5px` we replaced).
+          Initial x/width are 0 — gsap.set in useGSAP snaps it into
+          place on mount before the browser paints, so the user never
+          sees the un-positioned state. pointer-events-none so it
+          can't intercept clicks meant for the triggers underneath. */}
+      <span
+        ref={underlineRef}
+        aria-hidden
+        className="pointer-events-none absolute bottom-[-5px] left-0 h-0.5 bg-[var(--oh-ink)]"
+      />
+    </TabsList>
+  );
+}
+
+// forwardRef so BookingsTabBar can measure each trigger's
+// offsetLeft / offsetWidth for the shared sliding underline.
+const BookingTabTrigger = forwardRef<
+  HTMLButtonElement,
+  {
+    value: Tab;
+    count: number;
+    children: React.ReactNode;
+  }
+>(function BookingTabTrigger({ value, count, children }, ref) {
   return (
     <TabsTrigger
+      ref={ref}
       value={value}
       className={[
-        "h-auto flex-none rounded-none border-0 px-4 py-2.5",
-        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "border-r-2 border-oh-line-strong last:border-r-0",
-        "data-active:!bg-oh-content data-active:!text-oh-bg data-active:!shadow-none",
-        "hover:bg-oh-tint",
+        // Layout: text-only trigger, no bg / border / segmented-control
+        // chrome. Padding y=1 just to give the focus ring some breathing
+        // room around the cap-height of the label. `after:hidden` kills
+        // the line-variant's per-trigger underline pseudo — the shared
+        // sliding bar (rendered by <BookingsTabBar>) replaces it.
+        "group/tab inline-flex items-center gap-2 h-auto rounded-none border-0 bg-transparent p-0 py-1",
+        "shadow-none data-active:shadow-none after:hidden",
+        // Cursor + hit-area: the canonical "expanded hit area" pattern
+        // (51bits.com/expanded-hit-areas, shadeed.ishadeed.com). Pointer
+        // cursor signals "this is clickable" (Tailwind Preflight sets
+        // <button> to cursor-default by default). The `::before` pseudo
+        // is an invisible absolute-positioned rectangle extending 8px
+        // horizontally and 16px vertically beyond the text — clicks on
+        // it route to the trigger element, layout is unchanged. Clears
+        // WCAG 2.5.8 (24px) and Apple HIG (44px) target sizes.
+        "cursor-pointer",
+        "before:content-[''] before:absolute before:-inset-x-2 before:-inset-y-4",
+        // Mono caps eyebrow vocabulary, matches the rest of the chrome
+        // (oh-eyebrow utility) but slightly larger (11px vs 10px) for
+        // the primary tablist surface. tabular-nums on the digits so the
+        // count doesn't shift columns when it updates from the SSE queue.
+        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase tabular-nums",
+        // Idle = subtle (35% ink); active = full ink. Opacity gap is
+        // wide so the active tab visibly leads the inactive one.
+        // Hover bumps inactive → full ink (the standard hover-up
+        // pattern from dashboard-forms.md).
+        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)]",
+        // Color animates between active/inactive states. The shared
+        // sliding underline animates separately via gsap.to() in
+        // BookingsTabBar.
+        "transition-colors duration-150 ease-oh",
+        // Focus ring sits 4px out from the text — readable without
+        // crashing into the count or the separator.
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-4",
+        // Suppress iOS Safari's grey tap highlight (same convention as
+        // OhMenuTrigger — chrome-toggle pattern).
+        "[-webkit-tap-highlight-color:transparent]",
       ].join(" ")}
     >
       <span className="leading-none">{children}</span>
-      {typeof count === "number" ? (
-        <span className="tabular-nums text-[11px] font-bold leading-none opacity-45 group-data-[state=active]:opacity-65 data-active:opacity-65">
-          {count}
-        </span>
-      ) : null}
+      {/* Count is dimmed only on the ACTIVE side (label 100%, count
+          65%) to keep the label-primary / count-secondary hierarchy
+          when the tab is selected. Inactive: count inherits the
+          parent's 35% — adding more dim there would make it vanish. */}
+      <span className="leading-none group-data-[state=active]/tab:opacity-65">
+        {formatCount(count)}
+      </span>
     </TabsTrigger>
   );
-}
+});
 
 type Booking = {
   id: number;
@@ -315,7 +522,20 @@ function EmptyBookings({ tab }: { tab: Tab }) {
         <OhEmptyContent>
           <Link
             href={`/h/${me.handle}`}
-            className="oh-eyebrow border-[1.5px] border-oh-line-strong px-3 py-2 transition-colors hover:bg-oh-tint-hover"
+            // `!underline` + `!decoration-...` because globals.css line 756
+            // has an unlayered `:where(.oh-root a) { text-decoration: none }`
+            // shell reset. Unlayered CSS beats Tailwind's utilities layer
+            // regardless of specificity (per the Cascade Layers spec).
+            // The `!important` prefix reverses layer order so the layered
+            // utilities win — same gotcha called out in dashboard-forms.md
+            // *Hover + color contracts*.
+            //
+            // Both text + underline use `--oh-content-muted` (~55% ink) at
+            // rest so the link reads as the tertiary-quiet affordance the
+            // empty state intends — visible enough to act on, quiet enough
+            // not to compete with the title/icon. Hover lifts both to full
+            // ink (the standard tertiary dashboard pattern).
+            className="text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
           >
             {t("emptyCta")}
           </Link>
