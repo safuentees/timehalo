@@ -513,19 +513,14 @@
   outline: none;
 }
 .oh-time-picker-popup {
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr 1px auto;
-  align-items: stretch;
-  width: 240px;
-  max-height: 320px;
   background: var(--oh-paper);
   color: var(--oh-ink);
   border: 1.5px solid var(--oh-ink);
   border-radius: var(--oh-r-sm);
+  padding: 14px 16px;
   box-shadow:
     0 16px 32px -12px rgb(0 0 0 / 0.22),
     0 4px 12px -6px rgb(0 0 0 / 0.12);
-  overflow: hidden;
   outline: none;
   transform-origin: top left;
   transition:
@@ -593,6 +588,82 @@
   opacity: 1;
 }
 .oh-time-picker-cell.is-active {
+  background: var(--oh-ink);
+  color: var(--oh-paper);
+  opacity: 1;
+}
+
+.oh-time-picker-input {
+  appearance: none;
+  width: 48px;
+  height: 36px;
+  background: transparent;
+  border: 1.5px solid var(--oh-line-firm);
+  border-radius: var(--oh-r-xs);
+  padding: 0;
+  text-align: center;
+  font-family: var(--oh-mono);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--oh-ink);
+  caret-color: transparent;
+  outline: none;
+  transition:
+    border-color 120ms var(--ease-oh, ease),
+    background-color 120ms var(--ease-oh, ease);
+}
+.oh-time-picker-input:hover {
+  border-color: var(--oh-ink);
+}
+.oh-time-picker-input:focus,
+.oh-time-picker-input:focus-visible {
+  border-color: var(--oh-ink);
+  background: var(--oh-tint-hover);
+}
+.oh-time-picker-input::-webkit-inner-spin-button,
+.oh-time-picker-input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.oh-time-picker-period {
+  display: inline-flex;
+  height: 36px;
+  border: 1.5px solid var(--oh-line-firm);
+  border-radius: var(--oh-r-xs);
+  overflow: hidden;
+  transition: border-color 120ms var(--ease-oh, ease);
+}
+.oh-time-picker-period:hover {
+  border-color: var(--oh-ink);
+}
+.oh-time-picker-period-cell {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0 10px;
+  font-family: var(--oh-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--oh-ink);
+  opacity: 0.65;
+  cursor: pointer;
+  transition:
+    background-color 120ms var(--ease-oh, ease),
+    opacity 120ms var(--ease-oh, ease),
+    color 120ms var(--ease-oh, ease);
+}
+.oh-time-picker-period-cell:hover {
+  opacity: 1;
+}
+.oh-time-picker-period-cell:focus-visible {
+  outline: 2px solid var(--oh-ink);
+  outline-offset: -2px;
+  opacity: 1;
+}
+.oh-time-picker-period-cell.is-active {
   background: var(--oh-ink);
   color: var(--oh-paper);
   opacity: 1;
