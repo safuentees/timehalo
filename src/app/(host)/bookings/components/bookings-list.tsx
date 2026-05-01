@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -102,39 +102,38 @@ function BookingsTabBar({
   const listRef = useRef<HTMLDivElement>(null);
   const upcomingRef = useRef<HTMLButtonElement>(null);
   const pastRef = useRef<HTMLButtonElement>(null);
-  const underlineRef = useRef<HTMLSpanElement>(null);
-  const firstRunRef = useRef(true);
-
-  const activeTabRef = useRef(activeTab);
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-
-  const measureFor = (which: Tab) => {
-    const target = which === "upcoming" ? upcomingRef.current : pastRef.current;
-    if (!target) return null;
-    return { x: target.offsetLeft, width: target.offsetWidth };
-  };
+  const prevActiveRef = useRef<Tab>(activeTab);
 
   useGSAP(
     () => {
-      const geom = measureFor(activeTab);
-      if (!geom || !underlineRef.current) return;
+      const prev = prevActiveRef.current;
+      if (prev === activeTab) return;
+      prevActiveRef.current = activeTab;
 
-      if (firstRunRef.current) {
-        firstRunRef.current = false;
-        gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
-        return;
-      }
+      const fromEl =
+        prev === "upcoming" ? upcomingRef.current : pastRef.current;
+      const toEl =
+        activeTab === "upcoming" ? upcomingRef.current : pastRef.current;
+      if (!fromEl || !toEl) return;
+
+      const newUnderline = toEl.querySelector<HTMLSpanElement>(
+        "[data-tab-underline]",
+      );
+      if (!newUnderline) return;
 
       const reduceMotion =
         typeof window !== "undefined" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) return;
 
-      gsap.to(underlineRef.current, {
-        x: geom.x,
-        width: geom.width,
-        duration: reduceMotion ? 0 : 0.35,
+      const fromRect = fromEl.getBoundingClientRect();
+      const toRect = toEl.getBoundingClientRect();
+
+      gsap.from(newUnderline, {
+        x: fromRect.left - toRect.left,
+        scaleX: fromRect.width / toRect.width,
+        transformOrigin: "left center",
+        duration: 0.35,
         ease: "power3.inOut",
         overwrite: true,
       });
@@ -142,34 +141,18 @@ function BookingsTabBar({
     { scope: listRef, dependencies: [activeTab] },
   );
 
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    let initialFire = true;
-    const observer = new ResizeObserver(() => {
-      if (initialFire) {
-        initialFire = false;
-        return;
-      }
-      const geom = measureFor(activeTabRef.current);
-      if (!geom || !underlineRef.current) return;
-      gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
-    });
-    observer.observe(list);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <TabsList
       ref={listRef}
       aria-label={tablistLabel}
       variant="line"
-      className="relative h-auto w-fit gap-4 p-0"
+      className="h-auto w-fit gap-4 p-0"
     >
       <BookingTabTrigger
         ref={upcomingRef}
         value="upcoming"
         count={upcomingCount}
+        isActive={activeTab === "upcoming"}
       >
         {upcomingLabel}
       </BookingTabTrigger>
@@ -177,14 +160,14 @@ function BookingsTabBar({
         aria-hidden
         className="inline-block h-3.5 w-px self-center bg-oh-line"
       />
-      <BookingTabTrigger ref={pastRef} value="past" count={pastCount}>
+      <BookingTabTrigger
+        ref={pastRef}
+        value="past"
+        count={pastCount}
+        isActive={activeTab === "past"}
+      >
         {pastLabel}
       </BookingTabTrigger>
-      <span
-        ref={underlineRef}
-        aria-hidden
-        className="pointer-events-none absolute bottom-[-5px] left-0 h-0.5 bg-[var(--oh-ink)]"
-      />
     </TabsList>
   );
 }
@@ -194,9 +177,10 @@ const BookingTabTrigger = forwardRef<
   {
     value: Tab;
     count: number;
+    isActive: boolean;
     children: React.ReactNode;
   }
->(function BookingTabTrigger({ value, count, children }, ref) {
+>(function BookingTabTrigger({ value, count, isActive, children }, ref) {
   return (
     <TabsTrigger
       ref={ref}
@@ -217,6 +201,13 @@ const BookingTabTrigger = forwardRef<
       <span className="leading-none group-data-[state=active]/tab:opacity-65">
         {formatCount(count)}
       </span>
+      {isActive ? (
+        <span
+          data-tab-underline
+          aria-hidden
+          className="pointer-events-none absolute bottom-[-5px] left-0 right-0 h-0.5 bg-[var(--oh-ink)]"
+        />
+      ) : null}
     </TabsTrigger>
   );
 });
@@ -307,16 +298,9 @@ function LiveQueue() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
   const [status, setStatus] = useState<
-    "hidden" | "connecting" | "live" | "off"
-  >("hidden");
+    "connecting" | "live" | "off"
+  >("connecting");
   const [pulseKey, setPulseKey] = useState(0);
-
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setStatus((s) => (s === "hidden" ? "connecting" : s));
-    }, 500);
-    return () => clearTimeout(handle);
-  }, []);
 
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
@@ -340,22 +324,18 @@ function LiveDot({
   pulseKey,
   t,
 }: {
-  status: "hidden" | "connecting" | "live" | "off";
+  status: "connecting" | "live" | "off";
   pulseKey: number;
   t: ReturnType<typeof useTranslations<"Bookings">>;
 }) {
-  const isHidden = status === "hidden";
   const tone =
     status === "live"
       ? "bg-emerald-500"
       : status === "connecting"
         ? "bg-amber-500"
-        : status === "off"
-          ? "bg-neutral-400"
-          : "bg-transparent";
-  const ariaLabel = isHidden
-    ? undefined
-    : status === "live"
+        : "bg-neutral-400";
+  const ariaLabel =
+    status === "live"
       ? t("liveConnected")
       : status === "connecting"
         ? t("liveConnecting")
@@ -364,8 +344,7 @@ function LiveDot({
   return (
     <span
       key={pulseKey}
-      role={isHidden ? undefined : "status"}
-      aria-hidden={isHidden ? true : undefined}
+      role="status"
       aria-label={ariaLabel}
       className={[
         "oh-live-dot inline-block size-2 shrink-0 rounded-full",
