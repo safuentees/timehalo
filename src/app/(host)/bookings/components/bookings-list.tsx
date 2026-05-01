@@ -286,13 +286,23 @@ const BookingTabTrigger = forwardRef<
         "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase tabular-nums",
         // Idle = subtle (35% ink); active = full ink. Opacity gap is
         // wide so the active tab visibly leads the inactive one.
-        // Hover bumps inactive → full ink (the standard hover-up
-        // pattern from dashboard-forms.md).
-        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)]",
-        // Color animates between active/inactive states. The shared
-        // sliding underline animates separately via gsap.to() in
-        // BookingsTabBar.
-        "transition-colors duration-150 ease-oh",
+        // Hover bumps inactive → full ink. Focus also bumps to ink:
+        // click instantly focuses the trigger (synchronously, before
+        // React commits), so when the user clicks then moves the
+        // mouse out fast, focus keeps the color at ink during the
+        // ~30ms commit window. Without focus, that window saw a
+        // brief subtle (gray) dip — the flash the user reported.
+        // After commit, data-active also gives ink, so the focus
+        // rule becomes redundant and stays harmless.
+        "text-[color:var(--oh-content-subtle)] data-active:text-[color:var(--oh-ink)] hover:text-[color:var(--oh-ink)] focus:text-[color:var(--oh-ink)]",
+        // No transitions on the trigger. Click → text snaps instantly
+        // to ink (active) / subtle (inactive); hover snaps too. The
+        // sliding underline (animated via gsap in BookingsTabBar) is
+        // the only motion on the tab strip — text color is binary.
+        // `transition-none` is needed to override shadcn's baked-in
+        // `transition-all` from tabs.tsx (line 61), which would
+        // otherwise re-introduce a 150ms color fade on data-active flip.
+        "transition-none",
         // Focus ring sits 4px out from the text — readable without
         // crashing into the count or the separator.
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-4",

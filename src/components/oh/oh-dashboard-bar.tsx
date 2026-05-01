@@ -15,8 +15,8 @@ import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
+import { OhMenuTrigger } from "./oh-menu-trigger";
 import { OhUserMenu } from "./user-menu";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
@@ -86,14 +86,14 @@ export function OhDashboardBar() {
 
   return (
     <div className="oh-dashboard-bar">
-      {/* Mobile sidebar opener. The shadcn Sidebar primitive renders a
-          Sheet at <md and the trigger toggles its `openMobile` state.
+      {/* Mobile menu opener. Toggles `openMobile` on the SidebarProvider
+          context; the dashboard layout swaps the content slot to the
+          inline mobile nav (B.PT49) when openMobile flips true.
           Hidden at md+ where the desktop sidebar rail owns its own
-          collapse via the footer button. */}
-      <SidebarTrigger
-        aria-label="Open menu"
-        className="-ml-1 mr-1 size-7 rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] md:hidden"
-      />
+          collapse via the footer button.
+          The icon morphs hamburger ↔ X via GSAP MorphSVG (B.PT52
+          motion vocabulary applied to a single-element morph). */}
+      <OhMenuTrigger className="-ml-1 mr-1 md:hidden" />
       <Menu.Root>
         {/* Stable `id` prop bypasses Base UI's `useBaseUiId(idOverride)`
             useId fallback. Without it, the trigger's auto-id is
@@ -228,7 +228,12 @@ function ChromeIconLink({
     <Link
       href={href}
       aria-label={label}
-      className="inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
+      // Solid ink color + opacity-on-SVG (not alpha-color on parent)
+      // so lucide stroke intersections don't compose double-alpha
+      // and look darker than the rest of the lines. opacity-[0.55]
+      // matches `--oh-content-muted`'s 55% perceived dimness; hover
+      // lifts to opacity-100 in sync with the bg-tint reveal.
+      className="group/chrome inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2 [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh group-hover/chrome:[&_svg]:opacity-100 hover:[&_svg]:opacity-100"
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
     </Link>

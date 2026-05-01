@@ -53,10 +53,15 @@ export function OhSelect({
       >
         {children}
       </select>
+      {/* Solid ink color + opacity-0.55 (matches `--oh-content-muted`'s
+          rendered dimness) so the chevron's stroke intersections at
+          the V-vertex don't compose double-alpha and look darker
+          than the rest of the lines. CSS opacity flattens internal
+          stroke compositing before applying the dim factor. */}
       <ChevronDown
         aria-hidden
         strokeWidth={1.75}
-        className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-[color:var(--oh-content-muted)]"
+        className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-[color:var(--oh-ink)] opacity-[0.55]"
       />
     </span>
   );

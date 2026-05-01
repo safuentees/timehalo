@@ -48,10 +48,18 @@ function OhEmptyHeader({ className, ...props }: ComponentProps<"div">) {
 // Icon container. Bare-flow, no halo / ring / muted-grey tile —
 // `oh-ui.md` *Empty states + icons* explicitly bans the stock-shadcn
 // "rounded grey background" treatment. The lucide line icon sits
-// directly in the column; `text-content-subtle` (35% ink) is the
-// canonical empty-icon color the rule names. Single variant for now;
-// a `media-image` shape would slot in later if a thumbnail-empty
-// surfaces.
+// directly in the column.
+//
+// Color strategy: SOLID `--oh-ink` color on the SVG strokes, with
+// `opacity: 0.35` on the SVG itself. Equivalent rendered dimness to
+// the `--oh-content-subtle` color (35% ink) but without the stroke-
+// overlap artifact: `currentColor` set to a color WITH alpha makes
+// each lucide stroke render at 35% alpha, and stroke intersections
+// composite to 1 − (1 − 0.35)² ≈ 58% — visibly darker than the rest
+// of the lines (the user-flagged "see-through traces, opaque at
+// intersections" issue). CSS `opacity` flattens the SVG to an
+// offscreen buffer at full alpha first, then multiplies the whole
+// result — overlaps never compose. Same final dimness, no artifact.
 function OhEmptyMedia({
   className,
   children,
@@ -61,7 +69,7 @@ function OhEmptyMedia({
     <div
       data-slot="oh-empty-media"
       className={cn(
-        "flex items-center justify-center text-[color:var(--oh-content-subtle)] [&_svg]:size-8 [&_svg:not([class*='stroke-'])]:[stroke-width:1.5]",
+        "flex items-center justify-center text-[color:var(--oh-ink)] [&_svg]:size-8 [&_svg]:opacity-[0.35] [&_svg:not([class*='stroke-'])]:[stroke-width:1.5]",
         className,
       )}
       {...props}

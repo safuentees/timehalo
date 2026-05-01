@@ -170,7 +170,7 @@ export function RegisterForm() {
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="text-[color:var(--oh-content-muted)] hover:bg-[color:var(--oh-tint-hover)] hover:text-[color:var(--oh-ink)]"
+              className="text-[color:var(--oh-ink)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 hover:[&_svg]:opacity-100 hover:bg-[color:var(--oh-tint-hover)]"
             >
               {showPassword ? (
                 <EyeOff className="size-4" strokeWidth={1.75} />
