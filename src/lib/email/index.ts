@@ -24,10 +24,19 @@ function devSubjectPrefix(): string {
 }
 
 // Dev sink — same trick as dub's send-via-resend.ts:30. In dev /
-// preview, every send routes to Resend's dev address so we never
-// surprise a real user with a test send.
+// preview, every send routes to Resend's dev address by default so
+// we never surprise a real user with a test send.
+//
+// Opt-in override: `EMAIL_DEV_REDIRECT` in .env can route dev sends to
+// a developer's own inbox instead of the Resend sink — useful while
+// walking the features-and-tests checklist (booking reminders,
+// workspace invites, magic links) and wanting to actually see the
+// rendered email arrive somewhere clickable. Production
+// (`VERCEL_ENV=production`) always uses the real recipient regardless.
 function resolveRecipient(to: string): string {
   if (process.env.VERCEL_ENV === "production") return to;
+  const devRedirect = process.env.EMAIL_DEV_REDIRECT;
+  if (devRedirect) return devRedirect;
   return "delivered@resend.dev";
 }
 

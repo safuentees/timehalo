@@ -36,6 +36,17 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("Officehours <onboarding@resend.dev>"),
     /**
+     * Optional dev-only inbox redirect. When set in non-prod environments,
+     * `resolveRecipient` (src/lib/email/index.ts) routes ALL outgoing
+     * emails to this address instead of Resend's `delivered@resend.dev`
+     * dev sink. Lets a developer receive booking reminders / workspace
+     * invites / magic links in their own inbox while iterating, without
+     * accidentally emailing the visitor address typed into a test
+     * booking. Ignored in production (`VERCEL_ENV=production` always
+     * sends to the real recipient). Validated as an email address.
+     */
+    EMAIL_DEV_REDIRECT: z.string().email().optional(),
+    /**
      * Optional Upstash Redis for the rate-limit fallback path. When
      * unset, the in-memory limiter (rallly's pattern) is used.
      */
