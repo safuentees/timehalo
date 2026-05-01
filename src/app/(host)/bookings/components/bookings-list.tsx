@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -117,28 +117,32 @@ function formatCount(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-// Tablist + shared underline that slides between active tabs.
+// Tablist with a per-tab underline that animates between tabs via
+// FLIP (First, Last, Invert, Play).
 //
-// Pattern: single underline element (one DOM node, one `::after` would
-// have been per-trigger) absolute-positioned inside the relative
-// TabsList, x + width animated via gsap.to() when activeTab changes.
-// Conceptually FLIP for one element with two known target positions —
-// plain `gsap.to()` is cleaner than gsap's Flip plugin for this case
-// since there's no layout-flow change to measure, just two known
-// offsetLeft/offsetWidth values.
+// SSR correctness: the underline is rendered as a child of the active
+// tab (conditional on `isActive`). React emits it in SSR HTML at the
+// correct position via pure CSS (`absolute left:0 right:0 bottom:-5px`
+// inside the trigger). Browser paints it on first frame — no JS
+// measurement, no flash-of-no-bar while the bundle hydrates.
+// (Earlier shared-bar version positioned the underline via gsap.set
+// after hydration. The SSR HTML had width:0 → paint with no visible
+// bar → JS hydrates → bar snaps in. ~500-1000ms gap on slow networks.
+// Per-tab CSS positioning eliminates the gap.)
 //
-// Why not view-transitions API: this project already runs view-
-// transitions on route changes (oh-host-content named group + the
-// :has() opt-out for the mobile menu). Wrapping a tab swap in
-// document.startViewTransition() would interact with that snapshot
-// system in subtle ways. Plain gsap.to() is browser-agnostic and
-// sandboxed to this component.
+// Animation: when activeTab changes, the OLD underline unmounts (its
+// parent trigger lost `isActive`) and the NEW underline mounts inside
+// the NEW active tab at its CSS-final position. GSAP FLIP captures
+// the OLD trigger's geometry (still in DOM, just not active), then
+// `gsap.from()` temporarily transforms the new underline back to the
+// old position + size, then animates back to identity. Net effect:
+// the underline appears to slide between tabs, but the final state
+// is always pure CSS — no JS measurement holds the position.
 //
-// First render: snap (no animation) so the bar appears at the active
-// tab's position without sliding from x=0. Subsequent activeTab
-// changes: tween via gsap. Window/element resize: snap to current
-// active tab's geometry via ResizeObserver (no animation — resizes
-// shouldn't read as state changes).
+// References: GSAP forum topic #39455 (Next.js + Flip + SSR — "ensure
+// the initial styling state of the component is correct" so first
+// paint shows the final state, not a default-zero state). CSS-Tricks:
+// "Animating Layouts with the FLIP Technique."
 function BookingsTabBar({
   activeTab,
   upcomingCount,
@@ -157,48 +161,45 @@ function BookingsTabBar({
   const listRef = useRef<HTMLDivElement>(null);
   const upcomingRef = useRef<HTMLButtonElement>(null);
   const pastRef = useRef<HTMLButtonElement>(null);
-  const underlineRef = useRef<HTMLSpanElement>(null);
-  const firstRunRef = useRef(true);
+  // Initialize with the current tab so the first useGSAP run sees
+  // prev === current and returns early — no animation on mount, the
+  // SSR-rendered underline is already at the correct position.
+  const prevActiveRef = useRef<Tab>(activeTab);
 
-  // Mirror activeTab to a ref so the resize observer (mount-only)
-  // can read the current value without re-binding on every change.
-  // Re-binding the observer on activeTab change would re-trigger its
-  // initial callback, which would snap the underline mid-tween and
-  // visibly truncate the slide animation.
-  const activeTabRef = useRef(activeTab);
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-
-  const measureFor = (which: Tab) => {
-    const target = which === "upcoming" ? upcomingRef.current : pastRef.current;
-    if (!target) return null;
-    return { x: target.offsetLeft, width: target.offsetWidth };
-  };
-
-  // Slide on activeTab change. First run: snap, no animation (so the
-  // bar appears under the active tab without a 350ms slide-in from
-  // x=0). useGSAP wraps useLayoutEffect — runs synchronously after
-  // commit, before paint, so the user never sees an unset position.
   useGSAP(
     () => {
-      const geom = measureFor(activeTab);
-      if (!geom || !underlineRef.current) return;
+      const prev = prevActiveRef.current;
+      if (prev === activeTab) return;
+      prevActiveRef.current = activeTab;
 
-      if (firstRunRef.current) {
-        firstRunRef.current = false;
-        gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
-        return;
-      }
+      const fromEl =
+        prev === "upcoming" ? upcomingRef.current : pastRef.current;
+      const toEl =
+        activeTab === "upcoming" ? upcomingRef.current : pastRef.current;
+      if (!fromEl || !toEl) return;
+
+      const newUnderline = toEl.querySelector<HTMLSpanElement>(
+        "[data-tab-underline]",
+      );
+      if (!newUnderline) return;
 
       const reduceMotion =
         typeof window !== "undefined" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) return;
 
-      gsap.to(underlineRef.current, {
-        x: geom.x,
-        width: geom.width,
-        duration: reduceMotion ? 0 : 0.35,
+      const fromRect = fromEl.getBoundingClientRect();
+      const toRect = toEl.getBoundingClientRect();
+
+      // FLIP the new underline from the old tab's geometry to its own
+      // (CSS-final) geometry. transform-only animation — GPU-friendly,
+      // doesn't trigger layout. transformOrigin: "left" so scaleX
+      // grows/shrinks from the left edge instead of center.
+      gsap.from(newUnderline, {
+        x: fromRect.left - toRect.left,
+        scaleX: fromRect.width / toRect.width,
+        transformOrigin: "left center",
+        duration: 0.35,
         ease: "power3.inOut",
         overwrite: true,
       });
@@ -206,49 +207,22 @@ function BookingsTabBar({
     { scope: listRef, dependencies: [activeTab] },
   );
 
-  // Resize observer: re-measure when the tab strip reflows (e.g., the
-  // count flips from "01" to "99+" widening the active tab, or
-  // viewport rotates). Snap, don't animate — resizes aren't state
-  // changes the user initiated. Mount-only (no activeTab dep) so the
-  // observer doesn't re-bind on every tab change — re-binding would
-  // re-trigger the initial measurement callback and clobber the
-  // in-flight tween. Reads `activeTabRef.current` for the current tab.
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    let initialFire = true;
-    const observer = new ResizeObserver(() => {
-      // Skip the first callback (ResizeObserver fires once on observe
-      // with the initial size). The useGSAP firstRunRef path already
-      // snaps on mount; redundant snap here is fine but skipping
-      // avoids any accidental tween-vs-set fighting.
-      if (initialFire) {
-        initialFire = false;
-        return;
-      }
-      const geom = measureFor(activeTabRef.current);
-      if (!geom || !underlineRef.current) return;
-      gsap.set(underlineRef.current, { x: geom.x, width: geom.width });
-    });
-    observer.observe(list);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <TabsList
       ref={listRef}
       aria-label={tablistLabel}
       // variant="line" kills the primitive's default bg-muted fill +
-      // active pill. We override the per-trigger `::after` (each
-      // trigger gets one from the line variant) by hiding it — the
-      // shared underline below replaces it.
+      // active pill. The per-tab `::after` from the line variant is
+      // hidden via after:hidden in BookingTabTrigger — our explicit
+      // child <span> with [data-tab-underline] replaces it.
       variant="line"
-      className="relative h-auto w-fit gap-4 p-0"
+      className="h-auto w-fit gap-4 p-0"
     >
       <BookingTabTrigger
         ref={upcomingRef}
         value="upcoming"
         count={upcomingCount}
+        isActive={activeTab === "upcoming"}
       >
         {upcomingLabel}
       </BookingTabTrigger>
@@ -260,34 +234,29 @@ function BookingsTabBar({
         aria-hidden
         className="inline-block h-3.5 w-px self-center bg-oh-line"
       />
-      <BookingTabTrigger ref={pastRef} value="past" count={pastCount}>
+      <BookingTabTrigger
+        ref={pastRef}
+        value="past"
+        count={pastCount}
+        isActive={activeTab === "past"}
+      >
         {pastLabel}
       </BookingTabTrigger>
-      {/* Shared underline. Absolute-positioned 5px below the trigger
-          row (matches the `::after`'s `bottom: -5px` we replaced).
-          Initial x/width are 0 — gsap.set in useGSAP snaps it into
-          place on mount before the browser paints, so the user never
-          sees the un-positioned state. pointer-events-none so it
-          can't intercept clicks meant for the triggers underneath. */}
-      <span
-        ref={underlineRef}
-        aria-hidden
-        className="pointer-events-none absolute bottom-[-5px] left-0 h-0.5 bg-[var(--oh-ink)]"
-      />
     </TabsList>
   );
 }
 
 // forwardRef so BookingsTabBar can measure each trigger's
-// offsetLeft / offsetWidth for the shared sliding underline.
+// getBoundingClientRect for the FLIP underline animation.
 const BookingTabTrigger = forwardRef<
   HTMLButtonElement,
   {
     value: Tab;
     count: number;
+    isActive: boolean;
     children: React.ReactNode;
   }
->(function BookingTabTrigger({ value, count, children }, ref) {
+>(function BookingTabTrigger({ value, count, isActive, children }, ref) {
   return (
     <TabsTrigger
       ref={ref}
@@ -340,6 +309,21 @@ const BookingTabTrigger = forwardRef<
       <span className="leading-none group-data-[state=active]/tab:opacity-65">
         {formatCount(count)}
       </span>
+      {/* Per-tab underline. Renders only when this tab is active.
+          Pure CSS positioning (absolute inside the relative trigger)
+          so SSR HTML paints it at the correct position on first
+          frame — no JS measurement holds the position. The FLIP
+          animation in BookingsTabBar transforms this element FROM
+          the old tab's geometry on each tab change; CSS-final state
+          is always correct. data-tab-underline is the queryable
+          handle for that animation. */}
+      {isActive ? (
+        <span
+          data-tab-underline
+          aria-hidden
+          className="pointer-events-none absolute bottom-[-5px] left-0 right-0 h-0.5 bg-[var(--oh-ink)]"
+        />
+      ) : null}
     </TabsTrigger>
   );
 });
@@ -429,17 +413,20 @@ function BookingRow({
 function LiveQueue() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
+  // Initial state: "connecting" (amber). Same architectural fix as
+  // the tab underline — render the indicator at its visible state on
+  // first paint via SSR HTML, no JS-deferred reveal. Earlier shape
+  // started at "hidden" + setTimeout(500ms) → "connecting"; the
+  // 500ms delay was meant to skip the amber flash if SSE connects
+  // fast, but it cost us the dot's visibility for half a second on
+  // every page load. Better: show the amber dot immediately, let
+  // the SSE callbacks transition it to "live" (green) or "off"
+  // (grey) when they fire. The amber→green transition is meaningful
+  // ("connection just succeeded"), not noise.
   const [status, setStatus] = useState<
-    "hidden" | "connecting" | "live" | "off"
-  >("hidden");
+    "connecting" | "live" | "off"
+  >("connecting");
   const [pulseKey, setPulseKey] = useState(0);
-
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setStatus((s) => (s === "hidden" ? "connecting" : s));
-    }, 500);
-    return () => clearTimeout(handle);
-  }, []);
 
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
@@ -463,22 +450,18 @@ function LiveDot({
   pulseKey,
   t,
 }: {
-  status: "hidden" | "connecting" | "live" | "off";
+  status: "connecting" | "live" | "off";
   pulseKey: number;
   t: ReturnType<typeof useTranslations<"Bookings">>;
 }) {
-  const isHidden = status === "hidden";
   const tone =
     status === "live"
       ? "bg-emerald-500"
       : status === "connecting"
         ? "bg-amber-500"
-        : status === "off"
-          ? "bg-neutral-400"
-          : "bg-transparent";
-  const ariaLabel = isHidden
-    ? undefined
-    : status === "live"
+        : "bg-neutral-400";
+  const ariaLabel =
+    status === "live"
       ? t("liveConnected")
       : status === "connecting"
         ? t("liveConnecting")
@@ -487,8 +470,7 @@ function LiveDot({
   return (
     <span
       key={pulseKey}
-      role={isHidden ? undefined : "status"}
-      aria-hidden={isHidden ? true : undefined}
+      role="status"
       aria-label={ariaLabel}
       className={[
         "oh-live-dot inline-block size-2 shrink-0 rounded-full",
