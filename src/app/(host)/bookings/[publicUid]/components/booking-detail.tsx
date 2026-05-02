@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Link } from "next-view-transitions";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   ArrowLeftIcon,
   ChevronLeftIcon,
@@ -21,25 +21,12 @@ import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 
 type Tab = "info" | "history";
 
-const MONTH_SHORT = [
-  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-] as const;
-
-function fmtDate(d: Date): string {
-  return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
-}
-
 function fmtTime(d: Date): string {
   return d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
-}
-
-function fmtAuditTimestamp(d: Date): string {
-  return `${fmtDate(d)} ${fmtTime(d)}`;
 }
 
 export default function BookingDetail({
@@ -51,6 +38,13 @@ export default function BookingDetail({
 }) {
   const router = useRouter();
   const t = useTranslations("BookingDetail");
+  const format = useFormatter();
+  const fmtSlotDate = (d: Date) =>
+    format.dateTime(d, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
   const isDrawer = variant === "drawer";
@@ -141,7 +135,7 @@ export default function BookingDetail({
         aside={<StatusPill status={status} />}
       />
       <p className="oh-eyebrow tabular-nums mt-2">
-        {fmtDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
+        {fmtSlotDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
       </p>
 
       <div
@@ -397,6 +391,19 @@ function InfoView({
   slotEnd: Date;
 }) {
   const t = useTranslations("BookingDetail");
+  const format = useFormatter();
+  const fmtSlotDate = (d: Date) =>
+    format.dateTime(d, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  const fmtAuditTimestamp = (d: Date) =>
+    `${format.dateTime(d, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })} ${fmtTime(d)}`;
   const visitorTz = data.visitorTimezone ?? null;
   const hostTz = data.host?.timezone ?? "UTC";
   const showTimezones = visitorTz !== null && visitorTz !== hostTz;
@@ -406,7 +413,7 @@ function InfoView({
       <OhSection title={t("when")}>
         <div className="flex flex-col gap-2">
           <p className="text-[15px] font-bold tabular-nums">
-            {fmtDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
+            {fmtSlotDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
           </p>
           {showTimezones ? (
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -645,6 +652,13 @@ function HistoryView({
   audit: DetailData["audit"];
 }) {
   const t = useTranslations("BookingDetail");
+  const format = useFormatter();
+  const fmtAuditTimestamp = (d: Date) =>
+    `${format.dateTime(d, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })} ${fmtTime(d)}`;
   if (audit.length === 0) {
     return <OhInlineEmpty>{t("historyEmpty")}</OhInlineEmpty>;
   }

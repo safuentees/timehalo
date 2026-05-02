@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -40,8 +40,6 @@ type Props = {
   initialSlots: RouterOutputs["schedule"]["getUpcomingSlots"];
   renderedAt: string;
 };
-
-const WEEKDAY_SHORT = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
 export default function HostProfile({
   handle,
@@ -324,7 +322,10 @@ function HostEmpty({
 
 function NextAvailable({ slot }: { slot: Slot }) {
   const t = useTranslations("HostProfile");
+  const format = useFormatter();
   const startDate = new Date(slot.start);
+  const weekday = format.dateTime(startDate, { weekday: "short" });
+  const dayNum = format.dateTime(startDate, { day: "numeric" });
   return (
     <section
       aria-label={t("nextSlotAria")}
@@ -336,7 +337,7 @@ function NextAvailable({ slot }: { slot: Slot }) {
           {fmtTime(startDate)}
         </span>
         <span className="oh-eyebrow tabular-nums">
-          {fmtDayLabelShort(startDate)}
+          {weekday} {dayNum}
         </span>
       </div>
     </section>
@@ -347,10 +348,6 @@ function parseDateKey(key: string): Date | undefined {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
   if (!m) return undefined;
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-}
-
-function fmtDayLabelShort(d: Date): string {
-  return `${WEEKDAY_SHORT[d.getDay()]} ${d.getDate()}`;
 }
 
 function fmtTime(d: Date): string {

@@ -442,5 +442,49 @@
     "metaSession": "Sesión",
     "metaOpen": "Abiertos",
     "metaTz": "Zona horaria"
+  },
+  "Auth": {
+    "loginTitle": "Iniciar sesión",
+    "loginSubtitle": "Bienvenido de nuevo. Elige cómo quieres entrar.",
+    "loginNoAccount": "¿Nuevo aquí?",
+    "loginCreateAccount": "Crear cuenta",
+    "registerTitle": "Crear cuenta",
+    "registerSubtitle": "Elige un nombre. Será tu URL pública.",
+    "registerHaveAccount": "¿Ya tienes una cuenta?",
+    "registerSignIn": "Iniciar sesión",
+    "or": "o",
+    "continueWithGithub": "Continuar con GitHub",
+    "errorVerification": "Ese enlace ha expirado o ya se usó. Solicita uno nuevo abajo.",
+    "errorAccessDenied": "Acceso denegado para esa cuenta.",
+    "errorConfiguration": "El inicio de sesión no está disponible temporalmente. Vuelve a intentarlo en un momento.",
+    "errorOAuthSignin": "No se pudo iniciar el flujo de OAuth. Vuelve a intentarlo.",
+    "errorOAuthCallback": "El proveedor de OAuth devolvió un error. Vuelve a intentarlo.",
+    "errorGeneric": "Inicio de sesión fallido. Vuelve a intentarlo."
+  },
+  "Invitations": {
+    "skeletonEyebrow": "Invitación"
+  },
+  "Availability": {
+    "editHours": "Editar horas",
+    "newHours": "Nuevas horas",
+    "from": "Desde",
+    "to": "Hasta",
+    "startTime": "Hora de inicio",
+    "endTime": "Hora de fin",
+    "remove": "Quitar",
+    "save": "Guardar",
+    "add": "Añadir",
+    "done": "Listo",
+    "days": "Días",
+    "none": "Ninguno",
+    "pickDays": "Elige días",
+    "editDaysAria": "Editar días: {label}",
+    "editBlockAria": "Editar {days}, {time}",
+    "addMoreHours": "Añadir más horas",
+    "noHoursSet": "Sin horas establecidas",
+    "addBlockHint": "Añade un bloque para indicar a los visitantes cuándo pueden reservar contigo.",
+    "errorNeedsDay": "Elige al menos un día",
+    "errorEndBeforeStart": "El fin debe ser posterior al inicio",
+    "errorOverlap": "Se superpone en {days}"
   }
 }
