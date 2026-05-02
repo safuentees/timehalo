@@ -7,7 +7,7 @@ import {
 import { createRatelimit } from "@/lib/rate-limit";
 import type { WorkspaceScope } from "@/lib/workspaces";
 
-const apiKeyRatelimit = createRatelimit(60, "1 m");
+const apiKeyRatelimit = createRatelimit(1, "1 m");
 
 const WWW_AUTH_HEADER = 'Bearer realm="officehours", charset="UTF-8"';
 
