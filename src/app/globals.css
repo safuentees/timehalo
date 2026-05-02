@@ -1927,6 +1927,50 @@
   }
 }
 
+/* B.PT84 — top progress affordance for workspace switching (QA-3).
+   Mounts when isPending=true on the dashboard bar's startTransition;
+   unmounts when the broad invalidation + refresh resolve. Hairline
+   2px, fixed at viewport top, above the dashboard bar. The shimmer
+   loops indeterminately because the actual switch duration depends
+   on workspace size + network — picking a finite duration lies. */
+.oh-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--oh-ink) 6%, transparent);
+}
+.oh-progress-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--oh-ink);
+  transform-origin: left center;
+  animation: oh-progress-shimmer 1400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes oh-progress-shimmer {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  50% {
+    transform: translateX(0%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(110%) scaleX(0.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oh-progress-bar::after {
+    animation: none;
+    opacity: 0.55;
+    transform: scaleX(0.5);
+  }
+}
+
 .oh-v1-name {
   margin: 4px 0 2px;
   font-weight: 900;

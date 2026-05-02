@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   Check,
   ChevronDown,
+  Loader2,
   Plus,
   Settings,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 import { OhMenuTrigger } from "./oh-menu-trigger";
+import { OhTopProgressBar } from "./oh-top-progress-bar";
 import { OhUserMenu } from "./user-menu";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
@@ -48,39 +50,63 @@ export function OhDashboardBar() {
   const router = useRouter();
   const pathname = usePathname();
   const [createOpen, setCreateOpen] = useState(false);
-  const [, startTransition] = useTransition();
+  // B.PT84 — track WHICH slug the user just picked so the trigger
+  // label can render optimistically while the cookie write +
+  // invalidation + refresh resolve. Without this, the trigger keeps
+  // showing the OLD workspace name until `workspaces.list` refetches
+  // — the exact mismatch QA-3 reports. Held alongside isPending so
+  // both reset when the transition closes.
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const utils = trpc.useUtils();
 
   const current = workspaces?.find((w) => w.isActive) ?? workspaces?.[0];
-  const label = current?.name ?? "Workspaces";
+  const pendingWorkspace =
+    pendingSlug != null
+      ? workspaces?.find((w) => w.slug === pendingSlug) ?? null
+      : null;
+  // Optimistic label — show the picked workspace's name the moment the
+  // user clicks. Falls back to current when nothing's pending. The
+  // workspace MUST already be in the dropdown's list (membership-
+  // gated; the row is what they clicked) so this never reads empty.
+  const label = (pendingWorkspace ?? current)?.name ?? "Workspaces";
 
   function handlePick(slug: string) {
     const oldSlug = current?.slug;
+    // Early-return when picking the already-active workspace. Without
+    // this, the click still wires up isPending → progress bar flash
+    // for ~50ms even though no data actually changes.
+    if (oldSlug === slug) return;
+    setPendingSlug(slug);
     startTransition(async () => {
-      const result = await setActiveWorkspace({ slug });
-      if (!result.ok) {
-        toast.error("Couldn't switch workspace.");
-        return;
+      try {
+        const result = await setActiveWorkspace({ slug });
+        if (!result.ok) {
+          toast.error("Couldn't switch workspace.");
+          return;
+        }
+        // Broad invalidation (B.PT17). Without this, any client-cached
+        // tRPC query (api-keys.list, billing.currentPlan, eventTypes,
+        // bookings.listForHost) keeps showing the prior workspace's
+        // data until staleTime expires. The trade-off is a brief refetch
+        // of every mounted query — acceptable, since the workspace
+        // switch is a deliberate user action.
+        await utils.invalidate();
+        // Re-runs server components + SSR prefetches so per-section
+        // server-resolved data reflects the new active workspace.
+        router.refresh();
+        // Smart navigation: only push when the current path is bound
+        // to the old workspace's slug (e.g. /workspaces/<oldSlug>/...).
+        // Otherwise stay — the user picked a switcher action, not a
+        // navigation, and ejecting them off /bookings or /settings
+        // every time would feel like a teleport.
+        const next = oldSlug
+          ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
+          : null;
+        if (next) router.push(next);
+      } finally {
+        setPendingSlug(null);
       }
-      // Broad invalidation (B.PT17). Without this, any client-cached
-      // tRPC query (api-keys.list, billing.currentPlan, eventTypes,
-      // bookings.listForHost) keeps showing the prior workspace's
-      // data until staleTime expires. The trade-off is a brief refetch
-      // of every mounted query — acceptable, since the workspace
-      // switch is a deliberate user action.
-      await utils.invalidate();
-      // Re-runs server components + SSR prefetches so per-section
-      // server-resolved data reflects the new active workspace.
-      router.refresh();
-      // Smart navigation: only push when the current path is bound
-      // to the old workspace's slug (e.g. /workspaces/<oldSlug>/...).
-      // Otherwise stay — the user picked a switcher action, not a
-      // navigation, and ejecting them off /bookings or /settings
-      // every time would feel like a teleport.
-      const next = oldSlug
-        ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
-        : null;
-      if (next) router.push(next);
     });
   }
 
@@ -109,13 +135,26 @@ export function OhDashboardBar() {
           id="oh-workspace-switcher-trigger"
           className="oh-dashboard-bar-trigger"
           type="button"
+          // B.PT84 — `aria-busy` so AT users hear the trigger as
+          // "in progress" while the switch resolves. Pairs with
+          // the `<OhTopProgressBar>` aria-live announcement.
+          aria-busy={isPending || undefined}
+          data-pending={isPending || undefined}
         >
           <span className="oh-dashboard-bar-label">{label}</span>
-          <ChevronDown
-            aria-hidden
-            strokeWidth={1.75}
-            className="oh-dashboard-bar-chevron size-3 opacity-55"
-          />
+          {isPending ? (
+            <Loader2
+              aria-hidden
+              strokeWidth={2}
+              className="oh-dashboard-bar-chevron size-3 opacity-55 animate-spin"
+            />
+          ) : (
+            <ChevronDown
+              aria-hidden
+              strokeWidth={1.75}
+              className="oh-dashboard-bar-chevron size-3 opacity-55"
+            />
+          )}
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner
@@ -144,32 +183,47 @@ export function OhDashboardBar() {
                 <Menu.GroupLabel className="oh-menu-label">
                   Workspaces
                 </Menu.GroupLabel>
-                {(workspaces ?? []).map((w) => (
-                  <Menu.Item
-                    key={w.id}
-                    className="oh-menu-item"
-                    onClick={() => handlePick(w.slug)}
-                  >
-                    <span className="oh-menu-item-glyph">
-                      {w.isActive ? (
-                        <Check
-                          aria-hidden
-                          strokeWidth={2}
-                          className="size-3.5"
-                        />
-                      ) : null}
-                    </span>
-                    <span
-                      className={
-                        w.isActive
-                          ? "font-semibold"
-                          : "font-normal opacity-85"
-                      }
+                {(workspaces ?? []).map((w) => {
+                  const isPicked = pendingSlug === w.slug;
+                  return (
+                    <Menu.Item
+                      key={w.id}
+                      className="oh-menu-item"
+                      // B.PT84 — block re-entry while a switch is in
+                      // flight. Without this the user can stack picks
+                      // and the optimistic label race-conditions
+                      // against the actual cookie write.
+                      disabled={isPending}
+                      data-pending={isPicked || undefined}
+                      onClick={() => handlePick(w.slug)}
                     >
-                      {w.name}
-                    </span>
-                  </Menu.Item>
-                ))}
+                      <span className="oh-menu-item-glyph">
+                        {isPicked ? (
+                          <Loader2
+                            aria-hidden
+                            strokeWidth={2}
+                            className="size-3.5 animate-spin opacity-70"
+                          />
+                        ) : w.isActive ? (
+                          <Check
+                            aria-hidden
+                            strokeWidth={2}
+                            className="size-3.5"
+                          />
+                        ) : null}
+                      </span>
+                      <span
+                        className={
+                          w.isActive
+                            ? "font-semibold"
+                            : "font-normal opacity-85"
+                        }
+                      >
+                        {w.name}
+                      </span>
+                    </Menu.Item>
+                  );
+                })}
               </Menu.Group>
 
               <Menu.Separator className="oh-menu-separator" />
@@ -204,6 +258,12 @@ export function OhDashboardBar() {
       </div>
 
       <WorkspaceCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
+      {/* B.PT84 — top progress affordance for QA-3. Mounts only while
+          the workspace-switch transition is in flight; unmounts the
+          moment isPending flips false. Rendered as the LAST child
+          so it sits above the bar in the document order without
+          needing a portal. */}
+      <OhTopProgressBar visible={isPending} />
     </div>
   );
 }
