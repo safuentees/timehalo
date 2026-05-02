@@ -212,14 +212,36 @@ export const workspaces = router({
         ctx.user.id,
         "workspace.write",
       );
+      const slugChanging =
+        input.newSlug !== undefined && input.newSlug !== input.slug;
       try {
-        const updated = await prisma.workspace.update({
-          where: { id: membership.workspaceId },
-          data: {
-            ...(input.name !== undefined ? { name: input.name } : {}),
-            ...(input.newSlug !== undefined ? { slug: input.newSlug } : {}),
-          },
-          select: { id: true, slug: true, name: true },
+        const updated = await prisma.$transaction(async (tx) => {
+          if (slugChanging && input.newSlug) {
+            await tx.workspaceSlugHistory.deleteMany({
+              where: { oldSlug: input.newSlug },
+            });
+            await tx.workspaceSlugHistory.upsert({
+              where: { oldSlug: input.slug },
+              create: {
+                workspaceId: membership.workspaceId,
+                oldSlug: input.slug,
+              },
+              update: {
+                workspaceId: membership.workspaceId,
+                replacedAt: new Date(),
+              },
+            });
+          }
+          return tx.workspace.update({
+            where: { id: membership.workspaceId },
+            data: {
+              ...(input.name !== undefined ? { name: input.name } : {}),
+              ...(input.newSlug !== undefined
+                ? { slug: input.newSlug }
+                : {}),
+            },
+            select: { id: true, slug: true, name: true },
+          });
         });
         return updated;
       } catch (cause) {

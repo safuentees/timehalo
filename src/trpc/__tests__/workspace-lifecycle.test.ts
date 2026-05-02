@@ -146,6 +146,84 @@ describe("workspaces.update (B5)", () => {
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("records the prior slug in WorkspaceSlugHistory on rename", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    const ws = await caller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
+      name: "History test",
+    });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+    const history = await prisma.workspaceSlugHistory.findUnique({
+      where: { oldSlug: UPDATE_SLUG_FROM },
+    });
+    expect(history).not.toBeNull();
+    expect(history?.workspaceId).toBe(ws.id);
+  });
+
+  it("name-only update does NOT write a history row", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await caller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
+      name: "Quiet",
+    });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      name: "Still quiet",
+    });
+    const history = await prisma.workspaceSlugHistory.findUnique({
+      where: { oldSlug: UPDATE_SLUG_FROM },
+    });
+    expect(history).toBeNull();
+  });
+
+  it("rotating A→B→A→B keeps a single history row (upsert path)", async () => {
+    const caller = callRouter(fakeContext({ userId: owner.id }));
+    await caller.workspaces.create({ slug: UPDATE_SLUG_FROM, name: "A" });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_TO,
+      newSlug: UPDATE_SLUG_FROM,
+    });
+    await caller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+    const allRows = await prisma.workspaceSlugHistory.findMany({
+      where: { oldSlug: { in: [UPDATE_SLUG_FROM, UPDATE_SLUG_TO] } },
+    });
+    expect(allRows.map((r) => r.oldSlug).sort()).toEqual([UPDATE_SLUG_FROM]);
+  });
+
+  it("a different workspace claiming a former slug clears the prior history", async () => {
+    const ownerCaller = callRouter(fakeContext({ userId: owner.id }));
+    await ownerCaller.workspaces.create({
+      slug: UPDATE_SLUG_FROM,
+      name: "First tenant",
+    });
+    await ownerCaller.workspaces.update({
+      slug: UPDATE_SLUG_FROM,
+      newSlug: UPDATE_SLUG_TO,
+    });
+    await ownerCaller.workspaces.create({
+      slug: UPDATE_SLUG_OTHER,
+      name: "Second tenant",
+    });
+    await ownerCaller.workspaces.update({
+      slug: UPDATE_SLUG_OTHER,
+      newSlug: UPDATE_SLUG_FROM,
+    });
+    const stale = await prisma.workspaceSlugHistory.findUnique({
+      where: { oldSlug: UPDATE_SLUG_FROM },
+    });
+    expect(stale).toBeNull();
+  });
 });
 
 const DELETE_SLUG_EXTRA = "vitest-ws-delete-extra";

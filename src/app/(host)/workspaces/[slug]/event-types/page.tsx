@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
 import { notFound, redirect } from "next/navigation";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { redirectIfAliasedSlug } from "@/lib/workspaces-server";
 import EventTypesPanel from "./components/event-types-panel";
 
 export default async function WorkspaceEventTypesPage({
@@ -10,6 +11,7 @@ export default async function WorkspaceEventTypesPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  await redirectIfAliasedSlug(slug, "event-types");
   const trpc = await createPrivateSSRHelper();
 
   try {

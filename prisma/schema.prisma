@@ -283,10 +283,21 @@ model Workspace {
   eventTypes    EventType[]
   webhooks      WebhookSubscription[]
   bookingAudit  BookingAudit[]
+  slugHistory   WorkspaceSlugHistory[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([ownerId])
+}
+
+model WorkspaceSlugHistory {
+  id          Int       @id @default(autoincrement())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  oldSlug     String    @unique
+  replacedAt  DateTime  @default(now())
+
+  @@index([workspaceId])
 }
 
 model ApiKey {

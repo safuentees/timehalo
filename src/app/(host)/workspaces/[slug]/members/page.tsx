@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
 import { notFound, redirect } from "next/navigation";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { redirectIfAliasedSlug } from "@/lib/workspaces-server";
 import MembersPanel from "./components/members-panel";
 
 export default async function WorkspaceMembersPage({
@@ -10,6 +11,7 @@ export default async function WorkspaceMembersPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  await redirectIfAliasedSlug(slug, "members");
   const trpc = await createPrivateSSRHelper();
 
   try {
