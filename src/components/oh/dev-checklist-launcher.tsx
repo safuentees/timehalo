@@ -38,11 +38,21 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
           below modals. Z-index intentionally lower than the dialog
           overlay (which Base UI floats at z-50+) so the active dialog
           covers the FAB instead of the FAB peeking through. */}
+      {/* FAB lives top-left, below the dashboard bar (the bar's
+          flex slot is `--oh-dashboard-bar-block` ≈ 40px; safe-area
+          + a 14px gap puts the button at ~56px from viewport top —
+          clear of the bar even on iOS where the notch shifts the
+          bar down). On desktop the sidebar's fixed-positioned chrome
+          starts at left:0 / width:192px; placing the FAB at left:4
+          (16px) lays it OVER the sidebar's footer area, which is
+          intentional — the sidebar is sparse there and the FAB at
+          z-30 + solid bg reads as a deliberate utility, not an
+          accidental overlap. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open dev checklist"
-        className="fixed bottom-4 right-4 z-30 inline-flex size-12 items-center justify-center rounded-full border-2 border-oh-line-strong bg-oh-bg text-oh-content shadow-lg transition-colors duration-150 ease-oh hover:bg-oh-content hover:text-oh-bg sm:bottom-6 sm:right-6"
+        className="fixed top-14 left-4 z-30 inline-flex size-12 items-center justify-center rounded-full border-2 border-oh-line-strong bg-oh-bg text-oh-content shadow-lg transition-colors duration-150 ease-oh hover:bg-oh-content hover:text-oh-bg sm:top-16 sm:left-6"
       >
         <ListChecksIcon className="size-5" strokeWidth={1.75} />
       </button>
@@ -63,23 +73,16 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
           </div>
         </ResponsiveModalHeader>
         <ResponsiveModalBody>
-          {/* 729-line doc overflows on every viewport — wrap in a
-              scroll container so the modal's outer chrome stays
-              fixed and only the content scrolls. `max-h` is
-              viewport-based so mobile gets ~75vh (drawer near full
-              screen) and desktop gets a comfy reading column.
-              `overscroll-contain` keeps a fast inner-scroll from
-              chaining out into the page below. */}
-          <div className="max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]">
-            {/* Lazy boundary — content chunk loads on first open. */}
-            <Suspense
-              fallback={
-                <p className="oh-eyebrow opacity-55">Loading checklist…</p>
-              }
-            >
-              <DevChecklistContent markdown={markdown} />
-            </Suspense>
-          </div>
+          {/* Lazy boundary — content chunk loads on first open. The
+              scroll container lives INSIDE DevChecklistContent so it
+              can save/restore the scrollTop on its own ref (B.PT76). */}
+          <Suspense
+            fallback={
+              <p className="oh-eyebrow opacity-55">Loading checklist…</p>
+            }
+          >
+            <DevChecklistContent markdown={markdown} />
+          </Suspense>
         </ResponsiveModalBody>
       </ResponsiveModalContent>
     </ResponsiveModal>

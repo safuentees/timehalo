@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
@@ -24,6 +24,7 @@ import type { Components } from "react-markdown";
 // automatically join the map on first toggle.
 
 const STORAGE_KEY = "oh-dev-checklist-v1";
+const SCROLL_KEY = "oh-dev-checklist-scroll-v1";
 
 function djb2(input: string): string {
   // Tiny non-cryptographic hash (djb2). Stable across page reloads
@@ -141,6 +142,48 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
     [markdown, checked, toggle],
   );
 
+  // Scroll preservation (B.PT76). The modal mounts this component
+  // fresh every time the user opens the FAB → without restore, every
+  // open lands at the top regardless of where they last paused. Save
+  // the scrollTop to localStorage on scroll (throttled to once per
+  // animation frame so a fast-flick doesn't write 60×/sec) and
+  // restore it on first paint after the layout settles.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // Restore once on mount. requestAnimationFrame defers the
+  // scrollTop write until the markdown has been painted — without
+  // that delay the assignment lands before the children have heights
+  // and the browser clamps it to 0.
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(SCROLL_KEY);
+    if (!stored) return;
+    const target = Number(stored);
+    if (!Number.isFinite(target) || target <= 0) return;
+    requestAnimationFrame(() => {
+      node.scrollTop = target;
+    });
+  }, []);
+
+  // rAF-throttled save. The pending flag suppresses redundant writes
+  // when the user fires a wheel-burst — at most one localStorage
+  // write per paint frame.
+  const pendingFrameRef = useRef<number | null>(null);
+  const handleScroll = useCallback(() => {
+    if (pendingFrameRef.current !== null) return;
+    pendingFrameRef.current = requestAnimationFrame(() => {
+      pendingFrameRef.current = null;
+      const node = scrollRef.current;
+      if (!node || typeof window === "undefined") return;
+      try {
+        window.localStorage.setItem(SCROLL_KEY, String(node.scrollTop));
+      } catch {
+        // Quota / privacy mode — fail silently.
+      }
+    });
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -154,7 +197,15 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
         </button>
       </header>
 
-      <article className="oh-dev-checklist-prose">
+      {/* Scroll container — owns max-h + overflow-y so the saved
+          scrollTop lives on this exact element. `overscroll-contain`
+          stops a fast inner-flick from chaining out to the page
+          underneath the modal. */}
+      <article
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="oh-dev-checklist-prose max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]"
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
           {markdown}
         </ReactMarkdown>
