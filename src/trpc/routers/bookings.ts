@@ -528,6 +528,7 @@ export const bookings = router({
             attempts: true,
             maxAttempts: true,
             lastError: true,
+            lastResponseStatus: true,
           },
         }),
         prisma.task.findMany({
@@ -543,6 +544,7 @@ export const bookings = router({
             scheduledAt: true,
             succeededAt: true,
             attempts: true,
+            lastResponseStatus: true,
           },
         }),
       ]);

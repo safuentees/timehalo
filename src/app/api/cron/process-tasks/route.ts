@@ -132,6 +132,7 @@ async function runWebhookDelivery(task: {
       data: {
         succeededAt: new Date(),
         attempts: task.attempts + 1,
+        lastResponseStatus: response.status,
       },
     });
     return "ok";
@@ -145,6 +146,7 @@ async function runWebhookDelivery(task: {
     return markPermanentlyFailed(
       task.id,
       "Receiver returned 410 GONE; subscription disabled",
+      response.status,
     );
   }
 
@@ -152,6 +154,7 @@ async function runWebhookDelivery(task: {
     task.id,
     task.attempts,
     `Receiver returned ${response.status}`,
+    response.status,
   );
 }
 
@@ -357,6 +360,7 @@ async function markFailed(
   taskId: number,
   prevAttempts: number,
   reason: string,
+  responseStatus?: number,
 ): Promise<"fail"> {
   const nextAttempts = prevAttempts + 1;
   await prisma.task.update({
@@ -365,6 +369,9 @@ async function markFailed(
       attempts: nextAttempts,
       lastError: reason,
       lastFailedAttemptAt: new Date(),
+      ...(typeof responseStatus === "number"
+        ? { lastResponseStatus: responseStatus }
+        : {}),
       scheduledAt: nextRetryAt(nextAttempts),
     },
   });
@@ -374,6 +381,7 @@ async function markFailed(
 async function markPermanentlyFailed(
   taskId: number,
   reason: string,
+  responseStatus?: number,
 ): Promise<"fail"> {
   await prisma.task.update({
     where: { id: taskId },
@@ -381,6 +389,9 @@ async function markPermanentlyFailed(
       attempts: { increment: 999 },
       lastError: reason,
       lastFailedAttemptAt: new Date(),
+      ...(typeof responseStatus === "number"
+        ? { lastResponseStatus: responseStatus }
+        : {}),
     },
   });
   return "fail";
