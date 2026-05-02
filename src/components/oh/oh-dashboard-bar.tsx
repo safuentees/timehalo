@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   Check,
   ChevronDown,
+  Loader2,
   Plus,
   Settings,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
 import { OhMenuTrigger } from "./oh-menu-trigger";
+import { OhTopProgressBar } from "./oh-top-progress-bar";
 import { OhUserMenu } from "./user-menu";
 
 export function OhDashboardBar() {
@@ -24,26 +26,37 @@ export function OhDashboardBar() {
   const router = useRouter();
   const pathname = usePathname();
   const [createOpen, setCreateOpen] = useState(false);
-  const [, startTransition] = useTransition();
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const utils = trpc.useUtils();
 
   const current = workspaces?.find((w) => w.isActive) ?? workspaces?.[0];
-  const label = current?.name ?? "Workspaces";
+  const pendingWorkspace =
+    pendingSlug != null
+      ? workspaces?.find((w) => w.slug === pendingSlug) ?? null
+      : null;
+  const label = (pendingWorkspace ?? current)?.name ?? "Workspaces";
 
   function handlePick(slug: string) {
     const oldSlug = current?.slug;
+    if (oldSlug === slug) return;
+    setPendingSlug(slug);
     startTransition(async () => {
-      const result = await setActiveWorkspace({ slug });
-      if (!result.ok) {
-        toast.error("Couldn't switch workspace.");
-        return;
+      try {
+        const result = await setActiveWorkspace({ slug });
+        if (!result.ok) {
+          toast.error("Couldn't switch workspace.");
+          return;
+        }
+        await utils.invalidate();
+        router.refresh();
+        const next = oldSlug
+          ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
+          : null;
+        if (next) router.push(next);
+      } finally {
+        setPendingSlug(null);
       }
-      await utils.invalidate();
-      router.refresh();
-      const next = oldSlug
-        ? nextHrefAfterWorkspaceSwitch(pathname ?? "", oldSlug, slug)
-        : null;
-      if (next) router.push(next);
     });
   }
 
@@ -55,13 +68,23 @@ export function OhDashboardBar() {
           id="oh-workspace-switcher-trigger"
           className="oh-dashboard-bar-trigger"
           type="button"
+          aria-busy={isPending || undefined}
+          data-pending={isPending || undefined}
         >
           <span className="oh-dashboard-bar-label">{label}</span>
-          <ChevronDown
-            aria-hidden
-            strokeWidth={1.75}
-            className="oh-dashboard-bar-chevron size-3 opacity-55"
-          />
+          {isPending ? (
+            <Loader2
+              aria-hidden
+              strokeWidth={2}
+              className="oh-dashboard-bar-chevron size-3 opacity-55 animate-spin"
+            />
+          ) : (
+            <ChevronDown
+              aria-hidden
+              strokeWidth={1.75}
+              className="oh-dashboard-bar-chevron size-3 opacity-55"
+            />
+          )}
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner
@@ -75,32 +98,43 @@ export function OhDashboardBar() {
                 <Menu.GroupLabel className="oh-menu-label">
                   Workspaces
                 </Menu.GroupLabel>
-                {(workspaces ?? []).map((w) => (
-                  <Menu.Item
-                    key={w.id}
-                    className="oh-menu-item"
-                    onClick={() => handlePick(w.slug)}
-                  >
-                    <span className="oh-menu-item-glyph">
-                      {w.isActive ? (
-                        <Check
-                          aria-hidden
-                          strokeWidth={2}
-                          className="size-3.5"
-                        />
-                      ) : null}
-                    </span>
-                    <span
-                      className={
-                        w.isActive
-                          ? "font-semibold"
-                          : "font-normal opacity-85"
-                      }
+                {(workspaces ?? []).map((w) => {
+                  const isPicked = pendingSlug === w.slug;
+                  return (
+                    <Menu.Item
+                      key={w.id}
+                      className="oh-menu-item"
+                      disabled={isPending}
+                      data-pending={isPicked || undefined}
+                      onClick={() => handlePick(w.slug)}
                     >
-                      {w.name}
-                    </span>
-                  </Menu.Item>
-                ))}
+                      <span className="oh-menu-item-glyph">
+                        {isPicked ? (
+                          <Loader2
+                            aria-hidden
+                            strokeWidth={2}
+                            className="size-3.5 animate-spin opacity-70"
+                          />
+                        ) : w.isActive ? (
+                          <Check
+                            aria-hidden
+                            strokeWidth={2}
+                            className="size-3.5"
+                          />
+                        ) : null}
+                      </span>
+                      <span
+                        className={
+                          w.isActive
+                            ? "font-semibold"
+                            : "font-normal opacity-85"
+                        }
+                      >
+                        {w.name}
+                      </span>
+                    </Menu.Item>
+                  );
+                })}
               </Menu.Group>
 
               <Menu.Separator className="oh-menu-separator" />
@@ -135,6 +169,7 @@ export function OhDashboardBar() {
       </div>
 
       <WorkspaceCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <OhTopProgressBar visible={isPending} />
     </div>
   );
 }
