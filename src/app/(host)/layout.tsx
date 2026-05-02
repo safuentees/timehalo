@@ -3,6 +3,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { OhProviders } from "@/components/oh/providers";
 import { OhDashboardLayout } from "@/components/oh/oh-dashboard-layout";
 import { DevChecklistMount } from "@/components/oh/dev-checklist-mount";
+import { DevNotesMount } from "@/components/oh/dev-notes-mount";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 
 // Layout-level prefetch (B.PT41). The dashboard chrome (sidebar + top
@@ -58,6 +59,9 @@ export default async function DashboardLayout({
             for non-admin handles so the markdown blob + the launcher
             chrome never ship to non-admin clients. */}
         <DevChecklistMount />
+        {/* Admin-only floating dev notes (B.PT79). Sits next to the
+            checklist FAB. Same admin gate. */}
+        <DevNotesMount />
       </HydrationBoundary>
     </OhProviders>
   );
