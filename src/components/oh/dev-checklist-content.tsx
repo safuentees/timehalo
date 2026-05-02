@@ -5,11 +5,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 
-// Dev checklist content (B.PT75). Renders the project's
-// `docs/features-and-tests.md` as interactive checkboxes whose state
-// persists in localStorage. Per-checkbox key is a stable hash of the
-// surrounding line text so a markdown edit that adds or removes
-// unrelated rows doesn't shuffle the saved checks.
+// Dev checklist content (B.PT75). Renders a markdown doc as interactive
+// checkboxes whose state persists in localStorage. Per-checkbox key is
+// a stable hash of the surrounding line text so a markdown edit that
+// adds or removes unrelated rows doesn't shuffle the saved checks.
 //
 // Why react-markdown + remark-gfm:
 //   - remark-gfm adds GitHub Flavored Markdown task lists (the
@@ -19,12 +18,24 @@ import type { Components } from "react-markdown";
 //     `<input type="checkbox">` for a controlled element bound to
 //     localStorage. The default is disabled+readonly per GFM spec.
 //
-// State shape: `Record<key, boolean>` in localStorage under a single
+// State shape: `Record<key, boolean>` in localStorage under a per-tab
 // key. Hashed line content is the row key. New unchecked items
-// automatically join the map on first toggle.
+// automatically join the map on first toggle. Per-tab keys (instead
+// of one shared map) so the "Reset all" affordance only wipes the
+// active tab — without isolation, resetting "recent changes" would
+// also wipe accumulated progress on the long-form features-and-tests
+// checklist (and vice versa).
 
-const STORAGE_KEY = "oh-dev-checklist-v1";
-const SCROLL_KEY = "oh-dev-checklist-scroll-v1";
+// Per-tab key suffix → full storage keys. The default (no suffix)
+// matches the original B.PT75 schema so existing user state survives
+// the introduction of tabs.
+function storageKeysFor(scope: string | undefined) {
+  const suffix = scope ? `-${scope}` : "";
+  return {
+    state: `oh-dev-checklist${suffix}-v1`,
+    scroll: `oh-dev-checklist${suffix}-scroll-v1`,
+  };
+}
 
 function djb2(input: string): string {
   // Tiny non-cryptographic hash (djb2). Stable across page reloads
@@ -40,10 +51,10 @@ function djb2(input: string): string {
 
 type CheckedMap = Record<string, boolean>;
 
-function readStorage(): CheckedMap {
+function readStorage(stateKey: string): CheckedMap {
   if (typeof window === "undefined") return {};
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(stateKey);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
@@ -55,17 +66,31 @@ function readStorage(): CheckedMap {
   }
 }
 
-function writeStorage(map: CheckedMap) {
+function writeStorage(stateKey: string, map: CheckedMap) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    window.localStorage.setItem(stateKey, JSON.stringify(map));
   } catch {
     // Quota / privacy mode — fail silently. The UI keeps the in-memory
     // state for the current session.
   }
 }
 
-export function DevChecklistContent({ markdown }: { markdown: string }) {
+export function DevChecklistContent({
+  markdown,
+  storageScope,
+}: {
+  markdown: string;
+  // Optional namespace suffix for the per-tab storage keys. Omit (or
+  // pass undefined) to use the original B.PT75 keys so the long-form
+  // features-and-tests checklist preserves any existing saved state.
+  storageScope?: string;
+}) {
+  const { state: stateKey, scroll: scrollKey } = useMemo(
+    () => storageKeysFor(storageScope),
+    [storageScope],
+  );
+
   // Lazy initializer reads localStorage on first render. Safe across
   // SSR boundary because this component is lazy-loaded by
   // <DevChecklistLauncher /> only after the modal opens (purely client-
@@ -74,20 +99,25 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
   // `useEffect(() => setChecked(...))` shape would have tripped.
   // `readStorage` guards `typeof window === "undefined"` and returns
   // empty {} on the server side as a defensive fallback.
-  const [checked, setChecked] = useState<CheckedMap>(() => readStorage());
+  const [checked, setChecked] = useState<CheckedMap>(() =>
+    readStorage(stateKey),
+  );
 
-  const toggle = useCallback((key: string) => {
-    setChecked((prev) => {
-      const next: CheckedMap = { ...prev, [key]: !prev[key] };
-      writeStorage(next);
-      return next;
-    });
-  }, []);
+  const toggle = useCallback(
+    (key: string) => {
+      setChecked((prev) => {
+        const next: CheckedMap = { ...prev, [key]: !prev[key] };
+        writeStorage(stateKey, next);
+        return next;
+      });
+    },
+    [stateKey],
+  );
 
   const reset = useCallback(() => {
     setChecked({});
-    writeStorage({});
-  }, []);
+    writeStorage(stateKey, {});
+  }, [stateKey]);
 
   const completed = useMemo(
     () => Object.values(checked).filter(Boolean).length,
@@ -148,6 +178,11 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
   // the scrollTop to localStorage on scroll (throttled to once per
   // animation frame so a fast-flick doesn't write 60×/sec) and
   // restore it on first paint after the layout settles.
+  //
+  // Scoped per-tab via `scrollKey` so the "recent changes" tab keeps
+  // its own scroll position separate from the long-form features-and-
+  // tests checklist. Without isolation, scrolling one tab would
+  // re-position the other on next open.
   const scrollRef = useRef<HTMLDivElement>(null);
   // Restore once on mount. requestAnimationFrame defers the
   // scrollTop write until the markdown has been painted — without
@@ -157,14 +192,14 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
     const node = scrollRef.current;
     if (!node) return;
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(SCROLL_KEY);
+    const stored = window.localStorage.getItem(scrollKey);
     if (!stored) return;
     const target = Number(stored);
     if (!Number.isFinite(target) || target <= 0) return;
     requestAnimationFrame(() => {
       node.scrollTop = target;
     });
-  }, []);
+  }, [scrollKey]);
 
   // rAF-throttled save. The pending flag suppresses redundant writes
   // when the user fires a wheel-burst — at most one localStorage
@@ -177,12 +212,12 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
       const node = scrollRef.current;
       if (!node || typeof window === "undefined") return;
       try {
-        window.localStorage.setItem(SCROLL_KEY, String(node.scrollTop));
+        window.localStorage.setItem(scrollKey, String(node.scrollTop));
       } catch {
         // Quota / privacy mode — fail silently.
       }
     });
-  }, []);
+  }, [scrollKey]);
 
   return (
     <div className="flex flex-col gap-4">
