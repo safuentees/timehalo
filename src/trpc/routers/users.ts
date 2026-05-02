@@ -205,7 +205,11 @@ export const users = router({
       referenceUid: `user:${ctx.user.id}:account-deleted:${operationId}`,
     });
 
-    await prisma.user.delete({ where: { id: ctx.user.id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.workspace.deleteMany({ where: { ownerId: ctx.user.id } });
+      await tx.membership.deleteMany({ where: { userId: ctx.user.id } });
+      await tx.user.delete({ where: { id: ctx.user.id } });
+    });
 
     return { ok: true as const };
   }),

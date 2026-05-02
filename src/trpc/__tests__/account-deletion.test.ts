@@ -100,6 +100,46 @@ describe("users.deleteAccount — cascade + audit survival + email", () => {
     expect(audit.some((a) => a.action === "CREATED")).toBe(true);
   });
 
+  it("removes the user from OTHER workspaces' member lists (B.PT83 — QA-6)", async () => {
+    host = await createTestHost(HANDLE);
+
+    const otherOwner = await createTestHost("vitest-account-delete-other");
+    const otherCaller = callRouter(fakeContext({ userId: otherOwner.id }));
+    const otherWorkspace = await otherCaller.workspaces.create({
+      slug: "vitest-acct-del-other-ws",
+      name: "Other workspace",
+    });
+    await prisma.membership.create({
+      data: {
+        workspaceId: otherWorkspace.id,
+        userId: host.id,
+        role: "MEMBER",
+      },
+    });
+
+    const before = await prisma.membership.findFirst({
+      where: { workspaceId: otherWorkspace.id, userId: host.id },
+    });
+    expect(before).not.toBeNull();
+
+    const hostCaller = callRouter(fakeContext({ userId: host.id }));
+    await hostCaller.users.deleteAccount();
+
+    const after = await prisma.membership.findFirst({
+      where: { workspaceId: otherWorkspace.id, userId: host.id },
+    });
+    expect(after).toBeNull();
+
+    const survivingWs = await prisma.workspace.findUnique({
+      where: { id: otherWorkspace.id },
+      select: { id: true },
+    });
+    expect(survivingWs).not.toBeNull();
+
+    await prisma.workspace.deleteMany({ where: { id: otherWorkspace.id } });
+    await safeTearDownByHandle("vitest-account-delete-other");
+  });
+
   it("enqueues an account-deleted email before deleting", async () => {
     host = await createTestHost(HANDLE);
     const hostCaller = callRouter(fakeContext({ userId: host.id }));
