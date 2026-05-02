@@ -1,14 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NotebookPenIcon, XIcon, ClipboardCopyIcon, CheckIcon } from "lucide-react";
+import { NotebookPenIcon, ClipboardCopyIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveModal,
   ResponsiveModalBody,
   ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
 
 // Floating launcher for free-form dev notes (B.PT79). Sits at the
@@ -142,22 +140,17 @@ export function DevNotesLauncher() {
       </button>
 
       <ResponsiveModalContent desktopClassName="sm:max-w-2xl">
-        <ResponsiveModalHeader>
-          <div className="flex items-center justify-between gap-3 pr-3">
-            <ResponsiveModalTitle>Dev notes</ResponsiveModalTitle>
-            <Button
-              type="button"
-              variant="ohGhost"
-              size="icon-sm"
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-            >
-              <XIcon className="size-4" />
-            </Button>
-          </div>
-        </ResponsiveModalHeader>
+        {/* No <ResponsiveModalHeader> — Vaul ships its own drag handle
+            on mobile and Base UI dialog ships its own close button on
+            desktop, so the modal is dismissable without our chrome.
+            Removing the title + custom X gives the textarea the full
+            modal real estate, which reads as a clean writing surface
+            rather than a framed sub-region. The thin control row
+            (Saved / Copy / Clear) stays as a top utility strip — it's
+            the only chrome left, and at `oh-eyebrow` weight it
+            disappears once the user is typing. */}
         <ResponsiveModalBody>
-          <div className="flex flex-col gap-3">
+          <div className="flex h-full flex-col gap-3">
             <header className="flex flex-wrap items-center justify-between gap-2">
               <p className="oh-eyebrow opacity-65 tabular-nums">
                 {showSaved
@@ -192,12 +185,20 @@ export function DevNotesLauncher() {
               </div>
             </header>
 
+            {/* Textarea takes all remaining vertical space inside the
+                modal body. `min-h-[78vh]` mobile / `sm:min-h-[68vh]`
+                desktop floors the size on devices where the parent's
+                height isn't fully resolved (Vaul's drawer auto-sizes
+                to content; without the floor the textarea collapses
+                on first render). Cleaner styling: no border (the
+                drawer/dialog frame already encloses), generous
+                padding, mono body font for note-taking feel. */}
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Jot what's wrong, what to revisit, what to file. Markdown lives here too — copy out when you're ready to file or commit."
               spellCheck
-              className="oh-input min-h-[60vh] resize-none font-[family-name:var(--oh-mono)] text-[13px] leading-[1.55] sm:min-h-[55vh]"
+              className="min-h-[78vh] flex-1 resize-none rounded-(--oh-r-xs) bg-transparent p-3 font-[family-name:var(--oh-mono)] text-[14px] leading-[1.55] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus:outline-none sm:min-h-[68vh]"
             />
           </div>
         </ResponsiveModalBody>
