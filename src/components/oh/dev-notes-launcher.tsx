@@ -137,7 +137,7 @@ export function DevNotesLauncher() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Jot what's wrong, what to revisit, what to file. Markdown lives here too — copy out when you're ready to file or commit."
               spellCheck
-              className="min-h-[78vh] flex-1 resize-none rounded-(--oh-r-xs) bg-transparent p-3 font-[family-name:var(--oh-mono)] text-[14px] leading-[1.55] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus:outline-none sm:min-h-[68vh]"
+              className="min-h-[60vh] max-h-[80vh] resize-none overflow-y-auto rounded-(--oh-r-xs) bg-transparent p-3 font-[family-name:var(--oh-mono)] text-[14px] leading-[1.55] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus:outline-none [field-sizing:content]"
             />
           </div>
         </ResponsiveModalBody>
