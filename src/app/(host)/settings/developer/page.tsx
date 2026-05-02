@@ -12,7 +12,10 @@ export default async function SettingsDeveloperPage() {
   const workspaces = await trpc.workspaces.list.fetch();
   const firstSlug = workspaces[0]?.slug;
   if (firstSlug) {
-    await trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug });
+    await Promise.all([
+      trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug }),
+      trpc.webhooks.list.prefetch({ slug: firstSlug }),
+    ]);
   }
 
   return (
