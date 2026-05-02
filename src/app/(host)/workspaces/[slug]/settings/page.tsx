@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
 import { notFound, redirect } from "next/navigation";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { redirectIfAliasedSlug } from "@/lib/workspaces-server";
 import SettingsPanel from "./components/settings-panel";
 
 // /workspaces/<slug>/settings — workspace-level settings hub. Mirrors
@@ -22,6 +23,8 @@ export default async function WorkspaceSettingsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  // B.PT82 — back-stack alias redirect (see `redirectIfAliasedSlug`).
+  await redirectIfAliasedSlug(slug, "settings");
   const trpc = await createPrivateSSRHelper();
 
   try {

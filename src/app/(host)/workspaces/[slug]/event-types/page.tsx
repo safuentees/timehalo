@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
 import { notFound, redirect } from "next/navigation";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { redirectIfAliasedSlug } from "@/lib/workspaces-server";
 import EventTypesPanel from "./components/event-types-panel";
 
 // B4 — /workspaces/<slug>/event-types. Closes 5b8914e's deferral:
@@ -18,6 +19,8 @@ export default async function WorkspaceEventTypesPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  // B.PT82 — back-stack alias redirect (see `redirectIfAliasedSlug`).
+  await redirectIfAliasedSlug(slug, "event-types");
   const trpc = await createPrivateSSRHelper();
 
   try {

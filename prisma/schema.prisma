@@ -498,10 +498,40 @@ model Workspace {
   // see what their members configured.
   webhooks      WebhookSubscription[]
   bookingAudit  BookingAudit[]
+  // B.PT82 — back-stack URLs holding the workspace's prior slug
+  // resolve via this history table to a redirect, instead of 404'ing.
+  // Append-only on rename; cascade-deletes with the workspace.
+  slugHistory   WorkspaceSlugHistory[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([ownerId])
+}
+
+// Append-only ledger of every slug a Workspace has used in the past
+// (B.PT82). When a workspace renames its slug, the prior slug is
+// recorded here so a stale browser back-stack URL like
+// `/workspaces/<oldSlug>/...` can resolve to a redirect to the
+// current `/workspaces/<currentSlug>/...` instead of throwing
+// `notFound()`.
+//
+// `oldSlug` is `@unique`. If a different workspace later claims that
+// slug as its CURRENT slug, the helper that writes history rows
+// proactively deletes the conflicting row — the new owner takes
+// precedence over the prior tenant's redirect. Edge case but
+// deterministic.
+//
+// Cascade delete on workspace delete: when a workspace is dropped,
+// its slug history goes with it; we don't need to keep redirect
+// targets pointing at a workspace that no longer exists.
+model WorkspaceSlugHistory {
+  id          Int       @id @default(autoincrement())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  oldSlug     String    @unique
+  replacedAt  DateTime  @default(now())
+
+  @@index([workspaceId])
 }
 
 // Workspace-scoped API key (B2). Tokens are generated server-side at

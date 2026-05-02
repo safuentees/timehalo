@@ -264,14 +264,49 @@ export const workspaces = router({
         ctx.user.id,
         "workspace.write",
       );
+      // B.PT82 — track slug renames so back-stack URLs holding the
+      // prior slug resolve via redirect instead of 404. Only write
+      // history when newSlug differs from current slug; the no-op
+      // path stays clean (no spurious history rows).
+      const slugChanging =
+        input.newSlug !== undefined && input.newSlug !== input.slug;
       try {
-        const updated = await prisma.workspace.update({
-          where: { id: membership.workspaceId },
-          data: {
-            ...(input.name !== undefined ? { name: input.name } : {}),
-            ...(input.newSlug !== undefined ? { slug: input.newSlug } : {}),
-          },
-          select: { id: true, slug: true, name: true },
+        const updated = await prisma.$transaction(async (tx) => {
+          if (slugChanging && input.newSlug) {
+            // If another workspace's history claims `newSlug` as a
+            // prior slug, drop those rows — the new owner takes
+            // precedence over the prior tenant's redirect. Same
+            // shape as cal.com's slug-collision resolution: current-
+            // slug claim beats stale-history claim.
+            await tx.workspaceSlugHistory.deleteMany({
+              where: { oldSlug: input.newSlug },
+            });
+            // Record the slug we're moving away from. `oldSlug` is
+            // unique on the table; upsert keeps the row stable if
+            // the same workspace ever rotates back through a prior
+            // slug (rename A→B→A→B path).
+            await tx.workspaceSlugHistory.upsert({
+              where: { oldSlug: input.slug },
+              create: {
+                workspaceId: membership.workspaceId,
+                oldSlug: input.slug,
+              },
+              update: {
+                workspaceId: membership.workspaceId,
+                replacedAt: new Date(),
+              },
+            });
+          }
+          return tx.workspace.update({
+            where: { id: membership.workspaceId },
+            data: {
+              ...(input.name !== undefined ? { name: input.name } : {}),
+              ...(input.newSlug !== undefined
+                ? { slug: input.newSlug }
+                : {}),
+            },
+            select: { id: true, slug: true, name: true },
+          });
         });
         return updated;
       } catch (cause) {

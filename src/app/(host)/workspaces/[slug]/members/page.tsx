@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
 import { notFound, redirect } from "next/navigation";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
+import { redirectIfAliasedSlug } from "@/lib/workspaces-server";
 import MembersPanel from "./components/members-panel";
 
 // /workspaces/<slug>/members — member management surface. Server
@@ -17,6 +18,10 @@ export default async function WorkspaceMembersPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  // B.PT82 — if `slug` is a known former slug, redirect to the
+  // workspace's current slug + same sub-path. Throws via
+  // `redirect()` if alias hits; falls through if not.
+  await redirectIfAliasedSlug(slug, "members");
   const trpc = await createPrivateSSRHelper();
 
   // Authorization check happens server-side so the page either
