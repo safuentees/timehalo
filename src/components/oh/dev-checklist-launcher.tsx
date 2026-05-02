@@ -63,14 +63,23 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
           </div>
         </ResponsiveModalHeader>
         <ResponsiveModalBody>
-          {/* Lazy boundary — content chunk loads on first open. */}
-          <Suspense
-            fallback={
-              <p className="oh-eyebrow opacity-55">Loading checklist…</p>
-            }
-          >
-            <DevChecklistContent markdown={markdown} />
-          </Suspense>
+          {/* 729-line doc overflows on every viewport — wrap in a
+              scroll container so the modal's outer chrome stays
+              fixed and only the content scrolls. `max-h` is
+              viewport-based so mobile gets ~75vh (drawer near full
+              screen) and desktop gets a comfy reading column.
+              `overscroll-contain` keeps a fast inner-scroll from
+              chaining out into the page below. */}
+          <div className="max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]">
+            {/* Lazy boundary — content chunk loads on first open. */}
+            <Suspense
+              fallback={
+                <p className="oh-eyebrow opacity-55">Loading checklist…</p>
+              }
+            >
+              <DevChecklistContent markdown={markdown} />
+            </Suspense>
+          </div>
         </ResponsiveModalBody>
       </ResponsiveModalContent>
     </ResponsiveModal>
