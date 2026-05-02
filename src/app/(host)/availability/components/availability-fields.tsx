@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -72,6 +73,7 @@ type EditorState =
 type FormShape = { availability: ScheduleValues };
 
 export function AvailabilityFields() {
+  const t = useTranslations("Availability");
   const { setValue } = useFormContext<FormShape>();
   const watchedAvailability = useWatch<FormShape, "availability">({
     name: "availability",
@@ -160,7 +162,7 @@ export function AvailabilityFields() {
             "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
           )}
         >
-          <PlusIcon /> Add more hours
+          <PlusIcon /> {t("addMoreHours")}
         </Button>
       </div>
 
@@ -180,13 +182,12 @@ export function AvailabilityFields() {
 }
 
 function EmptyBlocks() {
+  const t = useTranslations("Availability");
   return (
     <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
-      <p className="oh-eyebrow">
-        No hours set
-      </p>
+      <p className="oh-eyebrow">{t("noHoursSet")}</p>
       <p className="mt-2 text-[13px] leading-[1.5] opacity-70">
-        Add a block to tell visitors when they can book you.
+        {t("addBlockHint")}
       </p>
     </div>
   );
@@ -199,12 +200,16 @@ function BlockChip({
   block: Block;
   onEdit: () => void;
 }) {
+  const t = useTranslations("Availability");
   return (
     <button
       type="button"
       onClick={onEdit}
       className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
-      aria-label={`Edit ${formatDayLabel(block.days)}, ${formatTimeRange(block.from, block.to)}`}
+      aria-label={t("editBlockAria", {
+        days: formatDayLabel(block.days),
+        time: formatTimeRange(block.from, block.to),
+      })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="oh-eyebrow">{formatDayLabel(block.days)}</span>
@@ -267,6 +272,11 @@ function BlockEditorContent({
   onSave: (draft: BlockDraft) => void;
   onRemove?: () => void;
 }) {
+  // B.PT26 — chrome strings localized via the Availability namespace.
+  // Day-name range-compression logic in `formatDayLabel` is still
+  // English-only; that ports over in B.PT26B (separate row, requires
+  // refactoring the pure helper to accept locale-aware day names).
+  const t = useTranslations("Availability");
   const [draft, setDraft] = useState<BlockDraft>(state.draft);
   const [daysOpen, setDaysOpen] = useState(false);
   // Reset if the drawer is reused for a different block before unmount.
@@ -274,7 +284,22 @@ function BlockEditorContent({
     setDraft(state.draft);
   }, [state]);
 
-  const error = validateDraft(draft, otherBlocks);
+  // Map error keys returned by `validateDraft` to localized strings
+  // here so the helper itself stays a pure (locale-agnostic) function.
+  // The helper returns null | "needsDay" | "endBeforeStart" | overlap
+  // text starting with `overlap:`. Overlap text carries the day list
+  // verbatim — that's the part B.PT26B will localize.
+  const errorKey = validateDraft(draft, otherBlocks);
+  const error =
+    errorKey === null
+      ? null
+      : errorKey === "needsDay"
+        ? t("errorNeedsDay")
+        : errorKey === "endBeforeStart"
+          ? t("errorEndBeforeStart")
+          : errorKey.startsWith("overlap:")
+            ? t("errorOverlap", { days: errorKey.slice("overlap:".length) })
+            : errorKey;
   const canSave = error === null;
 
   function toggleDay(day: DayKey) {
@@ -291,14 +316,14 @@ function BlockEditorContent({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <ResponsiveModalTitle className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
-              {state.mode === "edit" ? "Edit hours" : "New hours"}
+              {state.mode === "edit" ? t("editHours") : t("newHours")}
             </ResponsiveModalTitle>
             <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase tabular-nums">
               {formatTimeRange(draft.from, draft.to)}
             </p>
             <ResponsiveModalDescription className="sr-only">
               {draft.days.length === 0
-                ? "Pick at least one day"
+                ? t("errorNeedsDay")
                 : formatDayLabel(draft.days)}
             </ResponsiveModalDescription>
           </div>
@@ -313,16 +338,16 @@ function BlockEditorContent({
             onOpen={() => setDaysOpen(true)}
           />
           <OhTimePicker
-            label="From"
+            label={t("from")}
             value={draft.from}
             onChange={(value) => setDraft((prev) => ({ ...prev, from: value }))}
-            ariaLabel="Start time"
+            ariaLabel={t("startTime")}
           />
           <OhTimePicker
-            label="To"
+            label={t("to")}
             value={draft.to}
             onChange={(value) => setDraft((prev) => ({ ...prev, to: value }))}
-            ariaLabel="End time"
+            ariaLabel={t("endTime")}
           />
         </div>
 
@@ -362,7 +387,7 @@ function BlockEditorContent({
               onClick={onRemove}
               className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
             >
-              <Trash2Icon /> Remove
+              <Trash2Icon /> {t("remove")}
             </Button>
           ) : null}
           <Button
@@ -373,7 +398,7 @@ function BlockEditorContent({
             disabled={!canSave}
             className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
           >
-            <CheckIcon /> {state.mode === "edit" ? "Save" : "Add"}
+            <CheckIcon /> {state.mode === "edit" ? t("save") : t("add")}
           </Button>
         </div>
       </div>
@@ -403,18 +428,19 @@ function DaysRowButton({
   days: DayKey[];
   onOpen: () => void;
 }) {
+  const t = useTranslations("Availability");
   const label =
-    days.length === 0 ? "Pick days" : formatDayLabel(days, "long");
+    days.length === 0 ? t("pickDays") : formatDayLabel(days, "long");
   return (
     <button
       type="button"
       onClick={onOpen}
       className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
-      aria-label={`Edit days: ${label}`}
+      aria-label={t("editDaysAria", { label })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="oh-eyebrow">
-          Days
+          {t("days")}
         </span>
         <span className="truncate text-[18px] leading-[1.1] font-black">
           {label}
@@ -477,6 +503,7 @@ function DayPickerDrawer({
   days: DayKey[];
   toggleDay: (day: DayKey) => void;
 }) {
+  const t = useTranslations("Availability");
   return (
     <ResponsiveModal
       open={open}
@@ -491,10 +518,10 @@ function DayPickerDrawer({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <ResponsiveModalTitle className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
-                Days
+                {t("days")}
               </ResponsiveModalTitle>
               <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
-                {days.length === 0 ? "None" : formatDayLabel(days, "long")}
+                {days.length === 0 ? t("none") : formatDayLabel(days, "long")}
               </p>
             </div>
             <ResponsiveModalClose />
@@ -521,7 +548,7 @@ function DayPickerDrawer({
             onClick={onClose}
             className="w-full justify-center rounded-(--oh-r-xs)"
           >
-            <CheckIcon /> Done
+            <CheckIcon /> {t("done")}
           </Button>
         </div>
       </ResponsiveModalContent>
@@ -589,14 +616,20 @@ function blocksToSchedule(blocks: Block[]): ScheduleValues {
   return next;
 }
 
+// B.PT26 — returns a sentinel KEY (`needsDay` / `endBeforeStart` /
+// `overlap:<comma-list>`) instead of a localized string. Caller maps
+// to a translated message via `useTranslations("Availability")`.
+// Keeping the helper pure means the validation logic stays tested
+// independently of locale rendering. Day-name parts of the overlap
+// list are still English here — B.PT26B refactors them.
 function validateDraft(draft: BlockDraft, others: Block[]): string | null {
-  if (draft.days.length === 0) return "Pick at least one day";
-  if (draft.from >= draft.to) return "End must be after start";
+  if (draft.days.length === 0) return "needsDay";
+  if (draft.from >= draft.to) return "endBeforeStart";
   for (const other of others) {
     const shared = draft.days.filter((d) => other.days.includes(d));
     if (shared.length === 0) continue;
     if (draft.from < other.to && other.from < draft.to) {
-      return `Overlaps on ${shared
+      return `overlap:${shared
         .map((d) => DAYS.find((x) => x.key === d)?.short ?? d)
         .join(", ")}`;
     }

@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 // Skeleton for the invitation preview while the server-side fetch
 // resolves (B.PT81). Closes QA-2 from `docs/qa-pass-2026-05-02.md`:
 // without this, hard-navigating to `/invitations/<token>` showed a
@@ -12,12 +14,17 @@
 // for routes that perform server-side fetches; dub does the same on
 // every dashboard route. We're aligning the public invitation route
 // with that convention.
-export default function InvitationLoading() {
+//
+// B.PT26 — eyebrow uses next-intl's server-side `getTranslations` so
+// the placeholder reads in the user's locale (e.g. "Invitación" in
+// es). Server component, so this is the canonical async pattern.
+export default async function InvitationLoading() {
+  const t = await getTranslations("Invitations");
   return (
     <div className="min-h-screen bg-oh-bg">
       <main className="mx-auto max-w-md px-6 pt-20 sm:pt-32">
         <header>
-          <p className="oh-eyebrow opacity-30">Invitation</p>
+          <p className="oh-eyebrow opacity-30">{t("skeletonEyebrow")}</p>
           <SkeletonBar className="mt-4 h-9 w-3/4" />
           <SkeletonBar className="mt-5 h-3 w-full" />
           <SkeletonBar className="mt-2 h-3 w-5/6" />

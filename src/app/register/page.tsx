@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { RegisterForm } from "./register-form";
@@ -7,17 +8,19 @@ import { RegisterForm } from "./register-form";
 // `or` rule + GitHub button so a returning user with a GitHub
 // identity has the same one-tap path on either side. Audit asked
 // for parity (`§1.3 — Register has no GitHub option despite login
-// offering GitHub`).
-export default function RegisterPage() {
+// offering GitHub`). B.PT26 — copy localized via `Auth` namespace
+// keys; same pattern as `/login`.
+export default async function RegisterPage() {
+  const t = await getTranslations("Auth");
   return (
     <div className="min-h-screen bg-[color:var(--oh-frame)] text-[color:var(--oh-ink)]">
       <main className="mx-auto w-full max-w-[420px] px-5 pt-12 pb-16 sm:pt-24 sm:px-6">
         <header className="mb-7">
           <h1 className="text-[28px] font-bold tracking-tight leading-none">
-            Create account
+            {t("registerTitle")}
           </h1>
           <p className="mt-3 text-[13px] leading-[1.5] opacity-65">
-            Pick a handle. It becomes your public URL.
+            {t("registerSubtitle")}
           </p>
         </header>
 
@@ -25,7 +28,7 @@ export default function RegisterPage() {
 
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-oh-line" />
-          <span className="oh-eyebrow">or</span>
+          <span className="oh-eyebrow">{t("or")}</span>
           <div className="h-px flex-1 bg-oh-line" />
         </div>
 
@@ -43,17 +46,17 @@ export default function RegisterPage() {
             className="w-full justify-center gap-2"
           >
             <img src="/icons/github.svg" alt="" className="size-4 dark:invert" />
-            Continue with GitHub
+            {t("continueWithGithub")}
           </Button>
         </form>
 
         <p className="mt-8 text-[13px] opacity-65">
-          Already have an account?{" "}
+          {t("registerHaveAccount")}{" "}
           <Link
             href="/login"
             className="font-medium text-[color:var(--oh-ink)] underline underline-offset-4 decoration-oh-line transition-colors hover:decoration-[color:var(--oh-ink)]"
           >
-            Sign in
+            {t("registerSignIn")}
           </Link>
         </p>
       </main>

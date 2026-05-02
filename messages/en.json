@@ -442,5 +442,49 @@
     "metaSession": "Session",
     "metaOpen": "Open",
     "metaTz": "Time zone"
+  },
+  "Auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Welcome back. Pick how you want to get in.",
+    "loginNoAccount": "New here?",
+    "loginCreateAccount": "Create an account",
+    "registerTitle": "Create account",
+    "registerSubtitle": "Pick a handle. It becomes your public URL.",
+    "registerHaveAccount": "Already have an account?",
+    "registerSignIn": "Sign in",
+    "or": "or",
+    "continueWithGithub": "Continue with GitHub",
+    "errorVerification": "That sign-in link is expired or already used. Send a new one below.",
+    "errorAccessDenied": "Access denied for that account.",
+    "errorConfiguration": "Sign-in is temporarily unavailable. Try again shortly.",
+    "errorOAuthSignin": "Could not start the OAuth flow. Try again.",
+    "errorOAuthCallback": "OAuth provider returned an error. Try again.",
+    "errorGeneric": "Sign-in failed. Try again."
+  },
+  "Invitations": {
+    "skeletonEyebrow": "Invitation"
+  },
+  "Availability": {
+    "editHours": "Edit hours",
+    "newHours": "New hours",
+    "from": "From",
+    "to": "To",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "remove": "Remove",
+    "save": "Save",
+    "add": "Add",
+    "done": "Done",
+    "days": "Days",
+    "none": "None",
+    "pickDays": "Pick days",
+    "editDaysAria": "Edit days: {label}",
+    "editBlockAria": "Edit {days}, {time}",
+    "addMoreHours": "Add more hours",
+    "noHoursSet": "No hours set",
+    "addBlockHint": "Add a block to tell visitors when they can book you.",
+    "errorNeedsDay": "Pick at least one day",
+    "errorEndBeforeStart": "End must be after start",
+    "errorOverlap": "Overlaps on {days}"
   }
 }

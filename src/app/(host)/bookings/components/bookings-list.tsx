@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -391,6 +391,17 @@ function BookingRow({
   question: string | null;
   slotStart: Date;
 }) {
+  // B.PT26 — locale-aware date label. ICU `weekday: "short"` +
+  // `month: "short"` + `day: "numeric"` produces "Mon Jul 15" / "Lun
+  // jul 15" verbatim, replacing the prior hand-rolled WEEKDAY_SHORT +
+  // MONTH_SHORT arrays. The oh-eyebrow class uppercases via CSS so
+  // the visual rhythm is preserved.
+  const format = useFormatter();
+  const slotDateLabel = format.dateTime(slotStart, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
   return (
     <Link
       href={`/bookings/${publicUid}`}
@@ -405,7 +416,7 @@ function BookingRow({
         </span>
       </header>
 
-      <p className="oh-eyebrow mt-2 tabular-nums">{fmtSlotDate(slotStart)}</p>
+      <p className="oh-eyebrow mt-2 tabular-nums">{slotDateLabel}</p>
 
       {question ? (
         <p className="mt-2 text-[13px] italic opacity-75 leading-relaxed">
@@ -538,34 +549,6 @@ function EmptyBookings({ tab }: { tab: Tab }) {
 }
 
 export { MailIcon };
-
-const WEEKDAY_SHORT = [
-  "SUN",
-  "MON",
-  "TUE",
-  "WED",
-  "THU",
-  "FRI",
-  "SAT",
-] as const;
-const MONTH_SHORT = [
-  "JAN",
-  "FEB",
-  "MAR",
-  "APR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AUG",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
-] as const;
-
-function fmtSlotDate(d: Date): string {
-  return `${WEEKDAY_SHORT[d.getDay()]} ${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`;
-}
 
 function fmtSlotTime(d: Date): string {
   const hour24 = d.getHours();
