@@ -357,6 +357,8 @@
     "referrerLabel": "Referido",
     "scheduled": "Programado",
     "delivered": "Entregado",
+    "failed": "Fallidos",
+    "failedStatus": "Falló permanentemente",
     "retriedAttempts": "{count} intentos de entrega",
     "unscheduled": "Bajo demanda",
     "rescheduledFrom": "Reagendada desde",

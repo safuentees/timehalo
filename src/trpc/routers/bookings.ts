@@ -696,6 +696,12 @@ export const bookings = router({
             referenceUid: true,
             scheduledAt: true,
             attempts: true,
+            // B.PT77 — `maxAttempts` lets the UI split this list into
+            // "still retrying" vs "permanently failed" without a
+            // second query. The cron processor stops re-running rows
+            // where `attempts >= maxAttempts`, so the equality flip is
+            // the host-visible "this delivery is dead" signal.
+            maxAttempts: true,
             lastError: true,
           },
         }),
