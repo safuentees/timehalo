@@ -417,6 +417,16 @@ model Task {
   maxAttempts          Int       @default(3)
   lastError            String?
   lastFailedAttemptAt  DateTime?
+  // HTTP response status from the LAST attempt. Populated by the cron
+  // processor on every webhookDelivery dispatch — both success (2xx,
+  // booking-detail surfaces ✓ green) and failure (4xx/5xx, surfaced
+  // ✗ red). Null for non-network task types (emailSend, calendarWrite)
+  // since those don't have a meaningful HTTP status to expose. Per
+  // dub.co's webhook-event tinybird shape (http_status field) — the
+  // modern pattern is to record the actual receiver response so the
+  // host can debug a "delivered but 400" mismatch instead of inferring
+  // success from the absence of an error.
+  lastResponseStatus   Int?
   referenceUid         String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt

@@ -703,6 +703,11 @@ export const bookings = router({
             // the host-visible "this delivery is dead" signal.
             maxAttempts: true,
             lastError: true,
+            // B.PT78 — the actual HTTP response status from the last
+            // attempt. Lets the UI surface "✗ 400" instead of an
+            // ambiguous "Failed" — host can match against the
+            // receiver's logs without context-switching.
+            lastResponseStatus: true,
           },
         }),
         // A6 — historical deliveries. Closes e583bbc's deferral:
@@ -726,6 +731,10 @@ export const bookings = router({
             scheduledAt: true,
             succeededAt: true,
             attempts: true,
+            // B.PT78 — surface the response code on the success path
+            // too (e.g. ✓ 200 / ✓ 204) so the host can confirm what
+            // the receiver actually accepted.
+            lastResponseStatus: true,
           },
         }),
       ]);

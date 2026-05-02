@@ -170,6 +170,10 @@ async function runWebhookDelivery(task: {
       data: {
         succeededAt: new Date(),
         attempts: task.attempts + 1,
+        // B.PT78 — capture the actual response code on success too,
+        // so the booking-detail UI can show "✓ 204" or "✓ 200" rather
+        // than a generic checkmark.
+        lastResponseStatus: response.status,
       },
     });
     return "ok";
@@ -187,6 +191,7 @@ async function runWebhookDelivery(task: {
     return markPermanentlyFailed(
       task.id,
       "Receiver returned 410 GONE; subscription disabled",
+      response.status,
     );
   }
 
@@ -194,6 +199,7 @@ async function runWebhookDelivery(task: {
     task.id,
     task.attempts,
     `Receiver returned ${response.status}`,
+    response.status,
   );
 }
 
@@ -423,6 +429,10 @@ async function markFailed(
   taskId: number,
   prevAttempts: number,
   reason: string,
+  // Optional HTTP status code (B.PT78). Webhook delivery failure paths
+  // pass the receiver's response code; non-network task types (email,
+  // calendar) pass undefined and the field stays untouched.
+  responseStatus?: number,
 ): Promise<"fail"> {
   const nextAttempts = prevAttempts + 1;
   await prisma.task.update({
@@ -431,6 +441,9 @@ async function markFailed(
       attempts: nextAttempts,
       lastError: reason,
       lastFailedAttemptAt: new Date(),
+      ...(typeof responseStatus === "number"
+        ? { lastResponseStatus: responseStatus }
+        : {}),
       // Reschedule the next attempt; the cron picks it back up when
       // scheduledAt <= now. If max attempts hit, scheduledAt is
       // moved far enough out that even a paranoid cron won't grab it
@@ -444,6 +457,7 @@ async function markFailed(
 async function markPermanentlyFailed(
   taskId: number,
   reason: string,
+  responseStatus?: number,
 ): Promise<"fail"> {
   await prisma.task.update({
     where: { id: taskId },
@@ -452,6 +466,9 @@ async function markPermanentlyFailed(
       attempts: { increment: 999 },
       lastError: reason,
       lastFailedAttemptAt: new Date(),
+      ...(typeof responseStatus === "number"
+        ? { lastResponseStatus: responseStatus }
+        : {}),
     },
   });
   return "fail";

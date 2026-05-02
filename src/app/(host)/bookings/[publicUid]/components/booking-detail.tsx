@@ -432,6 +432,7 @@ type DetailData = {
     attempts: number;
     maxAttempts: number;
     lastError: string | null;
+    lastResponseStatus: number | null;
   }>;
   deliveries: ReadonlyArray<{
     id: number;
@@ -440,6 +441,7 @@ type DetailData = {
     scheduledAt: string | Date | null;
     succeededAt: string | Date | null;
     attempts: number;
+    lastResponseStatus: number | null;
   }>;
   rescheduledFrom: {
     publicUid: string;
@@ -606,7 +608,15 @@ function InfoView({
                             ×{task.attempts}
                           </span>
                         </span>
-                        <span className="oh-eyebrow tabular-nums text-[color:var(--destructive)]">
+                        <span className="oh-eyebrow inline-flex items-center gap-2 tabular-nums text-[color:var(--destructive)]">
+                          {task.lastResponseStatus !== null ? (
+                            <span
+                              className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums"
+                              aria-label={`HTTP ${task.lastResponseStatus}`}
+                            >
+                              {task.lastResponseStatus}
+                            </span>
+                          ) : null}
                           {t("failedStatus")}
                         </span>
                       </div>
@@ -641,6 +651,15 @@ function InfoView({
                     ✓
                   </span>
                   {taskLabel(delivery.referenceUid ?? "")}
+                  {delivery.lastResponseStatus !== null ? (
+                    <span
+                      className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums"
+                      style={{ color: "rgb(5 150 105)" }}
+                      aria-label={`HTTP ${delivery.lastResponseStatus}`}
+                    >
+                      {delivery.lastResponseStatus}
+                    </span>
+                  ) : null}
                   {delivery.attempts > 1 ? (
                     <span
                       className="oh-eyebrow tabular-nums opacity-75"
