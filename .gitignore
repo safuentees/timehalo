@@ -79,3 +79,8 @@ playwright/.auth/
 
 # bootstrap script state cache
 .bootstrap-state/
+
+# B.PT88 — dev console aggregation. The `*-logged.sh` wrappers pipe
+# their service's output through `tee` into logs/<svc>.log so Claude
+# Code can Read it. Local-only artifact; never committed.
+/logs/
