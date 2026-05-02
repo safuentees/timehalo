@@ -10,6 +10,7 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/components/ui/responsive-modal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const DevChecklistContent = lazy(() =>
   import("./dev-checklist-content").then((m) => ({
@@ -17,8 +18,18 @@ const DevChecklistContent = lazy(() =>
   })),
 );
 
-export function DevChecklistLauncher({ markdown }: { markdown: string }) {
+type TabId = "recent" | "features";
+
+export function DevChecklistLauncher({
+  features,
+  recent,
+}: {
+  features: string | null;
+  recent: string | null;
+}) {
   const [open, setOpen] = useState(false);
+  const initialTab: TabId = recent !== null ? "recent" : "features";
+  const [tab, setTab] = useState<TabId>(initialTab);
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
@@ -52,7 +63,31 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
               <p className="oh-eyebrow opacity-55">Loading checklist…</p>
             }
           >
-            <DevChecklistContent markdown={markdown} />
+            {recent !== null && features !== null ? (
+              <Tabs
+                value={tab}
+                onValueChange={(value) => setTab(value as TabId)}
+                className="gap-4"
+              >
+                <TabsList variant="line" className="self-start">
+                  <TabsTrigger value="recent">Recent</TabsTrigger>
+                  <TabsTrigger value="features">All features</TabsTrigger>
+                </TabsList>
+                <TabsContent value="recent">
+                  <DevChecklistContent
+                    markdown={recent}
+                    storageScope="recent"
+                  />
+                </TabsContent>
+                <TabsContent value="features">
+                  <DevChecklistContent markdown={features} />
+                </TabsContent>
+              </Tabs>
+            ) : recent !== null ? (
+              <DevChecklistContent markdown={recent} storageScope="recent" />
+            ) : features !== null ? (
+              <DevChecklistContent markdown={features} />
+            ) : null}
           </Suspense>
         </ResponsiveModalBody>
       </ResponsiveModalContent>

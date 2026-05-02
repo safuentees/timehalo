@@ -14,15 +14,17 @@ export async function DevChecklistMount() {
   });
   if (!isAdminHandle(me?.handle)) return null;
 
-  let markdown: string;
+  const features = safeRead("docs/features-and-tests.md");
+  const recent = safeRead("docs/recent-changes-checklist.md");
+  if (features === null && recent === null) return null;
+
+  return <DevChecklistLauncher features={features} recent={recent} />;
+}
+
+function safeRead(relativePath: string): string | null {
   try {
-    markdown = readFileSync(
-      join(process.cwd(), "docs", "features-and-tests.md"),
-      "utf8",
-    );
+    return readFileSync(join(process.cwd(), relativePath), "utf8");
   } catch {
     return null;
   }
-
-  return <DevChecklistLauncher markdown={markdown} />;
 }

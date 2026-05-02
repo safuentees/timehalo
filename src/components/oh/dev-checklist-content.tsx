@@ -5,8 +5,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 
-const STORAGE_KEY = "oh-dev-checklist-v1";
-const SCROLL_KEY = "oh-dev-checklist-scroll-v1";
+function storageKeysFor(scope: string | undefined) {
+  const suffix = scope ? `-${scope}` : "";
+  return {
+    state: `oh-dev-checklist${suffix}-v1`,
+    scroll: `oh-dev-checklist${suffix}-scroll-v1`,
+  };
+}
 
 function djb2(input: string): string {
   let hash = 5381;
@@ -18,10 +23,10 @@ function djb2(input: string): string {
 
 type CheckedMap = Record<string, boolean>;
 
-function readStorage(): CheckedMap {
+function readStorage(stateKey: string): CheckedMap {
   if (typeof window === "undefined") return {};
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(stateKey);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
@@ -33,29 +38,45 @@ function readStorage(): CheckedMap {
   }
 }
 
-function writeStorage(map: CheckedMap) {
+function writeStorage(stateKey: string, map: CheckedMap) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    window.localStorage.setItem(stateKey, JSON.stringify(map));
   } catch {
   }
 }
 
-export function DevChecklistContent({ markdown }: { markdown: string }) {
-  const [checked, setChecked] = useState<CheckedMap>(() => readStorage());
+export function DevChecklistContent({
+  markdown,
+  storageScope,
+}: {
+  markdown: string;
+  storageScope?: string;
+}) {
+  const { state: stateKey, scroll: scrollKey } = useMemo(
+    () => storageKeysFor(storageScope),
+    [storageScope],
+  );
 
-  const toggle = useCallback((key: string) => {
-    setChecked((prev) => {
-      const next: CheckedMap = { ...prev, [key]: !prev[key] };
-      writeStorage(next);
-      return next;
-    });
-  }, []);
+  const [checked, setChecked] = useState<CheckedMap>(() =>
+    readStorage(stateKey),
+  );
+
+  const toggle = useCallback(
+    (key: string) => {
+      setChecked((prev) => {
+        const next: CheckedMap = { ...prev, [key]: !prev[key] };
+        writeStorage(stateKey, next);
+        return next;
+      });
+    },
+    [stateKey],
+  );
 
   const reset = useCallback(() => {
     setChecked({});
-    writeStorage({});
-  }, []);
+    writeStorage(stateKey, {});
+  }, [stateKey]);
 
   const completed = useMemo(
     () => Object.values(checked).filter(Boolean).length,
@@ -98,14 +119,14 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
     const node = scrollRef.current;
     if (!node) return;
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(SCROLL_KEY);
+    const stored = window.localStorage.getItem(scrollKey);
     if (!stored) return;
     const target = Number(stored);
     if (!Number.isFinite(target) || target <= 0) return;
     requestAnimationFrame(() => {
       node.scrollTop = target;
     });
-  }, []);
+  }, [scrollKey]);
 
   const pendingFrameRef = useRef<number | null>(null);
   const handleScroll = useCallback(() => {
@@ -115,11 +136,11 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
       const node = scrollRef.current;
       if (!node || typeof window === "undefined") return;
       try {
-        window.localStorage.setItem(SCROLL_KEY, String(node.scrollTop));
+        window.localStorage.setItem(scrollKey, String(node.scrollTop));
       } catch {
       }
     });
-  }, []);
+  }, [scrollKey]);
 
   return (
     <div className="flex flex-col gap-4">
