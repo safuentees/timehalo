@@ -30,13 +30,7 @@ import type { WorkspaceScope } from "@/lib/workspaces";
 // integration use. Dial up via env / per-key override if a real
 // integration outgrows it. dub's published budget for paid plans is
 // 600/min; FREE-tier API keys here get 60/min.
-//
-// TEMP (B.PT80) — dropped to 1 / 60s so the rate-limit feature is
-// trivially exercisable in features-and-tests step 12: hit the API
-// once, the second hit within 60s returns 429 with the standard
-// RateLimit headers. Bump back to 60 (or env-tunable) when done
-// testing.
-const apiKeyRatelimit = createRatelimit(1, "1 m");
+const apiKeyRatelimit = createRatelimit(60, "1 m");
 
 const WWW_AUTH_HEADER = 'Bearer realm="officehours", charset="UTF-8"';
 
