@@ -152,6 +152,9 @@
   "Billing": {
     "legend": "Plan",
     "description": "Cambia entre planes gratuito y de pago para este espacio de trabajo.",
+    "checkoutSuccessToast": "Plan actualizado — todo listo.",
+    "checkoutPendingToast": "Pago recibido. Si la insignia del plan aún no se actualiza, recarga en un momento.",
+    "checkoutCancelledToast": "Checkout cancelado — sin cargo.",
     "workspaceLabel": "Espacio de trabajo",
     "loading": "Cargando plan…",
     "noWorkspaceEmpty": "Crea un espacio de trabajo antes de gestionar un plan.",
