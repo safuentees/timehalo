@@ -152,6 +152,9 @@
   "Billing": {
     "legend": "Plan",
     "description": "Switch between free and paid plans for this workspace.",
+    "checkoutSuccessToast": "Plan upgraded — you're all set.",
+    "checkoutPendingToast": "Payment received. Refresh in a moment if the plan badge hasn't updated.",
+    "checkoutCancelledToast": "Checkout cancelled — no charge.",
     "workspaceLabel": "Workspace",
     "loading": "Loading plan…",
     "noWorkspaceEmpty": "Create a workspace before managing a plan.",
