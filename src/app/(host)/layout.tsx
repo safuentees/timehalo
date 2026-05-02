@@ -3,6 +3,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { OhProviders } from "@/components/oh/providers";
 import { OhDashboardLayout } from "@/components/oh/oh-dashboard-layout";
 import { DevChecklistMount } from "@/components/oh/dev-checklist-mount";
+import { DevNotesMount } from "@/components/oh/dev-notes-mount";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 
 export default async function DashboardLayout({
@@ -24,6 +25,7 @@ export default async function DashboardLayout({
         <OhDashboardLayout>{children}</OhDashboardLayout>
         {modal}
         <DevChecklistMount />
+        <DevNotesMount />
       </HydrationBoundary>
     </OhProviders>
   );
