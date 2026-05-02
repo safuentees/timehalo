@@ -47,13 +47,15 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
           </div>
         </ResponsiveModalHeader>
         <ResponsiveModalBody>
-          <Suspense
-            fallback={
-              <p className="oh-eyebrow opacity-55">Loading checklist…</p>
-            }
-          >
-            <DevChecklistContent markdown={markdown} />
-          </Suspense>
+          <div className="max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]">
+            <Suspense
+              fallback={
+                <p className="oh-eyebrow opacity-55">Loading checklist…</p>
+              }
+            >
+              <DevChecklistContent markdown={markdown} />
+            </Suspense>
+          </div>
         </ResponsiveModalBody>
       </ResponsiveModalContent>
     </ResponsiveModal>
