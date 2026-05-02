@@ -17,12 +17,25 @@ export const proxy = auth((req) => {
   // route through unauth means the user sees the invite preview before
   // having to choose between sign-in and sign-up.
   const isInvitationLink = pathname.startsWith("/invitations/");
+  // B.PT85 — embed loader script + the embed iframe page itself MUST
+  // be reachable by anonymous visitors. The whole point of the C1
+  // embed is that a third-party site loads /embed.js + /embed/<handle>
+  // from a guest browser session — gating either behind auth defeats
+  // the feature. Caught during QA-5 validation: the proxy was
+  // redirecting both to /login, so the loader's iframe failed before
+  // the React app ever mounted. Cal.com handles this with the
+  // matcher excluding `/embed.*` outright; the equivalent here is
+  // adding the prefix to `isPublic` so existing attribution-cookie
+  // logic still gets to inspect the route.
+  const isEmbed =
+    pathname === "/embed.js" || pathname.startsWith("/embed/");
 
   // Public routes — accessible without auth
   const isPublic =
     ["/login", "/register"].includes(pathname) ||
     isHostPage ||
-    isInvitationLink;
+    isInvitationLink ||
+    isEmbed;
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));

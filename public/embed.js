@@ -39,6 +39,12 @@
     if (!handle) return;
     if (host.__ohMounted) return;
     host.__ohMounted = true;
+    // B.PT85 — also set the DOM attribute so the `mountAll` selector
+    // (`:not([data-oh-mounted])`) actually filters out already-
+    // mounted hosts. Before this, the JS prop guard on line 40
+    // caught the duplicate but the selector was a no-op pretending
+    // to do filtering it didn't.
+    host.setAttribute("data-oh-mounted", "true");
 
     var iframe = document.createElement("iframe");
     iframe.src = origin + "/embed/" + encodeURIComponent(handle);

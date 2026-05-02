@@ -33,10 +33,13 @@ export default defineConfig({
     {
       // Public specs — no persisted auth, hit the site as an anonymous
       // visitor. Hydration smoke + the end-to-end booking-flow spec live
-      // here. Uses an empty storageState so partner-onboarding-style
-      // contamination from prior runs can never bleed in.
+      // here, plus the B.PT85 embed-loader smoke (parent page is
+      // file://, iframe is http://localhost:3000 — canonical cross-
+      // origin embed scenario). Uses an empty storageState so
+      // partner-onboarding-style contamination from prior runs can
+      // never bleed in.
       name: "public",
-      testMatch: /(?:hydration|booking-flow)\.spec\.ts/,
+      testMatch: /(?:hydration|booking-flow|embed)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: { cookies: [], origins: [] },
