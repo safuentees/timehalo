@@ -15,6 +15,31 @@ between 3-4 terminals + the Stripe Dashboard + dev.db SQL by hand.
 | **3** | Custom local stdio MCP server (`scripts/dev-mcp/`) — `tail_log`, `recent_events`, `query_db`, `app_state`, `stripe_state`, `replay_stripe_event` tools | ~3-4 hrs | TODO |
 | **4** | Pino → JSONL sink + cross-service correlation IDs (re-use `operationId`) | ~1 hr | TODO |
 
+## How I (the agent) actually consume these logs
+
+Three tiers of access, picked by the situation:
+
+| Tier | Mechanism | When |
+|---|---|---|
+| **Pull / historical** | `Read logs/web.log` (or `Bash` `tail -200 logs/web.log`) | Inspect what already happened. Most debugging starts here. |
+| **Push / live** | My `Monitor` tool with `tail -F logs/*.log \| grep -E "..."` | Wait for an event during an interactive flow (e.g. you click checkout, I get notified the moment the webhook lines emit). |
+| **Structured push** | Custom MCP server with resource subscriptions (Phase 3, deferred) | When raw-line streams aren't selective enough — filter by `operationId`, level, scope, with structured payloads. |
+
+The `Monitor` tool is the underrated capability: every stdout line
+from a long-running command becomes a push notification. So a single
+filtered tail —
+
+```bash
+tail -F logs/web.log logs/stripe.log logs/tunnel.log \
+  | grep --line-buffered -E "ERROR|\\[stripe.webhook\\]|FAILED"
+```
+
+— gives me a live, filter-at-source event stream with zero new
+infrastructure. **That's why Phase 1's file-based design is enough
+for ~95% of debugging cases.** Direct PTY attachment (ttyd / node-pty
+patterns) isn't on the table — those work for agents running in
+microVMs they own, not for Claude Code in this sandbox.
+
 ## Phase 1 — log file aggregation
 
 Three wrapper scripts under `scripts/` pipe each service's stdout +
@@ -63,11 +88,24 @@ env-gated (`NODE_ENV !== "production"`). Posts the stored payload
 through the webhook handler. For iterating on handler logic without
 the cost of re-doing checkout.
 
-## Phase 3 — Custom local MCP (planned)
+## Phase 3 — Custom local MCP with resource subscriptions (planned)
 
 `scripts/dev-mcp/index.ts` — TypeScript stdio MCP via
 `@modelcontextprotocol/sdk`, registered in `.mcp.json` at project
 root so Claude Code auto-loads it.
+
+**The point**: my `Monitor` tool already does line-stream push
+notifications from any stdout (Tier 2 above). The MCP earns its
+keep by going one tier deeper — **resource subscriptions** with
+**structured payloads** instead of raw log lines. So instead of
+matching `\\[stripe.webhook\\]` on a free-text line, the agent
+subscribes to `stripe-events://workspace/<slug>/since/<ts>` and
+gets typed JSON objects: `{ ts, level, scope, operationId, msg,
+fields }`. That unlocks filter-by-operationId joins across web +
+stripe + tunnel + cron without grep regex gymnastics.
+
+**Build only when raw-line streams from `Monitor` demonstrably
+aren't selective enough.** For one billing bug, Tier 2 is plenty.
 
 **Tools**:
 
