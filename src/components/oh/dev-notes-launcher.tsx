@@ -185,20 +185,30 @@ export function DevNotesLauncher() {
               </div>
             </header>
 
-            {/* Textarea takes all remaining vertical space inside the
-                modal body. `min-h-[78vh]` mobile / `sm:min-h-[68vh]`
-                desktop floors the size on devices where the parent's
-                height isn't fully resolved (Vaul's drawer auto-sizes
-                to content; without the floor the textarea collapses
-                on first render). Cleaner styling: no border (the
-                drawer/dialog frame already encloses), generous
-                padding, mono body font for note-taking feel. */}
+            {/* Auto-growing textarea (B.PT79 follow-up). The previous
+                `flex-1 + min-h-[78vh]` shape held a fixed height — long
+                notes overflowed into an internal scrollbar instead of
+                expanding the field. `field-sizing: content` is the
+                modern CSS one-liner (Chrome 123+, Safari TP, Firefox
+                in dev — MDN ref) that grows the element to fit its
+                content, no JS needed. References: chriscoyier.net
+                "CSS Solves Auto-Expanding Textareas," CSS-Tricks
+                "The Cleanest Trick for Autogrowing Textareas,"
+                developer.chrome.com/docs/css-ui/css-field-sizing.
+                Cap with `max-h-[80vh]` + `overflow-y-auto` so very
+                long notes scroll inside the textarea (it'd otherwise
+                push the modal off-screen). Floor `min-h-[60vh]` keeps
+                the empty state generous AND covers the Firefox
+                fallback (browsers without field-sizing render at the
+                rows attribute / min-height — same canonical pattern
+                blog.kalan.dev/en/frontend/css-field-sizing/ recommends
+                for progressive enhancement). */}
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Jot what's wrong, what to revisit, what to file. Markdown lives here too — copy out when you're ready to file or commit."
               spellCheck
-              className="min-h-[78vh] flex-1 resize-none rounded-(--oh-r-xs) bg-transparent p-3 font-[family-name:var(--oh-mono)] text-[14px] leading-[1.55] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus:outline-none sm:min-h-[68vh]"
+              className="min-h-[60vh] max-h-[80vh] resize-none overflow-y-auto rounded-(--oh-r-xs) bg-transparent p-3 font-[family-name:var(--oh-mono)] text-[14px] leading-[1.55] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus:outline-none [field-sizing:content]"
             />
           </div>
         </ResponsiveModalBody>
