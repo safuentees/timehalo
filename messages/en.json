@@ -357,6 +357,8 @@
     "referrerLabel": "Referrer",
     "scheduled": "Scheduled",
     "delivered": "Delivered",
+    "failed": "Failed",
+    "failedStatus": "Permanently failed",
     "retriedAttempts": "{count} delivery attempts",
     "unscheduled": "On demand",
     "rescheduledFrom": "Rescheduled from",

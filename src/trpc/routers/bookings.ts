@@ -526,6 +526,7 @@ export const bookings = router({
             referenceUid: true,
             scheduledAt: true,
             attempts: true,
+            maxAttempts: true,
             lastError: true,
           },
         }),

@@ -366,6 +366,7 @@ type DetailData = {
     referenceUid: string | null;
     scheduledAt: string | Date | null;
     attempts: number;
+    maxAttempts: number;
     lastError: string | null;
   }>;
   deliveries: ReadonlyArray<{
@@ -469,25 +470,90 @@ function InfoView({
         </OhSection>
       ) : null}
 
-      {data.pendingTasks.length > 0 ? (
-        <OhSection title={t("scheduled")}>
-          <ul role="list" className="flex flex-col gap-2">
-            {data.pendingTasks.map((task) => (
-              <li
-                key={task.id}
-                className="flex items-baseline justify-between gap-x-4 text-[13px]"
-              >
-                <span className="oh-eyebrow opacity-55">{taskLabel(task.referenceUid ?? "")}</span>
-                <span className="tabular-nums opacity-75">
-                  {task.scheduledAt
-                    ? fmtAuditTimestamp(new Date(task.scheduledAt as unknown as string))
-                    : t("unscheduled")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </OhSection>
-      ) : null}
+      {(() => {
+        const failed = data.pendingTasks.filter(
+          (t) => t.attempts >= t.maxAttempts,
+        );
+        const scheduled = data.pendingTasks.filter(
+          (t) => t.attempts < t.maxAttempts,
+        );
+        return (
+          <>
+            {scheduled.length > 0 ? (
+              <OhSection title={t("scheduled")}>
+                <ul role="list" className="flex flex-col gap-2">
+                  {scheduled.map((task) => (
+                    <li
+                      key={task.id}
+                      className="flex items-baseline justify-between gap-x-4 text-[13px]"
+                    >
+                      <span className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55">
+                        <span aria-hidden className="text-[color:var(--oh-content-muted)]">
+                          ⟳
+                        </span>
+                        {taskLabel(task.referenceUid ?? "")}
+                        {task.attempts > 0 ? (
+                          <span
+                            className="tabular-nums opacity-75"
+                            aria-label={t("retriedAttempts", {
+                              count: task.attempts,
+                            })}
+                          >
+                            ×{task.attempts}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="tabular-nums opacity-75">
+                        {task.scheduledAt
+                          ? fmtAuditTimestamp(
+                              new Date(task.scheduledAt as unknown as string),
+                            )
+                          : t("unscheduled")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </OhSection>
+            ) : null}
+
+            {failed.length > 0 ? (
+              <OhSection title={t("failed")}>
+                <ul role="list" className="flex flex-col gap-2">
+                  {failed.map((task) => (
+                    <li
+                      key={task.id}
+                      className="flex flex-col gap-1 text-[13px]"
+                    >
+                      <div className="flex items-baseline justify-between gap-x-4">
+                        <span className="oh-eyebrow inline-flex items-center gap-1.5 text-[color:var(--destructive)]">
+                          <span aria-hidden>✗</span>
+                          {taskLabel(task.referenceUid ?? "")}
+                          <span
+                            className="tabular-nums opacity-75"
+                            aria-label={t("retriedAttempts", {
+                              count: task.attempts,
+                            })}
+                          >
+                            ×{task.attempts}
+                          </span>
+                        </span>
+                        <span className="oh-eyebrow tabular-nums text-[color:var(--destructive)]">
+                          {t("failedStatus")}
+                        </span>
+                      </div>
+                      {task.lastError ? (
+                        <p className="font-[family-name:var(--oh-mono)] text-[12px] leading-[1.5] opacity-65 line-clamp-3">
+                          {task.lastError}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </OhSection>
+            ) : null}
+          </>
+        );
+      })()}
 
       {data.deliveries.length > 0 ? (
         <OhSection title={t("delivered")}>
@@ -498,6 +564,13 @@ function InfoView({
                 className="flex items-baseline justify-between gap-x-4 text-[13px]"
               >
                 <span className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55">
+                  <span
+                    aria-hidden
+                    className="text-[color:var(--oh-success,emerald-600)]"
+                    style={{ color: "rgb(5 150 105)" }}
+                  >
+                    ✓
+                  </span>
                   {taskLabel(delivery.referenceUid ?? "")}
                   {delivery.attempts > 1 ? (
                     <span
