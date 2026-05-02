@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 
 const STORAGE_KEY = "oh-dev-checklist-v1";
+const SCROLL_KEY = "oh-dev-checklist-scroll-v1";
 
 function djb2(input: string): string {
   let hash = 5381;
@@ -92,6 +93,34 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
     [markdown, checked, toggle],
   );
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(SCROLL_KEY);
+    if (!stored) return;
+    const target = Number(stored);
+    if (!Number.isFinite(target) || target <= 0) return;
+    requestAnimationFrame(() => {
+      node.scrollTop = target;
+    });
+  }, []);
+
+  const pendingFrameRef = useRef<number | null>(null);
+  const handleScroll = useCallback(() => {
+    if (pendingFrameRef.current !== null) return;
+    pendingFrameRef.current = requestAnimationFrame(() => {
+      pendingFrameRef.current = null;
+      const node = scrollRef.current;
+      if (!node || typeof window === "undefined") return;
+      try {
+        window.localStorage.setItem(SCROLL_KEY, String(node.scrollTop));
+      } catch {
+      }
+    });
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -105,7 +134,11 @@ export function DevChecklistContent({ markdown }: { markdown: string }) {
         </button>
       </header>
 
-      <article className="oh-dev-checklist-prose">
+      <article
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="oh-dev-checklist-prose max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]"
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
           {markdown}
         </ReactMarkdown>

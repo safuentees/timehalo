@@ -26,7 +26,7 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open dev checklist"
-        className="fixed bottom-4 right-4 z-30 inline-flex size-12 items-center justify-center rounded-full border-2 border-oh-line-strong bg-oh-bg text-oh-content shadow-lg transition-colors duration-150 ease-oh hover:bg-oh-content hover:text-oh-bg sm:bottom-6 sm:right-6"
+        className="fixed top-14 left-4 z-30 inline-flex size-12 items-center justify-center rounded-full border-2 border-oh-line-strong bg-oh-bg text-oh-content shadow-lg transition-colors duration-150 ease-oh hover:bg-oh-content hover:text-oh-bg sm:top-16 sm:left-6"
       >
         <ListChecksIcon className="size-5" strokeWidth={1.75} />
       </button>
@@ -47,15 +47,13 @@ export function DevChecklistLauncher({ markdown }: { markdown: string }) {
           </div>
         </ResponsiveModalHeader>
         <ResponsiveModalBody>
-          <div className="max-h-[75vh] overflow-y-auto overscroll-contain pr-1 sm:max-h-[70vh]">
-            <Suspense
-              fallback={
-                <p className="oh-eyebrow opacity-55">Loading checklist…</p>
-              }
-            >
-              <DevChecklistContent markdown={markdown} />
-            </Suspense>
-          </div>
+          <Suspense
+            fallback={
+              <p className="oh-eyebrow opacity-55">Loading checklist…</p>
+            }
+          >
+            <DevChecklistContent markdown={markdown} />
+          </Suspense>
         </ResponsiveModalBody>
       </ResponsiveModalContent>
     </ResponsiveModal>
