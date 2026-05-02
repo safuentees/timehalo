@@ -9,5 +9,4 @@ set -euo pipefail
 mkdir -p logs
 TUNNEL_NAME="${CLOUDFLARED_TUNNEL_NAME:-safuentes-dev}"
 echo "[tunnel-logged] running tunnel: $TUNNEL_NAME" | tee -a logs/tunnel.log
-exec script -q /dev/null cloudflared tunnel run "$TUNNEL_NAME" \
-  | tee -a logs/tunnel.log
+exec cloudflared tunnel run "$TUNNEL_NAME" 2>&1 | tee -a logs/tunnel.log
