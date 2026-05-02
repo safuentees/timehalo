@@ -112,6 +112,59 @@ describe("users.deleteAccount — cascade + audit survival + email", () => {
     expect(audit.some((a) => a.action === "CREATED")).toBe(true);
   });
 
+  it("removes the user from OTHER workspaces' member lists (B.PT83 — QA-6)", async () => {
+    // Re-seed (prior test deleted the user).
+    host = await createTestHost(HANDLE);
+
+    // Provision a SECOND user that owns a DIFFERENT workspace.
+    // The host (about to delete their account) joins that second
+    // workspace as a member. This is the scenario from QA-6: workspace
+    // owner sees the deleted user lingering in their member list.
+    const otherOwner = await createTestHost("vitest-account-delete-other");
+    const otherCaller = callRouter(fakeContext({ userId: otherOwner.id }));
+    const otherWorkspace = await otherCaller.workspaces.create({
+      slug: "vitest-acct-del-other-ws",
+      name: "Other workspace",
+    });
+    await prisma.membership.create({
+      data: {
+        workspaceId: otherWorkspace.id,
+        userId: host.id,
+        role: "MEMBER",
+      },
+    });
+
+    // Sanity — the membership exists before deletion.
+    const before = await prisma.membership.findFirst({
+      where: { workspaceId: otherWorkspace.id, userId: host.id },
+    });
+    expect(before).not.toBeNull();
+
+    // Self-delete.
+    const hostCaller = callRouter(fakeContext({ userId: host.id }));
+    await hostCaller.users.deleteAccount();
+
+    // Membership row should be gone — without the explicit cleanup in
+    // `users.deleteAccount`, libsql leaves the row orphaned and the
+    // workspace owner's `listMembers` shows it with `user: null`.
+    const after = await prisma.membership.findFirst({
+      where: { workspaceId: otherWorkspace.id, userId: host.id },
+    });
+    expect(after).toBeNull();
+
+    // The other workspace itself must survive — only the deleted user's
+    // own owned workspaces should cascade away.
+    const survivingWs = await prisma.workspace.findUnique({
+      where: { id: otherWorkspace.id },
+      select: { id: true },
+    });
+    expect(survivingWs).not.toBeNull();
+
+    // Cleanup.
+    await prisma.workspace.deleteMany({ where: { id: otherWorkspace.id } });
+    await safeTearDownByHandle("vitest-account-delete-other");
+  });
+
   it("enqueues an account-deleted email before deleting", async () => {
     host = await createTestHost(HANDLE);
     const hostCaller = callRouter(fakeContext({ userId: host.id }));

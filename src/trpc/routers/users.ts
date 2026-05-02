@@ -277,7 +277,38 @@ export const users = router({
       referenceUid: `user:${ctx.user.id}:account-deleted:${operationId}`,
     });
 
-    await prisma.user.delete({ where: { id: ctx.user.id } });
+    // B.PT83 — explicit cascade cleanup before user.delete().
+    // `@prisma/adapter-libsql` doesn't reliably honor SQLite FK
+    // cascades (called out in `.claude/rules/testing.md` + replicated
+    // in `e2e/seed-test-user.ts`). Trusting the schema's `onDelete:
+    // Cascade` left orphan rows behind — most visibly Memberships in
+    // OTHER workspaces (the workspace's owner sees the deleted user
+    // still in their member list). Wrap the whole thing in a
+    // transaction so the cleanup commits atomically with the user
+    // deletion.
+    //
+    // Order matters:
+    //   1. Drop owned Workspaces FIRST. The Workspace cascade picks
+    //      up its OWN children (memberships, invitations, bookings,
+    //      api keys, webhooks, audit, slug history, subscription) —
+    //      those tables don't have direct User FKs, so they need
+    //      the workspace as the cascade root. (Cascade reliability
+    //      from Workspace down is more reliable than from User down
+    //      because the level is shallower.)
+    //   2. Drop the user's Membership rows in workspaces they don't
+    //      own. Visible bug from QA-6: orphan rows with `user: null`
+    //      in `listMembers` output.
+    //   3. Delete the user. Remaining direct children (Account,
+    //      Session, Authenticator, AvailabilityRange, EventTypeHost,
+    //      UserFeatures, CalendarCredential, Booking-as-host) cascade
+    //      from the User row — those have always worked because the
+    //      typical access path (sign-in, slot generation) runs
+    //      through them in the moment, exposing any failure quickly.
+    await prisma.$transaction(async (tx) => {
+      await tx.workspace.deleteMany({ where: { ownerId: ctx.user.id } });
+      await tx.membership.deleteMany({ where: { userId: ctx.user.id } });
+      await tx.user.delete({ where: { id: ctx.user.id } });
+    });
 
     return { ok: true as const };
   }),
