@@ -14,5 +14,4 @@ set -euo pipefail
 mkdir -p logs
 FORWARD_TO="${STRIPE_FORWARD_TO:-https://dev.safuentes.dev/api/stripe/webhook}"
 echo "[stripe-logged] forwarding to $FORWARD_TO" | tee -a logs/stripe.log
-exec script -q /dev/null stripe listen --forward-to "$FORWARD_TO" \
-  | tee -a logs/stripe.log
+exec stripe listen --forward-to "$FORWARD_TO" 2>&1 | tee -a logs/stripe.log
