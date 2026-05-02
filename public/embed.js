@@ -17,6 +17,7 @@
     if (!handle) return;
     if (host.__ohMounted) return;
     host.__ohMounted = true;
+    host.setAttribute("data-oh-mounted", "true");
 
     var iframe = document.createElement("iframe");
     iframe.src = origin + "/embed/" + encodeURIComponent(handle);
