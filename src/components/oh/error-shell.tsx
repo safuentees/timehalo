@@ -15,8 +15,8 @@ export function ErrorShell({
   actions?: ReactNode;
 }) {
   return (
-    <main className="oh-main">
-      <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
+    <main className="oh-main flex min-h-dvh flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
+      <div className="w-full max-w-[760px]">
         <p className="oh-legend">
           {label}
         </p>
