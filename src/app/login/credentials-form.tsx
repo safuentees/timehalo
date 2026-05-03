@@ -75,13 +75,24 @@ export default function CredentialsForm() {
         <label htmlFor="login-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        <InputGroup className="overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+        {/* Hotfix — height parity with the email row above. shadcn's
+            `<InputGroup>` ships hardcoded `h-8` (32px); shadcn's
+            `<Input>` (which `<InputGroupInput>` extends) ALSO ships
+            hardcoded `h-8`. Both clamp the wrapper at 32px regardless
+            of the inline `py-2.5 text-[15px]` we pass. The bare `<input
+            className="oh-input">` above renders ~46px (padding: 11px×2
+            + line-height 1.4 × 15px + 1.5px×2 border). Override both
+            layers — wrapper to `h-[46px]`, inner to `h-full` — so the
+            password row matches. Same approach future password fields
+            should use until we ship a project-wide oh-input-group
+            primitive that owns the height vocabulary. */}
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
             placeholder={t("fieldPasswordPlaceholder")}
             autoComplete="current-password"
-            className="px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
+            className="h-full px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
             {...register("password")}
           />
           <InputGroupAddon align="inline-end" className="bg-transparent pr-2">
