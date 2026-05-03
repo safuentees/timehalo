@@ -84,7 +84,7 @@ function formatCount(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-function BookingsTabBar({
+export function BookingsTabBar({
   activeTab,
   upcomingCount,
   pastCount,

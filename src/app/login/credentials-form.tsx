@@ -65,7 +65,7 @@ export default function CredentialsForm() {
         <label htmlFor="login-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] focus-within:[box-shadow:var(--oh-focus-shadow-input)]">
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] has-[[data-slot=input-group-control]:focus-visible]:border-[color:var(--oh-ink)] has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:[box-shadow:var(--oh-focus-shadow-input)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
