@@ -19,19 +19,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // react-markdown + remark-gfm bundle only hits the wire when the
 // panel actually opens.
 //
-// As of the 2026-05-02 sweep the launcher renders TWO tabs:
-//   - **Recent** — short-form, shipped-this-batch verification
-//     checklist (`docs/recent-changes-checklist.md`). Default tab so
-//     opening the FAB lands on the freshest list of things to verify
-//     manually.
-//   - **All features** — the long-form `docs/features-and-tests.md`
-//     catalog. Same content as before tabs landed; existing
-//     localStorage state is preserved because this tab uses the
-//     unscoped (default) storage keys.
+// B.PT100 generalized the fixed-2-tab launcher (B.PT87) into a
+// per-tab array so adding a new pass-checklist (e.g. 2026-05-03) is
+// a one-line edit in `DevChecklistMount` rather than a launcher
+// refactor. Each tab carries its own `storageScope` for per-tab
+// localStorage isolation. Order in the array = tab order in the
+// modal; the launcher defaults to the FIRST tab present, so adding
+// a new pass at index 0 makes it the default surface.
 //
-// If either source markdown is missing (different worktree, partial
-// clone) the corresponding tab is skipped. If only one is present
-// the launcher falls back to a single-tab layout — no empty TabList.
+// If a tab's markdown is missing (different worktree, partial
+// clone) `DevChecklistMount` skips it; the launcher renders only
+// what it received. Single-tab fallback (no Tabs primitive) when
+// there's exactly one to avoid a dangling pillbar.
 
 const DevChecklistContent = lazy(() =>
   import("./dev-checklist-content").then((m) => ({
@@ -39,25 +38,25 @@ const DevChecklistContent = lazy(() =>
   })),
 );
 
-type TabId = "recent" | "features";
+export type ChecklistTab = {
+  /** Stable identifier for the Tabs primitive value + storage key. */
+  id: string;
+  /** Visible tab label. */
+  label: string;
+  /** Markdown source loaded server-side by `DevChecklistMount`. */
+  markdown: string;
+  /** Per-tab localStorage scope. Omit for the unscoped (default)
+      keys — used by the long-form `All features` tab to preserve
+      existing user state from before B.PT87 split things into tabs. */
+  storageScope?: string;
+};
 
-export function DevChecklistLauncher({
-  features,
-  recent,
-}: {
-  features: string | null;
-  recent: string | null;
-}) {
+export function DevChecklistLauncher({ tabs }: { tabs: ChecklistTab[] }) {
   const [open, setOpen] = useState(false);
-  // Default to "recent" when present; otherwise fall back to the long-
-  // form catalog. The `value` is also gated by the available tabs
-  // below — picking a non-existent tab from prior state would render
-  // an empty body, so we always coerce to a present tab.
-  const initialTab: TabId = recent !== null ? "recent" : "features";
-  const [tab, setTab] = useState<TabId>(initialTab);
+  // Default to the first tab present. `DevChecklistMount` orders
+  // newest-first, so this lands the user on the freshest pass.
+  const [activeTab, setActiveTab] = useState<string>(tabs[0]?.id ?? "");
 
-  // Render the FAB unconditionally (the server gate already filtered
-  // non-admins + the both-files-missing case).
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       {/* FAB lives top-left, below the dashboard bar (the bar's
@@ -106,33 +105,33 @@ export function DevChecklistLauncher({
               <p className="oh-eyebrow opacity-55">Loading checklist…</p>
             }
           >
-            {recent !== null && features !== null ? (
+            {tabs.length > 1 ? (
               <Tabs
-                value={tab}
-                onValueChange={(value) => setTab(value as TabId)}
+                value={activeTab}
+                onValueChange={setActiveTab}
                 className="gap-4"
               >
                 <TabsList variant="line" className="self-start">
-                  <TabsTrigger value="recent">Recent</TabsTrigger>
-                  <TabsTrigger value="features">All features</TabsTrigger>
+                  {tabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
-                <TabsContent value="recent">
-                  <DevChecklistContent
-                    markdown={recent}
-                    storageScope="recent"
-                  />
-                </TabsContent>
-                <TabsContent value="features">
-                  {/* No `storageScope` so this tab keeps the original
-                      B.PT75 storage keys — preserves any existing
-                      saved progress across the introduction of tabs. */}
-                  <DevChecklistContent markdown={features} />
-                </TabsContent>
+                {tabs.map((tab) => (
+                  <TabsContent key={tab.id} value={tab.id}>
+                    <DevChecklistContent
+                      markdown={tab.markdown}
+                      storageScope={tab.storageScope}
+                    />
+                  </TabsContent>
+                ))}
               </Tabs>
-            ) : recent !== null ? (
-              <DevChecklistContent markdown={recent} storageScope="recent" />
-            ) : features !== null ? (
-              <DevChecklistContent markdown={features} />
+            ) : tabs.length === 1 ? (
+              <DevChecklistContent
+                markdown={tabs[0].markdown}
+                storageScope={tabs[0].storageScope}
+              />
             ) : null}
           </Suspense>
         </ResponsiveModalBody>
