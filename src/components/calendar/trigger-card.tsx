@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRightIcon, PencilIcon } from "lucide-react";
 import type { Slot } from "@/lib/availability";
 
@@ -17,8 +18,15 @@ type Props = {
  *
  * Tapping always calls `onClick`; the parent decides which drawer phase
  * to open based on the current selection state.
+ *
+ * B.PT91 — visible labels + aria threaded through `useTranslations`.
+ * Uppercase styling is preserved by the `oh-trigger-card-line-*` CSS
+ * classes (text-transform: uppercase) so the message catalog stores
+ * the natural-case copy and presentation owns the visual rhythm —
+ * cleaner for translators (Spanish caps look different from English).
  */
 export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
+  const t = useTranslations("BookingCalendar");
   const hasDate = !!selectedDate;
   const hasSlot = !!selectedSlot;
   const variant: "empty" | "date" | "full" = !hasDate
@@ -34,21 +42,26 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
       className={`oh-trigger-card oh-trigger-card--${variant}`}
       aria-label={
         variant === "empty"
-          ? "Pick a date"
+          ? t("triggerEmptyAria")
           : variant === "date"
-            ? `${fmtDate(selectedDate!)} selected, pick a time`
-            : `${fmtDate(selectedDate!)} at ${fmtTime(new Date(selectedSlot!.start))}, edit`
+            ? t("triggerDateSelectedAria", { date: fmtDate(selectedDate!) })
+            : t("triggerFullAria", {
+                date: fmtDate(selectedDate!),
+                time: fmtTime(new Date(selectedSlot!.start)),
+              })
       }
     >
       <span className="oh-trigger-card-body" aria-live="polite">
         {variant === "empty" ? (
-          <span className="oh-trigger-card-line-top">PICK A DATE</span>
+          <span className="oh-trigger-card-line-top">{t("triggerEmpty")}</span>
         ) : variant === "date" ? (
           <>
             <span className="oh-trigger-card-line-top">
               {fmtDate(selectedDate!)}
             </span>
-            <span className="oh-trigger-card-line-bottom">PICK A TIME</span>
+            <span className="oh-trigger-card-line-bottom">
+              {t("triggerPickTime")}
+            </span>
           </>
         ) : (
           <>

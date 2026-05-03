@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -53,6 +54,7 @@ export function BookingForm({ handle, slotStart, rescheduleFromUid }: Props) {
 }
 
 function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }) {
+  const t = useTranslations("BookingCalendar");
   const router = useRouter();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -105,13 +107,13 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                       <OhInputGroupInput
                         {...field}
                         id={field.name}
-                        placeholder="Alex"
+                        placeholder={t("fieldNamePlaceholder")}
                         autoComplete="name"
                         autoCapitalize="words"
                         aria-invalid={fieldState.invalid}
                       />
                       <OhInputGroupAddon align="inline-start">
-                        <OhInputGroupText>Name</OhInputGroupText>
+                        <OhInputGroupText>{t("fieldName")}</OhInputGroupText>
                       </OhInputGroupAddon>
                     </OhInputGroup>
                     <FieldError
@@ -134,7 +136,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                         {...field}
                         id={field.name}
                         type="email"
-                        placeholder="alex@example.com"
+                        placeholder={t("fieldEmailPlaceholder")}
                         autoComplete="email"
                         autoCapitalize="none"
                         autoCorrect="off"
@@ -142,7 +144,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                         aria-invalid={fieldState.invalid}
                       />
                       <OhInputGroupAddon align="inline-start">
-                        <OhInputGroupText>Email</OhInputGroupText>
+                        <OhInputGroupText>{t("fieldEmail")}</OhInputGroupText>
                       </OhInputGroupAddon>
                     </OhInputGroup>
                     <FieldError
@@ -161,15 +163,17 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <label className="oh-field-label" htmlFor={field.name}>
-                      Question{" "}
-                      <span className="oh-field-label-opt">(optional)</span>
+                      {t("fieldQuestion")}{" "}
+                      <span className="oh-field-label-opt">
+                        {t("fieldQuestionOptional")}
+                      </span>
                     </label>
                     <textarea
                       {...field}
                       id={field.name}
                       rows={3}
                       maxLength={500}
-                      placeholder="What would you like to talk about?"
+                      placeholder={t("fieldQuestionPlaceholder")}
                       aria-invalid={fieldState.invalid}
                       className="oh-textarea"
                     />
@@ -189,7 +193,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
             disabled={book.isPending}
             className="oh-book-submit"
           >
-            {book.isPending ? "Booking…" : "Confirm booking →"}
+            {book.isPending ? t("submitBookPending") : t("submitBook")}
           </Button>
           {book.error ? (
             <p className="oh-field-error" role="alert">
@@ -216,6 +220,7 @@ function RescheduleConfirm({
   slotStart: string;
   oldPublicUid: string;
 }) {
+  const t = useTranslations("BookingCalendar");
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
@@ -240,13 +245,13 @@ function RescheduleConfirm({
     <div className="oh-booking-form flex flex-col gap-5">
       <div className="flex flex-col gap-3 rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-paper p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="oh-eyebrow opacity-55">From</span>
+          <span className="oh-eyebrow opacity-55">{t("rescheduleFromLabel")}</span>
           <span className="font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-75 line-through">
             {oldStart ? fmtSlot(oldStart) : "—"}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <span className="oh-eyebrow">To</span>
+          <span className="oh-eyebrow">{t("rescheduleToLabel")}</span>
           <span className="font-[family-name:var(--oh-mono)] text-[14px] font-bold tabular-nums">
             {fmtSlot(newStart)}
           </span>
@@ -267,7 +272,9 @@ function RescheduleConfirm({
           });
         }}
       >
-        {reschedule.isPending ? "Rescheduling…" : "Confirm reschedule →"}
+        {reschedule.isPending
+          ? t("submitReschedulePending")
+          : t("submitReschedule")}
       </Button>
       {reschedule.error ? (
         <p className="oh-field-error" role="alert">
