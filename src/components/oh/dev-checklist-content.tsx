@@ -1,9 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Children,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+
+function filterOutOriginalCheckbox(children: ReactNode): ReactNode {
+  return Children.toArray(children).filter((child) => {
+    if (!isValidElement(child)) return true;
+    const props = child.props as { type?: string };
+    return !(child.type === "input" && props.type === "checkbox");
+  });
+}
 
 function storageKeysFor(scope: string | undefined) {
   const suffix = scope ? `-${scope}` : "";
@@ -85,29 +102,42 @@ export function DevChecklistContent({
 
   const components = useMemo<Components>(
     () => ({
-      input(props) {
-        if (props.type !== "checkbox") {
-          return <input {...props} />;
+      li(props) {
+        const { node, children, className, ...rest } = props;
+        const classNames = Array.isArray(node?.properties?.className)
+          ? (node.properties.className as Array<string | number>)
+          : [];
+        const isTaskItem = classNames.includes("task-list-item");
+
+        if (!isTaskItem) {
+          return (
+            <li className={className} {...rest}>
+              {children}
+            </li>
+          );
         }
-        const start = props.node?.position?.start?.offset ?? 0;
-        const end = props.node?.position?.end?.offset ?? start;
-        const lineStart = markdown.lastIndexOf("\n", start - 1) + 1;
-        const lineEnd = markdown.indexOf("\n", end);
-        const lineText = markdown.slice(
-          lineStart,
-          lineEnd === -1 ? markdown.length : lineEnd,
-        );
+
+        const start = node?.position?.start?.offset ?? 0;
+        const end = node?.position?.end?.offset ?? start;
+        const lineText = markdown.slice(start, end).trim();
         const key = djb2(lineText);
         const isChecked = !!checked[key];
+        const ariaLabel = lineText
+          .replace(/^\s*-\s*\[[ xX]\]\s*/, "")
+          .split("\n")[0]
+          .trim();
+
         return (
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={() => toggle(key)}
-            disabled={false}
-            aria-label={lineText.replace(/^\s*-\s*\[[ xX]\]\s*/, "")}
-            className="oh-dev-checklist-box"
-          />
+          <li className={className} {...rest}>
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => toggle(key)}
+              aria-label={ariaLabel}
+              className="oh-dev-checklist-box"
+            />
+            {filterOutOriginalCheckbox(children)}
+          </li>
         );
       },
     }),
