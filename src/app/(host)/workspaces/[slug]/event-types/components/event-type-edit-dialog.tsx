@@ -2,6 +2,7 @@
 
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 import { useUpdateEventType } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
@@ -51,11 +52,12 @@ export function EventTypeEditDialog({
   open: boolean;
   onOpenChange: (next: boolean) => void;
 }) {
+  const t = useTranslations("EventTypes");
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Edit event type</ResponsiveModalTitle>
+          <ResponsiveModalTitle>{t("editTitle")}</ResponsiveModalTitle>
         </ResponsiveModalHeader>
         <EditForm
           slug={slug}
@@ -81,6 +83,7 @@ function EditForm({
   };
   onDone: () => void;
 }) {
+  const t = useTranslations("EventTypes");
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     values: {
@@ -126,7 +129,7 @@ function EditForm({
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("nameLabel")}</FieldLabel>
               <input
                 {...field}
                 id={field.name}
@@ -146,7 +149,7 @@ function EditForm({
           name="eventTypeSlug"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("slugLabel")}</FieldLabel>
               <input
                 {...field}
                 id={field.name}
@@ -166,7 +169,7 @@ function EditForm({
           name="durationMins"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Duration (minutes)</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("durationLabel")}</FieldLabel>
               <input
                 id={field.name}
                 name={field.name}
@@ -200,7 +203,7 @@ function EditForm({
             onClick={onDone}
             disabled={isPending}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="submit"
@@ -208,7 +211,7 @@ function EditForm({
             size="oh"
             disabled={isPending}
           >
-            {isPending ? "Saving…" : "Save"}
+            {isPending ? t("submitSavePending") : t("submitSave")}
           </Button>
         </ResponsiveModalFooter>
       </form>

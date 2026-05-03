@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/trpc/hooks";
 import {
   useAddEventTypeHost,
@@ -34,17 +35,17 @@ export function HostPoolDialog({
   open: boolean;
   onOpenChange: (next: boolean) => void;
 }) {
+  const t = useTranslations("EventTypes");
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Hosts</ResponsiveModalTitle>
+          <ResponsiveModalTitle>{t("hostsTitle")}</ResponsiveModalTitle>
           <p className="px-5 mt-1 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase opacity-65 sm:px-6">
             {eventTypeName}
           </p>
           <ResponsiveModalDescription>
-            Round-robin pool. Fixed hosts must be present; remaining members
-            rotate by recent assignment ÷ weight.
+            {t("hostsDescription")}
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
         <HostPoolBody
@@ -66,6 +67,7 @@ function HostPoolBody({
   eventTypeId: string;
   canWrite: boolean;
 }) {
+  const t = useTranslations("EventTypes");
   const { data: hosts, isLoading } = trpc.eventTypes.listHosts.useQuery({
     slug,
     eventTypeId,
@@ -76,9 +78,9 @@ function HostPoolBody({
     <div className="flex flex-col gap-5 px-5 pb-6 sm:px-6">
       <div>
         {isLoading ? (
-          <p className="text-[13px] opacity-55">Loading…</p>
+          <p className="text-[13px] opacity-55">{t("loading")}</p>
         ) : !hosts || hosts.length === 0 ? (
-          <OhInlineEmpty>No hosts yet.</OhInlineEmpty>
+          <OhInlineEmpty>{t("hostsEmpty")}</OhInlineEmpty>
         ) : (
           <ul role="list" className="flex flex-col gap-2.5">
             {hosts.map((h) => (
@@ -125,6 +127,7 @@ function HostRow({
   };
   canWrite: boolean;
 }) {
+  const t = useTranslations("EventTypes");
   const updateHost = useUpdateEventTypeHost();
   const removeHost = useRemoveEventTypeHost();
 
@@ -135,7 +138,7 @@ function HostRow({
           {host.user.name ?? host.user.handle ?? host.user.email}
         </h4>
         <span className="oh-eyebrow tabular-nums opacity-55">
-          {host.recentAssignments} recent
+          {t("recentAssignments", { count: host.recentAssignments })}
         </span>
       </header>
 
@@ -158,10 +161,10 @@ function HostRow({
               })
             }
           />
-          Fixed
+          {t("fixedLabel")}
         </label>
         <label className="oh-eyebrow inline-flex items-center gap-2">
-          Priority
+          {t("priorityLabel")}
           <OhSelect
             value={host.priority}
             disabled={!canWrite || updateHost.isPending}
@@ -184,7 +187,7 @@ function HostRow({
           </OhSelect>
         </label>
         <label className="oh-eyebrow inline-flex items-center gap-2">
-          Weight
+          {t("weightLabel")}
           <input
             type="number"
             min={1}
@@ -216,10 +219,12 @@ function HostRow({
       {canWrite ? (
         <div className="mt-3 flex justify-end">
           <ConfirmDialog
-            title="Remove from pool?"
-            description={`${host.user.name ?? host.user.handle ?? host.user.email} will no longer be assigned to bookings on this event type.`}
-            confirmLabel="Remove"
-            cancelLabel="Cancel"
+            title={t("removeFromPoolTitle")}
+            description={t("removeFromPoolDescription", {
+              name: host.user.name ?? host.user.handle ?? host.user.email,
+            })}
+            confirmLabel={t("removeFromPoolConfirm")}
+            cancelLabel={t("removeFromPoolCancel")}
             pending={removeHost.isPending}
             onConfirm={async () => {
               await removeHost.mutateAsync({
@@ -235,7 +240,7 @@ function HostRow({
                 size="oh"
                 disabled={removeHost.isPending}
               >
-                Remove
+                {t("removeFromPoolConfirm")}
               </Button>
             }
           />
@@ -259,6 +264,7 @@ function AddHostPicker({
   }>;
   existingUserIds: ReadonlyArray<string>;
 }) {
+  const t = useTranslations("EventTypes");
   const existing = new Set(existingUserIds);
   const candidates = members.filter((m) => !existing.has(m.user.id));
   const [picked, setPicked] = useState<string>("");
@@ -269,7 +275,7 @@ function AddHostPicker({
   if (candidates.length === 0) {
     return (
       <p className="oh-eyebrow opacity-55">
-        Every workspace member is already in the pool.
+        {t("everyoneInPool")}
       </p>
     );
   }
@@ -277,7 +283,7 @@ function AddHostPicker({
   return (
     <div className="flex flex-wrap items-center gap-3 border-t-2 border-oh-line pt-5">
       <label className="oh-eyebrow inline-flex items-center gap-2">
-        Add member
+        {t("addMemberLabel")}
         <OhSelect
           value={picked}
           disabled={addHost.isPending}
@@ -285,7 +291,7 @@ function AddHostPicker({
           wrapperClassName="w-fit"
           className="min-w-48 font-[family-name:var(--oh-mono)] text-[12px]"
         >
-          <option value="">Select…</option>
+          <option value="">{t("addMemberPlaceholder")}</option>
           {candidates.map((m) => (
             <option key={m.id} value={m.user.id}>
               {m.user.name ?? m.user.handle ?? m.user.email}
@@ -307,7 +313,7 @@ function AddHostPicker({
           });
         }}
       >
-        {addHost.isPending ? "Adding…" : "Add"}
+        {addHost.isPending ? t("addHostPending") : t("addHostButton")}
       </Button>
     </div>
   );

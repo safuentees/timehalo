@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "next-view-transitions";
+import { useTranslations } from "next-intl";
 import { ArrowLeftIcon, UsersIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteEventType } from "@/lib/mutations/use-event-type-mutations";
@@ -16,6 +17,7 @@ import { EventTypeEditDialog } from "./event-type-edit-dialog";
 import { HostPoolDialog } from "./host-pool-dialog";
 
 export default function EventTypesPanel({ slug }: { slug: string }) {
+  const t = useTranslations("EventTypes");
   const { data: workspace } = trpc.workspaces.get.useQuery({ slug });
   const { data: eventTypes, isLoading } = trpc.eventTypes.list.useQuery({
     slug,
@@ -26,7 +28,7 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
 
   return (
     <OhPageShell>
-      <OhPageHeader title={workspace?.name ?? "Event types"} />
+      <OhPageHeader title={workspace?.name ?? t("pageTitleFallback")} />
 
       <div className="mt-4">
         <Link
@@ -34,7 +36,7 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
           className="oh-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
         >
           <ArrowLeftIcon className="size-3" aria-hidden />
-          Back to workspaces
+          {t("backToWorkspaces")}
         </Link>
       </div>
 
@@ -42,18 +44,16 @@ export default function EventTypesPanel({ slug }: { slug: string }) {
         <section aria-labelledby="event-types-legend">
           <SectionHeader
             legendId="event-types-legend"
-            legend="Event types"
-            description="Bookable resources. Each event type runs its own host pool."
+            legend={t("legend")}
+            description={t("description")}
             action={canWrite ? <EventTypeCreateDialog slug={slug} /> : undefined}
           />
 
           <div className="mt-5">
             {isLoading ? (
-              <p className="text-[13px] opacity-55">Loading…</p>
+              <p className="text-[13px] opacity-55">{t("loading")}</p>
             ) : !eventTypes || eventTypes.length === 0 ? (
-              <OhInlineEmpty>
-                No event types yet. Create one to start accepting bookings.
-              </OhInlineEmpty>
+              <OhInlineEmpty>{t("emptyHint")}</OhInlineEmpty>
             ) : (
               <ul
                 role="list"
@@ -93,6 +93,7 @@ function EventTypeRow({
   };
   canWrite: boolean;
 }) {
+  const t = useTranslations("EventTypes");
   const [editOpen, setEditOpen] = useState(false);
   const [hostsOpen, setHostsOpen] = useState(false);
   const deleteEventType = useDeleteEventType();
@@ -113,10 +114,10 @@ function EventTypeRow({
       </p>
 
       <p className="mt-2 text-[13px] opacity-75">
-        {eventType._count.hosts}{" "}
-        {eventType._count.hosts === 1 ? "host" : "hosts"} ·{" "}
-        {eventType._count.bookings}{" "}
-        {eventType._count.bookings === 1 ? "booking" : "bookings"}
+        {t("summary", {
+          hostsCount: eventType._count.hosts,
+          bookingsCount: eventType._count.bookings,
+        })}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -127,7 +128,7 @@ function EventTypeRow({
           onClick={() => setHostsOpen(true)}
         >
           <UsersIcon className="size-3.5" />
-          Hosts
+          {t("hostsButton")}
         </Button>
         {canWrite ? (
           <>
@@ -137,13 +138,13 @@ function EventTypeRow({
               size="oh"
               onClick={() => setEditOpen(true)}
             >
-              Edit
+              {t("editButton")}
             </Button>
             <ConfirmDialog
-              title="Delete event type?"
-              description={`Removes "${eventType.name}" and its host pool. Past bookings are kept (eventTypeId nullifies). This cannot be undone.`}
-              confirmLabel="Delete"
-              cancelLabel="Cancel"
+              title={t("deleteConfirmTitle")}
+              description={t("deleteConfirmDescription", { name: eventType.name })}
+              confirmLabel={t("deleteConfirmConfirm")}
+              cancelLabel={t("deleteConfirmCancel")}
               pending={deleteEventType.isPending}
               onConfirm={async () => {
                 await deleteEventType.mutateAsync({
@@ -158,7 +159,7 @@ function EventTypeRow({
                   size="oh"
                   disabled={deleteEventType.isPending}
                 >
-                  Delete
+                  {t("deleteButton")}
                 </Button>
               }
             />
