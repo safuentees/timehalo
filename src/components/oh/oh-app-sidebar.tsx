@@ -35,7 +35,7 @@ const menuButtonClass = [
   "data-[active=true]:bg-[var(--oh-tint-active)]",
   "data-[active=true]:border-l-[var(--oh-ink)]",
   "data-[active=true]:font-bold",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2",
+  "oh-focus-ring",
 ].join(" ");
 
 const groupLabelClass =
@@ -195,7 +195,7 @@ export function MobileNavContent({
                       "border-l-2 border-l-transparent",
                       "transition-colors duration-150 ease-oh",
                       "hover:bg-[var(--oh-tint-hover)]",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2",
+                      "oh-focus-ring",
                       active
                         ? "bg-[var(--oh-tint-active)] border-l-[var(--oh-ink)] font-bold"
                         : "",
@@ -277,7 +277,7 @@ function FooterControls() {
       type="button"
       onClick={toggleSidebar}
       aria-label={state === "expanded" ? t("collapseSidebar") : t("expandSidebar")}
-      className="inline-flex size-9 items-center justify-center text-oh-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-ink focus-visible:outline-offset-2 [&_svg]:size-4"
+      className="oh-focus-ring inline-flex size-9 items-center justify-center text-oh-ink [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />
     </button>

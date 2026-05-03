@@ -263,7 +263,7 @@ function NeighbourLink({
     <Link
       href={`/bookings/${uid}`}
       aria-label={label}
-      className={`${baseClass} opacity-55 hover:bg-[var(--oh-tint-hover)] hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2`}
+      className={`${baseClass} oh-focus-ring opacity-55 hover:bg-[var(--oh-tint-hover)] hover:opacity-100`}
     >
       <Icon className="size-3.5" strokeWidth={1.75} />
     </Link>

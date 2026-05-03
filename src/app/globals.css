@@ -134,6 +134,10 @@
   --oh-tint-active: var(--oh-tint);
   --oh-placeholder: var(--oh-content-subtle);
 
+  --oh-focus-halo: 0 0 0 1px var(--oh-paper);
+  --oh-focus-ring: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  --oh-focus-shadow: var(--oh-focus-halo), var(--oh-focus-ring);
+
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
   --oh-r-window: 18px;
@@ -1308,6 +1312,11 @@
   opacity: 0.55;
 }
 
+.oh-focus-ring:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
+}
+
 .oh-input {
   width: 100%;
   background: var(--oh-paper);
@@ -1326,9 +1335,10 @@
 .oh-input::placeholder {
   color: var(--oh-placeholder);
 }
-.oh-input:focus {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+.oh-input:focus,
+.oh-input:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-textarea {
   resize: vertical;
