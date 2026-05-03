@@ -516,7 +516,13 @@
     "errorEndBeforeStart": "El fin debe ser posterior al inicio",
     "errorOverlap": "Se superpone en {days}",
     "noDays": "Sin días",
-    "everyDay": "Todos los días"
+    "everyDay": "Todos los días",
+    "pageTitle": "Horas",
+    "weeklyLegend": "Disponibilidad semanal",
+    "weeklyDescription": "Las horas en las que los visitantes pueden reservar en tu página pública.",
+    "saveLabel": "Guardar cambios",
+    "savingLabel": "Guardando…",
+    "savedLabel": "Guardado"
   },
   "BookingCalendar": {
     "triggerEmpty": "Elige una fecha",

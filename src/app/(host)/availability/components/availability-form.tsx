@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,6 +34,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function AvailabilityForm() {
+  const t = useTranslations("Availability");
   const { data: rows } = trpc.schedule.get.useQuery();
 
   const values = useMemo<FormValues>(
@@ -70,15 +72,15 @@ export default function AvailabilityForm() {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <OhPageShell>
-          <OhPageHeader title="Hours" />
+          <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
                 <FieldLegend className="oh-legend opacity-100">
-                  Weekly availability
+                  {t("weeklyLegend")}
                 </FieldLegend>
                 <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                  The hours visitors can book from on your public page.
+                  {t("weeklyDescription")}
                 </FieldDescription>
                 <FieldGroup>
                   <AvailabilityFields />
@@ -90,9 +92,9 @@ export default function AvailabilityForm() {
             isPending={saveSchedule.isPending}
             isDirty={form.formState.isDirty || seededFromDefault}
             labels={{
-              save: "Save changes",
-              saving: "Saving…",
-              saved: "Saved",
+              save: t("saveLabel"),
+              saving: t("savingLabel"),
+              saved: t("savedLabel"),
             }}
           />
         </OhPageShell>

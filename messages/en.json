@@ -516,7 +516,13 @@
     "errorEndBeforeStart": "End must be after start",
     "errorOverlap": "Overlaps on {days}",
     "noDays": "No days",
-    "everyDay": "Every day"
+    "everyDay": "Every day",
+    "pageTitle": "Hours",
+    "weeklyLegend": "Weekly availability",
+    "weeklyDescription": "The hours visitors can book from on your public page.",
+    "saveLabel": "Save changes",
+    "savingLabel": "Saving…",
+    "savedLabel": "Saved"
   },
   "BookingCalendar": {
     "triggerEmpty": "Pick a date",
