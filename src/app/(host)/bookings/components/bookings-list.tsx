@@ -143,7 +143,12 @@ function formatCount(n: number): string {
 // the initial styling state of the component is correct" so first
 // paint shows the final state, not a default-zero state). CSS-Tricks:
 // "Animating Layouts with the FLIP Technique."
-function BookingsTabBar({
+//
+// Exported (B.PT117) so the dev playground at `/playground/animations/
+// bookings-tabs` can render this in isolation against a controlled
+// `activeTab` toggle. The FLIP refs + timeline live entirely on its
+// own scope, no parent context needed.
+export function BookingsTabBar({
   activeTab,
   upcomingCount,
   pastCount,
