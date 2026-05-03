@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -194,6 +194,7 @@ function RescheduleConfirm({
   oldPublicUid: string;
 }) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
@@ -218,13 +219,13 @@ function RescheduleConfirm({
         <div className="flex items-baseline justify-between gap-3">
           <span className="oh-eyebrow opacity-55">{t("rescheduleFromLabel")}</span>
           <span className="font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-75 line-through">
-            {oldStart ? fmtSlot(oldStart) : "—"}
+            {oldStart ? fmtSlot(format, oldStart) : "—"}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <span className="oh-eyebrow">{t("rescheduleToLabel")}</span>
           <span className="font-[family-name:var(--oh-mono)] text-[14px] font-bold tabular-nums">
-            {fmtSlot(newStart)}
+            {fmtSlot(format, newStart)}
           </span>
         </div>
       </div>
@@ -256,15 +257,15 @@ function RescheduleConfirm({
   );
 }
 
-function fmtSlot(d: Date): string {
-  const day = d
-    .toLocaleDateString(undefined, {
+function fmtSlot(format: ReturnType<typeof useFormatter>, d: Date): string {
+  const day = format
+    .dateTime(d, {
       weekday: "short",
       month: "short",
       day: "numeric",
     })
     .toUpperCase();
-  const time = d.toLocaleTimeString(undefined, {
+  const time = format.dateTime(d, {
     hour: "numeric",
     minute: "2-digit",
   });

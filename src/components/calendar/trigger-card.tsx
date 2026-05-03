@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { ArrowRightIcon, PencilIcon } from "lucide-react";
 import type { Slot } from "@/lib/availability";
 
@@ -12,6 +12,7 @@ type Props = {
 
 export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const hasDate = !!selectedDate;
   const hasSlot = !!selectedSlot;
   const variant: "empty" | "date" | "full" = !hasDate
@@ -19,6 +20,24 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
     : !hasSlot
       ? "date"
       : "full";
+
+  const dateLabel = selectedDate
+    ? format
+        .dateTime(selectedDate, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        })
+        .toUpperCase()
+    : "";
+  const timeLabel = selectedSlot
+    ? format
+        .dateTime(new Date(selectedSlot.start), {
+          hour: "numeric",
+          minute: "2-digit",
+        })
+        .toUpperCase()
+    : "";
 
   return (
     <button
@@ -29,11 +48,8 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
         variant === "empty"
           ? t("triggerEmptyAria")
           : variant === "date"
-            ? t("triggerDateSelectedAria", { date: fmtDate(selectedDate!) })
-            : t("triggerFullAria", {
-                date: fmtDate(selectedDate!),
-                time: fmtTime(new Date(selectedSlot!.start)),
-              })
+            ? t("triggerDateSelectedAria", { date: dateLabel })
+            : t("triggerFullAria", { date: dateLabel, time: timeLabel })
       }
     >
       <span className="oh-trigger-card-body" aria-live="polite">
@@ -41,20 +57,16 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
           <span className="oh-trigger-card-line-top">{t("triggerEmpty")}</span>
         ) : variant === "date" ? (
           <>
-            <span className="oh-trigger-card-line-top">
-              {fmtDate(selectedDate!)}
-            </span>
+            <span className="oh-trigger-card-line-top">{dateLabel}</span>
             <span className="oh-trigger-card-line-bottom">
               {t("triggerPickTime")}
             </span>
           </>
         ) : (
           <>
-            <span className="oh-trigger-card-line-top">
-              {fmtDate(selectedDate!)}
-            </span>
+            <span className="oh-trigger-card-line-top">{dateLabel}</span>
             <span className="oh-trigger-card-line-bottom oh-trigger-card-time">
-              {fmtTime(new Date(selectedSlot!.start))}
+              {timeLabel}
             </span>
           </>
         )}
@@ -64,20 +76,4 @@ export function TriggerCard({ selectedDate, selectedSlot, onClick }: Props) {
       </span>
     </button>
   );
-}
-
-function fmtDate(d: Date): string {
-  return d
-    .toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    })
-    .toUpperCase();
-}
-
-function fmtTime(d: Date): string {
-  return d
-    .toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-    .toUpperCase();
 }

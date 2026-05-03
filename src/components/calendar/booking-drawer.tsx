@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -27,9 +27,22 @@ export function BookingDrawer({
   rescheduleFromUid,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const startDate = slot ? new Date(slot.start) : null;
   const isOpen = open && !!slot;
   const isReschedule = Boolean(rescheduleFromUid);
+  const slotLabel = startDate
+    ? `${format
+        .dateTime(startDate, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        })
+        .toUpperCase()} ${format.dateTime(startDate, {
+        hour: "numeric",
+        minute: "2-digit",
+      })}`
+    : "";
 
   return (
     <ResponsiveModal open={isOpen} onOpenChange={onOpenChange} nested>
@@ -40,7 +53,7 @@ export function BookingDrawer({
           </ResponsiveModalTitle>
           {startDate ? (
             <ResponsiveModalDescription className="oh-drawer-sub">
-              {fmtSlot(startDate)}
+              {slotLabel}
             </ResponsiveModalDescription>
           ) : (
             <ResponsiveModalDescription className="sr-only">
@@ -63,17 +76,3 @@ export function BookingDrawer({
   );
 }
 
-function fmtSlot(d: Date): string {
-  const day = d
-    .toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    })
-    .toUpperCase();
-  const time = d.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${day} ${time}`;
-}

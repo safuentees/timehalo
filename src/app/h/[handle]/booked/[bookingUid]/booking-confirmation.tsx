@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon, CheckIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -24,31 +25,34 @@ type BookingConfirmationProps = {
 
 export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   const router = useRouter();
+  const t = useTranslations("BookingConfirmation");
+  const format = useFormatter();
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied">(
     "idle",
   );
 
-  const hostName = booking.host.name ?? booking.host.handle ?? "Host";
+  const hostName =
+    booking.host.name ?? booking.host.handle ?? t("fallbackHostName");
   const startDate = new Date(booking.slotStart);
   const endDate = new Date(booking.slotEnd);
-  const weekday = startDate.toLocaleDateString(undefined, { weekday: "long" });
-  const monthDay = startDate
-    .toLocaleDateString(undefined, { month: "long", day: "numeric" })
+  const weekday = format.dateTime(startDate, { weekday: "long" });
+  const monthDay = format
+    .dateTime(startDate, { month: "long", day: "numeric" })
     .toUpperCase();
-  const slotTime = `${fmtTime(startDate)} – ${fmtTime(endDate)}`;
-  const tzLabel = getTimeZoneLabel();
+  const slotTime = `${fmtTime(format, startDate)} – ${fmtTime(format, endDate)}`;
+  const tzLabel = getTimeZoneLabel(t("localTimeFallback"));
   const summaryText = [
-    `Office hours with ${hostName}`,
+    t("summaryTitle", { host: hostName }),
     weekday + ", " + monthDay,
     `${slotTime} (${tzLabel})`,
-    `Reference ${booking.publicUid}`,
+    t("summaryReference", { ref: booking.publicUid }),
   ].join("\n");
 
   async function handleShare() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Office hours with ${hostName}`,
+          title: t("summaryTitle", { host: hostName }),
           text: summaryText,
           url: window.location.href,
         });
@@ -74,6 +78,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
       <header className="flex items-center justify-between border-b-[1.5px] border-oh-line px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <Link
           href="/"
+          aria-label={t("headerHomeAria")}
           className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2.5px] uppercase decoration-oh-content underline-offset-4 transition-[text-decoration] hover:underline"
         >
           OH
@@ -98,7 +103,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
               <CheckIcon className="size-4 sm:size-[18px]" strokeWidth={3} />
             </span>
             <span className="oh-legend sm:text-[12px]">
-              Booked
+              {t("badgeBooked")}
             </span>
           </div>
 
@@ -130,7 +135,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-bold leading-tight sm:text-[17px]">
-                with {hostName}
+                {t("withHost", { name: hostName })}
               </p>
               {booking.host.handle ? (
                 <p className="mt-0.5 truncate oh-eyebrow sm:text-[11px]">
@@ -148,7 +153,7 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
             )}
           >
             <CalendarIcon />
-            Add to calendar
+            {t("addToCalendar")}
           </a>
 
           <div className="mt-6 flex items-center justify-between gap-4 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase sm:mt-8 sm:text-[11px]">
@@ -159,10 +164,10 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                 className="opacity-55 transition-opacity hover:opacity-100"
               >
                 {shareState === "idle"
-                  ? "Share"
+                  ? t("share")
                   : shareState === "shared"
-                    ? "Shared"
-                    : "Copied"}
+                    ? t("shared")
+                    : t("copied")}
               </button>
               {booking.host.handle ? (
                 <ConfirmDialog
@@ -171,13 +176,13 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
                       type="button"
                       className="opacity-55 transition-opacity hover:opacity-100"
                     >
-                      Reschedule
+                      {t("reschedule")}
                     </button>
                   }
-                  title="Find a new time?"
-                  description="We'll keep your reservation until you confirm a new slot."
-                  confirmLabel="Continue to picker"
-                  cancelLabel="Keep this slot"
+                  title={t("rescheduleConfirmTitle")}
+                  description={t("rescheduleConfirmDescription")}
+                  confirmLabel={t("rescheduleConfirmCta")}
+                  cancelLabel={t("rescheduleConfirmCancel")}
                   onConfirm={() => {
                     router.push(
                       `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
@@ -193,14 +198,16 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
       <footer className="hidden items-center justify-between border-t-[1.5px] border-oh-line px-8 py-5 oh-eyebrow sm:flex lg:px-12">
         <span>Officehours</span>
-        <span className="tabular-nums">Receipt {fmtStamp(startDate)}</span>
+        <span className="tabular-nums">
+          {t("footerReceipt", { stamp: fmtStamp(startDate) })}
+        </span>
       </footer>
     </div>
   );
 }
 
-function fmtTime(date: Date): string {
-  return date.toLocaleTimeString(undefined, {
+function fmtTime(format: ReturnType<typeof useFormatter>, date: Date): string {
+  return format.dateTime(date, {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -213,13 +220,13 @@ function fmtStamp(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function getTimeZoneLabel(): string {
+function getTimeZoneLabel(fallback: string): string {
   try {
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     const tail = zone.split("/").pop() ?? zone;
-    return tail.replace(/_/g, " ").toUpperCase() || "LOCAL TIME";
+    return tail.replace(/_/g, " ").toUpperCase() || fallback;
   } catch {
-    return "LOCAL TIME";
+    return fallback;
   }
 }
 

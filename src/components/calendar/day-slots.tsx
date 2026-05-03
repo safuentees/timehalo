@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import useEmblaCarousel from "embla-carousel-react";
 import { isOpenSlot, isTakenSlot, type Slot } from "@/lib/availability";
 
@@ -94,8 +94,9 @@ function SlotChip({
   onPick: (slot: Slot) => void;
 }) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const start = new Date(slot.start);
-  const timeLabel = start.toLocaleTimeString(undefined, {
+  const timeLabel = format.dateTime(start, {
     hour: "numeric",
     minute: "2-digit",
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import useEmblaCarousel from "embla-carousel-react";
 import { addDays, isSameDay, startOfWeek } from "date-fns";
 import {
@@ -27,6 +27,7 @@ export function DayStrip({
   spanDays = 63,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const start = useMemo(
     () => startOfWeek(startOfToday(), { weekStartsOn: 1 }),
     [],
@@ -92,9 +93,7 @@ export function DayStrip({
               onClick={() => hasSlots && onSelectDate(d)}
             >
               <span className="oh-day-strip-weekday">
-                {d
-                  .toLocaleDateString(undefined, { weekday: "narrow" })
-                  .toUpperCase()}
+                {format.dateTime(d, { weekday: "narrow" }).toUpperCase()}
               </span>
               <span className="oh-day-strip-date">{d.getDate()}</span>
             </button>
