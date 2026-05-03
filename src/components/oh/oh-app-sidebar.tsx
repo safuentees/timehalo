@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PanelLeft } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -115,7 +116,7 @@ export function OhAppSidebar() {
       <SidebarContent>
         {groups.map((group, index) => (
           <NavGroupRender
-            key={group.label ?? `group-${index}`}
+            key={group.labelKey ?? `group-${index}`}
             group={group}
             activePath={activePath}
           />
@@ -248,10 +249,11 @@ export function MobileNavContent({
     }
   }, [closing, onExitComplete]);
 
+  const t = useTranslations("Sidebar");
   return (
     <nav
       ref={container}
-      aria-label="Main"
+      aria-label={t("mainNavAria")}
       // Marker for the View Transitions opt-out rule in globals.css.
       // When this nav is mounted, `:has([data-oh-mobile-menu="true"])`
       // drops `oh-host-content-inner`'s view-transition-name so the
@@ -262,10 +264,10 @@ export function MobileNavContent({
       className="flex flex-col gap-6 px-4 py-6 sm:px-6"
     >
       {groups.map((group, index) => (
-        <div key={group.label ?? `mobile-group-${index}`}>
-          {group.label ? (
+        <div key={group.labelKey ?? `mobile-group-${index}`}>
+          {group.labelKey ? (
             <p className="oh-mobile-nav-label oh-eyebrow opacity-55 mb-3">
-              {group.label}
+              {t(group.labelKey)}
             </p>
           ) : null}
           <ul role="list" className="flex flex-col gap-0.5">
@@ -275,6 +277,7 @@ export function MobileNavContent({
                 (activePath === item.href ||
                   (item.href !== "/" &&
                     activePath.startsWith(`${item.href}/`)));
+              const itemLabel = t(item.labelKey);
               return (
                 <li key={item.href} className="oh-mobile-nav-item">
                   <Link
@@ -296,7 +299,7 @@ export function MobileNavContent({
                       strokeWidth={1.5}
                       className="size-5 shrink-0"
                     />
-                    <span>{item.label}</span>
+                    <span>{itemLabel}</span>
                   </Link>
                 </li>
               );
@@ -315,11 +318,12 @@ function NavGroupRender({
   group: NavGroup;
   activePath: string | null;
 }) {
+  const t = useTranslations("Sidebar");
   return (
     <SidebarGroup>
-      {group.label ? (
+      {group.labelKey ? (
         <SidebarGroupLabel className={groupLabelClass}>
-          {group.label}
+          {t(group.labelKey)}
         </SidebarGroupLabel>
       ) : null}
       <SidebarGroupContent>
@@ -334,12 +338,13 @@ function NavGroupRender({
               (activePath === item.href ||
                 (item.href !== "/" &&
                   activePath.startsWith(`${item.href}/`)));
+            const itemLabel = t(item.labelKey);
             return (
               <SidebarMenuItem key={item.href} className="group/item">
                 <SidebarMenuButton
                   id={sidebarNavId(item.href)}
                   isActive={active}
-                  tooltip={item.label}
+                  tooltip={itemLabel}
                   className={menuButtonClass}
                   render={
                     <Link href={item.href}>
@@ -348,7 +353,7 @@ function NavGroupRender({
                         strokeWidth={1.5}
                         className="size-4 shrink-0"
                       />
-                      <span>{item.label}</span>
+                      <span>{itemLabel}</span>
                     </Link>
                   }
                 />
@@ -365,11 +370,12 @@ function NavGroupRender({
 // no variant baggage, no hover state. Just an icon that toggles.
 function FooterControls() {
   const { toggleSidebar, state } = useSidebar();
+  const t = useTranslations("Sidebar");
   return (
     <button
       type="button"
       onClick={toggleSidebar}
-      aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
+      aria-label={state === "expanded" ? t("collapseSidebar") : t("expandSidebar")}
       className="inline-flex size-9 items-center justify-center text-oh-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-ink focus-visible:outline-offset-2 [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />

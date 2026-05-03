@@ -13,14 +13,19 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+// Sidebar nav items + groups carry i18n KEYS (`labelKey`), not literal
+// English strings. The renderer (`oh-app-sidebar.tsx`) resolves them
+// against `useTranslations("Sidebar")` so the rail and mobile menu
+// match the user's `oh_locale` cookie. Pre-B.PT101 this file held
+// English literals which leaked into the rendered DOM.
 export type NavItem = {
-  label: string;
+  labelKey: string;
   href: string;
   icon: LucideIcon;
 };
 
 export type NavGroup = {
-  label?: string;
+  labelKey?: string;
   items: NavItem[];
 };
 
@@ -30,14 +35,14 @@ export type NavGroup = {
 // noun-based routes.
 export const MAIN_NAV_GROUPS: NavGroup[] = [
   {
-    items: [{ label: "Bookings", href: "/bookings", icon: CalendarCheck }],
+    items: [{ labelKey: "bookings", href: "/bookings", icon: CalendarCheck }],
   },
   {
-    label: "LIBRARY",
+    labelKey: "library",
     items: [
-      { label: "Availability", href: "/availability", icon: Clock },
-      { label: "Profile", href: "/profile", icon: UserRound },
-      { label: "Workspaces", href: "/workspaces", icon: Users },
+      { labelKey: "availability", href: "/availability", icon: Clock },
+      { labelKey: "profile", href: "/profile", icon: UserRound },
+      { labelKey: "workspaces", href: "/workspaces", icon: Users },
     ],
   },
 ];
@@ -46,26 +51,26 @@ export const MAIN_NAV_GROUPS: NavGroup[] = [
 // Each entry maps to its own route under `(host)/settings/*`.
 export const SETTINGS_NAV_GROUPS: NavGroup[] = [
   {
-    items: [{ label: "Back to app", href: "/bookings", icon: ArrowLeft }],
+    items: [{ labelKey: "backToApp", href: "/bookings", icon: ArrowLeft }],
   },
   {
-    label: "ACCOUNT",
+    labelKey: "account",
     items: [
-      { label: "General", href: "/settings/general", icon: SlidersHorizontal },
-      { label: "Workflows", href: "/settings/workflows", icon: Workflow },
-      { label: "Calendars", href: "/settings/calendars", icon: CalendarRange },
+      { labelKey: "general", href: "/settings/general", icon: SlidersHorizontal },
+      { labelKey: "workflows", href: "/settings/workflows", icon: Workflow },
+      { labelKey: "calendars", href: "/settings/calendars", icon: CalendarRange },
     ],
   },
   {
-    label: "WORKSPACE",
+    labelKey: "workspace",
     items: [
-      { label: "Developer", href: "/settings/developer", icon: KeyRound },
-      { label: "Billing", href: "/settings/billing", icon: CreditCard },
+      { labelKey: "developer", href: "/settings/developer", icon: KeyRound },
+      { labelKey: "billing", href: "/settings/billing", icon: CreditCard },
     ],
   },
   {
-    label: "DANGER",
-    items: [{ label: "Delete account", href: "/settings/danger", icon: Skull }],
+    labelKey: "danger",
+    items: [{ labelKey: "deleteAccount", href: "/settings/danger", icon: Skull }],
   },
 ];
 

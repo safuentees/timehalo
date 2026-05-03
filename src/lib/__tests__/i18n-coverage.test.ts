@@ -41,6 +41,8 @@ const CLEAN_DIRS = [
 // scan the whole dir for.
 const CLEAN_FILES = [
   "src/app/(host)/error.tsx", // B.PT93 — host segment-level error boundary
+  "src/components/oh/oh-app-sidebar.tsx", // B.PT101 — sidebar nav labels + aria
+  "src/app/h/[handle]/booked/[bookingUid]/booking-confirmation.tsx", // B.PT101 — visitor booking receipt
 ] as const;
 
 // User-visible JSX attributes — strings here render to the user

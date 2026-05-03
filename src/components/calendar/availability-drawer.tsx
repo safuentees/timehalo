@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
 import {
   ResponsiveModal,
@@ -49,8 +49,12 @@ export function AvailabilityDrawer({
   rescheduleFromUid,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
   const monthBarDate = selectedDate ?? startOfToday();
+  const monthBarLabel = format
+    .dateTime(monthBarDate, { month: "long", year: "numeric" })
+    .toUpperCase();
   const [bookingOpen, setBookingOpen] = useState(false);
 
   function handlePickSlot(slot: Slot) {
@@ -92,9 +96,7 @@ export function AvailabilityDrawer({
         </ResponsiveModalHeader>
 
         <div className="oh-drawer-monthbar">
-          <span className="oh-drawer-monthbar-label">
-            {fmtMonthYear(monthBarDate)}
-          </span>
+          <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
           <MonthDrawer
             slots={slots}
             selectedDate={selectedDate}
@@ -138,12 +140,6 @@ export function AvailabilityDrawer({
       </ResponsiveModalContent>
     </ResponsiveModal>
   );
-}
-
-function fmtMonthYear(d: Date): string {
-  return d
-    .toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    .toUpperCase();
 }
 
 function isSameCalendarDay(left: Date, right: Date): boolean {

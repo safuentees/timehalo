@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import useEmblaCarousel from "embla-carousel-react";
 import { addDays, isSameDay, startOfWeek } from "date-fns";
 import {
@@ -36,6 +36,7 @@ export function DayStrip({
   spanDays = 63,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const format = useFormatter();
   // Anchor to Monday of the current week so every 7-slide chunk aligns to
   // a real week. Past days (Mon..today-1) render as disabled cells — they
   // have no density entry and get strikethrough via [aria-disabled="true"].
@@ -115,9 +116,7 @@ export function DayStrip({
               onClick={() => hasSlots && onSelectDate(d)}
             >
               <span className="oh-day-strip-weekday">
-                {d
-                  .toLocaleDateString(undefined, { weekday: "narrow" })
-                  .toUpperCase()}
+                {format.dateTime(d, { weekday: "narrow" }).toUpperCase()}
               </span>
               <span className="oh-day-strip-date">{d.getDate()}</span>
             </button>
