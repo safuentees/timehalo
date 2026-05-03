@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -102,7 +102,7 @@ export function MobileNavContent({
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
-  const groups = navGroupsForPath(pathname);
+  const [groups] = useState(() => navGroupsForPath(pathname));
   const container = useRef<HTMLElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
