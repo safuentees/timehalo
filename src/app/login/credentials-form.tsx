@@ -65,13 +65,13 @@ export default function CredentialsForm() {
         <label htmlFor="login-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        <InputGroup className="overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
             placeholder={t("fieldPasswordPlaceholder")}
             autoComplete="current-password"
-            className="px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
+            className="h-full px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
             {...register("password")}
           />
           <InputGroupAddon align="inline-end" className="bg-transparent pr-2">
