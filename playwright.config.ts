@@ -39,7 +39,7 @@ export default defineConfig({
       // partner-onboarding-style contamination from prior runs can
       // never bleed in.
       name: "public",
-      testMatch: /(?:hydration|booking-flow|embed)\.spec\.ts/,
+      testMatch: /(?:hydration|booking-flow|embed|playground)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: { cookies: [], origins: [] },

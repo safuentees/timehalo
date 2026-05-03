@@ -90,8 +90,32 @@ export default function CredentialsForm() {
             paints once on the WRAPPER, never inside the bordered
             field. shadcn's InputGroup is designed for this "wrapper
             owns the focus" pattern; we just route it through our
-            tokens instead of `--ring`. */}
-        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] focus-within:[box-shadow:var(--oh-focus-shadow-input)]">
+            tokens instead of `--ring`.
+
+            Beat-the-default specificity (B.PT115 follow-up). The
+            shadcn InputGroup primitive's wrapper ships a default
+            focus rule:
+              has-[[data-slot=input-group-control]:focus-visible]:border-ring
+              has-[[data-slot=input-group-control]:focus-visible]:ring-3
+              has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50
+            That `:has(... :focus-visible)` selector compiles at
+            specificity 0,3,0 (one class + the inner selector's
+            attribute + pseudo). Our previous override
+            `focus-within:[box-shadow:...]` was only 0,2,0 — the
+            default WON, so shadcn's blue/grey ring leaked through
+            on every keyboard focus. Fix: use `has-[]:` form for
+            the override at matching specificity (0,3,0). Each rule
+            below mirrors a default-ring rule and replaces it:
+              border-ring     → border-[color:var(--oh-ink)]
+              ring-3          → ring-0 (we use box-shadow not ring)
+              ring-ring/50    → covered by ring-0
+            Plus the wrapper-level focus-shadow paints on the same
+            selector so focus-visible (not focus-within) drives the
+            paint — matches the rest of the app's `oh-focus-ring`
+            vocabulary (B.PT105 — keyboard-only focus signal). The
+            bg lift stays on focus-within so mouse-clicks still get
+            the +8% bg cue. */}
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] has-[[data-slot=input-group-control]:focus-visible]:border-[color:var(--oh-ink)] has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:[box-shadow:var(--oh-focus-shadow-input)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
