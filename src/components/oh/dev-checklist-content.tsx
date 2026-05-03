@@ -1,9 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Children,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+
+// Strip the original disabled-checkbox that remark-gfm injects as the
+// first child of a task-list-item. Our `li` override renders its own
+// interactive checkbox before the children; without this filter the
+// disabled one would still render alongside, leaving two boxes per row.
+function filterOutOriginalCheckbox(children: ReactNode): ReactNode {
+  return Children.toArray(children).filter((child) => {
+    if (!isValidElement(child)) return true;
+    const props = child.props as { type?: string };
+    return !(child.type === "input" && props.type === "checkbox");
+  });
+}
 
 // Dev checklist content (B.PT75). Renders a markdown doc as interactive
 // checkboxes whose state persists in localStorage. Per-checkbox key is
@@ -124,48 +145,73 @@ export function DevChecklistContent({
     [checked],
   );
 
-  // Custom renderer for the GFM `<input type="checkbox">` that
-  // remark-gfm emits for `- [ ]` / `- [x]` lines. We hash the parent
-  // <li>'s text content as the storage key. react-markdown passes the
-  // checkbox's parent node info via the `node` prop on every component
-  // override; we walk that to extract the line text.
+  // Per-checkbox storage key derivation. react-markdown v10 doesn't
+  // populate `node.position` on the inline `input` override
+  // (verified empirically — the prior position-based scheme made
+  // every checkbox derive the SAME line text → SAME djb2 hash →
+  // toggling one checkbox toggled all of them). The block-level
+  // `li` override DOES receive `node.position` reliably because
+  // listItem is a block node in unified's mdast/hast spec.
+  //
+  // Fix: override `li` instead of `input`. If the li is a task list
+  // item (remark-gfm sets `properties.className: ["task-list-item"]`
+  // on the rendered hast node + adds `<input type="checkbox">` as
+  // the first child), slice the source markdown by the li's
+  // position offset to get the line text, hash it for the storage
+  // key, and render our own interactive checkbox + the rest of the
+  // li's text content. Non-task li's pass through unchanged.
+  //
+  // If a line's text changes (user edits the source markdown), its
+  // hash changes → its prior checked state is lost. That's the
+  // right behavior — the row is no longer the same row. Inserting a
+  // NEW task above existing ones doesn't shuffle the others' keys
+  // because we hash by content, not by source-index.
   const components = useMemo<Components>(
     () => ({
-      input(props) {
-        if (props.type !== "checkbox") {
-          return <input {...props} />;
+      li(props) {
+        const { node, children, className, ...rest } = props;
+        const classNames = Array.isArray(node?.properties?.className)
+          ? (node.properties.className as Array<string | number>)
+          : [];
+        const isTaskItem = classNames.includes("task-list-item");
+
+        if (!isTaskItem) {
+          return (
+            <li className={className} {...rest}>
+              {children}
+            </li>
+          );
         }
-        // `node.position` gives us byte offsets back into the source
-        // markdown — far more stable than walking sibling text nodes
-        // (which can change shape if a line gets bolded). Slice the
-        // raw markdown by position, hash it.
-        const start = props.node?.position?.start?.offset ?? 0;
-        const end = props.node?.position?.end?.offset ?? start;
-        // For the checkbox itself the position covers `[ ]` / `[x]`
-        // only — too short to be unique. Walk up to the parent line:
-        // the parent <li>'s position covers the full row. We don't
-        // have direct parent access here so we widen the slice to the
-        // start of the surrounding line and the next newline.
-        const lineStart = markdown.lastIndexOf("\n", start - 1) + 1;
-        const lineEnd = markdown.indexOf("\n", end);
-        const lineText = markdown.slice(
-          lineStart,
-          lineEnd === -1 ? markdown.length : lineEnd,
-        );
+
+        // Block-level li node has reliable position info. Slice the
+        // source markdown by the li's offset to get the row text;
+        // hash that for the storage key.
+        const start = node?.position?.start?.offset ?? 0;
+        const end = node?.position?.end?.offset ?? start;
+        const lineText = markdown.slice(start, end).trim();
         const key = djb2(lineText);
         const isChecked = !!checked[key];
+        const ariaLabel = lineText
+          .replace(/^\s*-\s*\[[ xX]\]\s*/, "")
+          .split("\n")[0]
+          .trim();
+
         return (
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={() => toggle(key)}
-            // Override remark-gfm's default `disabled` so the box is
-            // actually interactive. aria-label points at the row text
-            // for screen readers.
-            disabled={false}
-            aria-label={lineText.replace(/^\s*-\s*\[[ xX]\]\s*/, "")}
-            className="oh-dev-checklist-box"
-          />
+          <li className={className} {...rest}>
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => toggle(key)}
+              aria-label={ariaLabel}
+              className="oh-dev-checklist-box"
+            />
+            {/* react-markdown's default rendering of a task-list-item
+                emits the disabled checkbox as children[0]. We're
+                already rendering our own interactive checkbox above,
+                so filter out the original. The remaining children are
+                the row's text + any trailing nodes. */}
+            {filterOutOriginalCheckbox(children)}
+          </li>
         );
       },
     }),
