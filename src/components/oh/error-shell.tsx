@@ -6,6 +6,15 @@ import Link from "next/link";
 // monospace metadata. No animation, no hero image — error pages
 // should load fast and read fast.
 //
+// B.PT109 — viewport-fill discipline + vertical center. Pre-B.PT109
+// the `<main className="oh-main">` had no min-height + no flex setup,
+// so short-content errors sat at the top of `oh-root` with empty
+// space below. Now the column centers vertically — the error IS the
+// content of the page, surfacing it in the optical center honors
+// Apple HIG "deference / clarity" (the message belongs front + center,
+// not pinned to the top with whitespace below). On overflow (long
+// device narrow + lots of links), the column top-aligns + scrolls.
+//
 // Pattern reference: rallly /apps/web/src/components/error-page.tsx —
 // label / title / description / link-list shape, brutalist'd.
 
@@ -23,8 +32,8 @@ export function ErrorShell({
   actions?: ReactNode;
 }) {
   return (
-    <main className="oh-main">
-      <div className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 sm:py-16">
+    <main className="oh-main flex min-h-dvh flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
+      <div className="w-full max-w-[760px]">
         <p className="oh-legend">
           {label}
         </p>
