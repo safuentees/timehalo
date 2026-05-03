@@ -8,6 +8,7 @@ import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -25,9 +26,9 @@ export default function TeamProfile({ slug, initialWorkspace }: Props) {
   const t = useTranslations("TeamProfile");
 
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
-      <div className="border-b border-oh-line">
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <OhVisitorShell
+      header={
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
             /w/{workspace.slug}
           </span>
@@ -35,8 +36,8 @@ export default function TeamProfile({ slug, initialWorkspace }: Props) {
             {t("memberCount", { count: workspace.members.length })}
           </span>
         </div>
-      </div>
-
+      }
+    >
       <OhPageShell>
         <header className="flex flex-col gap-4">
           <span className="oh-eyebrow opacity-100">{t("eyebrow")}</span>
@@ -85,7 +86,7 @@ export default function TeamProfile({ slug, initialWorkspace }: Props) {
           )}
         </section>
       </OhPageShell>
-    </main>
+    </OhVisitorShell>
   );
 }
 
@@ -103,7 +104,7 @@ function EventTypeRow({
   return (
     <Link
       href={`/w/${slug}/${eventType.slug}`}
-      className="group flex items-center gap-4 px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
+      className="oh-focus-ring group flex items-center gap-4 px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover"
     >
       <div className="flex flex-1 flex-col leading-tight">
         <span className="text-[15px] font-semibold">{eventType.name}</span>
@@ -133,7 +134,7 @@ function MemberRow({ member }: { member: Member }) {
   return (
     <Link
       href={`/h/${member.handle}`}
-      className="group flex items-center gap-4 px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
+      className="oh-focus-ring group flex items-center gap-4 px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover"
     >
       <Avatar size="default">
         <AvatarImage src={member.image ?? undefined} alt={displayName} />

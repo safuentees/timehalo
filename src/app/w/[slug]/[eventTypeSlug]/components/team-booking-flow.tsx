@@ -18,6 +18,7 @@ import {
 } from "@/components/oh/oh-input-group";
 import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { useTeamBooking } from "@/lib/mutations/use-team-booking";
 import { getBrowserTimezone } from "@/lib/timezone";
 import {
@@ -74,12 +75,12 @@ export function TeamBookingFlow({
   }, [slotsData]);
 
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
-      <div className="border-b border-oh-line">
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <OhVisitorShell
+      header={
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <a
             href={`/w/${slug}`}
-            className="oh-eyebrow flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
+            className="oh-focus-ring oh-eyebrow rounded-(--oh-r-xs) flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
           >
             <ArrowLeftIcon
               aria-hidden
@@ -92,8 +93,8 @@ export function TeamBookingFlow({
             {t("hostCount", { count: eventTypeData.hostCount })}
           </span>
         </div>
-      </div>
-
+      }
+    >
       <OhPageShell>
         <header className="flex flex-col gap-4">
           <span className="oh-eyebrow opacity-100">{t("eyebrow")}</span>
@@ -126,7 +127,7 @@ export function TeamBookingFlow({
           />
         )}
       </OhPageShell>
-    </main>
+    </OhVisitorShell>
   );
 }
 

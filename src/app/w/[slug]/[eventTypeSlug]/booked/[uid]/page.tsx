@@ -4,6 +4,7 @@ import { getTranslations, getFormatter } from "next-intl/server";
 import { CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
 
 export default async function TeamBookingConfirmationPage({
@@ -43,7 +44,7 @@ export default async function TeamBookingConfirmationPage({
     .toUpperCase();
 
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
+    <OhVisitorShell>
       <OhPageShell tight>
         <header className="flex flex-col items-center gap-4 text-center">
           <CheckCircle2
@@ -120,6 +121,6 @@ export default async function TeamBookingConfirmationPage({
           {t("confirmationEmailSent")}
         </p>
       </OhPageShell>
-    </main>
+    </OhVisitorShell>
   );
 }
