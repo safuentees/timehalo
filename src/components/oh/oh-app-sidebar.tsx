@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -174,7 +174,39 @@ export function MobileNavContent({
   const pathname = usePathname();
   const mounted = useMounted();
   const activePath = mounted ? pathname : null;
-  const groups = navGroupsForPath(pathname);
+  // B.PT115 — freeze the rendered nav groups at MOUNT time, not on every
+  // render. (Originally claimed B.PT104 in the worktree branch where this
+  // shipped; renumbered on merge into feat/ui-expose because the
+  // parallel agent claimed B.PT104 for the layout-consistency research
+  // doc + shipped B.PT105-B.PT114 on top. The merge keeps both branches'
+  // rows; this fix's id moved to the next free slot. The branch's
+  // commit `4178925` body still references "B.PT104" by name — that
+  // reference now points at the layout-consistency row, not this one;
+  // resolved by the merge commit's body and the BACKLOG.md row.)
+  // Without this, tapping a link from /settings drops the
+  // following sequence: (1) Link click triggers route push → pathname
+  // updates synchronously to the destination; (2) `navGroupsForPath`
+  // recomputes from SETTINGS_NAV_GROUPS → MAIN_NAV_GROUPS while the
+  // drawer is still visible; (3) `ContentSlot`'s pathname effect fires
+  // `setOpenMobile(false)` → `closing` flips true → exit animation
+  // begins. The exit animation runs ~200ms, during which the drawer
+  // shows the WRONG (destination-page's) nav groups — visible to the
+  // user as a "main app sidebar snapping into place" flash before the
+  // route content paints. Snapshotting at mount means the exit
+  // animation always plays out with the SAME groups the user was
+  // looking at when they tapped the link. Re-opening the drawer on a
+  // new route = re-mount = fresh snapshot, so this doesn't stick the
+  // groups stale.
+  //
+  // Pattern reference: dub `apps/web/ui/layout/sidebar/sidebar-nav.tsx
+  // :517 (Area)` keeps EVERY area mounted at all times and CSS-toggles
+  // visibility per `currentArea` — same principle (don't swap content
+  // mid-transition), heavier architecture. Cal.com sidesteps the
+  // problem entirely by using a fixed bottom-nav bar (no drawer at
+  // all). Our content-slot architecture (B.PT49) sits between those
+  // two; freeze-at-mount is the minimal fix that matches the
+  // architecture.
+  const [groups] = useState(() => navGroupsForPath(pathname));
   const container = useRef<HTMLElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
