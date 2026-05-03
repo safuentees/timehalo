@@ -320,6 +320,7 @@
     "done": "Listo"
   },
   "Invitations": {
+    "skeletonEyebrow": "Invitación",
     "eyebrow": "Invitación a espacio",
     "titleFor": "Únete a {name}",
     "body": "Te han invitado como {email}. Aceptar te agrega al espacio y comparte disponibilidad, reservas y webhooks.",
@@ -460,9 +461,6 @@
     "errorOAuthSignin": "No se pudo iniciar el flujo de OAuth. Vuelve a intentarlo.",
     "errorOAuthCallback": "El proveedor de OAuth devolvió un error. Vuelve a intentarlo.",
     "errorGeneric": "Inicio de sesión fallido. Vuelve a intentarlo."
-  },
-  "Invitations": {
-    "skeletonEyebrow": "Invitación"
   },
   "Availability": {
     "editHours": "Editar horas",

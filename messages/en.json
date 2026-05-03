@@ -320,6 +320,7 @@
     "done": "Done"
   },
   "Invitations": {
+    "skeletonEyebrow": "Invitation",
     "eyebrow": "Workspace invitation",
     "titleFor": "Join {name}",
     "body": "You've been invited as {email}. Accepting adds you to the workspace and unlocks shared availability, bookings, and webhooks.",
@@ -460,9 +461,6 @@
     "errorOAuthSignin": "Could not start the OAuth flow. Try again.",
     "errorOAuthCallback": "OAuth provider returned an error. Try again.",
     "errorGeneric": "Sign-in failed. Try again."
-  },
-  "Invitations": {
-    "skeletonEyebrow": "Invitation"
   },
   "Availability": {
     "editHours": "Edit hours",
