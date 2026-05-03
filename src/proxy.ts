@@ -11,12 +11,15 @@ export const proxy = auth((req) => {
   const isInvitationLink = pathname.startsWith("/invitations/");
   const isEmbed =
     pathname === "/embed.js" || pathname.startsWith("/embed/");
+  const isPlayground =
+    pathname === "/playground" || pathname.startsWith("/playground/");
 
   const isPublic =
     ["/login", "/register"].includes(pathname) ||
     isHostPage ||
     isInvitationLink ||
-    isEmbed;
+    isEmbed ||
+    isPlayground;
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));
