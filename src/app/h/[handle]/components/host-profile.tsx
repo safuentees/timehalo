@@ -16,6 +16,7 @@ import {
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import {
   AvailabilityDrawer,
   TriggerCard,
@@ -170,15 +171,17 @@ export default function HostProfile({
   const hasSlots = slots.length > 0;
   const hasOpenSlots = availableSlots.length > 0;
 
+  // B.PT110 — OhVisitorShell consumes viewport-fill + sticky-header
+  // discipline. Pre-B.PT110 the page used `<main className="min-h-
+  // screen bg-oh-bg" id="top">` + a hand-rolled bordered profile bar
+  // wrapped around the page-shell. Now the shell owns the chrome
+  // skeleton; the bar contents move into the `header` prop slot. The
+  // sticky `<header>` from OhVisitorShell wraps `mx-auto max-w-[760px]`
+  // inside so the inner bar still aligns with the page-shell column.
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
-      {/* Slim profile bar. Mirrors the dashboard's hairline-rule rhythm
-          (`/bookings`, `/settings`) — 1px structural border instead of the
-          earlier 1.5px paper-and-ink slab. Eyebrow on the left carries the
-          handle (the page's permanent address); right side carries the
-          live open/closed indicator so it's the first thing scanned. */}
-      <div className="border-b border-oh-line">
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <OhVisitorShell
+      header={
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
             /h/{user.handle}
           </span>
@@ -195,12 +198,14 @@ export default function HostProfile({
             </span>
           </div>
         </div>
-      </div>
-
+      }
+    >
       {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>` is in
           the URL so the visitor knows they're picking a NEW slot to swap
           into, not booking fresh. Subtle tint (oh-tint, ~6% ink) reads as
-          a status strip without competing with the page's content. */}
+          a status strip without competing with the page's content.
+          Lives inside `<main>` (children of OhVisitorShell) so the sticky
+          header above it stays at the very top of the viewport. */}
       {rescheduleFromUid ? (
         <div
           role="status"
@@ -210,7 +215,7 @@ export default function HostProfile({
             <span className="oh-eyebrow opacity-100">{t("rescheduling")}</span>
             <a
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="oh-eyebrow opacity-55 transition-opacity hover:opacity-100"
+              className="oh-focus-ring oh-eyebrow rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
             >
               {t("cancel")}
             </a>
@@ -302,7 +307,7 @@ export default function HostProfile({
           }}
         />
       ) : null}
-    </main>
+    </OhVisitorShell>
   );
 }
 
