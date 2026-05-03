@@ -16,7 +16,7 @@ export default defineConfig({
     { name: "setup", testMatch: /auth\.setup\.ts/ },
     {
       name: "public",
-      testMatch: /(?:hydration|booking-flow|embed)\.spec\.ts/,
+      testMatch: /(?:hydration|booking-flow|embed|playground)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: { cookies: [], origins: [] },
