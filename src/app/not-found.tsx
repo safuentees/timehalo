@@ -1,29 +1,31 @@
+import { getTranslations } from "next-intl/server";
 import {
   ErrorShell,
   ErrorShellLink,
 } from "@/components/oh/error-shell";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getTranslations("NotFound");
   return (
     <ErrorShell
-      label="Officehours / 404"
-      title="Page not found."
-      description="The link you followed has rotted, or never existed. Three places to land instead:"
+      label={t("label")}
+      title={t("title")}
+      description={t("description")}
     >
       <ErrorShellLink
         href="/"
-        title="Home"
-        description="Start here"
+        title={t("homeTitle")}
+        description={t("homeDescription")}
       />
       <ErrorShellLink
         href="/login"
-        title="Sign in"
-        description="If you have an account"
+        title={t("signInTitle")}
+        description={t("signInDescription")}
       />
       <ErrorShellLink
         href="/register"
-        title="Create an account"
-        description="If you don't"
+        title={t("createAccountTitle")}
+        description={t("createAccountDescription")}
       />
     </ErrorShell>
   );

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Link } from "next-view-transitions";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Menu } from "@base-ui/react/menu";
 import {
   CalendarCheck,
@@ -46,6 +47,7 @@ import { OhUserMenu } from "./user-menu";
 // when the current path is bound to the old workspace and stays put
 // everywhere else.
 export function OhDashboardBar() {
+  const t = useTranslations("Chrome");
   const { data: workspaces } = trpc.workspaces.list.useQuery();
   const router = useRouter();
   const pathname = usePathname();
@@ -69,7 +71,8 @@ export function OhDashboardBar() {
   // user clicks. Falls back to current when nothing's pending. The
   // workspace MUST already be in the dropdown's list (membership-
   // gated; the row is what they clicked) so this never reads empty.
-  const label = (pendingWorkspace ?? current)?.name ?? "Workspaces";
+  const label =
+    (pendingWorkspace ?? current)?.name ?? t("workspaceSwitcherFallback");
 
   function handlePick(slug: string) {
     const oldSlug = current?.slug;
@@ -82,7 +85,7 @@ export function OhDashboardBar() {
       try {
         const result = await setActiveWorkspace({ slug });
         if (!result.ok) {
-          toast.error("Couldn't switch workspace.");
+          toast.error(t("switchWorkspaceError"));
           return;
         }
         // Broad invalidation (B.PT17). Without this, any client-cached
@@ -181,7 +184,7 @@ export function OhDashboardBar() {
             <Menu.Popup className="oh-menu-popup">
               <Menu.Group>
                 <Menu.GroupLabel className="oh-menu-label">
-                  Workspaces
+                  {t("workspaceSwitcherGroupLabel")}
                 </Menu.GroupLabel>
                 {(workspaces ?? []).map((w) => {
                   const isPicked = pendingSlug === w.slug;
@@ -235,7 +238,7 @@ export function OhDashboardBar() {
                 <span className="oh-menu-item-glyph">
                   <Plus aria-hidden strokeWidth={1.75} className="size-4" />
                 </span>
-                <span>Create workspace</span>
+                <span>{t("createWorkspace")}</span>
               </Menu.Item>
               <Menu.Item
                 className="oh-menu-item"
@@ -244,7 +247,7 @@ export function OhDashboardBar() {
                 <span className="oh-menu-item-glyph">
                   <Settings aria-hidden strokeWidth={1.75} className="size-4" />
                 </span>
-                <span>Manage workspaces</span>
+                <span>{t("manageWorkspaces")}</span>
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
@@ -252,8 +255,16 @@ export function OhDashboardBar() {
       </Menu.Root>
 
       <div className="flex items-center gap-2">
-        <ChromeIconLink href="/bookings" label="Bookings" icon={CalendarCheck} />
-        <ChromeIconLink href="/settings" label="Settings" icon={Settings} />
+        <ChromeIconLink
+          href="/bookings"
+          label={t("bookingsAria")}
+          icon={CalendarCheck}
+        />
+        <ChromeIconLink
+          href="/settings"
+          label={t("settingsAria")}
+          icon={Settings}
+        />
         <OhUserMenu />
       </div>
 

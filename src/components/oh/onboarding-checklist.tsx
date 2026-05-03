@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import {
 // title/desc/CTA per task), DB-backed.
 
 export function OnboardingChecklist() {
+  const t = useTranslations("Onboarding");
   const utils = trpc.useUtils();
   const me = trpc.users.me.useQuery();
   const ranges = trpc.schedule.get.useQuery();
@@ -99,15 +101,15 @@ export function OnboardingChecklist() {
   return (
     <section
       className="mt-6 border-2 border-oh-line-strong p-5"
-      aria-label="Getting started checklist"
+      aria-label={t("sectionAria")}
     >
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="oh-eyebrow">
-            Getting started ({done}/{total})
+            {t("gettingStarted", { done, total })}
           </p>
           <h2 className="mt-2 text-[18px] font-black leading-tight">
-            {percent}% set up
+            {t("percentSetUp", { percent })}
           </h2>
         </div>
         <Button
@@ -115,7 +117,7 @@ export function OnboardingChecklist() {
           variant="ohGhost"
           size="icon-sm"
           onClick={() => setOnboardingState.mutate({ dismissed: true })}
-          aria-label="Hide checklist"
+          aria-label={t("hideAria")}
         >
           <XIcon strokeWidth={1.5} />
         </Button>
@@ -148,6 +150,7 @@ function StepRow({
   step: ReturnType<typeof computeOnboardingSteps>[number];
   onMark: () => void;
 }) {
+  const t = useTranslations("Onboarding");
   const Icon = step.done ? CheckCircleIcon : CircleIcon;
   return (
     <div className="flex items-start gap-3">
@@ -165,14 +168,14 @@ function StepRow({
               step.done ? "line-through opacity-55" : "opacity-100",
             ].join(" ")}
           >
-            {step.title}
+            {t(step.titleKey)}
           </p>
           {!step.done ? (
             <Link
               href={step.href}
               className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase underline underline-offset-4 opacity-65 hover:opacity-100"
             >
-              Open →
+              {t("openLink")}
             </Link>
           ) : null}
         </div>
@@ -182,7 +185,7 @@ function StepRow({
             step.done ? "opacity-40" : "opacity-65",
           ].join(" ")}
         >
-          {step.description}
+          {t(step.descriptionKey)}
         </p>
         {!step.done && step.manual ? (
           <Button
@@ -192,7 +195,7 @@ function StepRow({
             onClick={onMark}
             className="mt-2"
           >
-            Mark done
+            {t("markDone")}
           </Button>
         ) : null}
       </div>
