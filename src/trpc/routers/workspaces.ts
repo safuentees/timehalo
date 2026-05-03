@@ -534,6 +534,53 @@ export const workspaces = router({
       };
     }),
 
+  publicGetTeamConfirmation: publicProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        eventTypeSlug: z.string().min(1).max(60),
+        bookingUid: z.string().min(1),
+      }),
+    )
+    .query(async ({ input }) => {
+      const booking = await prisma.booking.findFirst({
+        where: {
+          publicUid: input.bookingUid,
+          deleted: false,
+          eventType: {
+            slug: input.eventTypeSlug,
+            workspace: { slug: input.slug },
+          },
+        },
+        select: {
+          publicUid: true,
+          slotStart: true,
+          slotEnd: true,
+          host: {
+            select: {
+              name: true,
+              handle: true,
+              image: true,
+              timezone: true,
+            },
+          },
+          eventType: {
+            select: {
+              name: true,
+              durationMins: true,
+            },
+          },
+        },
+      });
+      if (!booking) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+      return booking;
+    }),
+
   update: privateProcedure
     .input(
       z.object({
