@@ -34,7 +34,7 @@ export const calendar = router({
     .mutation(async ({ input, ctx }) => {
       requireFeature(await planForUser(ctx.user.id), "calendar.connect");
 
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const { randomBytes } = await import("node:crypto");
       const state = `${ctx.user.id}:${randomBytes(32).toString("hex")}`;
       const redirectUri =

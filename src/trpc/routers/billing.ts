@@ -110,7 +110,7 @@ export const billing = router({
       const stripe = getStripe();
       const priceId = priceIdForPlan(input.plan);
       const appUrl =
-        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
 
       const existing = await prisma.subscription.findUnique({
         where: { workspaceId },
@@ -169,7 +169,7 @@ export const billing = router({
 
       const stripe = getStripe();
       const appUrl =
-        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const session = await stripe.billingPortal.sessions.create({
         customer: sub.stripeCustomerId,
         return_url: `${appUrl}/settings/billing`,

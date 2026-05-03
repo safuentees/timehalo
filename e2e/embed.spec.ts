@@ -13,7 +13,7 @@ test("embed loader injects an iframe + emits size postMessage + renders the book
   });
   page.on("pageerror", (err) => consoleErrors.push(err.message));
 
-  const url = `file://${FIXTURE_PATH}?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3000")}`;
+  const url = `file://${FIXTURE_PATH}?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3001")}`;
 
   await page.goto(url, { waitUntil: "load" });
 

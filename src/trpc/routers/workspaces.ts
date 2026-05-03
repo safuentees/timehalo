@@ -540,7 +540,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const acceptUrl = `${appUrl}/invitations/${token}`;
       await scheduleEmailSend({
         payload: {
@@ -654,7 +654,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
 
       const created = await prisma.$transaction(
         input.invites.map((inv, i) =>
@@ -741,7 +741,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const acceptUrl = `${appUrl}/invitations/${token}`;
       await scheduleEmailSend({
         payload: {

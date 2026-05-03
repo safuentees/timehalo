@@ -56,32 +56,32 @@ describe("bootstrapUserWorkspace", () => {
 });
 
 describe("resolveAuthRedirect", () => {
-  const baseUrl = "http://localhost:3000";
+  const baseUrl = "http://localhost:3001";
 
   it("rewrites /login to /bookings — magic-link initiated from /login carries callbackUrl=/login", () => {
     expect(resolveAuthRedirect({ url: "/login", baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
     expect(resolveAuthRedirect({ url: `${baseUrl}/login`, baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
   });
 
   it("rewrites /register and / to /bookings", () => {
     expect(resolveAuthRedirect({ url: "/register", baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
     expect(resolveAuthRedirect({ url: "/", baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
     expect(resolveAuthRedirect({ url: baseUrl, baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
   });
 
   it("preserves same-origin deep links that aren't auth pages", () => {
     expect(resolveAuthRedirect({ url: "/availability", baseUrl })).toBe(
-      "http://localhost:3000/availability",
+      "http://localhost:3001/availability",
     );
     expect(resolveAuthRedirect({ url: `${baseUrl}/profile?tab=billing`, baseUrl })).toBe(
       `${baseUrl}/profile?tab=billing`,
@@ -90,13 +90,13 @@ describe("resolveAuthRedirect", () => {
 
   it("rejects foreign origins with /bookings fallback", () => {
     expect(resolveAuthRedirect({ url: "https://evil.example/steal", baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
   });
 
   it("survives malformed URLs", () => {
     expect(resolveAuthRedirect({ url: "not a url", baseUrl })).toBe(
-      "http://localhost:3000/bookings",
+      "http://localhost:3001/bookings",
     );
   });
 });
