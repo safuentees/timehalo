@@ -7,6 +7,11 @@ const CLEAN_DIRS = [
   "src/app/login", // B.PT26 + B.PT92 — login page + form sub-components
   "src/app/register", // B.PT26 + B.PT92 — register page + form
   "src/app/(host)/availability", // B.PT26B — availability form chrome
+  "src/app/(host)/profile", // B.PT93 — profile-form + handle-fields
+] as const;
+
+const CLEAN_FILES = [
+  "src/app/(host)/error.tsx", // B.PT93 — host segment-level error boundary
 ] as const;
 
 const VISIBLE_ATTRS = [
@@ -26,6 +31,7 @@ const ALLOW_LIST: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
   { pattern: /^Officehours$/i, reason: "brand" },
   { pattern: /^Resend$/i, reason: "brand" },
   { pattern: /^officehours\.app\/h\/$/, reason: "domain prefix chrome" },
+  { pattern: /^\/h\/$/, reason: "URL routing prefix chrome" },
   { pattern: /^Alex$/, reason: "neutral name placeholder" },
   { pattern: /^[\s\p{P}\p{S}…—–·]+$/u, reason: "punctuation only" },
   { pattern: /^[A-Z]{1,3}$/, reason: "short-caps abbreviation" },
@@ -250,6 +256,23 @@ describe("i18n — no hardcoded English in localized dirs", () => {
         `Hardcoded English found in localized dir.\nViolations:\n${offenders.join(
           "\n",
         )}\n\nFix paths:\n  - Wrap the string with t("...") from useTranslations\n  - Add a key to messages/en.json + messages/es.json\n  - If the string is intentionally not-translated (brand name, RFC 2606 email, etc.) extend ALLOW_LIST in this test with a justification.`,
+      ).toEqual([]);
+    });
+  }
+
+  for (const cleanFile of CLEAN_FILES) {
+    it(`${cleanFile} — no hardcoded English`, () => {
+      const filePath = join(repoRoot, cleanFile);
+      const content = readFileSync(filePath, "utf8");
+      const violations = findViolations(content);
+      const offenders = violations.map(
+        (v) => `${cleanFile}:${v.line}: ${v.snippet}`,
+      );
+      expect(
+        offenders,
+        `Hardcoded English found in localized file.\nViolations:\n${offenders.join(
+          "\n",
+        )}`,
       ).toEqual([]);
     });
   }
