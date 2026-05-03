@@ -455,8 +455,8 @@
   background: var(--oh-tint-hover);
 }
 .oh-dashboard-bar-trigger:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-dashboard-bar-chevron {
   transition: transform 150ms var(--ease-oh, ease);
@@ -748,8 +748,8 @@
   border-color: var(--oh-ink);
 }
 .oh-time-picker-trigger:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-time-picker-trigger:disabled {
   cursor: not-allowed;
@@ -855,8 +855,8 @@
   opacity: 1;
 }
 .oh-time-picker-period-cell:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: -2px;
+  outline: 0;
+  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 2px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   opacity: 1;
 }
 .oh-time-picker-period-cell.is-active {
@@ -1708,12 +1708,14 @@
 .oh-post-delete:focus-visible,
 .oh-seg button:focus-visible,
 .oh-tweaks-head button:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-post:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: -6px;
+  outline: 0;
+  /* `oh-post` is a card-shaped surface; use INSET shadow so the ring
+     reads inside the card frame rather than ballooning outside it. */
+  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
 }
 .oh-post-delete:focus-visible {
   opacity: 1;
@@ -2266,9 +2268,10 @@
   border-radius: var(--oh-r-xs);
   transition: box-shadow var(--oh-t-fast);
 }
-.oh-textarea:focus {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+.oh-textarea:focus,
+.oh-textarea:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-textarea[aria-invalid="true"] {
   border-color: var(--oh-ink);
@@ -2624,8 +2627,8 @@
   color: var(--oh-paper);
 }
 .oh-view-toggle:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-view-toggle svg {
   width: 16px;
@@ -2918,8 +2921,8 @@
   opacity: 0.72;
 }
 .oh-day-strip-slide:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 
 /* Day slots below calendar */
@@ -3044,8 +3047,8 @@
   color: var(--oh-paper);
 }
 .oh-slot-chip:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-slot-chip--taken {
   border-style: dashed;
@@ -3753,6 +3756,6 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   transform: rotate(-45deg) translate(1px, -1px);
 }
 .oh-dev-checklist-box:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
