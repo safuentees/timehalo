@@ -134,11 +134,28 @@ export const billing = router({
       };
     }),
 
-  // Mint a Stripe Checkout Session for the requested plan. Returns
-  // the URL the caller should redirect the browser to. The webhook
-  // handler at /api/stripe/webhook persists the resulting
-  // Subscription row when Stripe fires `checkout.session.completed`
-  // — this procedure does not touch the DB.
+  // Mint a Stripe URL for the requested plan transition. Branches:
+  //
+  //   1. **No active subscription** (FREE / canceled / never-paid):
+  //      mint a Stripe Checkout Session. The webhook handler at
+  //      /api/stripe/webhook persists the resulting Subscription
+  //      row when Stripe fires `checkout.session.completed`.
+  //
+  //   2. **Active subscription** (PRO ↔ TEAM, etc.): mint a Stripe
+  //      Customer Portal session in `subscription_update_confirm`
+  //      flow (B.PT89). Stripe's canonical pattern for plan switches
+  //      when an active subscription exists (`/billing/subscriptions/
+  //      upgrade-downgrade`) — without this branch, creating a new
+  //      Checkout Session results in TWO parallel subscriptions on
+  //      the same customer, billing the user for both. The portal
+  //      page shows proration preview + user explicit confirmation,
+  //      and on confirm Stripe fires `customer.subscription.updated`
+  //      which our webhook handler upserts in place.
+  //
+  // Pattern reference: dub apps/web/app/api/workspaces/[idOrSlug]/
+  // billing/upgrade/route.ts:60-79 — same branch + same `flow_data`
+  // shape. cal.com routes orgs/teams URL-first so they don't have
+  // the same shape.
   startCheckout: privateProcedure
     .input(
       z.object({
@@ -157,16 +174,74 @@ export const billing = router({
       const appUrl =
         env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
 
-      // Re-use an existing Stripe customer when the workspace
-      // already has one (post-first-checkout). Otherwise let
-      // Stripe mint one inside the session — its id ships back
-      // through the webhook on `checkout.session.completed` and
-      // gets persisted on the Subscription row.
+      // Read the locally-mirrored Subscription row (B3 invariant —
+      // the row reflects whatever Stripe last fired through the
+      // webhook). stripeSubscriptionId is the bridge to the active
+      // subscription; stripeCustomerId is required for the portal
+      // session.
       const existing = await prisma.subscription.findUnique({
         where: { workspaceId },
-        select: { stripeCustomerId: true },
+        select: {
+          stripeCustomerId: true,
+          stripeSubscriptionId: true,
+        },
       });
 
+      // ─── Plan switch path: active subscription → Customer Portal ──
+      if (
+        existing?.stripeCustomerId &&
+        existing.stripeSubscriptionId
+      ) {
+        // Verify the subscription is actually live in Stripe before
+        // routing to the portal. The local mirror can drift if
+        // webhook events were missed (e.g. Cloudflare Access
+        // intercepting `/api/stripe/webhook`) — falling through to
+        // Checkout when the live sub is canceled is the right
+        // recovery, not crashing on a stale row.
+        let active: Stripe.Subscription | null = null;
+        try {
+          active = await stripe.subscriptions.retrieve(
+            existing.stripeSubscriptionId,
+          );
+        } catch {
+          active = null;
+        }
+        const isActive =
+          active?.status === "active" || active?.status === "trialing";
+        if (active && isActive) {
+          const itemId = active.items.data[0]?.id;
+          if (!itemId) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Active subscription has no items to update.",
+            });
+          }
+          const session = await stripe.billingPortal.sessions.create({
+            customer: existing.stripeCustomerId,
+            return_url: `${appUrl}/settings/billing?billing=success`,
+            flow_data: {
+              type: "subscription_update_confirm",
+              subscription_update_confirm: {
+                subscription: active.id,
+                items: [
+                  { id: itemId, quantity: 1, price: priceId },
+                ],
+              },
+            },
+          });
+          if (!session.url) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Stripe did not return a portal URL.",
+            });
+          }
+          return { url: session.url };
+        }
+        // Fall through to Checkout Session — the local row points at
+        // a Stripe sub that's no longer active (canceled, expired).
+      }
+
+      // ─── Initial-checkout path: no active subscription ──────────
       // Caller's email — useful for Stripe to pre-fill the checkout
       // form. Pulled from the session, not exposed to client.
       const me = await prisma.user.findUnique({

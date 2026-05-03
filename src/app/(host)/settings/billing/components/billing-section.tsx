@@ -9,17 +9,28 @@ import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { BillingFields } from "../../components/billing-fields";
 
-// Closeout sync after Stripe Checkout (B.PT80). Stripe's success_url
-// returns the visitor to `/settings/billing?billing=success` —
-// React Query's `currentPlan` is still showing the old (FREE) plan
-// because the webhook may have just fired or is about to. Without a
-// nudge the user sees stale data until they reload.
+// Closeout sync after Stripe Checkout (B.PT80, refined B.PT89).
+// Stripe's success_url returns the visitor to
+// `/settings/billing?billing=success` — React Query's `currentPlan`
+// is still showing the old (FREE / TEAM / PRO) plan because the
+// webhook may have just fired or is about to. Without a nudge the
+// user sees stale data until they reload.
 //
 // Pattern: dub's modal-provider triggers `mutateWorkspace()` on
 // `?upgraded=true`; we do the equivalent invalidation + poll. Poll
 // budget bounds the worst case (webhook processing slow but eventually
-// succeeds); past budget we toast a "still processing" hint so the
-// user knows to retry rather than wonder why nothing changed.
+// succeeds); past budget we toast a "still processing" hint.
+//
+// B.PT89 — success criterion is **change**, not "non-FREE." The
+// prior `plan !== "FREE"` check fired success on poll #1 for any
+// downgrade-from-paid path (TEAM → PRO starts on TEAM, never goes
+// through FREE, so the toast lied while the actual subscription
+// state never updated). Now we snapshot the cached plan on entry
+// and compare each polled value against the baseline; success only
+// when it CHANGED. Falls back to the prior "non-FREE" criterion
+// when no baseline is available (page hydrated cold without the
+// currentPlan prefetched — unlikely for /settings/billing since
+// page.tsx prefetches it, but defensive).
 //
 // Exposed as a sibling component so the BillingSection's render path
 // stays clean and the effect's lifecycle is scoped to the billing
@@ -42,11 +53,26 @@ function CheckoutReturnSync() {
   // ?billing=success, a stale ref tells us we already ran. Reset on
   // status === "success" entry.
   const sessionStartedRef = useRef(false);
+  // B.PT89 — Pre-checkout plan baseline. Read from cache (no extra
+  // fetch) on `status="success"` entry so polling can detect actual
+  // change (TEAM → PRO) instead of trivial non-FREE. Cleared after
+  // the polling session resolves so a subsequent visit gets a fresh
+  // snapshot.
+  const baselinePlanRef = useRef<string | null>(null);
   useEffect(() => {
     if (status === "success") {
       sessionStartedRef.current = false;
+      const slug =
+        utils.workspaces.list
+          .getData()
+          ?.find((w) => w.isActive)?.slug ??
+        utils.workspaces.list.getData()?.[0]?.slug ??
+        null;
+      baselinePlanRef.current = slug
+        ? (utils.billing.currentPlan.getData({ slug })?.plan ?? null)
+        : null;
     }
-  }, [status]);
+  }, [status, utils]);
 
   useEffect(() => {
     if (status !== "success") return;
@@ -87,9 +113,21 @@ function CheckoutReturnSync() {
       }
       const plan = utils.billing.currentPlan.getData({ slug })?.plan;
 
-      if (plan && plan !== "FREE") {
+      // B.PT89 — success when the plan CHANGED from the baseline,
+      // OR (defensive fallback when no baseline was captured) when
+      // the plan is non-FREE. The defensive path matches the prior
+      // B.PT80 behavior so a cold-cache hydration still ships a
+      // toast on FREE → paid upgrades.
+      const baseline = baselinePlanRef.current;
+      const planChanged =
+        baseline !== null
+          ? plan !== undefined && plan !== baseline
+          : Boolean(plan && plan !== "FREE");
+
+      if (planChanged) {
         toast.success(t("checkoutSuccessToast"));
         router.replace("/settings/billing", { scroll: false });
+        baselinePlanRef.current = null;
         return;
       }
 
@@ -99,6 +137,7 @@ function CheckoutReturnSync() {
         // the user knows to come back / reload.
         toast.info(t("checkoutPendingToast"));
         router.replace("/settings/billing", { scroll: false });
+        baselinePlanRef.current = null;
         return;
       }
 
