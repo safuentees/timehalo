@@ -2773,8 +2773,8 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
 }
 
 .oh-preview-exit:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 
 .oh-preview-exit-icon {
