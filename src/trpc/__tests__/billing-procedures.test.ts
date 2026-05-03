@@ -17,11 +17,13 @@ import {
 
 const checkoutCreate = vi.fn();
 const portalCreate = vi.fn();
+const subscriptionsRetrieve = vi.fn();
 vi.mock("stripe", () => {
   function StripeMock() {
     return {
       checkout: { sessions: { create: checkoutCreate } },
       billingPortal: { sessions: { create: portalCreate } },
+      subscriptions: { retrieve: subscriptionsRetrieve },
     };
   }
   return { default: StripeMock };
@@ -58,6 +60,7 @@ describe("billing procedures (B3)", () => {
   beforeEach(() => {
     checkoutCreate.mockReset();
     portalCreate.mockReset();
+    subscriptionsRetrieve.mockReset();
   });
   afterAll(async () => {
     await tearDownTestHost(host.id);
@@ -133,6 +136,94 @@ describe("billing procedures (B3)", () => {
         ).rejects.toMatchObject({ code: "FORBIDDEN" });
       } finally {
         await tearDownTestHost(member.id);
+      }
+    });
+
+    it("returns Customer Portal URL when an active subscription exists (plan switch)", async () => {
+      await prisma.subscription.updateMany({
+        where: { workspaceId },
+        data: {
+          stripeCustomerId: "cus_test_active",
+          stripeSubscriptionId: "sub_test_active",
+        },
+      });
+      subscriptionsRetrieve.mockResolvedValue({
+        id: "sub_test_active",
+        status: "active",
+        items: { data: [{ id: "si_test_item" }] },
+      });
+      portalCreate.mockResolvedValue({
+        url: "https://billing.stripe.test/portal/bps_switch",
+      });
+      try {
+        const caller = callRouter(fakeContext({ userId: host.id }));
+        const result = await caller.billing.startCheckout({
+          slug: HANDLE,
+          plan: "TEAM",
+        });
+        expect(result.url).toBe(
+          "https://billing.stripe.test/portal/bps_switch",
+        );
+        expect(checkoutCreate).not.toHaveBeenCalled();
+        expect(portalCreate).toHaveBeenCalledTimes(1);
+        const args = portalCreate.mock.calls[0][0];
+        expect(args.customer).toBe("cus_test_active");
+        expect(args.flow_data.type).toBe("subscription_update_confirm");
+        expect(
+          args.flow_data.subscription_update_confirm.subscription,
+        ).toBe("sub_test_active");
+        expect(
+          args.flow_data.subscription_update_confirm.items[0].id,
+        ).toBe("si_test_item");
+        expect(
+          args.flow_data.subscription_update_confirm.items[0].price,
+        ).toBe("price_team_test");
+      } finally {
+        await prisma.subscription.updateMany({
+          where: { workspaceId },
+          data: {
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+          },
+        });
+      }
+    });
+
+    it("falls back to Checkout Session when retrieve says the sub is canceled", async () => {
+      await prisma.subscription.updateMany({
+        where: { workspaceId },
+        data: {
+          stripeCustomerId: "cus_test_drift",
+          stripeSubscriptionId: "sub_test_canceled",
+        },
+      });
+      subscriptionsRetrieve.mockResolvedValue({
+        id: "sub_test_canceled",
+        status: "canceled",
+        items: { data: [{ id: "si_old" }] },
+      });
+      checkoutCreate.mockResolvedValue({
+        url: "https://checkout.stripe.test/pay/cs_test_recovery",
+      });
+      try {
+        const caller = callRouter(fakeContext({ userId: host.id }));
+        const result = await caller.billing.startCheckout({
+          slug: HANDLE,
+          plan: "PRO",
+        });
+        expect(result.url).toBe(
+          "https://checkout.stripe.test/pay/cs_test_recovery",
+        );
+        expect(portalCreate).not.toHaveBeenCalled();
+        expect(checkoutCreate).toHaveBeenCalledTimes(1);
+      } finally {
+        await prisma.subscription.updateMany({
+          where: { workspaceId },
+          data: {
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+          },
+        });
       }
     });
   });

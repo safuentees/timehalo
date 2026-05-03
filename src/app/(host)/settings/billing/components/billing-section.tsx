@@ -18,11 +18,21 @@ function CheckoutReturnSync() {
   const status = searchParams.get("billing");
 
   const sessionStartedRef = useRef(false);
+  const baselinePlanRef = useRef<string | null>(null);
   useEffect(() => {
     if (status === "success") {
       sessionStartedRef.current = false;
+      const slug =
+        utils.workspaces.list
+          .getData()
+          ?.find((w) => w.isActive)?.slug ??
+        utils.workspaces.list.getData()?.[0]?.slug ??
+        null;
+      baselinePlanRef.current = slug
+        ? (utils.billing.currentPlan.getData({ slug })?.plan ?? null)
+        : null;
     }
-  }, [status]);
+  }, [status, utils]);
 
   useEffect(() => {
     if (status !== "success") return;
@@ -55,15 +65,23 @@ function CheckoutReturnSync() {
       }
       const plan = utils.billing.currentPlan.getData({ slug })?.plan;
 
-      if (plan && plan !== "FREE") {
+      const baseline = baselinePlanRef.current;
+      const planChanged =
+        baseline !== null
+          ? plan !== undefined && plan !== baseline
+          : Boolean(plan && plan !== "FREE");
+
+      if (planChanged) {
         toast.success(t("checkoutSuccessToast"));
         router.replace("/settings/billing", { scroll: false });
+        baselinePlanRef.current = null;
         return;
       }
 
       if (Date.now() - startedAt >= POLL_BUDGET_MS) {
         toast.info(t("checkoutPendingToast"));
         router.replace("/settings/billing", { scroll: false });
+        baselinePlanRef.current = null;
         return;
       }
 

@@ -114,8 +114,56 @@ export const billing = router({
 
       const existing = await prisma.subscription.findUnique({
         where: { workspaceId },
-        select: { stripeCustomerId: true },
+        select: {
+          stripeCustomerId: true,
+          stripeSubscriptionId: true,
+        },
       });
+
+      if (
+        existing?.stripeCustomerId &&
+        existing.stripeSubscriptionId
+      ) {
+        let active: Stripe.Subscription | null = null;
+        try {
+          active = await stripe.subscriptions.retrieve(
+            existing.stripeSubscriptionId,
+          );
+        } catch {
+          active = null;
+        }
+        const isActive =
+          active?.status === "active" || active?.status === "trialing";
+        if (active && isActive) {
+          const itemId = active.items.data[0]?.id;
+          if (!itemId) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Active subscription has no items to update.",
+            });
+          }
+          const session = await stripe.billingPortal.sessions.create({
+            customer: existing.stripeCustomerId,
+            return_url: `${appUrl}/settings/billing?billing=success`,
+            flow_data: {
+              type: "subscription_update_confirm",
+              subscription_update_confirm: {
+                subscription: active.id,
+                items: [
+                  { id: itemId, quantity: 1, price: priceId },
+                ],
+              },
+            },
+          });
+          if (!session.url) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Stripe did not return a portal URL.",
+            });
+          }
+          return { url: session.url };
+        }
+      }
 
       const me = await prisma.user.findUnique({
         where: { id: ctx.user.id },
