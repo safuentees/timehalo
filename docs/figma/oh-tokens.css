@@ -1,0 +1,124 @@
+/* ============================================================================
+ * oh-tokens.css — Figma-import-friendly token list for the Officehours
+ * design system. Mirrors the canonical declarations in `src/app/globals.css`
+ * (`:root` + `@theme inline` blocks) but flattens `var()` chains and
+ * resolves `color-mix()` expressions to literal rgba/hex so Figtail and
+ * similar Figma plugins can ingest the values without choking on modern
+ * CSS color math.
+ *
+ * Usage:
+ *   1. Install the **Figtail** Figma plugin
+ *      (https://www.figma.com/community/plugin/1605825399470035343).
+ *   2. In Figma, run Figtail → "Import CSS file" → paste this file.
+ *   3. Figtail creates a Variables collection named "oh" with one
+ *      Variable per `--oh-*` token.
+ *   4. Re-run Figtail after editing this file (or `globals.css`) to
+ *      sync new / changed tokens. Existing variables update by name.
+ *
+ * Source of truth: `src/app/globals.css`. This file is a regenerable
+ * artifact for design-tooling — when tokens change in code, edit this
+ * file in the same commit so the Figma import stays current.
+ * ============================================================================ */
+
+:root {
+  /* ── Colors — base (light theme) ─────────────────────────────────────── */
+  --oh-paper: #eee7d5;
+  --oh-ink: #0a0a0a;
+
+  /* ── Colors — content tiers ──────────────────────────────────────────── */
+  --oh-content-muted: rgba(10, 10, 10, 0.55);    /* 55% ink — body metadata */
+  --oh-content-subtle: rgba(10, 10, 10, 0.35);   /* 35% ink — subtle accents */
+
+  /* ── Colors — lines (3 canonical) ────────────────────────────────────── */
+  --oh-line-default: rgba(10, 10, 10, 0.22);     /* 22% ink — hairlines */
+  --oh-line-strong: #0a0a0a;                     /* 100% ink — hard edges */
+  --oh-line-placeholder: rgba(10, 10, 10, 0.12); /* 12% ink — empty/placeholder */
+
+  /* ── Colors — tint surfaces ──────────────────────────────────────────── */
+  --oh-tint: rgba(10, 10, 10, 0.06);             /* 6% ink — hover/active bg */
+  --oh-tint-hover: rgba(10, 10, 10, 0.06);       /* alias of --oh-tint */
+  --oh-tint-active: rgba(10, 10, 10, 0.06);      /* alias of --oh-tint */
+
+  /* ── Colors — frame + input states (resolved color-mix on paper+ink) ─── */
+  --oh-frame: #d3ccbd;             /* 12% ink + 88% paper, sRGB */
+  --oh-input-bg-hover: #e2dbc9;    /* 96% paper + 4% ink */
+  --oh-input-bg-focus: #d6cfbd;    /* 92% paper + 8% ink */
+
+  /* ── Colors — placeholder text ───────────────────────────────────────── */
+  --oh-placeholder: rgba(10, 10, 10, 0.35);      /* alias of --oh-content-subtle */
+
+  /* ── Typography — families ───────────────────────────────────────────── */
+  --font-sans: "Space Grotesk";
+  --font-heading: "Space Grotesk";
+  --font-mono: "JetBrains Mono";
+
+  /* ── Typography — sizes (clamps decompose to their min for Figma) ────── */
+  --text-oh-meta: 10px;       /* metadata, eyebrow second tier */
+  --text-oh-sub: 13px;        /* subhead, body second tier */
+  --text-oh-body: 15px;       /* body */
+  --text-oh-strong: 18px;     /* min of clamp(18px, 1.1rem + 0.4vw, 22px) */
+  --text-oh-h3: 22px;         /* min of clamp(22px, 1.4rem + 0.6vw, 28px) */
+  --text-oh-h2: 26px;         /* min of clamp(26px, 1.5rem + 1vw, 32px) */
+  --text-oh-h1: 36px;         /* min of clamp(36px, 2rem + 2.5vw, 56px) */
+
+  /* ── Typography — line-heights (paired with each size) ───────────────── */
+  --text-oh-meta--line-height: 1.4;
+  --text-oh-sub--line-height: 1.5;
+  --text-oh-body--line-height: 1.55;
+  --text-oh-strong--line-height: 1.25;
+  --text-oh-h3--line-height: 1.1;
+  --text-oh-h2--line-height: 1.05;
+  --text-oh-h1--line-height: 1;
+
+  /* ── Radius scale ────────────────────────────────────────────────────── */
+  --oh-r-xs: 2px;              /* chips, segments */
+  --oh-r-sm: 6px;              /* structural — ALL cards/inputs/dialogs */
+  --oh-r-window: 18px;         /* outer dashboard panel */
+
+  /* ── Motion — easing ─────────────────────────────────────────────────── */
+  --ease-oh: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Motion — durations + curves (transition shorthands as STRING) ───── */
+  --oh-t-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);   /* buttons, chips */
+  --oh-t-fade: 200ms cubic-bezier(0.16, 1, 0.3, 1);   /* overlays, tooltips */
+  --oh-t-veil: 240ms cubic-bezier(0.16, 1, 0.3, 1);   /* backdrop, modal */
+
+  /* ── Focus — shadows (paired halo + ring composition) ────────────────── */
+  --oh-focus-halo: 0 0 0 1px #eee7d5;                   /* 1px paper halo */
+  --oh-focus-ring: 0 0 0 3px rgba(10, 10, 10, 0.18);    /* 3px ink ring 18% */
+
+  /* ── Dashboard chrome dimensions ─────────────────────────────────────── */
+  --oh-dashboard-bar-height: 28px;        /* 32px ≥ md viewports */
+  --oh-dashboard-bar-block: 40px;         /* height + 12px top padding */
+
+  /* ── Modal dimensions ────────────────────────────────────────────────── */
+  --oh-modal-w: 720px;
+  --oh-modal-vinset: 56px;
+  --oh-modal-edge: 24px;
+
+  /* ── Chip dimensions ─────────────────────────────────────────────────── */
+  --oh-chip-edge: 20px;
+  --oh-chip-gap: 8px;
+}
+
+/* ── Dark theme override (Figma can hold both as Variable Modes) ─────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --oh-paper: #0a0a0a;
+    --oh-ink: #ede4cf;
+
+    /* All ink-derived colors recompute against the swapped values; the
+       formulas above stay correct (e.g. `--oh-line-default` is still 22%
+       of ink, just on the dark variant). For Figma Mode setup, define
+       the same variable names with the dark-theme literal values:
+         --oh-content-muted: rgba(237, 228, 207, 0.55);
+         --oh-content-subtle: rgba(237, 228, 207, 0.35);
+         --oh-line-default: rgba(237, 228, 207, 0.22);
+         --oh-line-strong: #ede4cf;
+         --oh-line-placeholder: rgba(237, 228, 207, 0.12);
+         --oh-tint: rgba(237, 228, 207, 0.06);
+         --oh-frame: ~#28251c   (12% paper + 88% ink, sRGB)
+       Then bind the Mode toggle in Figma's library to switch values
+       under the same Variable name. */
+  }
+}
