@@ -200,6 +200,29 @@
   --oh-focus-ring: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   --oh-focus-shadow: var(--oh-focus-halo), var(--oh-focus-ring);
 
+  /* Input-specific focus shadow. Adds an INSET 1px ink stroke to the
+     halo+ring stack — visually thickens the focused field's border
+     from 1.5 → 2.5px without changing border-width (which would
+     shift layout 0.5px on focus and read as a jump). cal.com plays
+     this trick via `focus:border-emphasis`; we do it via inset
+     box-shadow because our rest border is already at full ink so
+     there's no "stronger" color to swap to. The visible result is
+     the same: focused field reads as actively engaged, not
+     decorated-from-the-outside-only.
+     NOT applied to buttons / menu items / chrome triggers — those
+     have their own fill at rest, an inset ink stroke would compete
+     with it. They keep --oh-focus-shadow. */
+  --oh-focus-shadow-input:
+    inset 0 0 0 1px var(--oh-ink),
+    var(--oh-focus-halo),
+    var(--oh-focus-ring);
+
+  /* Input-state background tints. Subtle warm lift signals
+     interactivity (hover) and active engagement (focus). Rest stays
+     at pure paper so the brutalist DNA is preserved. */
+  --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
+  --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
+
   /* Soft-brutalist radius scale — concentric-friendly.
      Apple's outer = inner + padding law applied manually:
      md (12px) outer shells - ~6px padding = sm (6px) cards
@@ -1658,22 +1681,31 @@
   outline: 0;
   border-radius: var(--oh-r-xs);
   transition:
-    box-shadow var(--oh-t-fast),
-    transform var(--oh-t-fast);
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
 }
 .oh-input::placeholder {
   color: var(--oh-placeholder);
 }
-/* B.PT105 — focus-visible (not :focus) so mouse clicks don't trigger
-   the keyboard-nav ring. Drops the legacy `outline: 2px solid ink +
-   2px offset` for the soft halo+ring shadow. Border stays at the
-   rest-state ink edge (1.5px); the shadow does the focus signaling.
-   The `:focus` selector still mirrors the `:focus-visible` rule for
-   browsers / mobile keyboards that don't fire focus-visible. */
+/* Hover — subtle warm bg lift signals interactivity. No movement,
+   no border-color change (border is already at full ink). Apple HIG
+   "subtle and visible" — tells the user "this is interactive"
+   without competing with the value they're about to type.
+   `:not(:focus)` so the hover treatment doesn't fight the focus
+   treatment when both fire. */
+.oh-input:hover:not(:focus):not(:focus-visible):not([disabled]) {
+  background: var(--oh-input-bg-hover);
+}
+/* Focus / focus-visible — bg lifts further, plus the input-specific
+   focus shadow (inset ink stroke that thickens the visible border
+   from 1.5 → 2.5px, plus the universal halo+ring). The `:focus`
+   selector mirrors `:focus-visible` for browsers / mobile keyboards
+   that don't fire focus-visible. */
 .oh-input:focus,
 .oh-input:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea {
   resize: vertical;
@@ -2266,12 +2298,19 @@
   line-height: 1.45;
   resize: vertical;
   border-radius: var(--oh-r-xs);
-  transition: box-shadow var(--oh-t-fast);
+  transition:
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
+}
+/* Mirror oh-input — hover bg lift + focus inset-thickened border. */
+.oh-textarea:hover:not(:focus):not(:focus-visible):not([disabled]) {
+  background: var(--oh-input-bg-hover);
 }
 .oh-textarea:focus,
 .oh-textarea:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea[aria-invalid="true"] {
   border-color: var(--oh-ink);

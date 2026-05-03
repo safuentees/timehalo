@@ -75,24 +75,29 @@ export default function CredentialsForm() {
         <label htmlFor="login-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        {/* Hotfix — height parity with the email row above. shadcn's
-            `<InputGroup>` ships hardcoded `h-8` (32px); shadcn's
-            `<Input>` (which `<InputGroupInput>` extends) ALSO ships
-            hardcoded `h-8`. Both clamp the wrapper at 32px regardless
-            of the inline `py-2.5 text-[15px]` we pass. The bare `<input
-            className="oh-input">` above renders ~46px (padding: 11px×2
-            + line-height 1.4 × 15px + 1.5px×2 border). Override both
-            layers — wrapper to `h-[46px]`, inner to `h-full` — so the
-            password row matches. Same approach future password fields
-            should use until we ship a project-wide oh-input-group
-            primitive that owns the height vocabulary. */}
-        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+        {/* Wrapper mirrors `.oh-input`'s tiered interaction states so
+            the password row matches the email row above:
+              rest   → 1.5px ink edge + paper bg
+              hover  → +4% bg lift (signals interactivity)
+              focus  → +8% bg lift + `--oh-focus-shadow-input`
+                       (inset 1px ink that visually thickens the
+                       border 1.5 → 2.5px, plus paper halo + soft
+                       outer ring)
+            Height pinned to 46px to override shadcn's hardcoded h-8
+            (also on the inner Input — see `h-full` below).
+            Inner `<Input>`'s own `oh-focus-ring` shadow is killed
+            via `focus-visible:[box-shadow:none]!` so the focus signal
+            paints once on the WRAPPER, never inside the bordered
+            field. shadcn's InputGroup is designed for this "wrapper
+            owns the focus" pattern; we just route it through our
+            tokens instead of `--ring`. */}
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] focus-within:[box-shadow:var(--oh-focus-shadow-input)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
             placeholder={t("fieldPasswordPlaceholder")}
             autoComplete="current-password"
-            className="h-full px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
+            className="h-full bg-transparent px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus-visible:[box-shadow:none]!"
             {...register("password")}
           />
           <InputGroupAddon align="inline-end" className="bg-transparent pr-2">
