@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -9,6 +9,12 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
+import {
+  buildDayNameOf,
+  formatDayLabel,
+  validateDraft,
+  type DayLabelStrings,
+} from "./format-day-label";
 import {
   ResponsiveModal,
   ResponsiveModalClose,
@@ -28,18 +34,6 @@ export {
 } from "@/lib/schedule";
 export type { ScheduleValues as AvailabilityValues } from "@/lib/schedule";
 
-const DAYS: ReadonlyArray<{ key: DayKey; short: string; long: string }> = [
-  { key: "mon", short: "Mon", long: "Monday" },
-  { key: "tue", short: "Tue", long: "Tuesday" },
-  { key: "wed", short: "Wed", long: "Wednesday" },
-  { key: "thu", short: "Thu", long: "Thursday" },
-  { key: "fri", short: "Fri", long: "Friday" },
-  { key: "sat", short: "Sat", long: "Saturday" },
-  { key: "sun", short: "Sun", long: "Sunday" },
-] as const;
-
-const WEEKDAYS: ReadonlySet<DayKey> = new Set(["mon", "tue", "wed", "thu", "fri"]);
-const WEEKENDS: ReadonlySet<DayKey> = new Set(["sat", "sun"]);
 const DAY_INDEX: Record<DayKey, number> = Object.fromEntries(
   DAY_KEYS.map((key, index) => [key, index]),
 ) as Record<DayKey, number>;
@@ -178,18 +172,20 @@ function BlockChip({
   onEdit: () => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
+  const dayLabel = formatDayLabel(block.days, "short", labelStrings);
   return (
     <button
       type="button"
       onClick={onEdit}
       className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editBlockAria", {
-        days: formatDayLabel(block.days),
+        days: dayLabel,
         time: formatTimeRange(block.from, block.to),
       })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="oh-eyebrow">{formatDayLabel(block.days)}</span>
+        <span className="oh-eyebrow">{dayLabel}</span>
         <span className="text-[18px] leading-[1.1] font-black tabular-nums">
           {formatTimeRange(block.from, block.to)}
         </span>
@@ -250,13 +246,14 @@ function BlockEditorContent({
   onRemove?: () => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   const [draft, setDraft] = useState<BlockDraft>(state.draft);
   const [daysOpen, setDaysOpen] = useState(false);
   useEffect(() => {
     setDraft(state.draft);
   }, [state]);
 
-  const errorKey = validateDraft(draft, otherBlocks);
+  const errorKey = validateDraft(draft, otherBlocks, labelStrings.nameOf);
   const error =
     errorKey === null
       ? null
@@ -291,7 +288,7 @@ function BlockEditorContent({
             <ResponsiveModalDescription className="sr-only">
               {draft.days.length === 0
                 ? t("errorNeedsDay")
-                : formatDayLabel(draft.days)}
+                : formatDayLabel(draft.days, "short", labelStrings)}
             </ResponsiveModalDescription>
           </div>
           <ResponsiveModalClose />
@@ -384,8 +381,11 @@ function DaysRowButton({
   onOpen: () => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   const label =
-    days.length === 0 ? t("pickDays") : formatDayLabel(days, "long");
+    days.length === 0
+      ? t("pickDays")
+      : formatDayLabel(days, "long", labelStrings);
   return (
     <button
       type="button"
@@ -459,6 +459,7 @@ function DayPickerDrawer({
   toggleDay: (day: DayKey) => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   return (
     <ResponsiveModal
       open={open}
@@ -476,7 +477,9 @@ function DayPickerDrawer({
                 {t("days")}
               </ResponsiveModalTitle>
               <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
-                {days.length === 0 ? t("none") : formatDayLabel(days, "long")}
+                {days.length === 0
+                  ? t("none")
+                  : formatDayLabel(days, "long", labelStrings)}
               </p>
             </div>
             <ResponsiveModalClose />
@@ -484,15 +487,18 @@ function DayPickerDrawer({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           <div className="flex flex-col gap-1.5">
-            {DAYS.map((day) => (
-              <DayToggle
-                key={day.key}
-                label={day.long}
-                longLabel={day.long}
-                selected={days.includes(day.key)}
-                onClick={() => toggleDay(day.key)}
-              />
-            ))}
+            {DAY_KEYS.map((key) => {
+              const long = labelStrings.nameOf(key, "long");
+              return (
+                <DayToggle
+                  key={key}
+                  label={long}
+                  longLabel={long}
+                  selected={days.includes(key)}
+                  onClick={() => toggleDay(key)}
+                />
+              );
+            })}
           </div>
         </div>
         <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
@@ -569,66 +575,17 @@ function blocksToSchedule(blocks: Block[]): ScheduleValues {
   return next;
 }
 
-function validateDraft(draft: BlockDraft, others: Block[]): string | null {
-  if (draft.days.length === 0) return "needsDay";
-  if (draft.from >= draft.to) return "endBeforeStart";
-  for (const other of others) {
-    const shared = draft.days.filter((d) => other.days.includes(d));
-    if (shared.length === 0) continue;
-    if (draft.from < other.to && other.from < draft.to) {
-      return `overlap:${shared
-        .map((d) => DAYS.find((x) => x.key === d)?.short ?? d)
-        .join(", ")}`;
-    }
-  }
-  return null;
-}
-
-function formatDayLabel(days: DayKey[], length: "short" | "long" = "short"): string {
-  if (days.length === 0) return "No days";
-  const name = (key: DayKey) => {
-    const meta = DAYS.find((d) => d.key === key);
-    if (!meta) return key;
-    return length === "long" ? meta.long : meta.short;
-  };
-  if (days.length === 7) return "Every day";
-  if (
-    days.length === 5 &&
-    days.every((d) => WEEKDAYS.has(d)) &&
-    WEEKDAYS.size === days.length
-  )
-    return `${name("mon")} – ${name("fri")}`;
-  if (
-    days.length === 2 &&
-    days.every((d) => WEEKENDS.has(d)) &&
-    WEEKENDS.size === days.length
-  )
-    return `${name("sat")} – ${name("sun")}`;
-
-  const sorted = sortDays(days);
-  const indices = sorted.map((d) => DAY_INDEX[d]);
-  const runs: Array<[number, number]> = [];
-  let start = indices[0];
-  let prev = start;
-  for (let i = 1; i < indices.length; i++) {
-    const curr = indices[i];
-    if (curr === prev + 1) {
-      prev = curr;
-    } else {
-      runs.push([start, prev]);
-      start = curr;
-      prev = curr;
-    }
-  }
-  runs.push([start, prev]);
-
-  return runs
-    .map(([s, e]) =>
-      s === e
-        ? name(sorted[indices.indexOf(s)])
-        : `${name(sorted[indices.indexOf(s)])} – ${name(sorted[indices.indexOf(e)])}`,
-    )
-    .join(", ");
+function useDayLabelStrings(): DayLabelStrings {
+  const format = useFormatter();
+  const t = useTranslations("Availability");
+  return useMemo(
+    () => ({
+      nameOf: buildDayNameOf(format),
+      empty: t("noDays"),
+      everyDay: t("everyDay"),
+    }),
+    [format, t],
+  );
 }
 
 function formatTimeRange(from: string, to: string): string {

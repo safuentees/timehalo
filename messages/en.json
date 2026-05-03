@@ -485,6 +485,8 @@
     "addBlockHint": "Add a block to tell visitors when they can book you.",
     "errorNeedsDay": "Pick at least one day",
     "errorEndBeforeStart": "End must be after start",
-    "errorOverlap": "Overlaps on {days}"
+    "errorOverlap": "Overlaps on {days}",
+    "noDays": "No days",
+    "everyDay": "Every day"
   }
 }
