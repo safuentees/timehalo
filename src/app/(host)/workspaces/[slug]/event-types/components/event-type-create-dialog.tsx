@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 import { useCreateEventType } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
@@ -44,18 +45,19 @@ const defaultValues: FormValues = {
 };
 
 export function EventTypeCreateDialog({ slug }: { slug: string }) {
+  const t = useTranslations("EventTypes");
   const [open, setOpen] = useState(false);
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild id="oh-create-event-type-trigger">
         <Button variant="oh" size="oh">
-          Add event type
+          {t("addButton")}
         </Button>
       </ResponsiveModalTrigger>
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>New event type</ResponsiveModalTitle>
+          <ResponsiveModalTitle>{t("createTitle")}</ResponsiveModalTitle>
         </ResponsiveModalHeader>
         <CreateForm slug={slug} onDone={() => setOpen(false)} />
       </ResponsiveModalContent>
@@ -70,6 +72,7 @@ function CreateForm({
   slug: string;
   onDone: () => void;
 }) {
+  const t = useTranslations("EventTypes");
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -112,12 +115,12 @@ function CreateForm({
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("nameLabel")}</FieldLabel>
               <input
                 {...field}
                 id={field.name}
                 type="text"
-                placeholder="30-min consult"
+                placeholder={t("namePlaceholder")}
                 aria-invalid={fieldState.invalid}
                 className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px]"
               />
@@ -133,12 +136,12 @@ function CreateForm({
           name="eventTypeSlug"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("slugLabel")}</FieldLabel>
               <input
                 {...field}
                 id={field.name}
                 type="text"
-                placeholder="consult-30"
+                placeholder={t("slugPlaceholder")}
                 aria-invalid={fieldState.invalid}
                 className="oh-input mt-3 font-[family-name:var(--oh-mono)] text-[14px] lowercase"
               />
@@ -154,7 +157,7 @@ function CreateForm({
           name="durationMins"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Duration (minutes)</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("durationLabel")}</FieldLabel>
               <input
                 id={field.name}
                 name={field.name}
@@ -188,7 +191,7 @@ function CreateForm({
             onClick={onDone}
             disabled={isPending}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="submit"
@@ -196,7 +199,7 @@ function CreateForm({
             size="oh"
             disabled={isPending}
           >
-            {isPending ? "Creating…" : "Create"}
+            {isPending ? t("submitCreatePending") : t("submitCreate")}
           </Button>
         </ResponsiveModalFooter>
       </form>

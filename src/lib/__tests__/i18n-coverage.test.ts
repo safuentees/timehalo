@@ -34,6 +34,7 @@ const CLEAN_DIRS = [
   "src/app/register", // B.PT26 + B.PT92 — register page + form
   "src/app/(host)/availability", // B.PT26B — availability form chrome
   "src/app/(host)/profile", // B.PT93 — profile-form + handle-fields
+  "src/app/(host)/workspaces/[slug]/event-types", // B.PT103 — event-types panel + 3 dialogs
 ] as const;
 
 // Specific files (not whole dirs) that have been localized. Useful
