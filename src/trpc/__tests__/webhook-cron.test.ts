@@ -35,13 +35,13 @@ const HANDLE = "vitest-cron";
 const CRON_SECRET = "vitest-cron-secret";
 
 function authedRequest() {
-  return new Request("http://localhost:3000/api/cron/process-tasks", {
+  return new Request("http://localhost:3001/api/cron/process-tasks", {
     method: "POST",
     headers: { authorization: `Bearer ${CRON_SECRET}` },
   });
 }
 function unauthedRequest() {
-  return new Request("http://localhost:3000/api/cron/process-tasks", {
+  return new Request("http://localhost:3001/api/cron/process-tasks", {
     method: "POST",
   });
 }
@@ -106,7 +106,7 @@ describe("cron — webhook delivery processor", () => {
 
   it("rejects requests with the wrong bearer token (401)", async () => {
     const res = await cronHandler(
-      new Request("http://localhost:3000/api/cron/process-tasks", {
+      new Request("http://localhost:3001/api/cron/process-tasks", {
         method: "POST",
         headers: { authorization: "Bearer wrong-token" },
       }),

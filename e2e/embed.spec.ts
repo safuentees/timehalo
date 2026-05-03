@@ -16,7 +16,7 @@ import { TEST_HANDLE } from "./test-constants";
 //
 // We host the parent page as a plain HTML file under `e2e/fixtures/`
 // served by Playwright via the `file://` protocol. The iframe inside
-// it is cross-origin (`http://localhost:3000`) to the parent, which
+// it is cross-origin (`http://localhost:3001`) to the parent, which
 // is the canonical embed scenario — postMessage must work across
 // origins or the loader is not actually production-ready.
 
@@ -31,7 +31,7 @@ test("embed loader injects an iframe + emits size postMessage + renders the book
   });
   page.on("pageerror", (err) => consoleErrors.push(err.message));
 
-  const url = `file://${FIXTURE_PATH}?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3000")}`;
+  const url = `file://${FIXTURE_PATH}?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3001")}`;
 
   await page.goto(url, { waitUntil: "load" });
 

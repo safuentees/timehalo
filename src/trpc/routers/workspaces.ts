@@ -628,7 +628,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const acceptUrl = `${appUrl}/invitations/${token}`;
       await scheduleEmailSend({
         payload: {
@@ -766,7 +766,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
 
       // One transaction: every invitation row commits or none.
       // Email Tasks fire OUTSIDE the transaction so a delivery-
@@ -868,7 +868,7 @@ export const workspaces = router({
       });
       const inviterName =
         inviter?.name ?? inviter?.handle ?? "An Officehours user";
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const acceptUrl = `${appUrl}/invitations/${token}`;
       // Bump the referenceUid suffix so the dedup index doesn't
       // collapse this email into the original `:email` row. Each

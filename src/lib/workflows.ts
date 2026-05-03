@@ -232,7 +232,7 @@ function buildTemplateProps(
   template: TemplateName,
   opts: WorkflowDispatchOpts,
 ): TemplatePropsMap[TemplateName] | null {
-  const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   const confirmationUrl = `${appUrl}/h/${opts.booking.hostHandle}/booked/${opts.booking.bookingPublicUid}`;
 
   switch (template) {

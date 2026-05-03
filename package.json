@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:lan": "next dev -H 0.0.0.0 --experimental-https --experimental-https-key ./.certs/dev-key.pem --experimental-https-cert ./.certs/dev-cert.pem",
+    "dev": "next dev -p 3001",
+    "dev:lan": "next dev -p 3001 -H 0.0.0.0 --experimental-https --experimental-https-key ./.certs/dev-key.pem --experimental-https-cert ./.certs/dev-cert.pem",
     "dev:cron": "node scripts/dev-cron.mjs",
     "dev:logged": "./scripts/dev-logged.sh",
     "stripe:logged": "./scripts/stripe-logged.sh",

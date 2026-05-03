@@ -51,7 +51,7 @@ export const calendar = router({
       // in 1439e7f's commit message.
       requireFeature(await planForUser(ctx.user.id), "calendar.connect");
 
-      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       // The state binds the OAuth redirect to the calling user — we
       // verify on callback so a stranger can't drop a refresh_token
       // onto someone else's account by intercepting the redirect.

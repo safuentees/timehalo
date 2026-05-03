@@ -100,7 +100,7 @@ export const env = createEnv({
   client: {
     /**
      * Public app URL for outbound emails (confirmation links). When
-     * unset, code falls back to "http://localhost:3000" so dev still
+     * unset, code falls back to "http://localhost:3001" so dev still
      * works without `.env` plumbing.
      */
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),

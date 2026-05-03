@@ -431,7 +431,7 @@ export const bookings = router({
             // queued via Task, processed off-path so a Resend hiccup
             // can't roll back the booking write.
             const hostName = host.name ?? host.handle ?? "your host";
-            const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+            const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
             const confirmationUrl = `${appUrl}/h/${input.handle}/booked/${booking.publicUid}`;
             await scheduleEmailSend({
               payload: {
@@ -1325,7 +1325,7 @@ export const bookings = router({
             const hostName =
               host.name ?? host.handle ?? "your host";
             const appUrl =
-              env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+              env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
             const confirmationUrl = `${appUrl}/h/${host.handle}/booked/${created.publicUid}`;
             await scheduleEmailSend({
               payload: {

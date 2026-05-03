@@ -40,7 +40,7 @@ const HANDLE = "vitest-cal-cron";
 const CRON_SECRET = "vitest-cal-cron-secret";
 
 function authedRequest() {
-  return new Request("http://localhost:3000/api/cron/process-tasks", {
+  return new Request("http://localhost:3001/api/cron/process-tasks", {
     method: "POST",
     headers: { authorization: `Bearer ${CRON_SECRET}` },
   });

@@ -155,7 +155,7 @@ export const billing = router({
       const stripe = getStripe();
       const priceId = priceIdForPlan(input.plan);
       const appUrl =
-        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
 
       // Re-use an existing Stripe customer when the workspace
       // already has one (post-first-checkout). Otherwise let
@@ -229,7 +229,7 @@ export const billing = router({
 
       const stripe = getStripe();
       const appUrl =
-        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
       const session = await stripe.billingPortal.sessions.create({
         customer: sub.stripeCustomerId,
         return_url: `${appUrl}/settings/billing`,

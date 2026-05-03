@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Playwright config — minimal. Boots `pnpm dev` if not already
-// running, points at localhost:3000, runs Chromium-only (we don't
+// running, points at localhost:3001, runs Chromium-only (we don't
 // need Firefox/Safari coverage for hydration smoke tests).
 
 export default defineConfig({
@@ -21,7 +21,7 @@ export default defineConfig({
   retries: 0,
   reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3001",
     // Only capture trace on first failure — saves disk on green runs.
     trace: "retain-on-failure",
   },
@@ -63,7 +63,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "pnpm dev",
-    url: "http://localhost:3000",
+    url: "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     stdout: "ignore",
