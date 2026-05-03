@@ -24,7 +24,7 @@
 // Idempotent: re-running with the same args is a no-op (upsert).
 // Safe in dev — refuses to run when NODE_ENV === "production".
 
-import { PrismaClient } from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 
 type CliArgs = {
   workspace: string;
@@ -76,7 +76,6 @@ async function main() {
   }
 
   const args = parseArgs(process.argv.slice(2));
-  const prisma = new PrismaClient();
 
   console.log(
     `[seed-team-event-type] workspace=${args.workspace} eventType=${args.eventType} duration=${args.duration} hosts=${args.hosts.join(",") || "(owner only)"}`,
