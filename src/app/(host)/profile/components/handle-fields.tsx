@@ -1,6 +1,7 @@
 "use client";
 
 import { Controller } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 import { Field, FieldError } from "@/components/ui/field";
 import {
@@ -28,6 +29,7 @@ type FormShape = { handle: string };
  * `Controller` auto-reads `control` from FormProvider context — no prop.
  */
 export function HandleFields() {
+  const t = useTranslations("Profile");
   return (
     <Controller<FormShape>
       name="handle"
@@ -37,7 +39,7 @@ export function HandleFields() {
             <OhInputGroupInput
               {...field}
               id={field.name}
-              placeholder="alex"
+              placeholder={t("handlePlaceholder")}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}

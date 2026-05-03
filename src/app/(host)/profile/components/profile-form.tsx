@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,6 +32,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function ProfileForm() {
+  const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
@@ -67,16 +69,15 @@ export default function ProfileForm() {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <OhPageShell>
-          <OhPageHeader title="Public profile" />
+          <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
                 <FieldLegend className="oh-legend opacity-100">
-                  Public handle
+                  {t("handleLegend")}
                 </FieldLegend>
                 <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
-                  The slug visitors use to reach your booking page —
-                  officehours.app/h/&lt;handle&gt;.
+                  {t("handleDescription")}
                 </FieldDescription>
                 <FieldGroup>
                   <HandleFields />
@@ -88,9 +89,9 @@ export default function ProfileForm() {
             isPending={saveHandle.isPending}
             isDirty={form.formState.isDirty}
             labels={{
-              save: "Save changes",
-              saving: "Saving…",
-              saved: "Saved",
+              save: t("saveLabel"),
+              saving: t("savingLabel"),
+              saved: t("savedLabel"),
             }}
           />
         </OhPageShell>

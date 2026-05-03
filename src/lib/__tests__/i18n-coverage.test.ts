@@ -33,6 +33,14 @@ const CLEAN_DIRS = [
   "src/app/login", // B.PT26 + B.PT92 — login page + form sub-components
   "src/app/register", // B.PT26 + B.PT92 — register page + form
   "src/app/(host)/availability", // B.PT26B — availability form chrome
+  "src/app/(host)/profile", // B.PT93 — profile-form + handle-fields
+] as const;
+
+// Specific files (not whole dirs) that have been localized. Useful
+// for one-off pages at a route-group root that we don't want to
+// scan the whole dir for.
+const CLEAN_FILES = [
+  "src/app/(host)/error.tsx", // B.PT93 — host segment-level error boundary
 ] as const;
 
 // User-visible JSX attributes — strings here render to the user
@@ -62,6 +70,9 @@ const ALLOW_LIST: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
   // chrome the user sees their handle suffixed against; not a
   // translatable label.
   { pattern: /^officehours\.app\/h\/$/, reason: "domain prefix chrome" },
+  // URL routing prefix used as input-group chrome (handle field's
+  // /h/ addon). Not English; identical across locales.
+  { pattern: /^\/h\/$/, reason: "URL routing prefix chrome" },
   // Personal-name placeholders that are also brand-neutral
   // identifiers (visitor booking name field shows "Alex" as a
   // sample first name; locale-agnostic, name catalog is huge).
@@ -358,6 +369,26 @@ describe("i18n — no hardcoded English in localized dirs", () => {
         `Hardcoded English found in localized dir.\nViolations:\n${offenders.join(
           "\n",
         )}\n\nFix paths:\n  - Wrap the string with t("...") from useTranslations\n  - Add a key to messages/en.json + messages/es.json\n  - If the string is intentionally not-translated (brand name, RFC 2606 email, etc.) extend ALLOW_LIST in this test with a justification.`,
+      ).toEqual([]);
+    });
+  }
+
+  // Per-clean-file contract. Single files we've localized but
+  // haven't expanded the parent dir to CLEAN_DIRS for (avoiding
+  // false-positive noise from sibling un-localized files).
+  for (const cleanFile of CLEAN_FILES) {
+    it(`${cleanFile} — no hardcoded English`, () => {
+      const filePath = join(repoRoot, cleanFile);
+      const content = readFileSync(filePath, "utf8");
+      const violations = findViolations(content);
+      const offenders = violations.map(
+        (v) => `${cleanFile}:${v.line}: ${v.snippet}`,
+      );
+      expect(
+        offenders,
+        `Hardcoded English found in localized file.\nViolations:\n${offenders.join(
+          "\n",
+        )}`,
       ).toEqual([]);
     });
   }

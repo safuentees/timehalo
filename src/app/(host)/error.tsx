@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
@@ -29,27 +30,24 @@ export default function HostError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("HostError");
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
 
   return (
     <OhPageShell>
-      <OhPageHeader title="Something went sideways" />
+      <OhPageHeader title={t("title")} />
       <div className="mt-8 flex flex-col gap-6">
-        <p className="oh-description">
-          An unexpected error fired on this page. The booking flow
-          itself is unaffected — try again, or pick a different
-          section from the sidebar.
-        </p>
+        <p className="oh-description">{t("body")}</p>
         {error.digest ? (
           <p className="oh-eyebrow tabular-nums opacity-65">
-            Reference {error.digest}
+            {t("reference", { digest: error.digest })}
           </p>
         ) : null}
         <div>
           <Button type="button" variant="oh" size="oh" onClick={() => reset()}>
-            Try again
+            {t("tryAgain")}
           </Button>
         </div>
       </div>

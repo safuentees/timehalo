@@ -524,6 +524,21 @@
     "savingLabel": "Saving…",
     "savedLabel": "Saved"
   },
+  "Profile": {
+    "pageTitle": "Public profile",
+    "handleLegend": "Public handle",
+    "handleDescription": "The slug visitors use to reach your booking page — officehours.app/h/<handle>.",
+    "handlePlaceholder": "alex",
+    "saveLabel": "Save changes",
+    "savingLabel": "Saving…",
+    "savedLabel": "Saved"
+  },
+  "HostError": {
+    "title": "Something went sideways",
+    "body": "An unexpected error fired on this page. The booking flow itself is unaffected — try again, or pick a different section from the sidebar.",
+    "reference": "Reference {digest}",
+    "tryAgain": "Try again"
+  },
   "BookingCalendar": {
     "triggerEmpty": "Pick a date",
     "triggerEmptyAria": "Pick a date",
