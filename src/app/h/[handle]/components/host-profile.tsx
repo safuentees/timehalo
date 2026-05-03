@@ -16,6 +16,7 @@ import {
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import {
   AvailabilityDrawer,
   TriggerCard,
@@ -148,9 +149,9 @@ export default function HostProfile({
   const hasOpenSlots = availableSlots.length > 0;
 
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
-      <div className="border-b border-oh-line">
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <OhVisitorShell
+      header={
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
             /h/{user.handle}
           </span>
@@ -167,8 +168,8 @@ export default function HostProfile({
             </span>
           </div>
         </div>
-      </div>
-
+      }
+    >
       {rescheduleFromUid ? (
         <div
           role="status"
@@ -178,7 +179,7 @@ export default function HostProfile({
             <span className="oh-eyebrow opacity-100">{t("rescheduling")}</span>
             <a
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="oh-eyebrow opacity-55 transition-opacity hover:opacity-100"
+              className="oh-focus-ring oh-eyebrow rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
             >
               {t("cancel")}
             </a>
@@ -264,7 +265,7 @@ export default function HostProfile({
           }}
         />
       ) : null}
-    </main>
+    </OhVisitorShell>
   );
 }
 
