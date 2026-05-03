@@ -37,6 +37,11 @@ const PLAYGROUND_ROUTES = [
   "/playground/pages/handle",
   "/playground/pages/booked",
   "/playground/animations/chrome-morph",
+  // Per-variant full-screen routes (B.PT124) — the chrome morph at
+  // production scale, one variant per page.
+  "/playground/animations/chrome-morph/a",
+  "/playground/animations/chrome-morph/b",
+  "/playground/animations/chrome-morph/c",
   "/playground/animations/hamburger-morph",
   "/playground/animations/mobile-nav",
   "/playground/animations/bookings-tabs",
