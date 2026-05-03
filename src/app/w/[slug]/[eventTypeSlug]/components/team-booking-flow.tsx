@@ -186,7 +186,7 @@ function SlotPicker({
                     type="button"
                     onClick={() => onPick(slot)}
                     aria-label={`Book ${format.dateTime(new Date(slot.start), { hour: "numeric", minute: "2-digit" })}`}
-                    className="w-full rounded-(--oh-r-sm) border border-oh-line bg-oh-bg px-3 py-2.5 text-center font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-90 transition-colors duration-150 ease-oh hover:border-oh-line-strong hover:bg-oh-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
+                    className="oh-focus-ring w-full rounded-(--oh-r-sm) border border-oh-line bg-oh-bg px-3 py-2.5 text-center font-[family-name:var(--oh-mono)] text-[13px] tabular-nums opacity-90 transition-colors duration-150 ease-oh hover:border-oh-line-strong hover:bg-oh-tint"
                   >
                     {format.dateTime(new Date(slot.start), {
                       hour: "numeric",

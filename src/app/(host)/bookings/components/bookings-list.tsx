@@ -303,9 +303,8 @@ const BookingTabTrigger = forwardRef<
         // `transition-all` from tabs.tsx (line 61), which would
         // otherwise re-introduce a 150ms color fade on data-active flip.
         "transition-none",
-        // Focus ring sits 4px out from the text — readable without
-        // crashing into the count or the separator.
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-4",
+        // B.PT105 — unified focus shadow vocabulary (oh-focus-ring class).
+        "oh-focus-ring",
         // Suppress iOS Safari's grey tap highlight (same convention as
         // OhMenuTrigger — chrome-toggle pattern).
         "[-webkit-tap-highlight-color:transparent]",
@@ -538,7 +537,7 @@ function EmptyBookings({ tab }: { tab: Tab }) {
             // empty state intends — visible enough to act on, quiet enough
             // not to compete with the title/icon. Hover lifts both to full
             // ink (the standard tertiary dashboard pattern).
-            className="text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2"
+            className="oh-focus-ring text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
           >
             {t("emptyCta")}
           </Link>

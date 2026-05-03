@@ -304,7 +304,7 @@ function ChromeIconLink({
       // and look darker than the rest of the lines. opacity-[0.55]
       // matches `--oh-content-muted`'s 55% perceived dimness; hover
       // lifts to opacity-100 in sync with the bg-tint reveal.
-      className="group/chrome inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2 [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh group-hover/chrome:[&_svg]:opacity-100 hover:[&_svg]:opacity-100"
+      className="oh-focus-ring group/chrome inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh group-hover/chrome:[&_svg]:opacity-100 hover:[&_svg]:opacity-100"
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
     </Link>

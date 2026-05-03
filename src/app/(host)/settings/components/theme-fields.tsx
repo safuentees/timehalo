@@ -86,7 +86,7 @@ export function ThemeFields() {
           <button
             type="button"
             onClick={() => setTheme("system")}
-            className="rounded-(--oh-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-oh-tint focus-visible:bg-oh-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-oh-content focus-visible:outline-offset-2"
+            className="oh-focus-ring rounded-(--oh-r-xs) -mx-1 px-1 underline underline-offset-2 decoration-[1.5px] transition-colors hover:bg-oh-tint focus-visible:bg-oh-tint"
           >
             {t("themeFollowOs")}
           </button>

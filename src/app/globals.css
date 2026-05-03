@@ -178,6 +178,28 @@
   --oh-tint-active: var(--oh-tint);
   --oh-placeholder: var(--oh-content-subtle);
 
+  /* ─── Focus shadow vocabulary (B.PT105) — single source of truth
+     for every focus-visible state across the app. Pre-B.PT105 the
+     `oh-input` rule used `outline: 2px solid var(--oh-ink); outline-
+     offset: 2px;` and chrome triggers used the equivalent Tailwind
+     `focus-visible:outline-2 focus-visible:outline-offset-2` — both
+     read as a popping border that competed with the input's own
+     1.5px ink edge for the user's attention (Apple HIG "subtle and
+     visible" violation).
+     The new shape is a two-layer box-shadow halo+ring (cal.com
+     pattern, adapted to oh tokens):
+       1. `--oh-focus-halo`: 1px paper-color halo. Separates the ring
+          from the focused element's own border so the ring reads as
+          orbital glow, not a thicker border.
+       2. `--oh-focus-ring`: 3px soft ink ring at 18% opacity. Loud
+          enough to satisfy a11y keyboard-nav contrast, soft enough
+          not to compete with the value the user is editing.
+     Apply via the `.oh-focus-ring` utility (below) or `box-shadow:
+     var(--oh-focus-shadow)` on focus-visible directly. ─── */
+  --oh-focus-halo: 0 0 0 1px var(--oh-paper);
+  --oh-focus-ring: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  --oh-focus-shadow: var(--oh-focus-halo), var(--oh-focus-ring);
+
   /* Soft-brutalist radius scale — concentric-friendly.
      Apple's outer = inner + padding law applied manually:
      md (12px) outer shells - ~6px padding = sm (6px) cards
@@ -1603,6 +1625,27 @@
   opacity: 0.55;
 }
 
+/* B.PT105 — single focus-visible utility every interactive element
+   composes with. Replaces:
+     - `focus-visible:outline focus-visible:outline-2
+        focus-visible:outline-[var(--oh-ink)] focus-visible:outline-
+        offset-2` (legacy oh chrome — sidebar nav rows, dashboard
+        chrome icons, mobile menu trigger, sidebar collapse)
+     - `focus-visible:border-ring focus-visible:ring-3 focus-
+        visible:ring-ring/50` (vendored shadcn primitives — Input,
+        Textarea, Button, Switch, Tabs, Toggle, Badge, Slider, Item)
+   Single source of truth = `--oh-focus-shadow`. Tweak the ring
+   opacity once via the token, every focusable element follows.
+   `:focus-visible` (not `:focus`) so mouse clicks don't trigger the
+   ring — matches Apple HIG "subtle and visible" for keyboard users
+   only. The selector `.oh-focus-ring:focus-visible` instead of a
+   `:focus-visible` modifier so Tailwind v4's `@apply` users can pick
+   it up cleanly. */
+.oh-focus-ring:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
+}
+
 .oh-input {
   width: 100%;
   background: var(--oh-paper);
@@ -1621,9 +1664,16 @@
 .oh-input::placeholder {
   color: var(--oh-placeholder);
 }
-.oh-input:focus {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+/* B.PT105 — focus-visible (not :focus) so mouse clicks don't trigger
+   the keyboard-nav ring. Drops the legacy `outline: 2px solid ink +
+   2px offset` for the soft halo+ring shadow. Border stays at the
+   rest-state ink edge (1.5px); the shadow does the focus signaling.
+   The `:focus` selector still mirrors the `:focus-visible` rule for
+   browsers / mobile keyboards that don't fire focus-visible. */
+.oh-input:focus,
+.oh-input:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 .oh-textarea {
   resize: vertical;

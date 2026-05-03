@@ -160,7 +160,7 @@ export function OhMenuTrigger({ className }: { className?: string }) {
         // Suppress iOS Safari's default grey tap highlight so the
         // morph animation has the activation feedback to itself.
         "[-webkit-tap-highlight-color:transparent]",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--oh-ink)] focus-visible:outline-offset-2",
+        "oh-focus-ring",
         className,
       )}
     >
