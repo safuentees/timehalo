@@ -3752,3 +3752,37 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   outline: 2px solid var(--oh-ink);
   outline-offset: 2px;
 }
+
+/* ────────────────────────────────────────────────────────────────────
+   Global reduced-motion blanket (B.PT118).
+
+   Per-component rules earlier in this file already short-circuit specific
+   animations (`oh-ticker`, `oh-v1-pulse`, `oh-live-pulse`,
+   `oh-progress-shimmer`, the View Transitions chrome morph, the
+   Firefox panel transition fallback, the preview-exit pill keyframe). The
+   three GSAP timelines (`oh-app-sidebar.tsx` mobile-nav stagger,
+   `oh-menu-trigger.tsx` hamburger morph, `bookings-list.tsx` tab underline
+   FLIP) self-gate via `gsap.matchMedia()` / direct `matchMedia` checks.
+
+   This blanket rule catches everything else — `tw-animate-css` utility
+   classes, ad-hoc `transition-*` on individual components, future motion
+   added without a per-component reduced-motion override. The user
+   requested motion off; the user gets motion off. No exceptions are
+   currently needed (where motion was deemed essential, the existing
+   `@media (prefers-reduced-motion: no-preference)` blocks gate motion
+   IN rather than out).
+
+   Pattern is the canonical one from Tailwind CSS / web.dev / cal.com:
+   collapse `animation-duration` + `transition-duration` to 0.01ms
+   (effectively instant but retains the property so resting states are
+   not skipped) and reset iteration count + scroll behavior. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
