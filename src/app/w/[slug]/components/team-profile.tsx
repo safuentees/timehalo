@@ -54,6 +54,34 @@ export default function TeamProfile({ slug, initialWorkspace }: Props) {
           <p className="oh-description">{t("description")}</p>
         </header>
 
+        {/* B.PT62b — team event types section. Renders only when the
+            workspace has at least one team event type (>1 hosts, per
+            branch 1's implicit-team-type rule). Above the members
+            list because team booking is the higher-leverage path
+            once the workspace has team event types — visitors can
+            book a slot on an event type without picking a host
+            themselves. */}
+        {workspace.teamEventTypes.length > 0 ? (
+          <section
+            className="mt-12"
+            aria-label={t("eventTypesLabel")}
+          >
+            <h2 className="oh-legend mb-4 opacity-100">
+              {t("eventTypesHeading")}
+            </h2>
+            <ul
+              role="list"
+              className="border-y border-oh-line divide-y divide-oh-line"
+            >
+              {workspace.teamEventTypes.map((et) => (
+                <li key={et.slug}>
+                  <EventTypeRow slug={workspace.slug} eventType={et} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <section className="mt-12" aria-label={t("listLabel")}>
           <h2 className="oh-legend mb-4 opacity-100">{t("listHeading")}</h2>
           {workspace.members.length === 0 ? (
@@ -73,6 +101,40 @@ export default function TeamProfile({ slug, initialWorkspace }: Props) {
         </section>
       </OhPageShell>
     </main>
+  );
+}
+
+type TeamEventType =
+  RouterOutputs["workspaces"]["publicGetBySlug"]["teamEventTypes"][number];
+
+function EventTypeRow({
+  slug,
+  eventType,
+}: {
+  slug: string;
+  eventType: TeamEventType;
+}) {
+  const t = useTranslations("TeamProfile");
+  return (
+    <Link
+      href={`/w/${slug}/${eventType.slug}`}
+      className="group flex items-center gap-4 px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
+    >
+      <div className="flex flex-1 flex-col leading-tight">
+        <span className="text-[15px] font-semibold">{eventType.name}</span>
+        <span className="oh-eyebrow tabular-nums">
+          {t("eventTypeMeta", {
+            minutes: eventType.durationMins,
+            count: eventType.hostCount,
+          })}
+        </span>
+      </div>
+      <ArrowRightIcon
+        aria-hidden
+        strokeWidth={1.75}
+        className="size-4 opacity-55 transition-opacity duration-150 group-hover:opacity-100"
+      />
+    </Link>
   );
 }
 

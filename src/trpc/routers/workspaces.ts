@@ -628,6 +628,61 @@ export const workspaces = router({
       };
     }),
 
+  // B.PT62b — public confirmation read for team bookings. Matches a
+  // booking by (workspaceSlug, eventTypeSlug, publicUid) — the URL
+  // path the visitor lands on post-`bookForTeam`. Returns booking +
+  // assigned host info so the confirmation page can reveal the host
+  // (branch 5 — host hidden DURING the flow, revealed HERE).
+  // Distinct from `bookings.getPublicConfirmation` which keys by
+  // handle (personal flow); team bookings don't have a handle in
+  // their URL.
+  publicGetTeamConfirmation: publicProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        eventTypeSlug: z.string().min(1).max(60),
+        bookingUid: z.string().min(1),
+      }),
+    )
+    .query(async ({ input }) => {
+      const booking = await prisma.booking.findFirst({
+        where: {
+          publicUid: input.bookingUid,
+          deleted: false,
+          eventType: {
+            slug: input.eventTypeSlug,
+            workspace: { slug: input.slug },
+          },
+        },
+        select: {
+          publicUid: true,
+          slotStart: true,
+          slotEnd: true,
+          host: {
+            select: {
+              name: true,
+              handle: true,
+              image: true,
+              timezone: true,
+            },
+          },
+          eventType: {
+            select: {
+              name: true,
+              durationMins: true,
+            },
+          },
+        },
+      });
+      if (!booking) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Booking not found",
+        });
+      }
+      return booking;
+    }),
+
   // ─── Workspace lifecycle (B5) ────────────────────────────────────
   //
   // Closes the followups doc's B6 lifecycle four-pack: rename +
