@@ -519,6 +519,29 @@
 .oh-menu-item[data-highlighted] {
   background: var(--oh-tint-hover);
 }
+/* B.PT95 — Visible disabled state for menu items mid-async-op
+   (workspace switcher rows go disabled while the active-workspace
+   cookie + invalidate + refresh resolve in B.PT84). Base UI's
+   `disabled` prop sets `[data-disabled]` on the rendered item AND
+   blocks interaction, but ships no visual treatment — so the user
+   saw no feedback that the rows were inert. 55% opacity matches
+   the project's `--oh-content-muted` tier; `cursor: wait`
+   communicates in-progress; `pointer-events: none` belt-and-
+   suspenders against any focus-keyboard hover that slips past
+   Base UI's interaction guard. Picked row (`[data-pending]`)
+   keeps full opacity because it carries its own spinner glyph —
+   dimming it would fight the spinner for the user's attention. */
+.oh-menu-item[data-disabled]:not([data-pending]) {
+  opacity: 0.55;
+  cursor: wait;
+  pointer-events: none;
+}
+.oh-menu-item[data-disabled]:not([data-pending])[data-highlighted] {
+  background: transparent;
+}
+.oh-menu-item[data-pending] {
+  cursor: wait;
+}
 .oh-menu-item-glyph {
   display: inline-flex;
   align-items: center;
