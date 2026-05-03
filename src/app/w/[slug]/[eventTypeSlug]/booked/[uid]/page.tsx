@@ -4,6 +4,7 @@ import { getTranslations, getFormatter } from "next-intl/server";
 import { CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
 
 // B.PT62b — team booking confirmation page. Per branch 5, this is
@@ -52,8 +53,12 @@ export default async function TeamBookingConfirmationPage({
     .slice(0, 2)
     .toUpperCase();
 
+  // B.PT112 — OhVisitorShell consumer. No header/footer slots — this
+  // confirmation page reads as a centered receipt; the OhPageShell
+  // tight column owns the content layout, the visitor shell only
+  // provides viewport-fill discipline.
   return (
-    <main className="min-h-screen bg-oh-bg" id="top">
+    <OhVisitorShell>
       <OhPageShell tight>
         <header className="flex flex-col items-center gap-4 text-center">
           <CheckCircle2
@@ -130,6 +135,6 @@ export default async function TeamBookingConfirmationPage({
           {t("confirmationEmailSent")}
         </p>
       </OhPageShell>
-    </main>
+    </OhVisitorShell>
   );
 }
