@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -22,19 +23,29 @@ type Props = {
   children: ReactNode;
 };
 
-const WEEKDAY_LABELS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"] as const;
-
 export function MonthDrawer({
   slots,
   selectedDate,
   onSelectDate,
   months = 3,
-  title = "CHOOSE A DATE",
-  description = "Pick a date from the full month calendar.",
+  title,
+  description,
   children,
 }: Props) {
+  const t = useTranslations("BookingCalendar");
   const [open, setOpen] = useState(false);
   const densityMap = useMemo(() => computeDensityMap(slots), [slots]);
+  const resolvedTitle = title ?? t("monthDrawerTitle");
+  const resolvedDescription = description ?? t("monthDrawerDescription");
+  const weekdayLabels: ReadonlyArray<string> = [
+    t("weekdayNarrowSun"),
+    t("weekdayNarrowMon"),
+    t("weekdayNarrowTue"),
+    t("weekdayNarrowWed"),
+    t("weekdayNarrowThu"),
+    t("weekdayNarrowFri"),
+    t("weekdayNarrowSat"),
+  ];
 
   function handlePick(d: Date) {
     onSelectDate(d);
@@ -47,17 +58,17 @@ export function MonthDrawer({
       <ResponsiveModalContent mobileClassName="oh-drawer-content-nested">
         <ResponsiveModalHeader className="oh-drawer-head">
           <ResponsiveModalTitle className="oh-drawer-title">
-            {title}
+            {resolvedTitle}
           </ResponsiveModalTitle>
           <ResponsiveModalDescription className="sr-only">
-            {description}
+            {resolvedDescription}
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         <div className="oh-drawer-weekdays" aria-hidden="true">
-          {WEEKDAY_LABELS.map((d) => (
-            <span key={d} className="oh-drawer-weekdays-cell">
-              {d}
+          {weekdayLabels.map((label, i) => (
+            <span key={i} className="oh-drawer-weekdays-cell">
+              {label}
             </span>
           ))}
         </div>
