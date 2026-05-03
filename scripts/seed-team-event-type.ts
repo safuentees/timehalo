@@ -24,6 +24,12 @@
 // Idempotent: re-running with the same args is a no-op (upsert).
 // Safe in dev — refuses to run when NODE_ENV === "production".
 
+// Load `.env` so DATABASE_URL is available — Next.js + Playwright
+// load `.env` automatically; a standalone tsx run does not. MUST be
+// the first import so `@/lib/prisma`'s module-load reads
+// `process.env.DATABASE_URL` after dotenv has populated it.
+import "dotenv/config";
+
 import { prisma } from "@/lib/prisma";
 
 type CliArgs = {
