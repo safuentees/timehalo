@@ -18,18 +18,16 @@ const DevChecklistContent = lazy(() =>
   })),
 );
 
-type TabId = "recent" | "features";
+export type ChecklistTab = {
+  id: string;
+  label: string;
+  markdown: string;
+  storageScope?: string;
+};
 
-export function DevChecklistLauncher({
-  features,
-  recent,
-}: {
-  features: string | null;
-  recent: string | null;
-}) {
+export function DevChecklistLauncher({ tabs }: { tabs: ChecklistTab[] }) {
   const [open, setOpen] = useState(false);
-  const initialTab: TabId = recent !== null ? "recent" : "features";
-  const [tab, setTab] = useState<TabId>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(tabs[0]?.id ?? "");
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
@@ -63,30 +61,33 @@ export function DevChecklistLauncher({
               <p className="oh-eyebrow opacity-55">Loading checklist…</p>
             }
           >
-            {recent !== null && features !== null ? (
+            {tabs.length > 1 ? (
               <Tabs
-                value={tab}
-                onValueChange={(value) => setTab(value as TabId)}
+                value={activeTab}
+                onValueChange={setActiveTab}
                 className="gap-4"
               >
                 <TabsList variant="line" className="self-start">
-                  <TabsTrigger value="recent">Recent</TabsTrigger>
-                  <TabsTrigger value="features">All features</TabsTrigger>
+                  {tabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
-                <TabsContent value="recent">
-                  <DevChecklistContent
-                    markdown={recent}
-                    storageScope="recent"
-                  />
-                </TabsContent>
-                <TabsContent value="features">
-                  <DevChecklistContent markdown={features} />
-                </TabsContent>
+                {tabs.map((tab) => (
+                  <TabsContent key={tab.id} value={tab.id}>
+                    <DevChecklistContent
+                      markdown={tab.markdown}
+                      storageScope={tab.storageScope}
+                    />
+                  </TabsContent>
+                ))}
               </Tabs>
-            ) : recent !== null ? (
-              <DevChecklistContent markdown={recent} storageScope="recent" />
-            ) : features !== null ? (
-              <DevChecklistContent markdown={features} />
+            ) : tabs.length === 1 ? (
+              <DevChecklistContent
+                markdown={tabs[0].markdown}
+                storageScope={tabs[0].storageScope}
+              />
             ) : null}
           </Suspense>
         </ResponsiveModalBody>

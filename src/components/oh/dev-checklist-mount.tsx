@@ -3,7 +3,10 @@ import { join } from "node:path";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdminHandle } from "@/lib/admin";
-import { DevChecklistLauncher } from "./dev-checklist-launcher";
+import {
+  DevChecklistLauncher,
+  type ChecklistTab,
+} from "./dev-checklist-launcher";
 
 export async function DevChecklistMount() {
   const session = await auth();
@@ -14,11 +17,42 @@ export async function DevChecklistMount() {
   });
   if (!isAdminHandle(me?.handle)) return null;
 
-  const features = safeRead("docs/features-and-tests.md");
-  const recent = safeRead("docs/recent-changes-checklist.md");
-  if (features === null && recent === null) return null;
+  const tabSpecs: Array<{
+    label: string;
+    relativePath: string;
+    storageScope?: string;
+  }> = [
+    {
+      label: "2026-05-03",
+      relativePath: "docs/qa-pass-2026-05-03-checklist.md",
+      storageScope: "qa-05-03",
+    },
+    {
+      label: "2026-05-02",
+      relativePath: "docs/recent-changes-checklist.md",
+      storageScope: "recent",
+    },
+    {
+      label: "All features",
+      relativePath: "docs/features-and-tests.md",
+    },
+  ];
 
-  return <DevChecklistLauncher features={features} recent={recent} />;
+  const tabs: ChecklistTab[] = [];
+  for (const spec of tabSpecs) {
+    const markdown = safeRead(spec.relativePath);
+    if (markdown === null) continue;
+    tabs.push({
+      id: spec.storageScope ?? "default",
+      label: spec.label,
+      markdown,
+      storageScope: spec.storageScope,
+    });
+  }
+
+  if (tabs.length === 0) return null;
+
+  return <DevChecklistLauncher tabs={tabs} />;
 }
 
 function safeRead(relativePath: string): string | null {
