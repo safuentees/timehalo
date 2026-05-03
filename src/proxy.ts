@@ -29,13 +29,24 @@ export const proxy = auth((req) => {
   // logic still gets to inspect the route.
   const isEmbed =
     pathname === "/embed.js" || pathname.startsWith("/embed/");
+  // B.PT120 — `(dev)/playground/*` is gated to non-prod via
+  // `notFound()` in `src/app/(dev)/layout.tsx`, so in production the
+  // route 404s regardless of whether the proxy lets it through. In
+  // dev, the proxy MUST let it through anonymously — the playground
+  // exists explicitly to render UI without auth, against seeded mock
+  // data, for visual regression + animation iteration. Adding it here
+  // does not change production behavior (still 404s in prod), only
+  // unblocks the dev-only debug surface.
+  const isPlayground =
+    pathname === "/playground" || pathname.startsWith("/playground/");
 
   // Public routes — accessible without auth
   const isPublic =
     ["/login", "/register"].includes(pathname) ||
     isHostPage ||
     isInvitationLink ||
-    isEmbed;
+    isEmbed ||
+    isPlayground;
 
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl.origin));
