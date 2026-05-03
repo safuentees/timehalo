@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import {
   ErrorShell,
@@ -15,15 +16,16 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("AppError");
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
 
   return (
     <ErrorShell
-      label="Officehours / 500"
-      title="Something went sideways."
-      description="An unexpected error fired on this page. The booking flow itself is unaffected — try the link below, or reload."
+      label={t("label")}
+      title={t("title")}
+      description={t("description")}
       actions={
         <Button
           type="button"
@@ -31,23 +33,23 @@ export default function ErrorPage({
           size="oh"
           onClick={() => reset()}
         >
-          Try again
+          {t("tryAgain")}
         </Button>
       }
     >
       <ErrorShellLink
         href="/"
-        title="Home"
-        description="Start over"
+        title={t("homeTitle")}
+        description={t("homeDescription")}
       />
       <ErrorShellLink
         href="/bookings"
-        title="Your bookings"
-        description="If you're a host"
+        title={t("bookingsTitle")}
+        description={t("bookingsDescription")}
       />
       {error.digest ? (
         <li className="font-[family-name:var(--oh-mono)] text-[10px] tracking-[1.5px] uppercase opacity-55">
-          digest: {error.digest}
+          {t("digestLabel", { digest: error.digest })}
         </li>
       ) : null}
     </ErrorShell>

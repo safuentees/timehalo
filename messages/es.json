@@ -635,6 +635,57 @@
     "billing": "Facturación",
     "deleteAccount": "Eliminar cuenta"
   },
+  "Chrome": {
+    "workspaceSwitcherFallback": "Espacios",
+    "workspaceSwitcherGroupLabel": "Espacios",
+    "switchWorkspaceError": "No se pudo cambiar de espacio.",
+    "createWorkspace": "Crear espacio",
+    "manageWorkspaces": "Gestionar espacios",
+    "bookingsAria": "Reservas",
+    "settingsAria": "Ajustes",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "Onboarding": {
+    "sectionAria": "Lista de bienvenida",
+    "hideAria": "Ocultar lista",
+    "gettingStarted": "Empezando ({done}/{total})",
+    "percentSetUp": "{percent}% configurado",
+    "openLink": "Abrir →",
+    "markDone": "Marcar hecho",
+    "stepHandleTitle": "Elige un usuario",
+    "stepHandleDescription": "Tu URL pública — officehours.app/h/tu-usuario. Aquí reservan los visitantes.",
+    "stepTimezoneTitle": "Configura tu zona horaria",
+    "stepTimezoneDescription": "Tus horas semanales se interpretan en esta zona. UTC por defecto solo funciona si vives en UTC.",
+    "stepAvailabilityTitle": "Dibuja tus horas semanales",
+    "stepAvailabilityDescription": "Cuándo estás disponible. Los visitantes solo ven huecos dentro de estas ventanas.",
+    "stepShareTitle": "Comparte tu enlace",
+    "stepShareDescription": "Publica la URL donde la gente que te reservaría realmente está.",
+    "stepFirstBookingTitle": "Consigue tu primera reserva",
+    "stepFirstBookingDescription": "Se marca solo cuando un visitante reserva un hueco."
+  },
+  "NotFound": {
+    "label": "Officehours / 404",
+    "title": "Página no encontrada.",
+    "description": "El enlace que seguiste se rompió, o nunca existió. Tres sitios donde ir en su lugar:",
+    "homeTitle": "Inicio",
+    "homeDescription": "Empieza aquí",
+    "signInTitle": "Iniciar sesión",
+    "signInDescription": "Si tienes cuenta",
+    "createAccountTitle": "Crear cuenta",
+    "createAccountDescription": "Si no la tienes"
+  },
+  "AppError": {
+    "label": "Officehours / 500",
+    "title": "Algo se torció.",
+    "description": "Ocurrió un error inesperado en esta página. El flujo de reservas no se ve afectado — prueba el enlace de abajo, o recarga.",
+    "tryAgain": "Reintentar",
+    "homeTitle": "Inicio",
+    "homeDescription": "Empezar de cero",
+    "bookingsTitle": "Tus reservas",
+    "bookingsDescription": "Si eres anfitrión",
+    "digestLabel": "digest: {digest}"
+  },
   "BookingConfirmation": {
     "headerHomeAria": "Inicio de Officehours",
     "badgeBooked": "Reservado",

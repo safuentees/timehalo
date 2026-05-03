@@ -635,6 +635,57 @@
     "billing": "Billing",
     "deleteAccount": "Delete account"
   },
+  "Chrome": {
+    "workspaceSwitcherFallback": "Workspaces",
+    "workspaceSwitcherGroupLabel": "Workspaces",
+    "switchWorkspaceError": "Couldn't switch workspace.",
+    "createWorkspace": "Create workspace",
+    "manageWorkspaces": "Manage workspaces",
+    "bookingsAria": "Bookings",
+    "settingsAria": "Settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "Onboarding": {
+    "sectionAria": "Getting started checklist",
+    "hideAria": "Hide checklist",
+    "gettingStarted": "Getting started ({done}/{total})",
+    "percentSetUp": "{percent}% set up",
+    "openLink": "Open →",
+    "markDone": "Mark done",
+    "stepHandleTitle": "Pick a handle",
+    "stepHandleDescription": "Your public URL — officehours.app/h/your-handle. Visitors book here.",
+    "stepTimezoneTitle": "Set your timezone",
+    "stepTimezoneDescription": "Your weekly hours interpret in this zone. Default UTC works only if you live in UTC.",
+    "stepAvailabilityTitle": "Draw your weekly hours",
+    "stepAvailabilityDescription": "When you're available. Visitors only see slots inside these windows.",
+    "stepShareTitle": "Share your link",
+    "stepShareDescription": "Post the URL where the people who'd book you actually hang out.",
+    "stepFirstBookingTitle": "Get your first booking",
+    "stepFirstBookingDescription": "Auto-checks once a visitor books a slot."
+  },
+  "NotFound": {
+    "label": "Officehours / 404",
+    "title": "Page not found.",
+    "description": "The link you followed has rotted, or never existed. Three places to land instead:",
+    "homeTitle": "Home",
+    "homeDescription": "Start here",
+    "signInTitle": "Sign in",
+    "signInDescription": "If you have an account",
+    "createAccountTitle": "Create an account",
+    "createAccountDescription": "If you don't"
+  },
+  "AppError": {
+    "label": "Officehours / 500",
+    "title": "Something went sideways.",
+    "description": "An unexpected error fired on this page. The booking flow itself is unaffected — try the link below, or reload.",
+    "tryAgain": "Try again",
+    "homeTitle": "Home",
+    "homeDescription": "Start over",
+    "bookingsTitle": "Your bookings",
+    "bookingsDescription": "If you're a host",
+    "digestLabel": "digest: {digest}"
+  },
   "BookingConfirmation": {
     "headerHomeAria": "Officehours home",
     "badgeBooked": "Booked",

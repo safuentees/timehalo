@@ -14,6 +14,11 @@ const CLEAN_FILES = [
   "src/app/(host)/error.tsx", // B.PT93 — host segment-level error boundary
   "src/components/oh/oh-app-sidebar.tsx", // B.PT101 — sidebar nav labels + aria
   "src/app/h/[handle]/booked/[bookingUid]/booking-confirmation.tsx", // B.PT101 — visitor booking receipt
+  "src/components/oh/oh-dashboard-bar.tsx", // B.PT102 — dashboard top bar (workspace switcher + chrome icon links)
+  "src/components/oh/oh-menu-trigger.tsx", // B.PT102 — mobile menu hamburger trigger
+  "src/components/oh/onboarding-checklist.tsx", // B.PT102 — getting-started checklist
+  "src/app/not-found.tsx", // B.PT102 — global 404
+  "src/app/error.tsx", // B.PT102 — global error boundary
 ] as const;
 
 const VISIBLE_ATTRS = [

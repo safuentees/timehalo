@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
@@ -14,6 +15,7 @@ const X_LINES = "M5 5 L19 19 M19 5 L5 19"; // top-left↘ + top-right↙
 
 export function OhMenuTrigger({ className }: { className?: string }) {
   const { openMobile, toggleSidebar } = useSidebar();
+  const t = useTranslations("Chrome");
   const containerRef = useRef<HTMLButtonElement>(null);
   const morphRef = useRef<SVGPathElement>(null);
   const middleRef = useRef<SVGPathElement>(null);
@@ -91,7 +93,7 @@ export function OhMenuTrigger({ className }: { className?: string }) {
       ref={containerRef}
       type="button"
       onClick={toggleSidebar}
-      aria-label={openMobile ? "Close menu" : "Open menu"}
+      aria-label={openMobile ? t("closeMenu") : t("openMenu")}
       aria-expanded={openMobile}
       className={cn(
         "inline-flex size-7 items-center justify-center rounded-(--oh-r-xs)",
