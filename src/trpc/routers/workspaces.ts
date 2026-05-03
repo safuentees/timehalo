@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { env } from "@/env";
 import { generateApiKey } from "@/lib/api-keys";
-import { scheduleEmailSend } from "@/lib/tasks";
+import {
+  findActiveSubscriptionsForEvent,
+  scheduleEmailSend,
+  scheduleWebhookDelivery,
+} from "@/lib/tasks";
 import {
   WORKSPACE_SCOPES,
   INVITATION_EXPIRY_MS,
@@ -19,7 +23,19 @@ import {
   planForWorkspace,
   requireFeature,
 } from "@/lib/billing";
-import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
+import { selectHost } from "@/lib/round-robin";
+import { findBusyHostIds } from "@/lib/calendar";
+import { bumpRecentAssignments } from "@/lib/event-types";
+import {
+  generateTeamUpcomingSlots,
+  resolveTeamEventType,
+} from "@/lib/team-event-type";
+import {
+  createRateLimitMiddleware,
+  privateProcedure,
+  publicProcedure,
+  router,
+} from "@/trpc/trpc";
 
 const workspaceMembershipRoleSchema = z.enum([
   "OWNER",
@@ -191,10 +207,330 @@ export const workspaces = router({
           timezone: m.user.timezone,
         }));
 
+      const eventTypes = await prisma.eventType.findMany({
+        where: { workspaceId: workspace.id },
+        select: {
+          slug: true,
+          name: true,
+          durationMins: true,
+          _count: { select: { hosts: true } },
+        },
+        orderBy: { name: "asc" },
+      });
+      const teamEventTypes = eventTypes
+        .filter((e) => e._count.hosts > 1)
+        .map((e) => ({
+          slug: e.slug,
+          name: e.name,
+          durationMins: e.durationMins,
+          hostCount: e._count.hosts,
+        }));
+
       return {
         slug: workspace.slug,
         name: workspace.name,
         members,
+        teamEventTypes,
+      };
+    }),
+
+  publicGetEventType: publicProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        eventTypeSlug: z.string().min(1).max(60),
+      }),
+    )
+    .query(async ({ input }) => {
+      const resolved = await resolveTeamEventType(
+        input.slug,
+        input.eventTypeSlug,
+      );
+      if (!resolved) throw new TRPCError({ code: "NOT_FOUND" });
+      return {
+        workspaceSlug: resolved.workspaceSlug,
+        workspaceName: resolved.workspaceName,
+        slug: resolved.slug,
+        name: resolved.name,
+        durationMins: resolved.durationMins,
+        hostCount: resolved.hosts.length,
+        hostAvatars: resolved.hostUsers.map((u) => u.image),
+      };
+    }),
+
+  publicGetUpcomingSlotsForEventType: publicProcedure
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        eventTypeSlug: z.string().min(1).max(60),
+        days: z.number().int().min(1).max(14).default(7),
+      }),
+    )
+    .query(async ({ input }) => {
+      const resolved = await resolveTeamEventType(
+        input.slug,
+        input.eventTypeSlug,
+      );
+      if (!resolved) throw new TRPCError({ code: "NOT_FOUND" });
+      return generateTeamUpcomingSlots({
+        eventType: resolved,
+        days: input.days,
+      });
+    }),
+
+  bookForTeam: publicProcedure
+    .use(createRateLimitMiddleware("workspaces.bookForTeam", 10, "1 m"))
+    .input(
+      z.object({
+        slug: workspaceSlugSchema,
+        eventTypeSlug: z.string().min(1).max(60),
+        slotStart: z.string(),
+        idempotencyKey: z.string().uuid(),
+        visitorName: z.string().min(1).max(120),
+        visitorEmail: z.string().email(),
+        question: z.string().max(2000).optional(),
+        visitorTimezone: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const bookingSelect = {
+        id: true,
+        publicUid: true,
+        slotStart: true,
+        slotEnd: true,
+      } as const;
+
+      const existingByKey = await prisma.booking.findFirst({
+        where: { idempotencyKey: input.idempotencyKey, deleted: false },
+        select: {
+          ...bookingSelect,
+          host: { select: { name: true, handle: true, image: true } },
+        },
+      });
+      if (existingByKey) {
+        return {
+          publicUid: existingByKey.publicUid,
+          slotStart: existingByKey.slotStart,
+          slotEnd: existingByKey.slotEnd,
+          assignedHost: {
+            name: existingByKey.host.name,
+            handle: existingByKey.host.handle,
+            image: existingByKey.host.image,
+          },
+        };
+      }
+
+      const resolved = await resolveTeamEventType(
+        input.slug,
+        input.eventTypeSlug,
+      );
+      if (!resolved) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const slotStart = new Date(input.slotStart);
+      if (Number.isNaN(slotStart.getTime())) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid slot timestamp",
+        });
+      }
+      if (slotStart.getTime() <= Date.now()) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That slot is in the past",
+        });
+      }
+
+      const slotEnd = new Date(
+        slotStart.getTime() + resolved.durationMins * 60_000,
+      );
+
+      const [conflictingHosts, calendarBusyHostIds] = await Promise.all([
+        prisma.booking.findMany({
+          where: {
+            eventTypeId: resolved.id,
+            slotStart,
+            deleted: false,
+          },
+          select: { hostId: true },
+        }),
+        findBusyHostIds({
+          hostIds: resolved.hosts.map((h) => h.userId),
+          slotStart,
+          slotEnd,
+        }),
+      ]);
+      const excludeHostIds = new Set<string>([
+        ...conflictingHosts.map((b) => b.hostId),
+        ...calendarBusyHostIds,
+      ]);
+      const pick = selectHost({
+        hosts: resolved.hosts,
+        excludeHostIds,
+      });
+      if (pick.kind !== "selected") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message:
+            pick.kind === "all-conflicted"
+              ? "Every host on this event type is already booked at that slot."
+              : "No hosts configured for this event type.",
+        });
+      }
+      const pickedHostId = pick.hostId;
+
+      const operationId = crypto.randomUUID();
+      const referrer =
+        ctx.cookies.get(`oh_ref_${input.slug}`) ?? null;
+
+      const booking = await prisma.$transaction(async (tx) => {
+        const existingInTx = await tx.booking.findFirst({
+          where: {
+            idempotencyKey: input.idempotencyKey,
+            deleted: false,
+          },
+          select: bookingSelect,
+        });
+        if (existingInTx) return existingInTx;
+
+        const slotCollision = await tx.booking.findFirst({
+          where: { hostId: pickedHostId, slotStart, deleted: false },
+          select: { id: true },
+        });
+        if (slotCollision) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Someone just grabbed that slot. Pick another.",
+          });
+        }
+
+        const created = await tx.booking.create({
+          data: {
+            hostId: pickedHostId,
+            workspaceId: resolved.workspaceId,
+            eventTypeId: resolved.id,
+            visitorName: input.visitorName,
+            visitorEmail: input.visitorEmail,
+            question: input.question,
+            slotStart,
+            slotEnd,
+            idempotencyKey: input.idempotencyKey,
+            referrer,
+            visitorTimezone: input.visitorTimezone ?? null,
+          },
+          select: bookingSelect,
+        });
+
+        await tx.bookingAudit.create({
+          data: {
+            bookingUid: created.publicUid,
+            workspaceId: resolved.workspaceId,
+            actor: "VISITOR",
+            action: "CREATED",
+            data: {
+              hostId: pickedHostId,
+              eventTypeId: resolved.id,
+              workspaceSlug: input.slug,
+              eventTypeSlug: input.eventTypeSlug,
+              visitorName: input.visitorName,
+              visitorEmail: input.visitorEmail,
+              question: input.question ?? null,
+              slotStart: created.slotStart.toISOString(),
+              slotEnd: created.slotEnd.toISOString(),
+              idempotencyKey: input.idempotencyKey,
+              referrer,
+            },
+            operationId,
+          },
+        });
+
+        return created;
+      });
+
+      try {
+        await bumpRecentAssignments({
+          eventTypeId: resolved.id,
+          userId: pickedHostId,
+        });
+      } catch (err) {
+        console.error(
+          "[workspaces.bookForTeam] bumpRecentAssignments",
+          err,
+        );
+      }
+
+      const subscriptions = await findActiveSubscriptionsForEvent(
+        resolved.workspaceId,
+        "booking.created",
+      );
+      const pickedHost = await prisma.user.findUnique({
+        where: { id: pickedHostId },
+        select: {
+          name: true,
+          handle: true,
+          image: true,
+          email: true,
+        },
+      });
+      for (const sub of subscriptions) {
+        await scheduleWebhookDelivery({
+          payload: {
+            webhookSubscriptionId: sub.id,
+            event: "booking.created",
+            body: {
+              event: "booking.created",
+              operationId,
+              booking: {
+                publicUid: booking.publicUid,
+                slotStart: booking.slotStart.toISOString(),
+                slotEnd: booking.slotEnd.toISOString(),
+                visitorName: input.visitorName,
+                visitorEmail: input.visitorEmail,
+                question: input.question ?? null,
+              },
+              host: {
+                handle: pickedHost?.handle ?? null,
+                id: pickedHostId,
+              },
+              eventType: {
+                workspaceSlug: input.slug,
+                slug: input.eventTypeSlug,
+              },
+              createdAt: new Date().toISOString(),
+            },
+          },
+          referenceUid: `${booking.publicUid}:booking.created:${sub.id}`,
+        });
+      }
+
+      const appUrl =
+        env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+      const confirmationUrl = `${appUrl}/w/${input.slug}/${input.eventTypeSlug}/booked/${booking.publicUid}`;
+      const hostName =
+        pickedHost?.name ?? pickedHost?.handle ?? "your host";
+      await scheduleEmailSend({
+        payload: {
+          to: input.visitorEmail,
+          template: "booking-created",
+          props: {
+            hostName,
+            visitorName: input.visitorName,
+            slotStartIso: booking.slotStart.toISOString(),
+            question: input.question ?? null,
+            confirmationUrl,
+          },
+        },
+        referenceUid: `${booking.publicUid}:email:booking-created:visitor`,
+      });
+
+      return {
+        publicUid: booking.publicUid,
+        slotStart: booking.slotStart,
+        slotEnd: booking.slotEnd,
+        assignedHost: {
+          name: pickedHost?.name ?? null,
+          handle: pickedHost?.handle ?? null,
+          image: pickedHost?.image ?? null,
+        },
       };
     }),
 

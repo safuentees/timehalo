@@ -7,6 +7,7 @@ import type { BusyTime, CalendarAdapter } from "./types";
 import { subtractBusyTimes } from "./busy-merge";
 
 export type { BusyTime, CalendarAdapter, CalendarSummary } from "./types";
+export type { Slot } from "./busy-merge";
 export { subtractBusyTimes };
 export {
   googleAuthUrl,
