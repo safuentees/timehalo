@@ -65,13 +65,13 @@ export default function CredentialsForm() {
         <label htmlFor="login-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+        <InputGroup className="h-[46px] overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] transition-[background-color,box-shadow] duration-150 ease-oh hover:not-focus-within:bg-[var(--oh-input-bg-hover)] focus-within:bg-[var(--oh-input-bg-focus)] focus-within:[box-shadow:var(--oh-focus-shadow-input)]">
           <InputGroupInput
             id="login-password"
             type={showPassword ? "text" : "password"}
             placeholder={t("fieldPasswordPlaceholder")}
             autoComplete="current-password"
-            className="h-full px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
+            className="h-full bg-transparent px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)] focus-visible:[box-shadow:none]!"
             {...register("password")}
           />
           <InputGroupAddon align="inline-end" className="bg-transparent pr-2">

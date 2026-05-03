@@ -138,6 +138,14 @@
   --oh-focus-ring: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   --oh-focus-shadow: var(--oh-focus-halo), var(--oh-focus-ring);
 
+  --oh-focus-shadow-input:
+    inset 0 0 0 1px var(--oh-ink),
+    var(--oh-focus-halo),
+    var(--oh-focus-ring);
+
+  --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
+  --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
+
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
   --oh-r-window: 18px;
@@ -1329,16 +1337,20 @@
   outline: 0;
   border-radius: var(--oh-r-xs);
   transition:
-    box-shadow var(--oh-t-fast),
-    transform var(--oh-t-fast);
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
 }
 .oh-input::placeholder {
   color: var(--oh-placeholder);
 }
+.oh-input:hover:not(:focus):not(:focus-visible):not([disabled]) {
+  background: var(--oh-input-bg-hover);
+}
 .oh-input:focus,
 .oh-input:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea {
   resize: vertical;
@@ -1854,12 +1866,18 @@
   line-height: 1.45;
   resize: vertical;
   border-radius: var(--oh-r-xs);
-  transition: box-shadow var(--oh-t-fast);
+  transition:
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
+}
+.oh-textarea:hover:not(:focus):not(:focus-visible):not([disabled]) {
+  background: var(--oh-input-bg-hover);
 }
 .oh-textarea:focus,
 .oh-textarea:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea[aria-invalid="true"] {
   border-color: var(--oh-ink);
