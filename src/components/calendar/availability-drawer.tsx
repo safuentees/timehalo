@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
 import {
   ResponsiveModal,
@@ -47,6 +48,7 @@ export function AvailabilityDrawer({
   selectedSlot,
   rescheduleFromUid,
 }: Props) {
+  const t = useTranslations("BookingCalendar");
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
   const monthBarDate = selectedDate ?? startOfToday();
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -82,10 +84,10 @@ export function AvailabilityDrawer({
       <ResponsiveModalContent>
         <ResponsiveModalHeader className="oh-drawer-head">
           <ResponsiveModalTitle className="oh-drawer-title">
-            SCHEDULE YOUR MEETING
+            {t("drawerTitle")}
           </ResponsiveModalTitle>
           <ResponsiveModalDescription className="sr-only">
-            Pick a day and a time for your 15-minute meeting.
+            {t("drawerDescription")}
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
@@ -102,7 +104,7 @@ export function AvailabilityDrawer({
             <button
               type="button"
               className="oh-view-toggle"
-              aria-label="Open month view"
+              aria-label={t("openMonthViewAria")}
             >
               <CalendarIcon />
             </button>
@@ -123,9 +125,7 @@ export function AvailabilityDrawer({
               onPick={handlePickSlot}
             />
           ) : (
-            <p className="oh-drawer-hint">
-              — TAP A DATE ABOVE TO SEE TIMES —
-            </p>
+            <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
           )}
         </div>
         <BookingDrawer

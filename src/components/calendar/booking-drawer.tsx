@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -33,6 +34,7 @@ export function BookingDrawer({
   onOpenChange,
   rescheduleFromUid,
 }: Props) {
+  const t = useTranslations("BookingCalendar");
   const startDate = slot ? new Date(slot.start) : null;
   const isOpen = open && !!slot;
   const isReschedule = Boolean(rescheduleFromUid);
@@ -42,7 +44,7 @@ export function BookingDrawer({
       <ResponsiveModalContent mobileClassName="oh-drawer-content-nested">
         <ResponsiveModalHeader className="oh-drawer-head">
           <ResponsiveModalTitle className="oh-drawer-title">
-            {isReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM BOOKING"}
+            {isReschedule ? t("rescheduleFormTitle") : t("bookingFormTitle")}
           </ResponsiveModalTitle>
           {startDate ? (
             <ResponsiveModalDescription className="oh-drawer-sub">
@@ -50,7 +52,7 @@ export function BookingDrawer({
             </ResponsiveModalDescription>
           ) : (
             <ResponsiveModalDescription className="sr-only">
-              Booking form
+              {t("bookingFormSrFallback")}
             </ResponsiveModalDescription>
           )}
         </ResponsiveModalHeader>

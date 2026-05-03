@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import useEmblaCarousel from "embla-carousel-react";
 import { addDays, isSameDay, startOfWeek } from "date-fns";
 import {
@@ -34,6 +35,7 @@ export function DayStrip({
   onSelectDate,
   spanDays = 63,
 }: Props) {
+  const t = useTranslations("BookingCalendar");
   // Anchor to Monday of the current week so every 7-slide chunk aligns to
   // a real week. Past days (Mon..today-1) render as disabled cells — they
   // have no density entry and get strikethrough via [aria-disabled="true"].
@@ -80,13 +82,18 @@ export function DayStrip({
   }, [emblaApi, days, selectedDate]);
 
   return (
-    <div className="oh-day-strip" ref={emblaRef} aria-label="Upcoming days">
+    <div
+      className="oh-day-strip"
+      ref={emblaRef}
+      aria-label={t("upcomingDaysAria")}
+    >
       <div className="oh-day-strip-track">
         {days.map((d) => {
           const density = densityMap.get(toKey(d));
           const hasSlots = !!density;
           const isFullyBooked = !!density?.isFullyBooked;
           const selected = selectedDate ? isSameDay(d, selectedDate) : false;
+          const dateStr = d.toDateString();
           return (
             <button
               key={d.toISOString()}
@@ -97,10 +104,13 @@ export function DayStrip({
               aria-disabled={!hasSlots}
               aria-label={
                 !density
-                  ? `${d.toDateString()}, no slots`
+                  ? t("dayNoSlotsAria", { date: dateStr })
                   : density.isFullyBooked
-                    ? `${d.toDateString()}, fully booked`
-                    : `${d.toDateString()}, ${density.count} open slots`
+                    ? t("dayFullyBookedAria", { date: dateStr })
+                    : t("dayOpenSlotsAria", {
+                        date: dateStr,
+                        count: density.count,
+                      })
               }
               onClick={() => hasSlots && onSelectDate(d)}
             >
