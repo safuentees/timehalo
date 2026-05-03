@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm, useWatch } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ type Form = {
 };
 
 export function RegisterForm() {
+  const t = useTranslations("Auth");
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const {
@@ -76,8 +78,7 @@ export function RegisterForm() {
 
       if (result?.error) {
         setError("root", {
-          message:
-            "Account created, but sign-in failed. Sign in from the login page.",
+          message: t("errorAccountCreatedSignInFailed"),
         });
         return;
       }
@@ -125,12 +126,12 @@ export function RegisterForm() {
     <form onSubmit={onSubmit} className="grid gap-5">
       <div className="grid gap-2">
         <label htmlFor="register-email" className="oh-legend">
-          Email
+          {t("fieldEmail")}
         </label>
         <input
           id="register-email"
           type="email"
-          placeholder="you@domain.com"
+          placeholder={t("registerEmailPlaceholder")}
           autoComplete="email"
           aria-invalid={errors.email ? true : undefined}
           {...registerField("email")}
@@ -145,13 +146,13 @@ export function RegisterForm() {
 
       <div className="grid gap-2">
         <label htmlFor="register-password" className="oh-legend">
-          Password
+          {t("fieldPassword")}
         </label>
         <InputGroup className="overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
           <InputGroupInput
             id="register-password"
             type={showPassword ? "text" : "password"}
-            placeholder="8+ characters"
+            placeholder={t("registerPasswordPlaceholder")}
             autoComplete="new-password"
             aria-invalid={errors.password ? true : undefined}
             className="px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
@@ -162,7 +163,7 @@ export function RegisterForm() {
               type="button"
               size="icon-xs"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t("hidePassword") : t("showPassword")}
               aria-pressed={showPassword}
               className="text-[color:var(--oh-ink)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 hover:[&_svg]:opacity-100 hover:bg-[color:var(--oh-tint-hover)]"
             >
@@ -183,7 +184,7 @@ export function RegisterForm() {
 
       <div className="grid gap-2">
         <label htmlFor="register-handle" className="oh-legend">
-          Handle
+          {t("fieldHandle")}
         </label>
         <OhInputGroup>
           <OhInputGroupAddon>
@@ -191,7 +192,7 @@ export function RegisterForm() {
           </OhInputGroupAddon>
           <OhInputGroupInput
             id="register-handle"
-            placeholder="alex"
+            placeholder={t("fieldHandlePlaceholder")}
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
@@ -232,13 +233,14 @@ export function RegisterForm() {
         disabled={!canSubmit}
         className="w-full justify-center"
       >
-        {isBusy ? "Creating…" : "Create account"}
+        {isBusy ? t("submitCreateAccountPending") : t("submitCreateAccount")}
       </Button>
     </form>
   );
 }
 
 function AvailabilityBadge({ state }: { state: Availability }) {
+  const t = useTranslations("Auth");
   switch (state) {
     case "checking":
       return (
@@ -249,25 +251,25 @@ function AvailabilityBadge({ state }: { state: Availability }) {
     case "available":
       return (
         <InputGroupText className="text-green-600 dark:text-green-400">
-          free
+          {t("handleAvailabilityFree")}
         </InputGroupText>
       );
     case "taken":
       return (
         <InputGroupText className="text-[color:var(--destructive)]">
-          taken
+          {t("handleAvailabilityTaken")}
         </InputGroupText>
       );
     case "invalid":
       return (
         <InputGroupText className="text-[color:var(--oh-content-muted)]">
-          3+
+          {t("handleAvailabilityInvalid")}
         </InputGroupText>
       );
     case "error":
       return (
         <InputGroupText className="text-[color:var(--destructive)]">
-          !
+          {t("handleAvailabilityError")}
         </InputGroupText>
       );
     default:
@@ -276,16 +278,17 @@ function AvailabilityBadge({ state }: { state: Availability }) {
 }
 
 function HandleHelp({ state }: { state: Availability }) {
+  const t = useTranslations("Auth");
   const text =
     state === "taken"
-      ? "That one's gone. Try another."
+      ? t("handleHelpTaken")
       : state === "invalid"
-        ? "Minimum 3 characters. Letters, numbers, hyphens only."
+        ? t("handleHelpInvalid")
         : state === "error"
-          ? "Could not check this handle. Try again."
-        : state === "available"
-          ? "Available. You can change it later."
-          : "Lowercase letters, numbers, hyphens.";
+          ? t("handleHelpError")
+          : state === "available"
+            ? t("handleHelpAvailable")
+            : t("handleHelpDefault");
   const tone =
     state === "taken"
       ? "text-[color:var(--destructive)]"

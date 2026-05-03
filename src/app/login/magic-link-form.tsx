@@ -2,9 +2,11 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 export default function MagicLinkForm() {
+  const t = useTranslations("Auth");
   const [email, setEmail] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -26,7 +28,7 @@ export default function MagicLinkForm() {
     setSubmitting(false);
 
     if (res?.error) {
-      setError("Could not send magic link. Try again.");
+      setError(t("magicLinkError"));
       return;
     }
 
@@ -37,10 +39,13 @@ export default function MagicLinkForm() {
     return (
       <div className="grid gap-3">
         <p className="text-[13px] leading-[1.5] opacity-65">
-          Check your email — link sent to{" "}
-          <span className="font-medium text-[color:var(--oh-ink)] opacity-100">
-            {sentTo}
-          </span>
+          {t.rich("magicLinkSentTo", {
+            email: () => (
+              <span className="font-medium text-[color:var(--oh-ink)] opacity-100">
+                {sentTo}
+              </span>
+            ),
+          })}
         </p>
         <button
           type="button"
@@ -50,7 +55,7 @@ export default function MagicLinkForm() {
           }}
           className="oh-eyebrow self-start opacity-55 transition-opacity hover:opacity-100"
         >
-          Use a different email
+          {t("magicLinkUseDifferent")}
         </button>
       </div>
     );
@@ -60,7 +65,7 @@ export default function MagicLinkForm() {
     <form onSubmit={onSubmit} className="grid gap-3">
       <div className="grid gap-2">
         <label htmlFor="magic-link-email" className="oh-legend">
-          Or send a magic link
+          {t("magicLinkLabel")}
         </label>
         <input
           id="magic-link-email"
@@ -68,7 +73,7 @@ export default function MagicLinkForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t("fieldEmailPlaceholder")}
           autoComplete="email"
           className="oh-input"
         />
@@ -85,7 +90,7 @@ export default function MagicLinkForm() {
         className="w-full justify-center"
         disabled={submitting}
       >
-        {submitting ? "Sending…" : "Email me a sign-in link"}
+        {submitting ? t("magicLinkSubmitPending") : t("magicLinkSubmit")}
       </Button>
     </form>
   );
