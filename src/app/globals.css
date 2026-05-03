@@ -3549,9 +3549,13 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   border-color: var(--oh-line-strong);
 }
 
+/* B.PT113 — preview exit pill picks up the unified focus vocabulary
+   (B.PT105). Pre-B.PT113 was the legacy `outline: 2px solid ink +
+   2px offset` pattern; missed in the B.PT105 sweep because the
+   button class isn't in the standard chrome inventory. */
 .oh-preview-exit:focus-visible {
-  outline: 2px solid var(--oh-ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
 }
 
 .oh-preview-exit-icon {
