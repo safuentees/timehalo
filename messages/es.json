@@ -485,6 +485,8 @@
     "addBlockHint": "Añade un bloque para indicar a los visitantes cuándo pueden reservar contigo.",
     "errorNeedsDay": "Elige al menos un día",
     "errorEndBeforeStart": "El fin debe ser posterior al inicio",
-    "errorOverlap": "Se superpone en {days}"
+    "errorOverlap": "Se superpone en {days}",
+    "noDays": "Sin días",
+    "everyDay": "Todos los días"
   }
 }

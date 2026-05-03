@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -9,6 +9,12 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
+import {
+  buildDayNameOf,
+  formatDayLabel,
+  validateDraft,
+  type DayLabelStrings,
+} from "./format-day-label";
 import {
   ResponsiveModal,
   ResponsiveModalClose,
@@ -38,18 +44,14 @@ export type { ScheduleValues as AvailabilityValues } from "@/lib/schedule";
  * editor level so persisted schedules stay clean.
  */
 
-const DAYS: ReadonlyArray<{ key: DayKey; short: string; long: string }> = [
-  { key: "mon", short: "Mon", long: "Monday" },
-  { key: "tue", short: "Tue", long: "Tuesday" },
-  { key: "wed", short: "Wed", long: "Wednesday" },
-  { key: "thu", short: "Thu", long: "Thursday" },
-  { key: "fri", short: "Fri", long: "Friday" },
-  { key: "sat", short: "Sat", long: "Saturday" },
-  { key: "sun", short: "Sun", long: "Sunday" },
-] as const;
-
-const WEEKDAYS: ReadonlySet<DayKey> = new Set(["mon", "tue", "wed", "thu", "fri"]);
-const WEEKENDS: ReadonlySet<DayKey> = new Set(["sat", "sun"]);
+// B.PT26B — `DAYS` array dropped. Day names resolve via the
+// localized `dayLabelStrings.nameOf` (built from `useFormatter` in
+// each consumer) and feed `formatDayLabel` / `validateDraft` which
+// live in `./format-day-label.ts`. The DAY_KEYS canonical order is
+// imported from `@/lib/schedule`. Local-only `DAY_INDEX` survives
+// because `deriveBlocks` + `sortDays` use it to keep the persisted
+// `ScheduleValues` shape ordered (mon → sun) regardless of the
+// order chips were toggled.
 const DAY_INDEX: Record<DayKey, number> = Object.fromEntries(
   DAY_KEYS.map((key, index) => [key, index]),
 ) as Record<DayKey, number>;
@@ -201,18 +203,20 @@ function BlockChip({
   onEdit: () => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
+  const dayLabel = formatDayLabel(block.days, "short", labelStrings);
   return (
     <button
       type="button"
       onClick={onEdit}
       className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editBlockAria", {
-        days: formatDayLabel(block.days),
+        days: dayLabel,
         time: formatTimeRange(block.from, block.to),
       })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="oh-eyebrow">{formatDayLabel(block.days)}</span>
+        <span className="oh-eyebrow">{dayLabel}</span>
         <span className="text-[18px] leading-[1.1] font-black tabular-nums">
           {formatTimeRange(block.from, block.to)}
         </span>
@@ -273,10 +277,11 @@ function BlockEditorContent({
   onRemove?: () => void;
 }) {
   // B.PT26 — chrome strings localized via the Availability namespace.
-  // Day-name range-compression logic in `formatDayLabel` is still
-  // English-only; that ports over in B.PT26B (separate row, requires
-  // refactoring the pure helper to accept locale-aware day names).
+  // B.PT26B — day-name range compression + overlap-payload day list
+  // now also localized; `useDayLabelStrings()` builds the
+  // formatter-backed `DayLabelStrings` once + memoizes.
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   const [draft, setDraft] = useState<BlockDraft>(state.draft);
   const [daysOpen, setDaysOpen] = useState(false);
   // Reset if the drawer is reused for a different block before unmount.
@@ -287,9 +292,10 @@ function BlockEditorContent({
   // Map error keys returned by `validateDraft` to localized strings
   // here so the helper itself stays a pure (locale-agnostic) function.
   // The helper returns null | "needsDay" | "endBeforeStart" | overlap
-  // text starting with `overlap:`. Overlap text carries the day list
-  // verbatim — that's the part B.PT26B will localize.
-  const errorKey = validateDraft(draft, otherBlocks);
+  // text starting with `overlap:`. Overlap day names are produced via
+  // `labelStrings.nameOf` so es-locale users see "lun, mié" not
+  // "Mon, Wed."
+  const errorKey = validateDraft(draft, otherBlocks, labelStrings.nameOf);
   const error =
     errorKey === null
       ? null
@@ -324,7 +330,7 @@ function BlockEditorContent({
             <ResponsiveModalDescription className="sr-only">
               {draft.days.length === 0
                 ? t("errorNeedsDay")
-                : formatDayLabel(draft.days)}
+                : formatDayLabel(draft.days, "short", labelStrings)}
             </ResponsiveModalDescription>
           </div>
           <ResponsiveModalClose />
@@ -429,8 +435,11 @@ function DaysRowButton({
   onOpen: () => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   const label =
-    days.length === 0 ? t("pickDays") : formatDayLabel(days, "long");
+    days.length === 0
+      ? t("pickDays")
+      : formatDayLabel(days, "long", labelStrings);
   return (
     <button
       type="button"
@@ -504,6 +513,7 @@ function DayPickerDrawer({
   toggleDay: (day: DayKey) => void;
 }) {
   const t = useTranslations("Availability");
+  const labelStrings = useDayLabelStrings();
   return (
     <ResponsiveModal
       open={open}
@@ -521,7 +531,9 @@ function DayPickerDrawer({
                 {t("days")}
               </ResponsiveModalTitle>
               <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase">
-                {days.length === 0 ? t("none") : formatDayLabel(days, "long")}
+                {days.length === 0
+                  ? t("none")
+                  : formatDayLabel(days, "long", labelStrings)}
               </p>
             </div>
             <ResponsiveModalClose />
@@ -529,15 +541,18 @@ function DayPickerDrawer({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           <div className="flex flex-col gap-1.5">
-            {DAYS.map((day) => (
-              <DayToggle
-                key={day.key}
-                label={day.long}
-                longLabel={day.long}
-                selected={days.includes(day.key)}
-                onClick={() => toggleDay(day.key)}
-              />
-            ))}
+            {DAY_KEYS.map((key) => {
+              const long = labelStrings.nameOf(key, "long");
+              return (
+                <DayToggle
+                  key={key}
+                  label={long}
+                  longLabel={long}
+                  selected={days.includes(key)}
+                  onClick={() => toggleDay(key)}
+                />
+              );
+            })}
           </div>
         </div>
         <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
@@ -616,79 +631,26 @@ function blocksToSchedule(blocks: Block[]): ScheduleValues {
   return next;
 }
 
-// B.PT26 — returns a sentinel KEY (`needsDay` / `endBeforeStart` /
-// `overlap:<comma-list>`) instead of a localized string. Caller maps
-// to a translated message via `useTranslations("Availability")`.
-// Keeping the helper pure means the validation logic stays tested
-// independently of locale rendering. Day-name parts of the overlap
-// list are still English here — B.PT26B refactors them.
-function validateDraft(draft: BlockDraft, others: Block[]): string | null {
-  if (draft.days.length === 0) return "needsDay";
-  if (draft.from >= draft.to) return "endBeforeStart";
-  for (const other of others) {
-    const shared = draft.days.filter((d) => other.days.includes(d));
-    if (shared.length === 0) continue;
-    if (draft.from < other.to && other.from < draft.to) {
-      return `overlap:${shared
-        .map((d) => DAYS.find((x) => x.key === d)?.short ?? d)
-        .join(", ")}`;
-    }
-  }
-  return null;
-}
+// `formatDayLabel` and `validateDraft` moved to ./format-day-label.ts
+// in B.PT26B. Importing both at the top of this file. Helpers here
+// stay React-free so vitest property tests can import without the
+// "use client" hop.
 
-function formatDayLabel(days: DayKey[], length: "short" | "long" = "short"): string {
-  if (days.length === 0) return "No days";
-  const name = (key: DayKey) => {
-    const meta = DAYS.find((d) => d.key === key);
-    if (!meta) return key;
-    return length === "long" ? meta.long : meta.short;
-  };
-  if (days.length === 7) return "Every day";
-  if (
-    days.length === 5 &&
-    days.every((d) => WEEKDAYS.has(d)) &&
-    WEEKDAYS.size === days.length
-  )
-    return `${name("mon")} – ${name("fri")}`;
-  if (
-    days.length === 2 &&
-    days.every((d) => WEEKENDS.has(d)) &&
-    WEEKENDS.size === days.length
-  )
-    return `${name("sat")} – ${name("sun")}`;
-
-  // Range-compression / "summary ranges" algorithm. Walk the sorted
-  // day indices, open a run at each value, close it when the next
-  // index breaks contiguity. Each closed run emits a single name (if
-  // length 1) or "start – end" (if length 2+). Joined with ", " gives:
-  //   [mon, tue, wed]            -> "Mon – Wed"
-  //   [mon, tue, wed, fri, sat]  -> "Mon – Wed, Fri – Sat"
-  //   [mon, wed, fri]            -> "Mon, Wed, Fri"
-  const sorted = sortDays(days);
-  const indices = sorted.map((d) => DAY_INDEX[d]);
-  const runs: Array<[number, number]> = [];
-  let start = indices[0];
-  let prev = start;
-  for (let i = 1; i < indices.length; i++) {
-    const curr = indices[i];
-    if (curr === prev + 1) {
-      prev = curr;
-    } else {
-      runs.push([start, prev]);
-      start = curr;
-      prev = curr;
-    }
-  }
-  runs.push([start, prev]);
-
-  return runs
-    .map(([s, e]) =>
-      s === e
-        ? name(sorted[indices.indexOf(s)])
-        : `${name(sorted[indices.indexOf(s)])} – ${name(sorted[indices.indexOf(e)])}`,
-    )
-    .join(", ");
+// Shared hook for the localized day-name strings used by chips,
+// picker drawers, the modal description, and validateDraft's
+// overlap-payload day list. Built once per render via useFormatter
+// + useTranslations; consumers memoize the result.
+function useDayLabelStrings(): DayLabelStrings {
+  const format = useFormatter();
+  const t = useTranslations("Availability");
+  return useMemo(
+    () => ({
+      nameOf: buildDayNameOf(format),
+      empty: t("noDays"),
+      everyDay: t("everyDay"),
+    }),
+    [format, t],
+  );
 }
 
 function formatTimeRange(from: string, to: string): string {
