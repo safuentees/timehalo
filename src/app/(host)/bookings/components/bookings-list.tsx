@@ -17,6 +17,7 @@ import {
   OhEmptyMedia,
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
@@ -84,7 +85,7 @@ export function BookingsList({
 }) {
   const t = useTranslations("Bookings");
   const router = useRouter();
-  const { data } = trpc.bookings.listForHost.useQuery();
+  const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
@@ -201,6 +202,29 @@ export function BookingsList({
             cursorDate={cursorDate}
             onDateChange={onDateChange}
           />
+
+          {/* Error banner — shows if the bookings query failed. The
+              calendar still renders below so the host sees the
+              empty grid structure; the banner makes the failure
+              visible + actionable. Page-level prefetch + Hydration-
+              Boundary means this is rare in practice (initial paint
+              has data) — covers the "user changed view, query
+              refetched, network blip" case. */}
+          {isError ? (
+            <OhInlineEmpty>
+              {t("errorLoading")}
+              {error?.message ? ` — ${error.message}` : null}
+            </OhInlineEmpty>
+          ) : null}
+
+          {/* No-bookings-yet hint — only when settled (not error, not
+              empty cache) and the host has zero bookings total. The
+              calendar still renders below so the host sees the empty
+              hour grid (which is informative — "your week is open"). */}
+          {!isError && data && calendarEvents.length === 0 ? (
+            <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
+          ) : null}
+
           {activeView === "day" ? (
             <DayView
               date={cursorDate}

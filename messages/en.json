@@ -407,6 +407,8 @@
     "emptyPastTitle": "No past bookings",
     "emptyPastDescription": "Bookings that have come and gone live in this tab.",
     "emptyCta": "Open your booking page",
+    "errorLoading": "Couldn't load bookings.",
+    "emptyCalendarHint": "No bookings yet — share your link to get started.",
     "liveConnected": "Live updates connected",
     "liveConnecting": "Connecting to live updates",
     "liveOff": "Live updates offline",
