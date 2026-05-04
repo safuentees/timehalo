@@ -42,6 +42,10 @@ export type TimeGridColumnProps = {
   /** Currently selected event's `refId` — chip gets a ring. */
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  /** Optional href getter for cmd+click parity with list rows
+   *  (B.PT142). Returns the standalone `/bookings/<uid>` URL or
+   *  similar so modifier clicks can open in a new tab. */
+  getHref?: (event: CalendarEvent) => string;
   /** Whether to render the current-time line. Caller passes true for
    *  the column matching today's date. */
   showCurrentTimeLine?: boolean;
@@ -66,6 +70,7 @@ export function TimeGridColumn({
   oneMinuteHeightPx,
   selectedRefId = null,
   onEventClick,
+  getHref,
   showCurrentTimeLine = false,
   nowOverride,
   className,
@@ -116,24 +121,42 @@ export function TimeGridColumn({
         />
       ))}
 
-      {/* Events */}
+      {/* Events. Out-of-range events (start before startHour OR end
+          after endHour+1) are clipped to the visible window so they
+          render at the column edge instead of with negative top or
+          overflow that breaks the layout. */}
       {events.map((event) => {
         const layout = layoutMap.get(event.id);
         if (!layout) return null;
 
-        const minutesFromStart =
-          (event.start.getHours() - startHour) * 60 + event.start.getMinutes();
-        const eventDurationMinutes =
-          (event.end.getTime() - event.start.getTime()) / 60_000;
+        const visibleStartMin = 0;
+        const visibleEndMin = totalMinutes;
 
-        const top = minutesFromStart * oneMinuteHeightPx;
+        const eventStartMin =
+          (event.start.getHours() - startHour) * 60 +
+          event.start.getMinutes();
+        const eventEndMin =
+          (event.end.getHours() - startHour) * 60 +
+          event.end.getMinutes();
+
+        // Skip events entirely outside the visible window
+        if (eventEndMin <= visibleStartMin || eventStartMin >= visibleEndMin) {
+          return null;
+        }
+
+        const clippedStartMin = Math.max(visibleStartMin, eventStartMin);
+        const clippedEndMin = Math.min(visibleEndMin, eventEndMin);
+        const clippedDurationMin = clippedEndMin - clippedStartMin;
+
+        const top = clippedStartMin * oneMinuteHeightPx;
         const minHeightPx = 18;
         const heightPx = Math.max(
           minHeightPx,
-          eventDurationMinutes * oneMinuteHeightPx,
+          clippedDurationMin * oneMinuteHeightPx,
         );
 
         const isSelected = selectedRefId !== null && event.refId === selectedRefId;
+        const href = getHref ? getHref(event) : undefined;
 
         return (
           <div
@@ -151,6 +174,7 @@ export function TimeGridColumn({
               event={event}
               isSelected={isSelected}
               onClick={onEventClick}
+              href={href}
             />
           </div>
         );

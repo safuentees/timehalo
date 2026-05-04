@@ -145,6 +145,14 @@ export function BookingsList({
     if (event.refId) setSelectedUid(event.refId);
   };
 
+  // Cmd+click parity (B.PT142). Calendar chips become `<a>` with
+  // this href so power users open the standalone deep link in a new
+  // tab. Same pattern as the list rows. The `<BookingDetailModal>`
+  // is the canonical surface; the standalone page survives as the
+  // hard-refresh / new-tab fallback (per B.PT138).
+  const getEventHref = (event: CalendarEvent) =>
+    event.refId ? `/bookings/${event.refId}` : "#";
+
   return (
     <OhPageShell>
       <OhPageHeader
@@ -231,6 +239,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
           {activeView === "week" ? (
@@ -239,6 +248,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
           {activeView === "month" ? (
@@ -247,6 +257,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
         </div>

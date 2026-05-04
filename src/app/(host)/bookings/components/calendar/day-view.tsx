@@ -29,6 +29,13 @@ export type DayViewProps = {
   oneMinuteHeightPx?: number;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  /** Cmd+click parity (B.PT142) — chips become `<a href>` so power
+   *  users open the standalone /bookings/<uid> page in a new tab. */
+  getHref?: (event: CalendarEvent) => string;
+  /** Max body height. Above this the time-grid scrolls internally
+   *  with a sticky header. Default 640px. Pass 0 to opt out
+   *  (playground / Storybook). */
+  maxBodyHeightPx?: number;
   nowOverride?: Date;
 };
 
@@ -59,6 +66,8 @@ export function DayView({
   oneMinuteHeightPx = 1,
   selectedRefId = null,
   onEventClick,
+  getHref,
+  maxBodyHeightPx = 640,
   nowOverride,
 }: DayViewProps) {
   const { weekday, ordinal } = formatHeaderDate(date);
@@ -73,11 +82,26 @@ export function DayView({
     return isSameDay(now, date);
   })();
 
+  // Scroll container (B.PT142). When `maxBodyHeightPx > 0`, the
+  // body is capped + scrollable; sticky day-header stays at top.
+  // When 0 (playground), no cap so the visual regression baseline
+  // captures the full height for snapshotting.
+  const bodyStyle = maxBodyHeightPx > 0
+    ? { maxHeight: `${maxBodyHeightPx}px` }
+    : undefined;
+
   return (
-    <div className="flex flex-col">
-      {/* Day header — hairline rule below */}
-      <div className="border-b border-oh-line">
-        <div className="flex items-baseline gap-3 pb-3 pl-14">
+    <div
+      className={cn(
+        "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        maxBodyHeightPx > 0 && "overflow-y-auto",
+      )}
+      style={bodyStyle}
+    >
+      {/* Day header — sticky on scroll, hairline rule below.
+          Paper bg so events scrolling under don't bleed through. */}
+      <div className="sticky top-0 z-20 border-b border-oh-line bg-[color:var(--oh-paper)]">
+        <div className="flex items-baseline gap-3 pb-3 pl-14 pt-3">
           <span
             className={cn(
               "oh-eyebrow opacity-100",
@@ -113,6 +137,7 @@ export function DayView({
           oneMinuteHeightPx={oneMinuteHeightPx}
           selectedRefId={selectedRefId}
           onEventClick={onEventClick}
+          getHref={getHref}
           showCurrentTimeLine={isToday}
           nowOverride={nowOverride}
           className="border-l border-oh-line pl-2"

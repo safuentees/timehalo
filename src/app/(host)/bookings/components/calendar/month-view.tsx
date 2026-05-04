@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 import {
   buildMonthGrid,
   dayOfWeekOrder,
@@ -30,7 +31,13 @@ export type MonthViewProps = {
   weekStartsOn?: WeekStart;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  /** Cmd+click parity (B.PT142) — chips become `<a href>` so power
+   *  users open the standalone /bookings/<uid> page in a new tab. */
+  getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  /** Max body height. Above this the month grid scrolls internally
+   *  with a sticky weekday header row. Default 640px. */
+  maxBodyHeightPx?: number;
   /** Override "today" — useful for testing / playground pinning. */
   nowOverride?: Date;
 };
@@ -53,7 +60,9 @@ export function MonthView({
   weekStartsOn = 1,
   selectedRefId = null,
   onEventClick,
+  getHref,
   onOverflowClick,
+  maxBodyHeightPx = 640,
   nowOverride,
 }: MonthViewProps) {
   const cells = useMemo(
@@ -75,11 +84,25 @@ export function MonthView({
   const today = nowOverride ?? new Date();
   const headerDays = dayOfWeekOrder(weekStartsOn);
 
+  // Scroll container (B.PT142). Month grid is naturally short
+  // (5-6 rows) but matches the Day/Week scroll vocabulary so the
+  // host's muscle memory carries between modes — same paper-card
+  // chrome, same internal-scroll behavior.
+  const wrapperStyle = maxBodyHeightPx > 0
+    ? { maxHeight: `${maxBodyHeightPx}px` }
+    : undefined;
+
   return (
-    <div className="flex flex-col">
-      {/* Weekday header row */}
+    <div
+      className={cn(
+        "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        maxBodyHeightPx > 0 && "overflow-y-auto",
+      )}
+      style={wrapperStyle}
+    >
+      {/* Weekday header row — sticky on scroll */}
       <div
-        className="grid border-y border-oh-line"
+        className="sticky top-0 z-20 grid border-b border-oh-line bg-[color:var(--oh-paper)]"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
       >
         {headerDays.map((d) => (
@@ -92,9 +115,7 @@ export function MonthView({
         ))}
       </div>
 
-      {/* Day grid — borders on cells (right + bottom), parent owns
-          the left + top. The `last-row last-col` cells lose their
-          right/bottom via the `:last-child` selector on the cell. */}
+      {/* Day grid — borders on cells (right + bottom). */}
       <div
         className="grid border-l border-oh-line"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
@@ -108,6 +129,7 @@ export function MonthView({
             isInMonth={cell.isInMonth}
             selectedRefId={selectedRefId}
             onEventClick={onEventClick}
+            getHref={getHref}
             onOverflowClick={onOverflowClick}
           />
         ))}

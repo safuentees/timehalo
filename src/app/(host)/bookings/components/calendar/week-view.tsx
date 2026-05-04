@@ -26,6 +26,16 @@ export type WeekViewProps = {
   oneMinuteHeightPx?: number;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  getHref?: (event: CalendarEvent) => string;
+  /** Max body height. Above this the time-grid scrolls internally
+   *  with a sticky header row + sticky hour axis. Default 640px.
+   *  Pass 0 to opt out (playground / Storybook). */
+  maxBodyHeightPx?: number;
+  /** Min body width. Below this the body horizontally scrolls
+   *  inside the wrapper so chips stay readable on narrow viewports
+   *  (cal.com pattern: their inner is `width: 165%` to force the
+   *  same scroll). Default 980px. */
+  minBodyWidthPx?: number;
   nowOverride?: Date;
 };
 
@@ -68,6 +78,9 @@ export function WeekView({
   oneMinuteHeightPx = 1,
   selectedRefId = null,
   onEventClick,
+  getHref,
+  maxBodyHeightPx = 640,
+  minBodyWidthPx = 980,
   nowOverride,
 }: WeekViewProps) {
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
@@ -95,67 +108,100 @@ export function WeekView({
 
   const today = nowOverride ?? new Date();
 
-  return (
-    <div className="flex flex-col">
-      {/* Day headers row — hairline rule below */}
-      <div className="border-b border-oh-line">
-        <div className="flex">
-          <div className="w-14 shrink-0" /> {/* spacer for hour axis */}
-          {days.map((d) => {
-            const isToday = isSameDay(d, today);
-            const { weekday, ordinal } = formatDayHeader(d);
-            return (
-              <div
-                key={d.toISOString()}
-                className="flex flex-1 flex-col items-center gap-1 pb-3 pt-1"
-              >
-                <span className="oh-eyebrow opacity-100">{weekday}</span>
-                <span
-                  className={cn(
-                    "font-sans text-[16px] font-bold leading-none tracking-tight",
-                    isToday &&
-                      "inline-flex size-6 items-center justify-center rounded-full bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)]",
-                  )}
-                >
-                  {ordinal}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+  // Scroll container (B.PT142). Two scroll axes:
+  //   - vertical: max-height + overflow-y-auto + sticky day-headers
+  //   - horizontal: min-width on the inner body forces overflow-x
+  //                 when the wrapper is narrower than minBodyWidthPx.
+  //                 Chips stay at readable size; cal.com uses the
+  //                 same pattern (width: 165% on their inner).
+  const wrapperStyle = maxBodyHeightPx > 0
+    ? { maxHeight: `${maxBodyHeightPx}px` }
+    : undefined;
+  const innerStyle =
+    minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
-      {/* Body — hour axis + 7 time-grid columns */}
-      <div className="relative flex pt-2">
-        <HourAxis
-          startHour={startHour}
-          endHour={endHour}
-          oneMinuteHeightPx={oneMinuteHeightPx}
-        />
-        {days.map((d) => {
-          const isToday = isSameDay(d, today);
-          const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-          const dayEvents = eventsByDayKey.get(k) ?? [];
-          return (
-            <TimeGridColumn
-              key={d.toISOString()}
-              date={d}
-              events={dayEvents}
+  return (
+    <div
+      className={cn(
+        "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        maxBodyHeightPx > 0 && "overflow-y-auto",
+        minBodyWidthPx > 0 && "overflow-x-auto",
+      )}
+      style={wrapperStyle}
+    >
+      <div className="flex flex-col" style={innerStyle}>
+        {/* Day headers row — sticky on vertical scroll. Paper bg so
+            chips scrolling under don't bleed. The hour-axis spacer
+            cell is also sticky-left so the headers align with the
+            stickied axis on horizontal scroll. */}
+        <div className="sticky top-0 z-30 border-b border-oh-line bg-[color:var(--oh-paper)]">
+          <div className="flex">
+            <div
+              className="sticky left-0 z-10 w-14 shrink-0 bg-[color:var(--oh-paper)]"
+              aria-hidden
+            />
+            {days.map((d) => {
+              const isToday = isSameDay(d, today);
+              const { weekday, ordinal } = formatDayHeader(d);
+              return (
+                <div
+                  key={d.toISOString()}
+                  className="flex flex-1 flex-col items-center gap-1 pb-3 pt-3"
+                >
+                  <span className="oh-eyebrow opacity-100">{weekday}</span>
+                  <span
+                    className={cn(
+                      "font-sans text-[16px] font-bold leading-none tracking-tight",
+                      isToday &&
+                        "inline-flex size-6 items-center justify-center rounded-full bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)]",
+                    )}
+                  >
+                    {ordinal}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Body — hour axis + 7 time-grid columns. The HourAxis is
+            wrapped in a sticky-left container so it stays visible on
+            horizontal scroll. Paper bg + z-10 so chips can't overlap
+            on top during scroll. */}
+        <div className="relative flex pt-2">
+          <div className="sticky left-0 z-10 bg-[color:var(--oh-paper)]">
+            <HourAxis
               startHour={startHour}
               endHour={endHour}
               oneMinuteHeightPx={oneMinuteHeightPx}
-              selectedRefId={selectedRefId}
-              onEventClick={onEventClick}
-              showCurrentTimeLine={isToday}
-              nowOverride={nowOverride}
-              className={cn(
-                "border-l border-oh-line",
-                // Today's column gets a subtle ink-tint background.
-                isToday && "bg-[color:var(--oh-tint)]",
-              )}
             />
-          );
-        })}
+          </div>
+          {days.map((d) => {
+            const isToday = isSameDay(d, today);
+            const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            const dayEvents = eventsByDayKey.get(k) ?? [];
+            return (
+              <TimeGridColumn
+                key={d.toISOString()}
+                date={d}
+                events={dayEvents}
+                startHour={startHour}
+                endHour={endHour}
+                oneMinuteHeightPx={oneMinuteHeightPx}
+                selectedRefId={selectedRefId}
+                onEventClick={onEventClick}
+                getHref={getHref}
+                showCurrentTimeLine={isToday}
+                nowOverride={nowOverride}
+                className={cn(
+                  "border-l border-oh-line",
+                  // Today's column gets a subtle ink-tint background.
+                  isToday && "bg-[color:var(--oh-tint)]",
+                )}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

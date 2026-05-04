@@ -16,8 +16,12 @@ import type { CalendarEvent } from "@/lib/calendar-grid/types";
 //     palette
 //   - displayType selection lifted verbatim: < 40min single-line,
 //     < 45min multi-line, >= 45min full
-//   - drops the Tooltip wrapper; the chip click opens the detail
-//     overlay directly (B.PT138 wires this)
+//   - cmd+click parity (B.PT142) — when `href` is provided, the
+//     chip renders as an `<a>` and modifier-clicks (cmd/ctrl/shift/
+//     middle/alt) fall through to the href so power users open the
+//     standalone /bookings/<uid> in a new tab. Plain left-click
+//     calls `onClick` and does NOT navigate. Same pattern the list
+//     rows use (B.PT138).
 //
 // The 3px-wide left color bar reads as a status indicator without
 // flooding the chip with color — important for the dashboard's
@@ -51,16 +55,47 @@ export function EventChip({
   isSelected = false,
   isHovered = false,
   onClick,
+  href,
 }: {
   event: CalendarEvent;
   isSelected?: boolean;
   isHovered?: boolean;
   onClick?: (event: CalendarEvent) => void;
+  /** When provided, the chip renders as `<a href>` and modifier-
+   *  clicks fall through to the URL (open deep link in new tab).
+   *  Plain left-click still calls `onClick`. Parity with list-row
+   *  cmd+click behavior in B.PT138. */
+  href?: string;
 }) {
   const dur = durationMinutes(event);
   const display = chooseDisplay(dur);
 
-  const Component = onClick ? "button" : "div";
+  // Three render shapes:
+  //   href + onClick  → <a> with click interception (modifier clicks
+  //                     fall through to href; plain clicks call onClick)
+  //   onClick only    → <button>
+  //   neither         → <div> (purely presentational)
+  const Component: "a" | "button" | "div" =
+    href ? "a" : onClick ? "button" : "div";
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!onClick) return;
+    if (Component === "a") {
+      // Let modifier clicks fall through to href (new tab / window).
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.button !== 0
+      ) {
+        return;
+      }
+      e.preventDefault();
+    }
+    onClick(event);
+  };
 
   // CSS variable for the status accent. Used as the bar fill + as the
   // border tint via color-mix in the wrapper styles below.
@@ -68,8 +103,9 @@ export function EventChip({
 
   return (
     <Component
-      type={onClick ? "button" : undefined}
-      onClick={onClick ? () => onClick(event) : undefined}
+      type={Component === "button" ? "button" : undefined}
+      href={Component === "a" ? href : undefined}
+      onClick={onClick ? handleClick : undefined}
       data-event-id={event.id}
       data-status={event.status}
       aria-label={`${event.title} — ${formatTimeRange(event)} — ${event.status}`}
