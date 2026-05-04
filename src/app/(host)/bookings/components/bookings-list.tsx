@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -26,13 +26,29 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { BookingDetailModal } from "./booking-detail-modal";
+import {
+  BookingsViewSwitcher,
+  type ViewMode,
+} from "./bookings-view-switcher";
+import { DayView } from "./calendar/day-view";
+import { WeekView } from "./calendar/week-view";
+import { MonthView } from "./calendar/month-view";
 
 export type Tab = "upcoming" | "past";
 
 const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
 
-export function BookingsList({ activeTab }: { activeTab: Tab }) {
+export function BookingsList({
+  activeTab,
+  activeView,
+  cursorDate,
+}: {
+  activeTab: Tab;
+  activeView: ViewMode;
+  cursorDate: Date;
+}) {
   const t = useTranslations("Bookings");
   const router = useRouter();
   const { data } = trpc.bookings.listForHost.useQuery();
@@ -40,6 +56,31 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
+
+  const calendarEvents: CalendarEvent[] = useMemo(() => {
+    if (!data) return [];
+    const all = [...data.upcoming, ...data.past];
+    return all.map((b) => ({
+      id: b.publicUid,
+      title: b.visitorName,
+      start: new Date(b.slotStart as unknown as string),
+      end: new Date(b.slotEnd as unknown as string),
+      status: "confirmed" as const,
+      refId: b.publicUid,
+    }));
+  }, [data]);
+
+  const onViewChange = (next: ViewMode) => {
+    if (next === activeView) return;
+    const params = new URLSearchParams();
+    params.set("view", next);
+    if (next === "list") params.set("tab", activeTab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const onEventClick = (event: CalendarEvent) => {
+    if (event.refId) setSelectedUid(event.refId);
+  };
 
   return (
     <OhPageShell>
@@ -50,39 +91,72 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
 
       <OnboardingChecklist />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => {
-          if (value === activeTab) return;
-          if (!VALID_TABS.includes(value as Tab)) return;
-          router.push(`?tab=${value}`, { scroll: false });
-        }}
-        className="mt-8"
-      >
-        <BookingsTabBar
-          activeTab={activeTab}
-          upcomingCount={data?.upcoming.length ?? 0}
-          pastCount={data?.past.length ?? 0}
-          tablistLabel={t("tablistLabel")}
-          upcomingLabel={t("tabUpcoming")}
-          pastLabel={t("tabPast")}
-        />
+      <div className="mt-8">
+        <BookingsViewSwitcher value={activeView} onValueChange={onViewChange} />
+      </div>
 
-        <TabsContent value="upcoming" className="mt-6">
-          <BookingsListPanel
-            tab="upcoming"
-            bookings={data?.upcoming ?? []}
-            onSelect={setSelectedUid}
+      {activeView === "list" ? (
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            if (value === activeTab) return;
+            if (!VALID_TABS.includes(value as Tab)) return;
+            router.push(`?view=list&tab=${value}`, { scroll: false });
+          }}
+          className="mt-6"
+        >
+          <BookingsTabBar
+            activeTab={activeTab}
+            upcomingCount={data?.upcoming.length ?? 0}
+            pastCount={data?.past.length ?? 0}
+            tablistLabel={t("tablistLabel")}
+            upcomingLabel={t("tabUpcoming")}
+            pastLabel={t("tabPast")}
           />
-        </TabsContent>
-        <TabsContent value="past" className="mt-6">
-          <BookingsListPanel
-            tab="past"
-            bookings={data?.past ?? []}
-            onSelect={setSelectedUid}
-          />
-        </TabsContent>
-      </Tabs>
+
+          <TabsContent value="upcoming" className="mt-6">
+            <BookingsListPanel
+              tab="upcoming"
+              bookings={data?.upcoming ?? []}
+              onSelect={setSelectedUid}
+            />
+          </TabsContent>
+          <TabsContent value="past" className="mt-6">
+            <BookingsListPanel
+              tab="past"
+              bookings={data?.past ?? []}
+              onSelect={setSelectedUid}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="mt-6">
+          {activeView === "day" ? (
+            <DayView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+          {activeView === "week" ? (
+            <WeekView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+          {activeView === "month" ? (
+            <MonthView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+        </div>
+      )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
     </OhPageShell>
