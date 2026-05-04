@@ -49,11 +49,17 @@ curl -H "X-Figma-Token: $FIGMA_PAT" \
 Commit the JSON spec under `docs/figma/`. Implementation reads from
 the spec, not from Figma. The git diff makes drift visible.
 
-### Path B — `figma-kiwi-protocol` (unlimited via WebSocket tap)
+### Path B — `pnpm figma:spec` (unlimited via WebSocket tap)
 
 The 2026 ace card. Taps the same Kiwi-encoded WebSocket frames Figma's
-editor uses, via Chrome DevTools Protocol. **No rate limit.** Library +
-CLI + MCP server: <https://github.com/allan-simon/figma-kiwi-protocol>.
+editor uses, via Chrome DevTools Protocol. **No rate limit.** Project
+ships with the audited read-path subset of `allan-simon/figma-kiwi-protocol`
+vendored under `vendor/figma-kiwi/` (B.PT132). The unsafe upstream
+`bin/decode.mjs` (runtime `git clone evanw/kiwi` + `npm install fzstd`
++ `npx tsx`) was replaced with `scripts/figma-decode.mjs` using
+npm-published `kiwi-schema@0.5.0` (Evan Wallace's own lib) +
+`fzstd@0.1.1` as normal devDeps. See `vendor/figma-kiwi/AUDIT.md` for
+the file-by-file verdicts.
 
 Use when:
 - You need the full live scenegraph (variables, instances,
@@ -63,11 +69,22 @@ Use when:
 - You're doing a heavy iteration session where REST `?ids=` would
   burn the rate limit.
 
+One-time Chrome + PAT setup (full instructions in
+`docs/figma/README.md#figma--code-extract-a-spec-from-a-live-figma-file`).
+After setup:
+
 ```bash
-# install the CLI (verify the package name + install instructions
-# against the repo's README first — small project, ~23 stars, format
-# may have shifted)
-npx figma-kiwi-protocol capture --node-id=12:106 > spec.json
+pnpm figma:spec chrome-morph --node-id=12:106
+# → captures WebSocket frames, decodes scenegraph, filters to node
+#   subtree, writes docs/figma/spec-chrome-morph.json
+```
+
+Pipeline (each step is a separate pnpm script for debugging):
+
+```
+pnpm figma:capture        →  $FIGMA_KIWI_DIR/frame_NNNN_{recv,sent}_*.bin
+pnpm figma:decode --write →  $FIGMA_KIWI_DIR/scenegraph.json
+pnpm figma:spec <name> --node-id=...  →  docs/figma/spec-<name>.json
 ```
 
 ### Path C — `.fig` file at rest (when the user attaches a zip)
