@@ -407,6 +407,8 @@
     "emptyPastTitle": "Sin reservas pasadas",
     "emptyPastDescription": "Las reservas que ya pasaron viven en esta pestaña.",
     "emptyCta": "Abre tu página de reservas",
+    "errorLoading": "No se pudieron cargar las reservas.",
+    "emptyCalendarHint": "Sin reservas aún — comparte tu enlace para empezar.",
     "liveConnected": "Actualizaciones en vivo conectadas",
     "liveConnecting": "Conectando actualizaciones en vivo",
     "liveOff": "Actualizaciones en vivo desconectadas",

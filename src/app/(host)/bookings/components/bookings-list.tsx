@@ -17,6 +17,7 @@ import {
   OhEmptyMedia,
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
+import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
@@ -52,7 +53,7 @@ export function BookingsList({
 }) {
   const t = useTranslations("Bookings");
   const router = useRouter();
-  const { data } = trpc.bookings.listForHost.useQuery();
+  const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
@@ -148,6 +149,18 @@ export function BookingsList({
             cursorDate={cursorDate}
             onDateChange={onDateChange}
           />
+
+          {isError ? (
+            <OhInlineEmpty>
+              {t("errorLoading")}
+              {error?.message ? ` — ${error.message}` : null}
+            </OhInlineEmpty>
+          ) : null}
+
+          {!isError && data && calendarEvents.length === 0 ? (
+            <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
+          ) : null}
+
           {activeView === "day" ? (
             <DayView
               date={cursorDate}
