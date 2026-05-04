@@ -15,14 +15,27 @@ function chooseDisplay(eventDuration: number): DisplayType {
   return "full";
 }
 
-function formatTimeRange(event: CalendarEvent): string {
+export function formatTimeRange(event: CalendarEvent): string {
   const fmt = (d: Date) =>
     d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
-  return `${fmt(event.start)} – ${fmt(event.end)}`;
+  const start = fmt(event.start);
+  const end = fmt(event.end);
+
+  const periodRe = /\s(am|pm)$/i;
+  const startMatch = start.match(periodRe);
+  const endMatch = end.match(periodRe);
+
+  if (!startMatch || !endMatch) return `${start} – ${end}`;
+
+  if (startMatch[1].toLowerCase() === endMatch[1].toLowerCase()) {
+    return `${start.replace(periodRe, "")} – ${end}`;
+  }
+
+  return `${start} – ${end}`;
 }
 
 export function EventChip({
@@ -108,7 +121,7 @@ export function EventChip({
             <span className="truncate font-sans text-[12px] font-bold leading-none">
               {event.title}
             </span>
-            <span className="font-mono text-[10px] leading-none opacity-55 tabular-nums">
+            <span className="whitespace-nowrap font-mono text-[10px] leading-none opacity-55 tabular-nums">
               {formatTimeRange(event)}
             </span>
           </>
@@ -117,7 +130,7 @@ export function EventChip({
             <span className="truncate font-sans text-[12px] font-bold leading-tight">
               {event.title}
             </span>
-            <span className="font-mono text-[10px] leading-none opacity-55 tabular-nums">
+            <span className="truncate whitespace-nowrap font-mono text-[10px] leading-none opacity-55 tabular-nums">
               {formatTimeRange(event)}
             </span>
             {display === "full" && event.subtitle ? (
