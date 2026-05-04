@@ -243,6 +243,24 @@
      paper / ink via lazy var(), so .dark flips automatically. */
   --oh-frame: color-mix(in srgb, var(--oh-ink) 12%, var(--oh-paper));
 
+  /* ─── Booking status palette (B.PT134).
+     Three semantic colors used by the calendar feature for chip / block /
+     row coloring. Mapped from the chrome-morph design system:
+       confirmed   spring-green       active future bookings
+       tentative   amber              forward-compat — not currently used
+                                      (Booking model has no `tentative`
+                                      enum yet; reserved for future
+                                      third-party calendar imports)
+       cancelled   alert red          soft-deleted bookings (deleted=true)
+     Hex values are FIXED — they're brand-style accents that don't flip
+     in dark mode (per design intent — status colors must keep their
+     semantic identity across themes). If dark-mode requires desaturated
+     equivalents, add them as paired `.dark { --oh-status-*: ... }`
+     overrides in the `.dark` block below; do not silently re-tint. ─── */
+  --oh-status-confirmed: #00bc7d;
+  --oh-status-tentative: #d6a028;
+  --oh-status-cancelled: #f94848;
+
   /* Desktop modal sizing — matched against the Drawer breakpoint in
      `src/components/ui/responsive-modal.tsx`. Below
      (--oh-modal-w + 2 * --oh-modal-edge) of viewport width, the shell
