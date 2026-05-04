@@ -35,6 +35,7 @@ import {
 import { DayView } from "./calendar/day-view";
 import { WeekView } from "./calendar/week-view";
 import { MonthView } from "./calendar/month-view";
+import { BookingsCursorControls } from "./calendar/cursor-controls";
 
 export type Tab = "upcoming" | "past";
 
@@ -74,7 +75,18 @@ export function BookingsList({
     if (next === activeView) return;
     const params = new URLSearchParams();
     params.set("view", next);
-    if (next === "list") params.set("tab", activeTab);
+    if (next === "list") {
+      params.set("tab", activeTab);
+    } else {
+      params.set("date", formatDateParam(cursorDate));
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const onDateChange = (next: Date) => {
+    const params = new URLSearchParams();
+    params.set("view", activeView);
+    params.set("date", formatDateParam(next));
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -130,7 +142,12 @@ export function BookingsList({
           </TabsContent>
         </Tabs>
       ) : (
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-4">
+          <BookingsCursorControls
+            view={activeView}
+            cursorDate={cursorDate}
+            onDateChange={onDateChange}
+          />
           {activeView === "day" ? (
             <DayView
               date={cursorDate}
@@ -161,6 +178,13 @@ export function BookingsList({
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
     </OhPageShell>
   );
+}
+
+function formatDateParam(d: Date): string {
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, "0");
+  const day = d.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function formatCount(n: number): string {
