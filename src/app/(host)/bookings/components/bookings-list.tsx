@@ -274,6 +274,7 @@ export function BookingsList({
             <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
           ) : null}
 
+          {/* Day view — works at any width, no mobile fallback needed. */}
           {activeView === "day" ? (
             <DayView
               date={cursorDate}
@@ -283,23 +284,99 @@ export function BookingsList({
               getHref={getEventHref}
             />
           ) : null}
+
+          {/* Week view — mobile fallback to Day (B.PT144, §11 q1).
+              Below md (768px), Week's 1100px min-width forces hard
+              horizontal scroll on a phone — most of the week is off-
+              screen and chips read as 50-60px wide. The single-day
+              column is the closest "calendar feel" experience that
+              fits. URL stays `?view=week`; resizing back to desktop
+              renders Week again. Both branches present in the DOM;
+              CSS hides one based on viewport so there's no JS swap
+              and no hydration flash. (Project pattern per
+              dashboard-forms.md "Breakpoint-dependent primitive
+              swaps".) */}
           {activeView === "week" ? (
-            <WeekView
-              date={cursorDate}
-              events={calendarEvents}
-              selectedRefId={selectedUid}
-              onEventClick={onEventClick}
-              getHref={getEventHref}
-            />
+            <>
+              <div className="hidden md:block">
+                <WeekView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+              <div className="md:hidden">
+                <DayView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+            </>
           ) : null}
+
+          {/* Month view — mobile fallback to List (B.PT144, §11 q1).
+              A 7-column month grid on a 400px viewport gives each
+              cell ~57px wide; chips can't fit and the +N MORE
+              overflow dominates every cell. List is the better
+              scan-and-tap surface on mobile. URL stays `?view=month`;
+              resizing back to desktop renders the grid. */}
           {activeView === "month" ? (
-            <MonthView
-              date={cursorDate}
-              events={calendarEvents}
-              selectedRefId={selectedUid}
-              onEventClick={onEventClick}
-              getHref={getEventHref}
-            />
+            <>
+              <div className="hidden md:block">
+                <MonthView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+              <div className="md:hidden">
+                {/* Tab clicks navigate to ?view=list&tab=X — picking
+                    a tab takes the user out of month-mode entirely
+                    (no more month-grid at any viewport width).
+                    Reads as "month is desktop-only; tabs reset
+                    you to the canonical list view." */}
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => {
+                    if (value === activeTab) return;
+                    if (!VALID_TABS.includes(value as Tab)) return;
+                    router.push(`?view=list&tab=${value}`, {
+                      scroll: false,
+                    });
+                  }}
+                >
+                  <BookingsTabBar
+                    activeTab={activeTab}
+                    upcomingCount={data?.upcoming.length ?? 0}
+                    pastCount={data?.past.length ?? 0}
+                    tablistLabel={t("tablistLabel")}
+                    upcomingLabel={t("tabUpcoming")}
+                    pastLabel={t("tabPast")}
+                  />
+                  <TabsContent value="upcoming" className="mt-6">
+                    <BookingsListPanel
+                      tab="upcoming"
+                      bookings={data?.upcoming ?? []}
+                      onSelect={setSelectedUid}
+                    />
+                  </TabsContent>
+                  <TabsContent value="past" className="mt-6">
+                    <BookingsListPanel
+                      tab="past"
+                      bookings={data?.past ?? []}
+                      onSelect={setSelectedUid}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </>
           ) : null}
         </div>
       )}
