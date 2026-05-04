@@ -9,6 +9,7 @@ import { CalendarIcon, MailIcon } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { trpc } from "@/trpc/hooks";
+import { cn } from "@/lib/utils";
 import {
   OhEmpty,
   OhEmptyContent,
@@ -98,55 +99,79 @@ export function BookingsList({
   const getEventHref = (event: CalendarEvent) =>
     event.refId ? `/bookings/${event.refId}` : "#";
 
+  const calendarMaxWidthClass = (() => {
+    switch (activeView) {
+      case "day":
+        return "max-w-[760px]";
+      case "week":
+        return "max-w-[1440px]";
+      case "month":
+        return "max-w-[1200px]";
+      default:
+        return "max-w-[760px]";
+    }
+  })();
+
   return (
-    <OhPageShell>
-      <OhPageHeader
-        title={t("title")}
-        aside={liveQueueEnabled ? <LiveQueue /> : null}
-      />
+    <>
+      <OhPageShell>
+        <OhPageHeader
+          title={t("title")}
+          aside={liveQueueEnabled ? <LiveQueue /> : null}
+        />
 
-      <OnboardingChecklist />
+        <OnboardingChecklist />
 
-      <div className="mt-8">
-        <BookingsViewSwitcher value={activeView} onValueChange={onViewChange} />
-      </div>
+        <div className="mt-8">
+          <BookingsViewSwitcher
+            value={activeView}
+            onValueChange={onViewChange}
+          />
+        </div>
+      </OhPageShell>
 
       {activeView === "list" ? (
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            if (value === activeTab) return;
-            if (!VALID_TABS.includes(value as Tab)) return;
-            router.push(`?view=list&tab=${value}`, { scroll: false });
-          }}
-          className="mt-6"
-        >
-          <BookingsTabBar
-            activeTab={activeTab}
-            upcomingCount={data?.upcoming.length ?? 0}
-            pastCount={data?.past.length ?? 0}
-            tablistLabel={t("tablistLabel")}
-            upcomingLabel={t("tabUpcoming")}
-            pastLabel={t("tabPast")}
-          />
+        <OhPageShell>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => {
+              if (value === activeTab) return;
+              if (!VALID_TABS.includes(value as Tab)) return;
+              router.push(`?view=list&tab=${value}`, { scroll: false });
+            }}
+          >
+            <BookingsTabBar
+              activeTab={activeTab}
+              upcomingCount={data?.upcoming.length ?? 0}
+              pastCount={data?.past.length ?? 0}
+              tablistLabel={t("tablistLabel")}
+              upcomingLabel={t("tabUpcoming")}
+              pastLabel={t("tabPast")}
+            />
 
-          <TabsContent value="upcoming" className="mt-6">
-            <BookingsListPanel
-              tab="upcoming"
-              bookings={data?.upcoming ?? []}
-              onSelect={setSelectedUid}
-            />
-          </TabsContent>
-          <TabsContent value="past" className="mt-6">
-            <BookingsListPanel
-              tab="past"
-              bookings={data?.past ?? []}
-              onSelect={setSelectedUid}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="upcoming" className="mt-6">
+              <BookingsListPanel
+                tab="upcoming"
+                bookings={data?.upcoming ?? []}
+                onSelect={setSelectedUid}
+              />
+            </TabsContent>
+            <TabsContent value="past" className="mt-6">
+              <BookingsListPanel
+                tab="past"
+                bookings={data?.past ?? []}
+                onSelect={setSelectedUid}
+              />
+            </TabsContent>
+          </Tabs>
+        </OhPageShell>
       ) : (
-        <div className="mt-6 flex flex-col gap-4">
+        <div
+          className={cn(
+            "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
+            calendarMaxWidthClass,
+          )}
+        >
           <BookingsCursorControls
             view={activeView}
             cursorDate={cursorDate}
@@ -195,7 +220,7 @@ export function BookingsList({
       )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
-    </OhPageShell>
+    </>
   );
 }
 

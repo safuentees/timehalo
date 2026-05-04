@@ -15,7 +15,7 @@ export type DayViewProps = {
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
-  maxBodyHeightPx?: number;
+  maxBodyHeight?: string;
   nowOverride?: Date;
 };
 
@@ -47,7 +47,7 @@ export function DayView({
   selectedRefId = null,
   onEventClick,
   getHref,
-  maxBodyHeightPx = 640,
+  maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: DayViewProps) {
   const { weekday, ordinal } = formatHeaderDate(date);
@@ -62,15 +62,14 @@ export function DayView({
     return isSameDay(now, date);
   })();
 
-  const bodyStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  const isCapped = maxBodyHeight !== "none";
+  const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
   return (
     <div
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
       )}
       style={bodyStyle}
     >

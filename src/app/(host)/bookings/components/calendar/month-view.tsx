@@ -19,7 +19,7 @@ export type MonthViewProps = {
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
-  maxBodyHeightPx?: number;
+  maxBodyHeight?: string;
   nowOverride?: Date;
 };
 
@@ -43,7 +43,7 @@ export function MonthView({
   onEventClick,
   getHref,
   onOverflowClick,
-  maxBodyHeightPx = 640,
+  maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: MonthViewProps) {
   const cells = useMemo(
@@ -65,15 +65,14 @@ export function MonthView({
   const today = nowOverride ?? new Date();
   const headerDays = dayOfWeekOrder(weekStartsOn);
 
-  const wrapperStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  const isCapped = maxBodyHeight !== "none";
+  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
   return (
     <div
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
       )}
       style={wrapperStyle}
     >

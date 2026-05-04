@@ -15,7 +15,7 @@ export type WeekViewProps = {
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
-  maxBodyHeightPx?: number;
+  maxBodyHeight?: string;
   minBodyWidthPx?: number;
   nowOverride?: Date;
 };
@@ -60,8 +60,8 @@ export function WeekView({
   selectedRefId = null,
   onEventClick,
   getHref,
-  maxBodyHeightPx = 640,
-  minBodyWidthPx = 980,
+  maxBodyHeight = "calc(100dvh - 280px)",
+  minBodyWidthPx = 1100,
   nowOverride,
 }: WeekViewProps) {
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
@@ -86,9 +86,8 @@ export function WeekView({
 
   const today = nowOverride ?? new Date();
 
-  const wrapperStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  const isCapped = maxBodyHeight !== "none";
+  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
@@ -96,7 +95,7 @@ export function WeekView({
     <div
       className={cn(
         "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
       )}
       style={wrapperStyle}
