@@ -86,7 +86,13 @@ export function EventChip({
       <span
         aria-hidden
         className="block h-full w-[3px] shrink-0"
-        style={{ background: statusVar }}
+        style={
+          event.status === "tentative"
+            ? {
+                backgroundImage: `repeating-linear-gradient(to bottom, ${statusVar} 0 4px, transparent 4px 8px)`,
+              }
+            : { background: statusVar }
+        }
       />
 
       <span

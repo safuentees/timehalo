@@ -113,7 +113,14 @@ export function MonthDayCell({
             <span
               aria-hidden
               className="inline-block size-1.5 shrink-0 rounded-full"
-              style={{ background: `var(--oh-status-${event.status})` }}
+              style={
+                event.status === "tentative"
+                  ? {
+                      background: "transparent",
+                      border: `1px solid var(--oh-status-${event.status})`,
+                    }
+                  : { background: `var(--oh-status-${event.status})` }
+              }
             />
             <span className="font-mono text-[10px] leading-none tabular-nums opacity-65">
               {formatChipTime(event.start)}
