@@ -34,7 +34,12 @@ export type MonthViewProps = {
   /** Cmd+click parity (B.PT142) — chips become `<a href>` so power
    *  users open the standalone /bookings/<uid> page in a new tab. */
   getHref?: (event: CalendarEvent) => string;
+  /** Called when a busy day's "+N MORE" overflow is clicked. Caller
+   *  typically navigates to the Day view for that date. */
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  /** Optional href for the +N MORE overflow link (cmd-click parity).
+   *  Caller typically passes a `?view=day&date=YYYY-MM-DD` URL. */
+  getOverflowHref?: (date: Date) => string;
   /** CSS max-height. Default `calc(100dvh - 280px)` (viewport-
    *  relative). Pass `"none"` to opt out. (B.PT143.) */
   maxBodyHeight?: string;
@@ -62,6 +67,7 @@ export function MonthView({
   onEventClick,
   getHref,
   onOverflowClick,
+  getOverflowHref,
   maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: MonthViewProps) {
@@ -93,8 +99,15 @@ export function MonthView({
   const isCapped = maxBodyHeight !== "none";
   const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
+  // Region label for screen readers (B.PT145). Announces "Month view
+  // for May 2026" on focus, giving SR users context for the grid.
+  const monthLabel = date
+    .toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
   return (
     <div
+      role="region"
+      aria-label={`Month view for ${monthLabel}`}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",
@@ -132,6 +145,7 @@ export function MonthView({
             onEventClick={onEventClick}
             getHref={getHref}
             onOverflowClick={onOverflowClick}
+            getOverflowHref={getOverflowHref}
           />
         ))}
       </div>

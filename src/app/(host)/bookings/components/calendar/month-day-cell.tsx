@@ -14,10 +14,16 @@ import type { CalendarEvent } from "@/lib/calendar-grid/types";
 //   │ +N MORE                   │   overflow row (when >3)
 //   └────────────────────────────┘
 //
-// Today's cell gets the inverse-circle treatment on the date number.
-// Out-of-month cells dim to ~40% opacity. Click on a chip → onEventClick;
-// click on the overflow → onOverflowClick (parent opens a popover with
-// every booking that day).
+// Today's cell gets the inverse-circle treatment on the date number,
+// plus `aria-current="date"` so screen readers announce it (B.PT145).
+// Out-of-month cells dim to ~40% opacity.
+//
+// Click on a chip → onEventClick (opens detail modal). Click +N MORE →
+// onOverflowClick + the overflow button is also an `<a href>` so cmd-
+// click opens the day view in a new tab. Project doesn't ship a
+// popover primitive yet — the +N MORE jumps to Day view for that
+// date instead of an inline list (cheaper, uses existing routing;
+// future enhancement = inline popover).
 
 const MAX_VISIBLE_CHIPS = 3;
 
@@ -44,7 +50,14 @@ export type MonthDayCellProps = {
   /** Cmd+click parity (B.PT142) — chips become `<a href>` so power
    *  users open the standalone /bookings/<uid> page in a new tab. */
   getHref?: (event: CalendarEvent) => string;
+  /** Called when the user clicks +N MORE on a busy day. Project
+   *  default behavior (B.PT145): jump to Day view for this date. */
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  /** Optional href for the +N MORE overflow link — when provided
+   *  the button becomes an `<a href>` and cmd-click opens the
+   *  destination in a new tab. Caller typically passes a
+   *  `/bookings?view=day&date=YYYY-MM-DD` URL. */
+  getOverflowHref?: (date: Date) => string;
 };
 
 export function MonthDayCell({
@@ -56,6 +69,7 @@ export function MonthDayCell({
   onEventClick,
   getHref,
   onOverflowClick,
+  getOverflowHref,
 }: MonthDayCellProps) {
   const sortedEvents = [...events].sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
@@ -76,9 +90,11 @@ export function MonthDayCell({
     >
       {/* Date corner: number + (optional) count badge. Today gets
           the inverse-circle pill on the date. Count badge appears
-          when ≥1 event. */}
+          when ≥1 event. `aria-current="date"` on today so screen
+          readers announce it as the current day (B.PT145). */}
       <div className="flex items-center justify-between">
         <span
+          aria-current={isToday ? "date" : undefined}
           className={cn(
             "font-mono text-[12px] font-bold leading-none tabular-nums",
             isToday &&
@@ -126,8 +142,9 @@ export function MonthDayCell({
             type={Component === "button" ? "button" : undefined}
             href={Component === "a" ? href : undefined}
             data-event-id={event.id}
+            data-status={event.status}
             onClick={onEventClick ? handleClick : undefined}
-            aria-label={`${event.title} at ${formatChipTime(event.start)}`}
+            aria-label={`${event.title} at ${formatChipTime(event.start)} — ${event.status}`}
             className={cn(
               "flex w-full items-center gap-1 truncate text-left",
               "rounded-(--oh-r-xs) px-1 py-0.5 cursor-pointer",
@@ -152,22 +169,50 @@ export function MonthDayCell({
           </Component>
           );
         })}
-        {overflowCount > 0 ? (
-          <button
-            type="button"
-            onClick={
-              onOverflowClick
-                ? () => onOverflowClick(date, sortedEvents)
-                : undefined
+        {overflowCount > 0 ? (() => {
+          // +N MORE — same render-as-link pattern as the chips.
+          // When `getOverflowHref` is provided, render as `<a>` so
+          // cmd-click opens the destination (typically Day view for
+          // this date) in a new tab. Plain click calls onOverflowClick
+          // which navigates in place.
+          const overflowHref = getOverflowHref ? getOverflowHref(date) : undefined;
+          const OverflowComponent: "a" | "button" = overflowHref
+            ? "a"
+            : "button";
+          const handleOverflowClick = (e: React.MouseEvent) => {
+            if (!onOverflowClick) return;
+            if (OverflowComponent === "a") {
+              if (
+                e.defaultPrevented ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey ||
+                e.button !== 0
+              ) {
+                return;
+              }
+              e.preventDefault();
             }
-            className={cn(
-              "oh-eyebrow text-left opacity-55 hover:opacity-100",
-              "px-1 py-0.5 cursor-pointer transition-opacity duration-200",
-            )}
-          >
-            +{overflowCount} more
-          </button>
-        ) : null}
+            onOverflowClick(date, sortedEvents);
+          };
+          return (
+            <OverflowComponent
+              type={OverflowComponent === "button" ? "button" : undefined}
+              href={OverflowComponent === "a" ? overflowHref : undefined}
+              onClick={
+                onOverflowClick ? handleOverflowClick : undefined
+              }
+              aria-label={`Show all ${sortedEvents.length} bookings on ${date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`}
+              className={cn(
+                "oh-eyebrow text-left opacity-55 hover:opacity-100",
+                "px-1 py-0.5 cursor-pointer transition-opacity duration-200",
+              )}
+            >
+              +{overflowCount} more
+            </OverflowComponent>
+          );
+        })() : null}
       </div>
     </div>
   );

@@ -123,8 +123,23 @@ export function WeekView({
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
+  // Region label for screen readers (B.PT145). "Week view for May 4-10
+  // 2026" tells SR users which week they're focused into. Reuses the
+  // already-memoized `monday` from above; sunday derived locally.
+  const sunday = days[6];
+  const weekLabel = (() => {
+    const startMonth = monday.toLocaleDateString("en-US", { month: "short" });
+    const endMonth = sunday.toLocaleDateString("en-US", { month: "short" });
+    if (startMonth === endMonth) {
+      return `${startMonth} ${monday.getDate()}-${sunday.getDate()}, ${sunday.getFullYear()}`;
+    }
+    return `${startMonth} ${monday.getDate()} - ${endMonth} ${sunday.getDate()}, ${sunday.getFullYear()}`;
+  })();
+
   return (
     <div
+      role="region"
+      aria-label={`Week view for ${weekLabel}`}
       className={cn(
         "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",
@@ -153,6 +168,7 @@ export function WeekView({
                 >
                   <span className="oh-eyebrow opacity-100">{weekday}</span>
                   <span
+                    aria-current={isToday ? "date" : undefined}
                     className={cn(
                       "font-sans text-[16px] font-bold leading-none tracking-tight",
                       isToday &&

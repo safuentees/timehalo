@@ -154,6 +154,19 @@ export function BookingsList({
   const getEventHref = (event: CalendarEvent) =>
     event.refId ? `/bookings/${event.refId}` : "#";
 
+  // Month "+N MORE" overflow handler (B.PT145). Clicking jumps to
+  // Day view for that date — uses existing routing instead of
+  // building a popover primitive. The href is also passed so cmd-
+  // click opens the day view in a new tab.
+  const onOverflowClick = (date: Date) => {
+    const params = new URLSearchParams();
+    params.set("view", "day");
+    params.set("date", formatDateParam(date));
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+  const getOverflowHref = (date: Date) =>
+    `/bookings?view=day&date=${formatDateParam(date)}`;
+
   // Per-view width caps (B.PT143). Cal.com's booker takes the
   // opposite extreme — `width: 100vw, minHeight: 100vh` on week —
   // but we have a sidebar + topbar to coexist with, so the cap is
@@ -334,6 +347,8 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
+                  onOverflowClick={onOverflowClick}
+                  getOverflowHref={getOverflowHref}
                 />
               </div>
               <div className="md:hidden">
