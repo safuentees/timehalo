@@ -6,6 +6,7 @@ import {
   calculateEventLayouts,
   createLayoutMap,
 } from "@/lib/calendar-grid/overlap";
+import { eventToGridPosition } from "@/lib/calendar-grid/event-geometry";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { useCurrentMinute } from "@/lib/calendar-grid/use-current-minute";
 import { EventChip } from "./event-chip";
@@ -89,32 +90,15 @@ export function TimeGridColumn({
         const layout = layoutMap.get(event.id);
         if (!layout) return null;
 
-        const visibleStartMin = 0;
-        const visibleEndMin = totalMinutes;
+        const pos = eventToGridPosition(event, {
+          startHour,
+          endHour,
+          oneMinuteHeightPx,
+        });
+        if (!pos.isVisible) return null;
 
-        const eventStartMin =
-          (event.start.getHours() - startHour) * 60 +
-          event.start.getMinutes();
-        const eventEndMin =
-          (event.end.getHours() - startHour) * 60 +
-          event.end.getMinutes();
-
-        if (eventEndMin <= visibleStartMin || eventStartMin >= visibleEndMin) {
-          return null;
-        }
-
-        const clippedStartMin = Math.max(visibleStartMin, eventStartMin);
-        const clippedEndMin = Math.min(visibleEndMin, eventEndMin);
-        const clippedDurationMin = clippedEndMin - clippedStartMin;
-
-        const top = clippedStartMin * oneMinuteHeightPx;
-        const minHeightPx = 18;
-        const heightPx = Math.max(
-          minHeightPx,
-          clippedDurationMin * oneMinuteHeightPx,
-        );
-
-        const isSelected = selectedRefId !== null && event.refId === selectedRefId;
+        const isSelected =
+          selectedRefId !== null && event.refId === selectedRefId;
         const href = getHref ? getHref(event) : undefined;
 
         return (
@@ -122,8 +106,8 @@ export function TimeGridColumn({
             key={event.id}
             className="absolute"
             style={{
-              top: `${top}px`,
-              height: `${heightPx}px`,
+              top: `${pos.top}px`,
+              height: `${pos.height}px`,
               left: `${layout.leftOffsetPercent}%`,
               width: `${layout.widthPercent}%`,
               zIndex: isSelected ? 79 : layout.baseZIndex,
