@@ -8,8 +8,28 @@ import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 import { trpc } from "@/trpc/hooks";
 import { cn } from "@/lib/utils";
+import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
+import {
+  pixelToTime,
+  snapPixelToGrid,
+} from "@/lib/calendar-grid/event-geometry";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { EventChip } from "./calendar/event-chip";
+import type { DraggableEventDragData } from "./calendar/draggable-event-chip";
+import type { TimeGridDropData } from "./calendar/time-grid-column";
 import {
   OhEmpty,
   OhEmptyContent,
@@ -61,6 +81,25 @@ export function BookingsList({
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
+  const [activeDrag, setActiveDrag] = useState<CalendarEvent | null>(null);
+  const [pending, setPending] = useState<{
+    event: CalendarEvent;
+    newSlotStart: Date;
+    durationMin: number;
+  } | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const reschedule = useRescheduleBooking({
+    onSuccess: () => {
+      toast.success(t("rescheduleSuccess"));
+      setPending(null);
+    },
+  });
+
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     if (!data) return [];
     const all = [...data.upcoming, ...data.past];
@@ -95,6 +134,62 @@ export function BookingsList({
 
   const onEventClick = (event: CalendarEvent) => {
     if (event.refId) setSelectedUid(event.refId);
+  };
+
+  const onDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as DraggableEventDragData | undefined;
+    if (!data || data.type !== "event") return;
+    const ev = calendarEvents.find((c) => (c.refId ?? c.id) === data.refId);
+    if (ev) setActiveDrag(ev);
+  };
+
+  const onDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(null);
+    const { active, over, delta } = e;
+    if (!over) return;
+
+    const dragData = active.data.current as DraggableEventDragData | undefined;
+    const dropData = over.data.current as TimeGridDropData | undefined;
+    if (!dragData || dragData.type !== "event") return;
+    if (!dropData || dropData.type !== "time-grid-column") return;
+
+    const sourceEvent = calendarEvents.find(
+      (c) => (c.refId ?? c.id) === dragData.refId,
+    );
+    if (!sourceEvent || !sourceEvent.refId) return;
+
+    const { startHour, oneMinuteHeightPx } = dropData;
+    const targetDate = parseColumnDate(dropData.dateIso);
+
+    const sourceStart = new Date(dragData.startMs);
+    const sourceTopPx =
+      ((sourceStart.getHours() - startHour) * 60 + sourceStart.getMinutes()) *
+      oneMinuteHeightPx;
+    const newTopPx = snapPixelToGrid(sourceTopPx + delta.y, {
+      oneMinuteHeightPx,
+      stepMinutes: 15,
+    });
+    const newSlotStart = pixelToTime(newTopPx, targetDate, {
+      startHour,
+      oneMinuteHeightPx,
+    });
+
+    if (newSlotStart.getTime() === sourceEvent.start.getTime()) return;
+
+    const durationMin = Math.round(
+      (sourceEvent.end.getTime() - sourceEvent.start.getTime()) / 60_000,
+    );
+    setPending({ event: sourceEvent, newSlotStart, durationMin });
+  };
+
+  const onConfirmReschedule = async () => {
+    if (!pending) return;
+    if (!pending.event.refId) return;
+    await reschedule.mutateAsync({
+      oldPublicUid: pending.event.refId,
+      newSlotStart: pending.newSlotStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+    });
   };
 
   const getEventHref = (event: CalendarEvent) =>
@@ -176,6 +271,13 @@ export function BookingsList({
           </Tabs>
         </OhPageShell>
       ) : (
+        <DndContext
+          sensors={sensors}
+          modifiers={[restrictToFirstScrollableAncestor]}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setActiveDrag(null)}
+        >
         <div
           className={cn(
             "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
@@ -287,11 +389,59 @@ export function BookingsList({
             </>
           ) : null}
         </div>
+        <DragOverlay dropAnimation={null}>
+          {activeDrag ? (
+            <div className="opacity-90">
+              <EventChip event={activeDrag} />
+            </div>
+          ) : null}
+        </DragOverlay>
+        </DndContext>
       )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
+
+      <ConfirmDialog
+        open={pending !== null}
+        onOpenChange={(open) => {
+          if (!open) setPending(null);
+        }}
+        title={t("rescheduleConfirmTitle")}
+        description={
+          pending
+            ? t("rescheduleConfirmDescription", {
+                title: pending.event.title,
+                from: pending.event.start.toLocaleString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+                to: pending.newSlotStart.toLocaleString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+              })
+            : ""
+        }
+        confirmLabel={t("rescheduleConfirmLabel")}
+        cancelLabel={t("rescheduleCancelLabel")}
+        pending={reschedule.isPending}
+        onConfirm={onConfirmReschedule}
+      />
     </>
   );
+}
+
+function parseColumnDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map((s) => Number.parseInt(s, 10));
+  return new Date(y, m - 1, d);
 }
 
 function formatDateParam(d: Date): string {

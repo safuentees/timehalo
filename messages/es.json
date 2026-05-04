@@ -413,7 +413,12 @@
     "liveConnecting": "Conectando actualizaciones en vivo",
     "liveOff": "Actualizaciones en vivo desconectadas",
     "toastNewBooking": "Nueva reserva de {name}",
-    "toastCancelled": "Cancelada: {name}"
+    "toastCancelled": "Cancelada: {name}",
+    "rescheduleConfirmTitle": "¿Reprogramar esta reserva?",
+    "rescheduleConfirmDescription": "Mover {title} de {from} a {to}. El visitante recibirá una nueva invitación de calendario.",
+    "rescheduleConfirmLabel": "Reprogramar",
+    "rescheduleCancelLabel": "Mantener horario original",
+    "rescheduleSuccess": "Reserva reprogramada."
   },
   "HostPreview": {
     "exit": "Salir de la vista previa, volver al panel",

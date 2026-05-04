@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/responsive-modal";
 
 type ConfirmDialogProps = {
-  trigger: ReactElement;
+  trigger?: ReactElement;
   title: string;
   description: ReactNode;
   confirmLabel: string;
@@ -21,6 +21,8 @@ type ConfirmDialogProps = {
   cancelLabel: string;
   pending?: boolean;
   onConfirm: () => unknown | Promise<unknown>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   tone?: "primary";
 };
 
@@ -33,8 +35,16 @@ export function ConfirmDialog({
   cancelLabel,
   pending = false,
   onConfirm,
+  open: openProp,
+  onOpenChange,
 }: ConfirmDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (isControlled) onOpenChange?.(next);
+    else setInternalOpen(next);
+  };
 
   async function handleConfirm() {
     try {
@@ -46,7 +56,9 @@ export function ConfirmDialog({
 
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
-      <ResponsiveModalTrigger asChild>{trigger}</ResponsiveModalTrigger>
+      {trigger ? (
+        <ResponsiveModalTrigger asChild>{trigger}</ResponsiveModalTrigger>
+      ) : null}
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>{title}</ResponsiveModalTitle>

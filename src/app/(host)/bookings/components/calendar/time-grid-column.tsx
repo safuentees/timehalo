@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import {
   calculateEventLayouts,
@@ -9,7 +10,22 @@ import {
 import { eventToGridPosition } from "@/lib/calendar-grid/event-geometry";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { useCurrentMinute } from "@/lib/calendar-grid/use-current-minute";
-import { EventChip } from "./event-chip";
+import { DraggableEventChip } from "./draggable-event-chip";
+
+export type TimeGridDropData = {
+  type: "time-grid-column";
+  dateIso: string;
+  startHour: number;
+  endHour: number;
+  oneMinuteHeightPx: number;
+};
+
+function dateIsoLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export type TimeGridColumnProps = {
   date: Date;
@@ -63,6 +79,18 @@ export function TimeGridColumn({
     hourRules.push((h - startHour) * 60 * oneMinuteHeightPx);
   }
 
+  const dropData: TimeGridDropData = {
+    type: "time-grid-column",
+    dateIso: dateIsoLocal(date),
+    startHour,
+    endHour,
+    oneMinuteHeightPx,
+  };
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `column-${dropData.dateIso}`,
+    data: dropData,
+  });
+
   const currentTimeLineTop = (() => {
     if (!showCurrentTimeLine) return null;
     if (!isSameDay(now, date)) return null;
@@ -74,7 +102,13 @@ export function TimeGridColumn({
 
   return (
     <div
-      className={cn("relative flex-1 min-w-0", className)}
+      ref={setDropRef}
+      data-drop-active={isOver ? "" : undefined}
+      className={cn(
+        "relative flex-1 min-w-0",
+        isOver && "bg-[color:var(--oh-tint)]",
+        className,
+      )}
       style={{ height: `${columnHeightPx}px` }}
     >
       {hourRules.map((top, i) => (
@@ -113,11 +147,12 @@ export function TimeGridColumn({
               zIndex: isSelected ? 79 : layout.baseZIndex,
             }}
           >
-            <EventChip
+            <DraggableEventChip
               event={event}
               isSelected={isSelected}
               onClick={onEventClick}
               href={href}
+              disabled={event.status === "cancelled"}
             />
           </div>
         );
