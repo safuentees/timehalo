@@ -65,8 +65,16 @@ export function DayView({
   const isCapped = maxBodyHeight !== "none";
   const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
+  const dayLabel = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+
   return (
     <div
+      role="region"
+      aria-label={`Day view for ${dayLabel}`}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",
@@ -84,6 +92,7 @@ export function DayView({
             {weekday}
           </span>
           <span
+            aria-current={isToday ? "date" : undefined}
             className={cn(
               "font-sans text-[20px] font-bold leading-none tracking-tight",
               isToday &&

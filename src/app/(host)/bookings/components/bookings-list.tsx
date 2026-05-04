@@ -99,6 +99,15 @@ export function BookingsList({
   const getEventHref = (event: CalendarEvent) =>
     event.refId ? `/bookings/${event.refId}` : "#";
 
+  const onOverflowClick = (date: Date) => {
+    const params = new URLSearchParams();
+    params.set("view", "day");
+    params.set("date", formatDateParam(date));
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+  const getOverflowHref = (date: Date) =>
+    `/bookings?view=day&date=${formatDateParam(date)}`;
+
   const calendarMaxWidthClass = (() => {
     switch (activeView) {
       case "day":
@@ -231,6 +240,8 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
+                  onOverflowClick={onOverflowClick}
+                  getOverflowHref={getOverflowHref}
                 />
               </div>
               <div className="md:hidden">

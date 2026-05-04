@@ -19,6 +19,7 @@ export type MonthViewProps = {
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  getOverflowHref?: (date: Date) => string;
   maxBodyHeight?: string;
   nowOverride?: Date;
 };
@@ -43,6 +44,7 @@ export function MonthView({
   onEventClick,
   getHref,
   onOverflowClick,
+  getOverflowHref,
   maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: MonthViewProps) {
@@ -68,8 +70,13 @@ export function MonthView({
   const isCapped = maxBodyHeight !== "none";
   const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
+  const monthLabel = date
+    .toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
   return (
     <div
+      role="region"
+      aria-label={`Month view for ${monthLabel}`}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",
@@ -105,6 +112,7 @@ export function MonthView({
             onEventClick={onEventClick}
             getHref={getHref}
             onOverflowClick={onOverflowClick}
+            getOverflowHref={getOverflowHref}
           />
         ))}
       </div>

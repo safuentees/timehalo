@@ -23,6 +23,7 @@ export type MonthDayCellProps = {
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  getOverflowHref?: (date: Date) => string;
 };
 
 export function MonthDayCell({
@@ -34,6 +35,7 @@ export function MonthDayCell({
   onEventClick,
   getHref,
   onOverflowClick,
+  getOverflowHref,
 }: MonthDayCellProps) {
   const sortedEvents = [...events].sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
@@ -53,6 +55,7 @@ export function MonthDayCell({
     >
       <div className="flex items-center justify-between">
         <span
+          aria-current={isToday ? "date" : undefined}
           className={cn(
             "font-mono text-[12px] font-bold leading-none tabular-nums",
             isToday &&
@@ -95,8 +98,9 @@ export function MonthDayCell({
             type={Component === "button" ? "button" : undefined}
             href={Component === "a" ? href : undefined}
             data-event-id={event.id}
+            data-status={event.status}
             onClick={onEventClick ? handleClick : undefined}
-            aria-label={`${event.title} at ${formatChipTime(event.start)}`}
+            aria-label={`${event.title} at ${formatChipTime(event.start)} — ${event.status}`}
             className={cn(
               "flex w-full items-center gap-1 truncate text-left",
               "rounded-(--oh-r-xs) px-1 py-0.5 cursor-pointer",
@@ -120,22 +124,45 @@ export function MonthDayCell({
           </Component>
           );
         })}
-        {overflowCount > 0 ? (
-          <button
-            type="button"
-            onClick={
-              onOverflowClick
-                ? () => onOverflowClick(date, sortedEvents)
-                : undefined
+        {overflowCount > 0 ? (() => {
+          const overflowHref = getOverflowHref ? getOverflowHref(date) : undefined;
+          const OverflowComponent: "a" | "button" = overflowHref
+            ? "a"
+            : "button";
+          const handleOverflowClick = (e: React.MouseEvent) => {
+            if (!onOverflowClick) return;
+            if (OverflowComponent === "a") {
+              if (
+                e.defaultPrevented ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey ||
+                e.button !== 0
+              ) {
+                return;
+              }
+              e.preventDefault();
             }
-            className={cn(
-              "oh-eyebrow text-left opacity-55 hover:opacity-100",
-              "px-1 py-0.5 cursor-pointer transition-opacity duration-200",
-            )}
-          >
-            +{overflowCount} more
-          </button>
-        ) : null}
+            onOverflowClick(date, sortedEvents);
+          };
+          return (
+            <OverflowComponent
+              type={OverflowComponent === "button" ? "button" : undefined}
+              href={OverflowComponent === "a" ? overflowHref : undefined}
+              onClick={
+                onOverflowClick ? handleOverflowClick : undefined
+              }
+              aria-label={`Show all ${sortedEvents.length} bookings on ${date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`}
+              className={cn(
+                "oh-eyebrow text-left opacity-55 hover:opacity-100",
+                "px-1 py-0.5 cursor-pointer transition-opacity duration-200",
+              )}
+            >
+              +{overflowCount} more
+            </OverflowComponent>
+          );
+        })() : null}
       </div>
     </div>
   );
