@@ -1637,33 +1637,49 @@
   opacity: 0.7;
   text-transform: uppercase;
 }
-/* ─── Tier 1: brutalist typography roles. Bake the canonical mono/
-   weight/tracking/opacity for each semantic role into a single class
-   so callers stop reaching for the eight-class string verbatim. Audit
+/* ─── Tier 1: typography roles. Bake the canonical mono / weight /
+   tracking / opacity for each semantic role into a single class so
+   callers stop reaching for the eight-class string verbatim. Audit
    on 2026-04-27 found 6+ places repeating the legend string and 7+
    places repeating the eyebrow string with five different tracking
-   values — single source of truth here. ─── */
-.oh-legend {
-  font-family: var(--oh-mono);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  opacity: 0.55;
-}
-.oh-description {
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 65ch;
-  opacity: 0.65;
-}
-.oh-eyebrow {
-  font-family: var(--oh-mono);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  opacity: 0.55;
+   values — single source of truth here.
+
+   IMPORTANT (B.PT149): wrapped in @layer components so the project-
+   wide composition pattern documented in `.claude/rules/oh-ui.md`
+   actually works. Without the layer, these classes were declared
+   AFTER the tailwindcss import and beat utility classes in the
+   cascade — every callsite that wrote e.g. `oh-eyebrow opacity-100`
+   silently rendered at the base 0.55 instead of the intended 1.0.
+   The a11y gate on /bookings revealed it: the active view-switcher
+   trigger (`opacity-100` override) was rendering at ~0.55,
+   contrast 4.17:1 vs WCAG AA's 4.5:1 floor for 10px bold body text.
+   With the @layer wrapper, utilities (in @layer utilities) override
+   correctly — the active trigger now reads at full opacity, and
+   places like `<host-profile>` that wrote `opacity-100` for date
+   eyebrows finally render at the brightness they always asked for. */
+@layer components {
+  .oh-legend {
+    font-family: var(--oh-mono);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+  .oh-description {
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 65ch;
+    opacity: 0.65;
+  }
+  .oh-eyebrow {
+    font-family: var(--oh-mono);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
 }
 
 /* B.PT105 — single focus-visible utility every interactive element

@@ -140,6 +140,10 @@ export function WeekView({
     <div
       role="region"
       aria-label={`Week view for ${weekLabel}`}
+      // tabIndex=0 — both vertical and horizontal scrolling on this
+      // wrapper need keyboard access (B.PT149, axe rule
+      // scrollable-region-focusable).
+      tabIndex={isCapped || minBodyWidthPx > 0 ? 0 : undefined}
       className={cn(
         "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",

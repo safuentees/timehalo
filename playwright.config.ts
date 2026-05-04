@@ -53,7 +53,8 @@ export default defineConfig({
       // route to catch the non-deterministic useId-counter-drift class
       // of bug that single-reload smoke can miss).
       name: "authed",
-      testMatch: /(?:hydration-authed|hydration-stress)\.spec\.ts/,
+      testMatch:
+        /(?:hydration-authed|hydration-stress|a11y-bookings)\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],

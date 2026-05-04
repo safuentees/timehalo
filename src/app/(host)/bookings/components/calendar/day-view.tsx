@@ -104,6 +104,11 @@ export function DayView({
     <div
       role="region"
       aria-label={`Day view for ${dayLabel}`}
+      // tabIndex=0 makes the scrollable region keyboard-focusable so
+      // users can scroll the calendar with arrow keys (B.PT149 —
+      // axe rule scrollable-region-focusable). When the body is not
+      // capped (playground), no scroll, no need.
+      tabIndex={isCapped ? 0 : undefined}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",

@@ -108,6 +108,9 @@ export function MonthView({
     <div
       role="region"
       aria-label={`Month view for ${monthLabel}`}
+      // tabIndex=0 makes the scrollable region keyboard-accessible
+      // (B.PT149, axe rule scrollable-region-focusable).
+      tabIndex={isCapped ? 0 : undefined}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",

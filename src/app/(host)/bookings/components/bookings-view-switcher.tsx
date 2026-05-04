@@ -182,14 +182,23 @@ const ViewTrigger = forwardRef<
         "group/view inline-flex items-center h-auto rounded-none border-0 bg-transparent p-0 py-1",
         "shadow-none data-active:shadow-none after:hidden",
         // oh-eyebrow = mono 10px font-extrabold tracking-2 uppercase
-        // opacity-55. Active state overrides opacity to 100 (fully
-        // legible). Hover lifts opacity for inactive triggers — the
-        // dashboard's "tertiary text affordance" pattern (per
-        // dashboard-forms.md hover+color contracts).
-        "oh-eyebrow",
+        // opacity-55. Active state overrides opacity to 100; inactive
+        // uses 70 (per dashboard-forms.md hover+color contracts).
+        //
+        // B.PT149 (a11y gate): the shadcn `TabsTrigger` primitive
+        // bakes in `text-foreground/60` — a *color alpha* of 0.6,
+        // which compounds with our element-level `opacity-70` to give
+        // an effective alpha of 0.42 against the Sisal `oh-frame`
+        // strip (`#eee7d5`) and only ~2.79:1 contrast. We override
+        // the color back to full alpha (`text-foreground`) so the
+        // single source of muting is the element opacity utility.
+        // Inactive at opacity-70 with full-alpha foreground →
+        // ~6:1 contrast (passes WCAG AA's 4.5:1 floor for 10px bold
+        // text); active at opacity-100 → ~12:1.
+        "oh-eyebrow text-foreground",
         isActive
           ? "opacity-100"
-          : "opacity-55 hover:opacity-100 transition-opacity duration-200",
+          : "opacity-70 hover:opacity-100 transition-opacity duration-200",
       )}
     >
       <span>{LABELS[mode]}</span>
