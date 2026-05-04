@@ -9,6 +9,7 @@ import { CalendarIcon, MailIcon } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { trpc } from "@/trpc/hooks";
+import { cn } from "@/lib/utils";
 import {
   OhEmpty,
   OhEmptyContent,
@@ -153,58 +154,98 @@ export function BookingsList({
   const getEventHref = (event: CalendarEvent) =>
     event.refId ? `/bookings/${event.refId}` : "#";
 
+  // Per-view width caps (B.PT143). Cal.com's booker takes the
+  // opposite extreme — `width: 100vw, minHeight: 100vh` on week —
+  // but we have a sidebar + topbar to coexist with, so the cap is
+  // bounded by what feels right at each density:
+  //   day     760px   single column; sprawling at 1440 looks empty
+  //   week    1440px  7 columns × ~190px each on a 1440 viewport
+  //   month   1200px  7 columns × ~165px each, comfortable for chips
+  const calendarMaxWidthClass = (() => {
+    switch (activeView) {
+      case "day":
+        return "max-w-[760px]";
+      case "week":
+        return "max-w-[1440px]";
+      case "month":
+        return "max-w-[1200px]";
+      default:
+        return "max-w-[760px]";
+    }
+  })();
+
   return (
-    <OhPageShell>
-      <OhPageHeader
-        title={t("title")}
-        aside={liveQueueEnabled ? <LiveQueue /> : null}
-      />
+    <>
+      {/* Header chrome stays in the standard 760px shell so the
+          page title + onboarding card + view switcher line up with
+          the rest of the dashboard's narrow column rhythm. */}
+      <OhPageShell>
+        <OhPageHeader
+          title={t("title")}
+          aside={liveQueueEnabled ? <LiveQueue /> : null}
+        />
 
-      <OnboardingChecklist />
+        <OnboardingChecklist />
 
-      {/* View-mode segmented control. Sits above the per-view chrome
-          (tabs in list mode; date controls in calendar modes — date
-          controls are wired in B.PT140). */}
-      <div className="mt-8">
-        <BookingsViewSwitcher value={activeView} onValueChange={onViewChange} />
-      </div>
+        {/* View-mode segmented control. Above both branches so the
+            switcher itself stays in the narrow column. */}
+        <div className="mt-8">
+          <BookingsViewSwitcher
+            value={activeView}
+            onValueChange={onViewChange}
+          />
+        </div>
+      </OhPageShell>
 
       {activeView === "list" ? (
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            if (value === activeTab) return;
-            if (!VALID_TABS.includes(value as Tab)) return;
-            router.push(`?view=list&tab=${value}`, { scroll: false });
-          }}
-          className="mt-6"
-        >
-          <BookingsTabBar
-            activeTab={activeTab}
-            upcomingCount={data?.upcoming.length ?? 0}
-            pastCount={data?.past.length ?? 0}
-            tablistLabel={t("tablistLabel")}
-            upcomingLabel={t("tabUpcoming")}
-            pastLabel={t("tabPast")}
-          />
+        // List mode: stay in the standard 760px shell. The list rows
+        // don't benefit from a wider column.
+        <OhPageShell>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => {
+              if (value === activeTab) return;
+              if (!VALID_TABS.includes(value as Tab)) return;
+              router.push(`?view=list&tab=${value}`, { scroll: false });
+            }}
+          >
+            <BookingsTabBar
+              activeTab={activeTab}
+              upcomingCount={data?.upcoming.length ?? 0}
+              pastCount={data?.past.length ?? 0}
+              tablistLabel={t("tablistLabel")}
+              upcomingLabel={t("tabUpcoming")}
+              pastLabel={t("tabPast")}
+            />
 
-          <TabsContent value="upcoming" className="mt-6">
-            <BookingsListPanel
-              tab="upcoming"
-              bookings={data?.upcoming ?? []}
-              onSelect={setSelectedUid}
-            />
-          </TabsContent>
-          <TabsContent value="past" className="mt-6">
-            <BookingsListPanel
-              tab="past"
-              bookings={data?.past ?? []}
-              onSelect={setSelectedUid}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="upcoming" className="mt-6">
+              <BookingsListPanel
+                tab="upcoming"
+                bookings={data?.upcoming ?? []}
+                onSelect={setSelectedUid}
+              />
+            </TabsContent>
+            <TabsContent value="past" className="mt-6">
+              <BookingsListPanel
+                tab="past"
+                bookings={data?.past ?? []}
+                onSelect={setSelectedUid}
+              />
+            </TabsContent>
+          </Tabs>
+        </OhPageShell>
       ) : (
-        <div className="mt-6 flex flex-col gap-4">
+        // Calendar mode: escape the OhPageShell width cap so each
+        // view can use its appropriate max width (week 1440, month
+        // 1200, day 760). Outer wrapper provides the same horizontal
+        // padding as OhPageShell so the chrome aligns with the
+        // header above.
+        <div
+          className={cn(
+            "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
+            calendarMaxWidthClass,
+          )}
+        >
           <BookingsCursorControls
             view={activeView}
             cursorDate={cursorDate}
@@ -264,7 +305,7 @@ export function BookingsList({
       )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
-    </OhPageShell>
+    </>
   );
 }
 

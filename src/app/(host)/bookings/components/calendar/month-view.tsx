@@ -35,9 +35,9 @@ export type MonthViewProps = {
    *  users open the standalone /bookings/<uid> page in a new tab. */
   getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
-  /** Max body height. Above this the month grid scrolls internally
-   *  with a sticky weekday header row. Default 640px. */
-  maxBodyHeightPx?: number;
+  /** CSS max-height. Default `calc(100dvh - 280px)` (viewport-
+   *  relative). Pass `"none"` to opt out. (B.PT143.) */
+  maxBodyHeight?: string;
   /** Override "today" — useful for testing / playground pinning. */
   nowOverride?: Date;
 };
@@ -62,7 +62,7 @@ export function MonthView({
   onEventClick,
   getHref,
   onOverflowClick,
-  maxBodyHeightPx = 640,
+  maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: MonthViewProps) {
   const cells = useMemo(
@@ -84,19 +84,20 @@ export function MonthView({
   const today = nowOverride ?? new Date();
   const headerDays = dayOfWeekOrder(weekStartsOn);
 
-  // Scroll container (B.PT142). Month grid is naturally short
-  // (5-6 rows) but matches the Day/Week scroll vocabulary so the
-  // host's muscle memory carries between modes — same paper-card
-  // chrome, same internal-scroll behavior.
-  const wrapperStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  // Scroll container (B.PT142, refined B.PT143). Default uses
+  // `calc(100dvh - 280px)` so the month grid fills viewport height
+  // on tall screens (a 5-row month at 110px/row would only need
+  // ~600px tall, but on a 1080p screen we have 800px+ available;
+  // letting the cells grow makes them readable for chip lists +
+  // gives breathing room).
+  const isCapped = maxBodyHeight !== "none";
+  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
   return (
     <div
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
       )}
       style={wrapperStyle}
     >

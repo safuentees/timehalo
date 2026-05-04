@@ -27,14 +27,15 @@ export type WeekViewProps = {
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
   getHref?: (event: CalendarEvent) => string;
-  /** Max body height. Above this the time-grid scrolls internally
-   *  with a sticky header row + sticky hour axis. Default 640px.
-   *  Pass 0 to opt out (playground / Storybook). */
-  maxBodyHeightPx?: number;
+  /** CSS max-height for the body. Default = `calc(100dvh - 280px)`
+   *  (viewport-relative). Pass `"none"` to opt out. (B.PT143 —
+   *  was a fixed 640px.) */
+  maxBodyHeight?: string;
   /** Min body width. Below this the body horizontally scrolls
    *  inside the wrapper so chips stay readable on narrow viewports
    *  (cal.com pattern: their inner is `width: 165%` to force the
-   *  same scroll). Default 980px. */
+   *  same scroll). Default 1100px (B.PT143 — bumped from 980 to
+   *  give 7 columns ~157px each, much more comfortable). */
   minBodyWidthPx?: number;
   nowOverride?: Date;
 };
@@ -79,8 +80,8 @@ export function WeekView({
   selectedRefId = null,
   onEventClick,
   getHref,
-  maxBodyHeightPx = 640,
-  minBodyWidthPx = 980,
+  maxBodyHeight = "calc(100dvh - 280px)",
+  minBodyWidthPx = 1100,
   nowOverride,
 }: WeekViewProps) {
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
@@ -108,15 +109,17 @@ export function WeekView({
 
   const today = nowOverride ?? new Date();
 
-  // Scroll container (B.PT142). Two scroll axes:
-  //   - vertical: max-height + overflow-y-auto + sticky day-headers
+  // Scroll container (B.PT142, refined B.PT143). Two scroll axes:
+  //   - vertical: max-height + overflow-y-auto + sticky day-headers.
+  //               Default = `calc(100dvh - 280px)` so the calendar
+  //               fills available viewport height on tall screens.
   //   - horizontal: min-width on the inner body forces overflow-x
   //                 when the wrapper is narrower than minBodyWidthPx.
-  //                 Chips stay at readable size; cal.com uses the
-  //                 same pattern (width: 165% on their inner).
-  const wrapperStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  //                 Default = 1100px (gives 7 columns ~157px each).
+  //                 Cal.com uses the same pattern (width: 165% on
+  //                 their inner div in Calendar.tsx).
+  const isCapped = maxBodyHeight !== "none";
+  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
@@ -124,7 +127,7 @@ export function WeekView({
     <div
       className={cn(
         "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
       )}
       style={wrapperStyle}

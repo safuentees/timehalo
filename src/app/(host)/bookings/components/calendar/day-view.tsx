@@ -32,10 +32,12 @@ export type DayViewProps = {
   /** Cmd+click parity (B.PT142) — chips become `<a href>` so power
    *  users open the standalone /bookings/<uid> page in a new tab. */
   getHref?: (event: CalendarEvent) => string;
-  /** Max body height. Above this the time-grid scrolls internally
-   *  with a sticky header. Default 640px. Pass 0 to opt out
-   *  (playground / Storybook). */
-  maxBodyHeightPx?: number;
+  /** CSS max-height for the body. Default uses viewport-relative
+   *  `calc(100dvh - 280px)` so the calendar fills the available
+   *  vertical space on tall screens (B.PT143 — was a fixed 640px,
+   *  which wasted ~30% of pixel real estate on a 1080p display).
+   *  Pass `"none"` to opt out of any cap (playground / Storybook). */
+  maxBodyHeight?: string;
   nowOverride?: Date;
 };
 
@@ -67,7 +69,7 @@ export function DayView({
   selectedRefId = null,
   onEventClick,
   getHref,
-  maxBodyHeightPx = 640,
+  maxBodyHeight = "calc(100dvh - 280px)",
   nowOverride,
 }: DayViewProps) {
   const { weekday, ordinal } = formatHeaderDate(date);
@@ -82,19 +84,19 @@ export function DayView({
     return isSameDay(now, date);
   })();
 
-  // Scroll container (B.PT142). When `maxBodyHeightPx > 0`, the
-  // body is capped + scrollable; sticky day-header stays at top.
-  // When 0 (playground), no cap so the visual regression baseline
-  // captures the full height for snapshotting.
-  const bodyStyle = maxBodyHeightPx > 0
-    ? { maxHeight: `${maxBodyHeightPx}px` }
-    : undefined;
+  // Scroll container. When `maxBodyHeight !== "none"`, the body is
+  // capped + scrollable; sticky day-header stays at top. Default
+  // uses viewport-relative `calc(100dvh - 280px)` (B.PT143 — was a
+  // fixed 640px which under-used tall screens). Playground passes
+  // `"none"` so the visual regression baseline captures full height.
+  const isCapped = maxBodyHeight !== "none";
+  const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
   return (
     <div
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
-        maxBodyHeightPx > 0 && "overflow-y-auto",
+        isCapped && "overflow-y-auto",
       )}
       style={bodyStyle}
     >
