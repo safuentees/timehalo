@@ -198,23 +198,77 @@ export function BookingsList({
               getHref={getEventHref}
             />
           ) : null}
+
           {activeView === "week" ? (
-            <WeekView
-              date={cursorDate}
-              events={calendarEvents}
-              selectedRefId={selectedUid}
-              onEventClick={onEventClick}
-              getHref={getEventHref}
-            />
+            <>
+              <div className="hidden md:block">
+                <WeekView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+              <div className="md:hidden">
+                <DayView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+            </>
           ) : null}
+
           {activeView === "month" ? (
-            <MonthView
-              date={cursorDate}
-              events={calendarEvents}
-              selectedRefId={selectedUid}
-              onEventClick={onEventClick}
-              getHref={getEventHref}
-            />
+            <>
+              <div className="hidden md:block">
+                <MonthView
+                  date={cursorDate}
+                  events={calendarEvents}
+                  selectedRefId={selectedUid}
+                  onEventClick={onEventClick}
+                  getHref={getEventHref}
+                />
+              </div>
+              <div className="md:hidden">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => {
+                    if (value === activeTab) return;
+                    if (!VALID_TABS.includes(value as Tab)) return;
+                    router.push(`?view=list&tab=${value}`, {
+                      scroll: false,
+                    });
+                  }}
+                >
+                  <BookingsTabBar
+                    activeTab={activeTab}
+                    upcomingCount={data?.upcoming.length ?? 0}
+                    pastCount={data?.past.length ?? 0}
+                    tablistLabel={t("tablistLabel")}
+                    upcomingLabel={t("tabUpcoming")}
+                    pastLabel={t("tabPast")}
+                  />
+                  <TabsContent value="upcoming" className="mt-6">
+                    <BookingsListPanel
+                      tab="upcoming"
+                      bookings={data?.upcoming ?? []}
+                      onSelect={setSelectedUid}
+                    />
+                  </TabsContent>
+                  <TabsContent value="past" className="mt-6">
+                    <BookingsListPanel
+                      tab="past"
+                      bookings={data?.past ?? []}
+                      onSelect={setSelectedUid}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </>
           ) : null}
         </div>
       )}
