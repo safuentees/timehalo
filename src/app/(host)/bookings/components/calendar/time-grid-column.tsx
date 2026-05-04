@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import {
   calculateEventLayouts,
@@ -9,7 +10,30 @@ import {
 import { eventToGridPosition } from "@/lib/calendar-grid/event-geometry";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { useCurrentMinute } from "@/lib/calendar-grid/use-current-minute";
-import { EventChip } from "./event-chip";
+import { DraggableEventChip } from "./draggable-event-chip";
+
+// B.PT150 — drop-zone identity. Each TimeGridColumn registers as a
+// separate `useDroppable` so dnd-kit can route the active drag to
+// the right day even in WeekView (7 columns side-by-side). The
+// column's `data` payload carries the date + geometry so the drop
+// handler at the BookingsList level can compute pixelToTime without
+// re-deriving the column.
+export type TimeGridDropData = {
+  type: "time-grid-column";
+  /** ISO date "YYYY-MM-DD" — easier for parents to switch on than
+   *  comparing Date objects (which have time + tz noise). */
+  dateIso: string;
+  startHour: number;
+  endHour: number;
+  oneMinuteHeightPx: number;
+};
+
+function dateIsoLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 // One-day time-grid column. Renders horizontal hour rules at every
 // hour boundary inside the column, plus absolute-positioned
@@ -96,6 +120,23 @@ export function TimeGridColumn({
     hourRules.push((h - startHour) * 60 * oneMinuteHeightPx);
   }
 
+  // B.PT150 — register as a drop zone. The id is the column's date
+  // so dnd-kit can deduplicate (one column per date) and parents can
+  // detect the drop target's date from `event.over?.id`. The full
+  // geometry payload travels via `data` so the drop handler doesn't
+  // need to re-derive it.
+  const dropData: TimeGridDropData = {
+    type: "time-grid-column",
+    dateIso: dateIsoLocal(date),
+    startHour,
+    endHour,
+    oneMinuteHeightPx,
+  };
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `column-${dropData.dateIso}`,
+    data: dropData,
+  });
+
   // Current-time position — only painted if showCurrentTimeLine AND
   // the column's date matches today (caller usually pre-checks).
   const currentTimeLineTop = (() => {
@@ -109,7 +150,16 @@ export function TimeGridColumn({
 
   return (
     <div
-      className={cn("relative flex-1 min-w-0", className)}
+      ref={setDropRef}
+      data-drop-active={isOver ? "" : undefined}
+      className={cn(
+        "relative flex-1 min-w-0",
+        // Subtle drop-target highlight while a drag is over this
+        // column. Reads as a soft tint flash, not a popping outline
+        // — quieter chrome convention.
+        isOver && "bg-[color:var(--oh-tint)]",
+        className,
+      )}
       style={{ height: `${columnHeightPx}px` }}
     >
       {/* Hour rules — hairlines at every hour boundary */}
@@ -156,11 +206,15 @@ export function TimeGridColumn({
               zIndex: isSelected ? 79 : layout.baseZIndex,
             }}
           >
-            <EventChip
+            <DraggableEventChip
               event={event}
               isSelected={isSelected}
               onClick={onEventClick}
               href={href}
+              // Cancelled bookings can't be rescheduled (the procedure
+              // would 404 on the soft-deleted row anyway). Keep the
+              // chip clickable for detail view, just not draggable.
+              disabled={event.status === "cancelled"}
             />
           </div>
         );

@@ -8,8 +8,28 @@ import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 import { trpc } from "@/trpc/hooks";
 import { cn } from "@/lib/utils";
+import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
+import {
+  pixelToTime,
+  snapPixelToGrid,
+} from "@/lib/calendar-grid/event-geometry";
+import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { EventChip } from "./calendar/event-chip";
+import type { DraggableEventDragData } from "./calendar/draggable-event-chip";
+import type { TimeGridDropData } from "./calendar/time-grid-column";
 import {
   OhEmpty,
   OhEmptyContent,
@@ -98,6 +118,48 @@ export function BookingsList({
   // route at /bookings/[publicUid].
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
+  // B.PT150 — drag-to-reschedule state.
+  //
+  // `activeDrag` mirrors the chip being dragged so the DragOverlay
+  // can render its visual ghost. We snapshot the original event +
+  // computed pixel translation so the overlay can place itself
+  // without re-deriving geometry per frame.
+  //
+  // `pending` carries the (event, candidate slotStart) that the user
+  // dropped on a target. The ConfirmDialog reads it; `null` =
+  // dialog hidden. Confirming calls the mutation; cancelling clears
+  // pending. Same shape the workflow / api-keys destructive flows
+  // use (per `oh-ui.md` *Destructive actions* — confirm-dialog over
+  // single-click, ConfirmDialog primitive over hand-rolled).
+  const [activeDrag, setActiveDrag] = useState<CalendarEvent | null>(null);
+  const [pending, setPending] = useState<{
+    event: CalendarEvent;
+    newSlotStart: Date;
+    durationMin: number;
+  } | null>(null);
+
+  // dnd-kit sensors — Pointer + Keyboard.
+  //
+  // PointerSensor.distance: 8 — drag only activates after the pointer
+  // moves 8px. Plain clicks (and cmd-clicks → href) on the chip still
+  // reach EventChip's onClick handler. The threshold also debounces
+  // accidental drags from a slightly-shaky click on a touchpad.
+  //
+  // KeyboardSensor — Tab to focus chip, Space/Enter to lift, Arrow
+  // keys to step, Space/Enter to drop, Escape to cancel. dnd-kit's
+  // default keyboard codes match WCAG 2.1.1.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const reschedule = useRescheduleBooking({
+    onSuccess: () => {
+      toast.success(t("rescheduleSuccess"));
+      setPending(null);
+    },
+  });
+
   // Combined booking → CalendarEvent adapter for the calendar views.
   // listForHost only returns deleted=false rows, so all events are
   // status: "confirmed" — cancellations don't surface here today.
@@ -145,6 +207,94 @@ export function BookingsList({
 
   const onEventClick = (event: CalendarEvent) => {
     if (event.refId) setSelectedUid(event.refId);
+  };
+
+  // B.PT150 — drag start: cache the active event so the DragOverlay
+  // can render its ghost. dnd-kit's `event.active.data.current` is
+  // the payload we put on the draggable; we look the full event up
+  // by refId from `calendarEvents` so the overlay has the same
+  // primitive the time-grid uses.
+  const onDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as DraggableEventDragData | undefined;
+    if (!data || data.type !== "event") return;
+    const ev = calendarEvents.find((c) => (c.refId ?? c.id) === data.refId);
+    if (ev) setActiveDrag(ev);
+  };
+
+  // Drop handler.
+  //
+  // Three things to compute:
+  //   1. Did the chip land on a TimeGridColumn? If not (overlay
+  //      released outside any droppable), bail.
+  //   2. The new slotStart in wall-clock time. dnd-kit gives us
+  //      `delta.y` (pixels moved from drag start). Translate the
+  //      original event's top-pixel + delta → snap to 15-minute
+  //      grid → pixelToTime against the COLUMN's date (so cross-day
+  //      drops to a different column resolve to the new column's
+  //      day, not the source's).
+  //   3. Duration (end - start) is preserved; the new slotEnd is
+  //      derived server-side from the EventType's duration anyway,
+  //      but we surface the new slot range in the confirm dialog so
+  //      the host sees what they're committing to.
+  //
+  // v1 same-day-only: if `over.data.current.dateIso` differs from
+  // the source event's date, we still allow the drop — the
+  // procedure handles the time math and the audit chain captures
+  // the swap. (Cross-day drag works as long as both columns are in
+  // the same DndContext, which they are in WeekView.)
+  const onDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(null);
+    const { active, over, delta } = e;
+    if (!over) return;
+
+    const dragData = active.data.current as DraggableEventDragData | undefined;
+    const dropData = over.data.current as TimeGridDropData | undefined;
+    if (!dragData || dragData.type !== "event") return;
+    if (!dropData || dropData.type !== "time-grid-column") return;
+
+    const sourceEvent = calendarEvents.find(
+      (c) => (c.refId ?? c.id) === dragData.refId,
+    );
+    if (!sourceEvent || !sourceEvent.refId) return;
+
+    const { startHour, oneMinuteHeightPx } = dropData;
+    const targetDate = parseColumnDate(dropData.dateIso);
+
+    // Original chip's top pixel inside ITS source column. Compute
+    // from the source event's start hour + minutes (same math
+    // eventToGridPosition uses, abbreviated since we just need the
+    // start pixel).
+    const sourceStart = new Date(dragData.startMs);
+    const sourceTopPx =
+      ((sourceStart.getHours() - startHour) * 60 + sourceStart.getMinutes()) *
+      oneMinuteHeightPx;
+    // New top pixel inside the target column = source top + drag delta.
+    const newTopPx = snapPixelToGrid(sourceTopPx + delta.y, {
+      oneMinuteHeightPx,
+      stepMinutes: 15,
+    });
+    const newSlotStart = pixelToTime(newTopPx, targetDate, {
+      startHour,
+      oneMinuteHeightPx,
+    });
+
+    // No-op drop (same time + same day): skip the dialog.
+    if (newSlotStart.getTime() === sourceEvent.start.getTime()) return;
+
+    const durationMin = Math.round(
+      (sourceEvent.end.getTime() - sourceEvent.start.getTime()) / 60_000,
+    );
+    setPending({ event: sourceEvent, newSlotStart, durationMin });
+  };
+
+  const onConfirmReschedule = async () => {
+    if (!pending) return;
+    if (!pending.event.refId) return;
+    await reschedule.mutateAsync({
+      oldPublicUid: pending.event.refId,
+      newSlotStart: pending.newSlotStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+    });
   };
 
   // Cmd+click parity (B.PT142). Calendar chips become `<a>` with
@@ -254,6 +404,21 @@ export function BookingsList({
         // 1200, day 760). Outer wrapper provides the same horizontal
         // padding as OhPageShell so the chrome aligns with the
         // header above.
+        //
+        // B.PT150 — wrap the entire calendar tree in a single
+        // DndContext so dragging a chip across columns in WeekView
+        // works without per-view contexts. Sensors registered above;
+        // `restrictToFirstScrollableAncestor` modifier confines the
+        // drag overlay's translation to the same scroll container the
+        // calendar lives in (prevents the ghost from escaping into
+        // the page header / sidebar during long drags).
+        <DndContext
+          sensors={sensors}
+          modifiers={[restrictToFirstScrollableAncestor]}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setActiveDrag(null)}
+        >
         <div
           className={cn(
             "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
@@ -407,11 +572,75 @@ export function BookingsList({
             </>
           ) : null}
         </div>
+        {/* DragOverlay renders the chip ghost following the pointer.
+            Keeping it outside the column tree prevents the source
+            chip from being unmounted/remounted while dragging
+            across columns. The original chip's opacity goes to 0
+            during the drag so the user only sees the overlay. */}
+        <DragOverlay dropAnimation={null}>
+          {activeDrag ? (
+            <div className="opacity-90">
+              <EventChip event={activeDrag} />
+            </div>
+          ) : null}
+        </DragOverlay>
+        </DndContext>
       )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
+
+      {/* B.PT150 — confirm dialog before committing the reschedule.
+          Per oh-ui.md *Destructive actions* — even a non-destructive
+          mutation that's hard to undo (rebooking shifts the visitor's
+          calendar invite) goes through ConfirmDialog rather than
+          firing on a single drop event. The dialog is mounted at this
+          level so it lives outside any view-specific tree and can
+          survive view switches mid-drag (rare but possible). */}
+      <ConfirmDialog
+        open={pending !== null}
+        onOpenChange={(open) => {
+          if (!open) setPending(null);
+        }}
+        title={t("rescheduleConfirmTitle")}
+        description={
+          pending
+            ? t("rescheduleConfirmDescription", {
+                title: pending.event.title,
+                from: pending.event.start.toLocaleString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+                to: pending.newSlotStart.toLocaleString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }),
+              })
+            : ""
+        }
+        confirmLabel={t("rescheduleConfirmLabel")}
+        cancelLabel={t("rescheduleCancelLabel")}
+        pending={reschedule.isPending}
+        onConfirm={onConfirmReschedule}
+      />
     </>
   );
+}
+
+// B.PT150 — inverse of dateIsoLocal in time-grid-column.tsx. Builds
+// a Date from an ISO date string using local components so the drop
+// target's column resolves to the user-local day (matches the same
+// timezone discipline as `formatDateParam`).
+function parseColumnDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map((s) => Number.parseInt(s, 10));
+  return new Date(y, m - 1, d);
 }
 
 // Format a Date to "YYYY-MM-DD" using LOCAL components (matches the
