@@ -418,7 +418,10 @@
     "rescheduleConfirmDescription": "Mover {title} de {from} a {to}. El visitante recibirá una nueva invitación de calendario.",
     "rescheduleConfirmLabel": "Reprogramar",
     "rescheduleCancelLabel": "Mantener horario original",
-    "rescheduleSuccess": "Reserva reprogramada."
+    "rescheduleSuccess": "Reserva reprogramada.",
+    "rescheduleSlotTaken": "Ya hay otra reserva a esa hora.",
+    "rescheduleOutsideAvailability": "Esa hora está fuera de tu disponibilidad.",
+    "rescheduleSlotInPast": "Elige una hora futura."
   },
   "HostPreview": {
     "exit": "Salir de la vista previa, volver al panel",

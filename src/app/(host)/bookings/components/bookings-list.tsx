@@ -31,6 +31,10 @@ import { EventChip } from "./calendar/event-chip";
 import type { DraggableEventDragData } from "./calendar/draggable-event-chip";
 import type { TimeGridDropData } from "./calendar/time-grid-column";
 import {
+  validateDrop,
+  type AvailabilityRange,
+} from "./calendar/drop-validation";
+import {
   OhEmpty,
   OhEmptyContent,
   OhEmptyDescription,
@@ -109,6 +113,11 @@ export function BookingsList({
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
+  // B.PT152 — drop-validation pre-flight needs the host's
+  // availability ranges. The /bookings/page.tsx already prefetches
+  // schedule.get (it powers OnboardingChecklist), so this hits the
+  // hydrated cache and doesn't trigger a new request.
+  const { data: scheduleRanges } = trpc.schedule.get.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   // Selected booking for the detail modal. State-driven instead of
@@ -280,6 +289,34 @@ export function BookingsList({
 
     // No-op drop (same time + same day): skip the dialog.
     if (newSlotStart.getTime() === sourceEvent.start.getTime()) return;
+
+    // B.PT152 — pre-flight validation. The procedure's NOT_FOUND /
+    // CONFLICT cases (slot occupied by another booking, or outside
+    // host availability) surfaced as confusing 404 in the network
+    // tab + a generic toast. We can detect both client-side from
+    // data the page already has (calendarEvents from
+    // bookings.listForHost; ranges from schedule.get), so we abort
+    // before opening the confirm dialog and show a precise toast.
+    // The procedure remains source of truth — a race (someone else
+    // books the slot in the gap between drop and confirm) still
+    // falls through to the procedure's CONFLICT and the mutation
+    // hook's error toast.
+    const validation = validateDrop({
+      newSlotStart,
+      sourceRefId: sourceEvent.refId,
+      events: calendarEvents,
+      ranges: (scheduleRanges ?? []) as AvailabilityRange[],
+    });
+    if (!validation.ok) {
+      const reasonKey =
+        validation.reason === "slot-occupied"
+          ? "rescheduleSlotTaken"
+          : validation.reason === "outside-availability"
+            ? "rescheduleOutsideAvailability"
+            : "rescheduleSlotInPast";
+      toast.error(t(reasonKey));
+      return;
+    }
 
     const durationMin = Math.round(
       (sourceEvent.end.getTime() - sourceEvent.start.getTime()) / 60_000,

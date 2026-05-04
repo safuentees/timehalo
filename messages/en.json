@@ -418,7 +418,10 @@
     "rescheduleConfirmDescription": "Move {title} from {from} to {to}. The visitor will get a new calendar invite.",
     "rescheduleConfirmLabel": "Reschedule",
     "rescheduleCancelLabel": "Keep original time",
-    "rescheduleSuccess": "Booking rescheduled."
+    "rescheduleSuccess": "Booking rescheduled.",
+    "rescheduleSlotTaken": "Another booking is already at that time.",
+    "rescheduleOutsideAvailability": "That time is outside your availability hours.",
+    "rescheduleSlotInPast": "Pick a future time."
   },
   "HostPreview": {
     "exit": "Exit preview, return to dashboard",
