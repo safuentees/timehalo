@@ -152,6 +152,10 @@
 
   --oh-frame: color-mix(in srgb, var(--oh-ink) 12%, var(--oh-paper));
 
+  --oh-status-confirmed: #00bc7d;
+  --oh-status-tentative: #d6a028;
+  --oh-status-cancelled: #f94848;
+
   --oh-modal-w: 720px;
   --oh-modal-vinset: 56px;
   --oh-modal-edge: 24px;

@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 const PLAYGROUND_ROUTES = [
   "/playground",
   "/playground/components/button",
+  "/playground/components/bookings-view-switcher",
   "/playground/pages/handle",
   "/playground/pages/booked",
   "/playground/animations/chrome-morph",
