@@ -38,6 +38,7 @@ import { DayView } from "./calendar/day-view";
 import { WeekView } from "./calendar/week-view";
 import { MonthView } from "./calendar/month-view";
 import { BookingsCursorControls } from "./calendar/cursor-controls";
+import { DayStrip } from "./calendar/day-strip";
 
 export type Tab = "upcoming" | "past";
 
@@ -219,7 +220,11 @@ export function BookingsList({
                   getHref={getEventHref}
                 />
               </div>
-              <div className="md:hidden">
+              <div className="md:hidden flex flex-col gap-3">
+                <DayStrip
+                  cursorDate={cursorDate}
+                  onDateChange={onDateChange}
+                />
                 <DayView
                   date={cursorDate}
                   events={calendarEvents}
