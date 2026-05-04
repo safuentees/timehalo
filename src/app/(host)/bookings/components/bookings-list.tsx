@@ -31,6 +31,10 @@ import { EventChip } from "./calendar/event-chip";
 import type { DraggableEventDragData } from "./calendar/draggable-event-chip";
 import type { TimeGridDropData } from "./calendar/time-grid-column";
 import {
+  validateDrop,
+  type AvailabilityRange,
+} from "./calendar/drop-validation";
+import {
   OhEmpty,
   OhEmptyContent,
   OhEmptyDescription,
@@ -77,6 +81,7 @@ export function BookingsList({
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
+  const { data: scheduleRanges } = trpc.schedule.get.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
@@ -175,6 +180,23 @@ export function BookingsList({
     });
 
     if (newSlotStart.getTime() === sourceEvent.start.getTime()) return;
+
+    const validation = validateDrop({
+      newSlotStart,
+      sourceRefId: sourceEvent.refId,
+      events: calendarEvents,
+      ranges: (scheduleRanges ?? []) as AvailabilityRange[],
+    });
+    if (!validation.ok) {
+      const reasonKey =
+        validation.reason === "slot-occupied"
+          ? "rescheduleSlotTaken"
+          : validation.reason === "outside-availability"
+            ? "rescheduleOutsideAvailability"
+            : "rescheduleSlotInPast";
+      toast.error(t(reasonKey));
+      return;
+    }
 
     const durationMin = Math.round(
       (sourceEvent.end.getTime() - sourceEvent.start.getTime()) / 60_000,
