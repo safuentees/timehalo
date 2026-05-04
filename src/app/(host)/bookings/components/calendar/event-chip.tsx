@@ -124,11 +124,24 @@ export function EventChip({
         (isSelected || isHovered) && "ring-2 ring-[color:var(--oh-ink)]",
       )}
     >
-      {/* Left color bar — 3px wide, full height, status-colored. */}
+      {/* Left color bar — 3px wide, full height. The fill carries
+          status as a NON-color cue (B.PT146 — WCAG 1.4.1). Solid
+          fill = confirmed; striped = tentative; solid + line-through
+          on the chip body = cancelled. Sighted color-blind users
+          can distinguish confirmed from tentative without relying
+          on the green-vs-amber color alone. */}
       <span
         aria-hidden
         className="block h-full w-[3px] shrink-0"
-        style={{ background: statusVar }}
+        style={
+          event.status === "tentative"
+            ? {
+                // 4px-tall stripes alternating status color + paper.
+                // Reads as a "dashed" bar without using the property.
+                backgroundImage: `repeating-linear-gradient(to bottom, ${statusVar} 0 4px, transparent 4px 8px)`,
+              }
+            : { background: statusVar }
+        }
       />
 
       {/* Body */}

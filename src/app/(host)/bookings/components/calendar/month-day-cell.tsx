@@ -154,11 +154,24 @@ export function MonthDayCell({
               event.status === "cancelled" && "opacity-65 line-through",
             )}
           >
-            {/* Status dot — 6px solid color */}
+            {/* Status dot — non-color shape distinction (B.PT146,
+                WCAG 1.4.1). Confirmed = solid filled circle.
+                Tentative = ring (border only, transparent center).
+                Cancelled = solid + chip body has line-through. SR
+                users get status from the chip's aria-label. Sighted
+                color-blind users distinguish confirmed-vs-tentative
+                from the fill-vs-ring shape, not green-vs-amber. */}
             <span
               aria-hidden
               className="inline-block size-1.5 shrink-0 rounded-full"
-              style={{ background: `var(--oh-status-${event.status})` }}
+              style={
+                event.status === "tentative"
+                  ? {
+                      background: "transparent",
+                      border: `1px solid var(--oh-status-${event.status})`,
+                    }
+                  : { background: `var(--oh-status-${event.status})` }
+              }
             />
             <span className="font-mono text-[10px] leading-none tabular-nums opacity-65">
               {formatChipTime(event.start)}
