@@ -26,6 +26,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { BookingDetailModal } from "./booking-detail-modal";
 
 export type Tab = "upcoming" | "past";
 
@@ -65,6 +66,13 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
+  // Selected booking for the detail modal. State-driven instead of
+  // intercepted-route navigation — the modal opens synchronously, no
+  // server roundtrip, and prev/next chevrons swap content in place.
+  // Hard refresh / cmd-click on a row still hits the standalone page
+  // route at /bookings/[publicUid].
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+
   return (
     <OhPageShell>
       <OhPageHeader
@@ -96,12 +104,19 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
           <BookingsListPanel
             tab="upcoming"
             bookings={data?.upcoming ?? []}
+            onSelect={setSelectedUid}
           />
         </TabsContent>
         <TabsContent value="past" className="mt-6">
-          <BookingsListPanel tab="past" bookings={data?.past ?? []} />
+          <BookingsListPanel
+            tab="past"
+            bookings={data?.past ?? []}
+            onSelect={setSelectedUid}
+          />
         </TabsContent>
       </Tabs>
+
+      <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
     </OhPageShell>
   );
 }
@@ -354,9 +369,11 @@ type Booking = {
 function BookingsListPanel({
   tab,
   bookings,
+  onSelect,
 }: {
   tab: Tab;
   bookings: Booking[];
+  onSelect: (uid: string) => void;
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
   return (
@@ -375,6 +392,7 @@ function BookingsListPanel({
             visitorEmail={b.visitorEmail}
             question={b.question}
             slotStart={new Date(b.slotStart as unknown as string)}
+            onSelect={onSelect}
           />
         </li>
       ))}
@@ -388,12 +406,14 @@ function BookingRow({
   visitorEmail,
   question,
   slotStart,
+  onSelect,
 }: {
   publicUid: string;
   visitorName: string;
   visitorEmail: string;
   question: string | null;
   slotStart: Date;
+  onSelect: (uid: string) => void;
 }) {
   // B.PT26 — locale-aware date label. ICU `weekday: "short"` +
   // `month: "short"` + `day: "numeric"` produces "Mon Jul 15" / "Lun
@@ -409,6 +429,23 @@ function BookingRow({
   return (
     <Link
       href={`/bookings/${publicUid}`}
+      onClick={(e) => {
+        // Plain left-click → open modal in place. Cmd/ctrl/shift/
+        // middle-click fall through to the standalone page route so
+        // power users can open the deep link in a new tab.
+        if (
+          e.defaultPrevented ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey ||
+          e.button !== 0
+        ) {
+          return;
+        }
+        e.preventDefault();
+        onSelect(publicUid);
+      }}
       className="group block px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

@@ -49,15 +49,23 @@ function fmtTime(d: Date): string {
 export default function BookingDetail({
   publicUid,
   variant = "page",
+  onNavigate,
+  onClose,
 }: {
   publicUid: string;
-  // "page" — standalone full-page route at /bookings/[publicUid].
-  // "drawer" — rendered inside a Sheet by the intercepted parallel
-  //            route at @modal/(.)bookings/[publicUid]. The drawer
-  //            owns its own close button + ESC handler (Sheet
-  //            primitive) and the page shell + back-link are
-  //            suppressed.
-  variant?: "page" | "drawer";
+  // "page"  — standalone full-page route at /bookings/[publicUid]
+  //           (direct URL / hard refresh). Page shell + back link.
+  // "modal" — rendered inside a ResponsiveModal opened from the
+  //           bookings list. Modal owns close + ESC via the
+  //           primitive; back link + sticky save bar suppressed.
+  variant?: "page" | "modal";
+  // Modal variant only. When set, prev/next chevrons + ←/→ keys
+  // call this with the adjacent uid instead of navigating, so the
+  // modal stays open and just swaps content.
+  onNavigate?: (uid: string) => void;
+  // Modal variant only. Called after a successful cancel (modal
+  // closes itself instead of navigating to /bookings).
+  onClose?: () => void;
 }) {
   const router = useRouter();
   const t = useTranslations("BookingDetail");
@@ -75,16 +83,22 @@ export default function BookingDetail({
     });
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
-  const isDrawer = variant === "drawer";
+  const isModal = variant === "modal";
 
   // Keyboard shortcuts (cal.com pattern). Page variant: ESC → back
-  // to /bookings (router.push). Drawer variant: Sheet's own close
-  // handler intercepts ESC, so we only wire ←/→ here. ←/→ navigate
-  // to the adjacent booking in slotStart order if one exists. Skip
-  // when an editable element has focus so the visitor's `<input>`
-  // arrow-key cursor movement isn't hijacked.
+  // to /bookings (router.push). Modal variant: ResponsiveModal owns
+  // ESC via the primitive — only wire ←/→ here. ←/→ navigate to the
+  // adjacent booking in slotStart order if one exists. In modal mode
+  // the navigation happens via `onNavigate` (parent swaps the
+  // selected uid in place); page mode pushes the URL. Skip when an
+  // editable element has focus so the visitor's `<input>` arrow-key
+  // cursor movement isn't hijacked.
   const previousUid = data?.previousUid ?? null;
   const nextUid = data?.nextUid ?? null;
+  const navigateTo = (uid: string) => {
+    if (onNavigate) onNavigate(uid);
+    else router.push(`/bookings/${uid}`);
+  };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -93,14 +107,7 @@ export default function BookingDetail({
         target instanceof HTMLTextAreaElement ||
         target instanceof HTMLSelectElement ||
         (target?.isContentEditable ?? false);
-      if (!isDrawer && e.key === "Escape") {
-        // Suppress when the intercepted-route Sheet (A7) is layered
-        // on top of this page render. The Sheet primitive owns ESC
-        // in that scenario; firing router.push("/bookings") here in
-        // parallel would race router.back() and pop history twice.
-        // `[role="dialog"]` matches the Base UI Sheet's popup
-        // container — present only while the drawer is mounted.
-        if (document.querySelector('[role="dialog"]')) return;
+      if (!isModal && e.key === "Escape") {
         e.preventDefault();
         router.push("/bookings");
         return;
@@ -108,18 +115,23 @@ export default function BookingDetail({
       if (editing || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "ArrowLeft" && previousUid) {
         e.preventDefault();
-        router.push(`/bookings/${previousUid}`);
+        navigateTo(previousUid);
       } else if (e.key === "ArrowRight" && nextUid) {
         e.preventDefault();
-        router.push(`/bookings/${nextUid}`);
+        navigateTo(nextUid);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, previousUid, nextUid, isDrawer]);
+    // navigateTo is stable across renders for the keys it depends on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, previousUid, nextUid, isModal, onNavigate]);
 
   const cancel = useCancelBooking({
-    onSuccess: () => router.push("/bookings"),
+    onSuccess: () => {
+      if (onClose) onClose();
+      else router.push("/bookings");
+    },
   });
 
   if (!data) {
@@ -129,7 +141,7 @@ export default function BookingDetail({
         <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
       </>
     );
-    return isDrawer ? (
+    return isModal ? (
       <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
     ) : (
       <OhPageShell tight>{loadingBody}</OhPageShell>
@@ -150,17 +162,13 @@ export default function BookingDetail({
   const body = (
     <>
       {/* Back nav + adjacent prev/next chevrons (A5). The chevrons
-          mirror cal.com's BookingDetailsSheet keyboard cluster and
-          link to the host's previous/next booking in slotStart
-          order. Disabled when there is no neighbour on that side —
-          rendered as a ghost-style div so the row doesn't reflow
-          on the first / last booking. ←/→ keys also navigate
-          (effect above). The drawer variant suppresses the back
-          link (the Sheet has its own X close affordance) but keeps
-          the prev/next chevrons aligned to the leading edge so the
-          host can keep triaging without a round-trip to the list. */}
+          mirror cal.com's BookingDetailsSheet keyboard cluster. ←/→
+          keys also navigate (effect above). Modal variant suppresses
+          the back link (the modal has its own close affordance) but
+          keeps the prev/next chevrons aligned to the leading edge so
+          the host can triage without round-tripping to the list. */}
       <div className="mb-4 flex items-center justify-between gap-3">
-        {isDrawer ? (
+        {isModal ? (
           <span aria-hidden />
         ) : (
           <Link
@@ -176,11 +184,13 @@ export default function BookingDetail({
             uid={data.previousUid}
             direction="previous"
             label={t("previousBooking")}
+            onNavigate={onNavigate}
           />
           <NeighbourLink
             uid={data.nextUid}
             direction="next"
             label={t("nextBooking")}
+            onNavigate={onNavigate}
           />
         </div>
       </div>
@@ -227,12 +237,12 @@ export default function BookingDetail({
       </div>
 
       {/* Footer actions. Page variant: sticky at viewport bottom
-          (.oh-dash-save-bar is position:fixed). Drawer variant:
-          inline at the bottom of the Sheet content — the Sheet
-          itself is a position:fixed container so an additional
-          fixed bar would float outside the drawer. */}
+          (.oh-dash-save-bar is position:fixed). Modal variant:
+          inline at the bottom of the modal body — the modal is a
+          position:fixed container, an additional fixed bar would
+          float outside it. */}
       {!cancelled ? (
-        isDrawer ? (
+        isModal ? (
           <div className="mt-8 flex gap-2">
             <ConfirmDialog
               title={t("cancelTitle")}
@@ -292,7 +302,7 @@ export default function BookingDetail({
     </>
   );
 
-  return isDrawer ? (
+  return isModal ? (
     <div className="flex flex-col p-5 sm:p-6">{body}</div>
   ) : (
     <OhPageShell tight>{body}</OhPageShell>
@@ -303,15 +313,20 @@ export default function BookingDetail({
 // a span with the same dimensions so the row doesn't reflow on the
 // first / last booking. The icon-only chevron is sized to match the
 // back-arrow (`size-3`) for visual rhythm with the row's leading
-// element.
+// element. When `onNavigate` is supplied (modal variant), plain
+// clicks call it instead of navigating — the modal stays open and
+// just swaps content. Cmd/middle-click still hit the `<Link>` href
+// so power users can open the standalone page in a new tab.
 function NeighbourLink({
   uid,
   direction,
   label,
+  onNavigate,
 }: {
   uid: string | null;
   direction: "previous" | "next";
   label: string;
+  onNavigate?: (uid: string) => void;
 }) {
   const Icon = direction === "previous" ? ChevronLeftIcon : ChevronRightIcon;
   const baseClass =
@@ -330,6 +345,24 @@ function NeighbourLink({
     <Link
       href={`/bookings/${uid}`}
       aria-label={label}
+      onClick={
+        onNavigate
+          ? (e) => {
+              if (
+                e.defaultPrevented ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey ||
+                e.button !== 0
+              ) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate(uid);
+            }
+          : undefined
+      }
       className={`${baseClass} oh-focus-ring opacity-55 hover:bg-[var(--oh-tint-hover)] hover:opacity-100`}
     >
       <Icon className="size-3.5" strokeWidth={1.75} />

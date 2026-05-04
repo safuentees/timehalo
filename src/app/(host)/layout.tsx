@@ -30,19 +30,19 @@ import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 // entire layout behind a loader (heavier — the chrome itself
 // flashes). We follow cal.com's lighter approach: prefetch + hydrate.
 //
-// Parallel @modal slot (A7). The intercepted route at
-// (host)/@modal/(.)bookings/[publicUid] renders a Sheet here when
-// the host navigates from /bookings to /bookings/<publicUid>; on
-// hard refresh of the same URL it falls through to the full page
-// route at (host)/bookings/[publicUid]. Default fallback is
-// (host)/@modal/default.tsx — null when no intercepted route
-// matches.
+// Booking detail (A7) opens as a state-driven modal inside
+// `BookingsList` (`ResponsiveModal` — Dialog desktop / vaul Drawer
+// mobile). The standalone `/bookings/[publicUid]` page route stays
+// as the deep-link / hard-refresh fallback. The prior intercepted-
+// route + `@modal` parallel-slot approach was removed because it
+// added a separate page tree, an SSR prefetch in two places, a
+// router.back-vs-router.push race, and the [role="dialog"] ESC
+// suppression hack inside booking-detail. State-driven is simpler
+// and the transition is synchronous.
 export default async function DashboardLayout({
   children,
-  modal,
 }: Readonly<{
   children: ReactNode;
-  modal: ReactNode;
 }>) {
   const trpc = await createPrivateSSRHelper();
   await Promise.all([
@@ -54,7 +54,6 @@ export default async function DashboardLayout({
     <OhProviders>
       <HydrationBoundary state={dehydrate(trpc.queryClient)}>
         <OhDashboardLayout>{children}</OhDashboardLayout>
-        {modal}
         {/* Admin-only floating dev checklist (B.PT75). Returns null
             for non-admin handles so the markdown blob + the launcher
             chrome never ship to non-admin clients. */}
