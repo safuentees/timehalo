@@ -32,9 +32,13 @@ function fmtTime(d: Date): string {
 export default function BookingDetail({
   publicUid,
   variant = "page",
+  onNavigate,
+  onClose,
 }: {
   publicUid: string;
-  variant?: "page" | "drawer";
+  variant?: "page" | "modal";
+  onNavigate?: (uid: string) => void;
+  onClose?: () => void;
 }) {
   const router = useRouter();
   const t = useTranslations("BookingDetail");
@@ -47,10 +51,14 @@ export default function BookingDetail({
     });
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
-  const isDrawer = variant === "drawer";
+  const isModal = variant === "modal";
 
   const previousUid = data?.previousUid ?? null;
   const nextUid = data?.nextUid ?? null;
+  const navigateTo = (uid: string) => {
+    if (onNavigate) onNavigate(uid);
+    else router.push(`/bookings/${uid}`);
+  };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -59,8 +67,7 @@ export default function BookingDetail({
         target instanceof HTMLTextAreaElement ||
         target instanceof HTMLSelectElement ||
         (target?.isContentEditable ?? false);
-      if (!isDrawer && e.key === "Escape") {
-        if (document.querySelector('[role="dialog"]')) return;
+      if (!isModal && e.key === "Escape") {
         e.preventDefault();
         router.push("/bookings");
         return;
@@ -68,18 +75,22 @@ export default function BookingDetail({
       if (editing || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "ArrowLeft" && previousUid) {
         e.preventDefault();
-        router.push(`/bookings/${previousUid}`);
+        navigateTo(previousUid);
       } else if (e.key === "ArrowRight" && nextUid) {
         e.preventDefault();
-        router.push(`/bookings/${nextUid}`);
+        navigateTo(nextUid);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, previousUid, nextUid, isDrawer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, previousUid, nextUid, isModal, onNavigate]);
 
   const cancel = useCancelBooking({
-    onSuccess: () => router.push("/bookings"),
+    onSuccess: () => {
+      if (onClose) onClose();
+      else router.push("/bookings");
+    },
   });
 
   if (!data) {
@@ -89,7 +100,7 @@ export default function BookingDetail({
         <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
       </>
     );
-    return isDrawer ? (
+    return isModal ? (
       <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
     ) : (
       <OhPageShell tight>{loadingBody}</OhPageShell>
@@ -105,7 +116,7 @@ export default function BookingDetail({
   const body = (
     <>
       <div className="mb-4 flex items-center justify-between gap-3">
-        {isDrawer ? (
+        {isModal ? (
           <span aria-hidden />
         ) : (
           <Link
@@ -121,11 +132,13 @@ export default function BookingDetail({
             uid={data.previousUid}
             direction="previous"
             label={t("previousBooking")}
+            onNavigate={onNavigate}
           />
           <NeighbourLink
             uid={data.nextUid}
             direction="next"
             label={t("nextBooking")}
+            onNavigate={onNavigate}
           />
         </div>
       </div>
@@ -170,7 +183,7 @@ export default function BookingDetail({
       </div>
 
       {!cancelled ? (
-        isDrawer ? (
+        isModal ? (
           <div className="mt-8 flex gap-2">
             <ConfirmDialog
               title={t("cancelTitle")}
@@ -230,7 +243,7 @@ export default function BookingDetail({
     </>
   );
 
-  return isDrawer ? (
+  return isModal ? (
     <div className="flex flex-col p-5 sm:p-6">{body}</div>
   ) : (
     <OhPageShell tight>{body}</OhPageShell>
@@ -241,10 +254,12 @@ function NeighbourLink({
   uid,
   direction,
   label,
+  onNavigate,
 }: {
   uid: string | null;
   direction: "previous" | "next";
   label: string;
+  onNavigate?: (uid: string) => void;
 }) {
   const Icon = direction === "previous" ? ChevronLeftIcon : ChevronRightIcon;
   const baseClass =
@@ -263,6 +278,24 @@ function NeighbourLink({
     <Link
       href={`/bookings/${uid}`}
       aria-label={label}
+      onClick={
+        onNavigate
+          ? (e) => {
+              if (
+                e.defaultPrevented ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey ||
+                e.button !== 0
+              ) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate(uid);
+            }
+          : undefined
+      }
       className={`${baseClass} oh-focus-ring opacity-55 hover:bg-[var(--oh-tint-hover)] hover:opacity-100`}
     >
       <Icon className="size-3.5" strokeWidth={1.75} />

@@ -8,10 +8,8 @@ import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 
 export default async function DashboardLayout({
   children,
-  modal,
 }: Readonly<{
   children: ReactNode;
-  modal: ReactNode;
 }>) {
   const trpc = await createPrivateSSRHelper();
   await Promise.all([
@@ -23,7 +21,6 @@ export default async function DashboardLayout({
     <OhProviders>
       <HydrationBoundary state={dehydrate(trpc.queryClient)}>
         <OhDashboardLayout>{children}</OhDashboardLayout>
-        {modal}
         <DevChecklistMount />
         <DevNotesMount />
       </HydrationBoundary>

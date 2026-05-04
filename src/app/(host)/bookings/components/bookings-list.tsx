@@ -26,6 +26,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { BookingDetailModal } from "./booking-detail-modal";
 
 export type Tab = "upcoming" | "past";
 
@@ -37,6 +38,8 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   const { data } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
+
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   return (
     <OhPageShell>
@@ -69,12 +72,19 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
           <BookingsListPanel
             tab="upcoming"
             bookings={data?.upcoming ?? []}
+            onSelect={setSelectedUid}
           />
         </TabsContent>
         <TabsContent value="past" className="mt-6">
-          <BookingsListPanel tab="past" bookings={data?.past ?? []} />
+          <BookingsListPanel
+            tab="past"
+            bookings={data?.past ?? []}
+            onSelect={setSelectedUid}
+          />
         </TabsContent>
       </Tabs>
+
+      <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
     </OhPageShell>
   );
 }
@@ -224,9 +234,11 @@ type Booking = {
 function BookingsListPanel({
   tab,
   bookings,
+  onSelect,
 }: {
   tab: Tab;
   bookings: Booking[];
+  onSelect: (uid: string) => void;
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
   return (
@@ -245,6 +257,7 @@ function BookingsListPanel({
             visitorEmail={b.visitorEmail}
             question={b.question}
             slotStart={new Date(b.slotStart as unknown as string)}
+            onSelect={onSelect}
           />
         </li>
       ))}
@@ -258,12 +271,14 @@ function BookingRow({
   visitorEmail,
   question,
   slotStart,
+  onSelect,
 }: {
   publicUid: string;
   visitorName: string;
   visitorEmail: string;
   question: string | null;
   slotStart: Date;
+  onSelect: (uid: string) => void;
 }) {
   const format = useFormatter();
   const slotDateLabel = format.dateTime(slotStart, {
@@ -274,6 +289,20 @@ function BookingRow({
   return (
     <Link
       href={`/bookings/${publicUid}`}
+      onClick={(e) => {
+        if (
+          e.defaultPrevented ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey ||
+          e.button !== 0
+        ) {
+          return;
+        }
+        e.preventDefault();
+        onSelect(publicUid);
+      }}
       className="group block px-4 py-4 transition-colors duration-150 ease-oh hover:bg-oh-tint-hover focus-visible:bg-oh-tint-hover focus-visible:outline-none"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
