@@ -77,6 +77,7 @@ export function MonthView({
     <div
       role="region"
       aria-label={`Month view for ${monthLabel}`}
+      tabIndex={isCapped ? 0 : undefined}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",

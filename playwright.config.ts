@@ -24,7 +24,8 @@ export default defineConfig({
     },
     {
       name: "authed",
-      testMatch: /(?:hydration-authed|hydration-stress)\.spec\.ts/,
+      testMatch:
+        /(?:hydration-authed|hydration-stress|a11y-bookings)\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],

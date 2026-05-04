@@ -75,6 +75,7 @@ export function DayView({
     <div
       role="region"
       aria-label={`Day view for ${dayLabel}`}
+      tabIndex={isCapped ? 0 : undefined}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",

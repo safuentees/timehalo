@@ -127,10 +127,10 @@ const ViewTrigger = forwardRef<
       className={cn(
         "group/view inline-flex items-center h-auto rounded-none border-0 bg-transparent p-0 py-1",
         "shadow-none data-active:shadow-none after:hidden",
-        "oh-eyebrow",
+        "oh-eyebrow text-foreground",
         isActive
           ? "opacity-100"
-          : "opacity-55 hover:opacity-100 transition-opacity duration-200",
+          : "opacity-70 hover:opacity-100 transition-opacity duration-200",
       )}
     >
       <span>{LABELS[mode]}</span>

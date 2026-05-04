@@ -105,6 +105,7 @@ export function WeekView({
     <div
       role="region"
       aria-label={`Week view for ${weekLabel}`}
+      tabIndex={isCapped || minBodyWidthPx > 0 ? 0 : undefined}
       className={cn(
         "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
         isCapped && "overflow-y-auto",
