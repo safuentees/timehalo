@@ -1,6 +1,7 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 import { BookingsList, type Tab } from "./components/bookings-list";
+import type { ViewMode } from "./components/bookings-view-switcher";
 
 // Bookings — primary host surface. Apple HIG: the screen the user
 // "came for" is one tap from launch (here: zero, since `/` redirects).
@@ -27,18 +28,57 @@ import { BookingsList, type Tab } from "./components/bookings-list";
 // useQuery + the legacy hydration boundary works without it.
 
 const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
+const VALID_VIEWS = [
+  "day",
+  "week",
+  "month",
+  "list",
+] as const satisfies readonly ViewMode[];
 
 function isTab(value: string | undefined): value is Tab {
   return VALID_TABS.includes(value as Tab);
 }
 
+function isView(value: string | undefined): value is ViewMode {
+  return VALID_VIEWS.includes(value as ViewMode);
+}
+
+// Parse `?date=YYYY-MM-DD` to a local-midnight Date, or fall back to
+// today. Local-component construction (not Date.parse on ISO with Z)
+// avoids the UTC-offset drift that would otherwise shift the cursor
+// to the previous day in negative-offset zones — same lesson from
+// B.PT136's playground gallery TZ fix.
+function parseCursorDate(raw: string | undefined): Date {
+  if (raw) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+    if (match) {
+      const y = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      const d = parseInt(match[3], 10);
+      const candidate = new Date(y, m - 1, d);
+      if (!isNaN(candidate.getTime())) return candidate;
+    }
+  }
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 export default async function BookingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; view?: string; date?: string }>;
 }) {
   const params = await searchParams;
   const activeTab: Tab = isTab(params.tab) ? params.tab : "upcoming";
+  // Default view = "list" — preserves the legacy /bookings UX for
+  // anyone hitting the route without a ?view= param. The view-mode
+  // switcher in `BookingsList` is the discoverability surface for
+  // the new calendar modes (Day/Week/Month). Mobile-default
+  // override (§11 q1 — DAY vs LIST below 700px) is open and not
+  // resolved yet; this server component renders the same default
+  // for all viewports until that lands.
+  const activeView: ViewMode = isView(params.view) ? params.view : "list";
+  const cursorDate = parseCursorDate(params.date);
 
   const trpc = await createPrivateSSRHelper();
   // Parallel prefetch. featureFlags drives whether <LiveQueue /> mounts;
@@ -64,7 +104,11 @@ export default async function BookingsPage({
   return (
     <main className="oh-main">
       <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-        <BookingsList activeTab={activeTab} />
+        <BookingsList
+          activeTab={activeTab}
+          activeView={activeView}
+          cursorDate={cursorDate}
+        />
       </HydrationBoundary>
     </main>
   );

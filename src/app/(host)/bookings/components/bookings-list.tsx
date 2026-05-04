@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { BookingDetailModal } from "./booking-detail-modal";
+import {
+  BookingsViewSwitcher,
+  type ViewMode,
+} from "./bookings-view-switcher";
+import { DayView } from "./calendar/day-view";
+import { WeekView } from "./calendar/week-view";
+import { MonthView } from "./calendar/month-view";
 
 export type Tab = "upcoming" | "past";
 
@@ -55,11 +63,24 @@ const VALID_TABS = ["upcoming", "past"] as const satisfies readonly Tab[];
 // hydration during client mount. Matches the upstream
 // `fix/next-pin-16.1.7` shape verbatim.
 //
-// Tab state lives in the URL (`?tab=upcoming|past`) — passed in via
-// the `activeTab` prop from `page.tsx`'s `searchParams` read; tab
-// changes push to the URL via `router.push`, which re-runs the
-// page's server tree without a full reload.
-export function BookingsList({ activeTab }: { activeTab: Tab }) {
+// Tab state lives in the URL (`?tab=upcoming|past`, only used when
+// view=list). View-mode state ALSO lives in the URL
+// (`?view=day|week|month|list`, default list — preserves legacy
+// behavior). `activeTab` and `activeView` are passed in via props
+// from `page.tsx`'s `searchParams` read; changes push to the URL
+// via `router.push`, which re-runs the page's server tree without a
+// full reload. `cursorDate` is the calendar's reference date — also
+// URL-driven (`?date=YYYY-MM-DD`); B.PT140 wires the prev/today/
+// next controls. For now the cursor is read-only from the URL.
+export function BookingsList({
+  activeTab,
+  activeView,
+  cursorDate,
+}: {
+  activeTab: Tab;
+  activeView: ViewMode;
+  cursorDate: Date;
+}) {
   const t = useTranslations("Bookings");
   const router = useRouter();
   const { data } = trpc.bookings.listForHost.useQuery();
@@ -73,6 +94,39 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
   // route at /bookings/[publicUid].
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
+  // Combined booking → CalendarEvent adapter for the calendar views.
+  // listForHost only returns deleted=false rows, so all events are
+  // status: "confirmed" — cancellations don't surface here today.
+  // Adjacent prev/past split (`data.upcoming` / `data.past`) is
+  // irrelevant for the calendar; the views filter to their visible
+  // date range internally.
+  const calendarEvents: CalendarEvent[] = useMemo(() => {
+    if (!data) return [];
+    const all = [...data.upcoming, ...data.past];
+    return all.map((b) => ({
+      id: b.publicUid,
+      title: b.visitorName,
+      start: new Date(b.slotStart as unknown as string),
+      end: new Date(b.slotEnd as unknown as string),
+      status: "confirmed" as const,
+      refId: b.publicUid,
+    }));
+  }, [data]);
+
+  // View switcher: push `?view=...` (preserve `?tab=...` so the user
+  // who switches list → week → list lands back on their original tab).
+  const onViewChange = (next: ViewMode) => {
+    if (next === activeView) return;
+    const params = new URLSearchParams();
+    params.set("view", next);
+    if (next === "list") params.set("tab", activeTab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const onEventClick = (event: CalendarEvent) => {
+    if (event.refId) setSelectedUid(event.refId);
+  };
+
   return (
     <OhPageShell>
       <OhPageHeader
@@ -82,39 +136,75 @@ export function BookingsList({ activeTab }: { activeTab: Tab }) {
 
       <OnboardingChecklist />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => {
-          if (value === activeTab) return;
-          if (!VALID_TABS.includes(value as Tab)) return;
-          router.push(`?tab=${value}`, { scroll: false });
-        }}
-        className="mt-8"
-      >
-        <BookingsTabBar
-          activeTab={activeTab}
-          upcomingCount={data?.upcoming.length ?? 0}
-          pastCount={data?.past.length ?? 0}
-          tablistLabel={t("tablistLabel")}
-          upcomingLabel={t("tabUpcoming")}
-          pastLabel={t("tabPast")}
-        />
+      {/* View-mode segmented control. Sits above the per-view chrome
+          (tabs in list mode; date controls in calendar modes — date
+          controls are wired in B.PT140). */}
+      <div className="mt-8">
+        <BookingsViewSwitcher value={activeView} onValueChange={onViewChange} />
+      </div>
 
-        <TabsContent value="upcoming" className="mt-6">
-          <BookingsListPanel
-            tab="upcoming"
-            bookings={data?.upcoming ?? []}
-            onSelect={setSelectedUid}
+      {activeView === "list" ? (
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            if (value === activeTab) return;
+            if (!VALID_TABS.includes(value as Tab)) return;
+            router.push(`?view=list&tab=${value}`, { scroll: false });
+          }}
+          className="mt-6"
+        >
+          <BookingsTabBar
+            activeTab={activeTab}
+            upcomingCount={data?.upcoming.length ?? 0}
+            pastCount={data?.past.length ?? 0}
+            tablistLabel={t("tablistLabel")}
+            upcomingLabel={t("tabUpcoming")}
+            pastLabel={t("tabPast")}
           />
-        </TabsContent>
-        <TabsContent value="past" className="mt-6">
-          <BookingsListPanel
-            tab="past"
-            bookings={data?.past ?? []}
-            onSelect={setSelectedUid}
-          />
-        </TabsContent>
-      </Tabs>
+
+          <TabsContent value="upcoming" className="mt-6">
+            <BookingsListPanel
+              tab="upcoming"
+              bookings={data?.upcoming ?? []}
+              onSelect={setSelectedUid}
+            />
+          </TabsContent>
+          <TabsContent value="past" className="mt-6">
+            <BookingsListPanel
+              tab="past"
+              bookings={data?.past ?? []}
+              onSelect={setSelectedUid}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="mt-6">
+          {activeView === "day" ? (
+            <DayView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+          {activeView === "week" ? (
+            <WeekView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+          {activeView === "month" ? (
+            <MonthView
+              date={cursorDate}
+              events={calendarEvents}
+              selectedRefId={selectedUid}
+              onEventClick={onEventClick}
+            />
+          ) : null}
+        </div>
+      )}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
     </OhPageShell>
