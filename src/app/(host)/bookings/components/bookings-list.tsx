@@ -38,6 +38,7 @@ import { DayView } from "./calendar/day-view";
 import { WeekView } from "./calendar/week-view";
 import { MonthView } from "./calendar/month-view";
 import { BookingsCursorControls } from "./calendar/cursor-controls";
+import { DayStrip } from "./calendar/day-strip";
 
 export type Tab = "upcoming" | "past";
 
@@ -320,7 +321,19 @@ export function BookingsList({
                   getHref={getEventHref}
                 />
               </div>
-              <div className="md:hidden">
+              <div className="md:hidden flex flex-col gap-3">
+                {/* Mobile week → day fallback (B.PT144) gets a
+                    horizontal day-strip on top (B.PT148) so the
+                    user can see + tap any day in the week without
+                    going through prev/next cursor controls. The
+                    cursor controls above the strip still navigate
+                    by week (prev/next jump 7 days at a time per
+                    the WeekView's step semantics in
+                    cursor-controls.tsx). */}
+                <DayStrip
+                  cursorDate={cursorDate}
+                  onDateChange={onDateChange}
+                />
                 <DayView
                   date={cursorDate}
                   events={calendarEvents}
