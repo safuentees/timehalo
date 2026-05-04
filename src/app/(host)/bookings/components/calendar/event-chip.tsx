@@ -30,23 +30,45 @@ export function EventChip({
   isSelected = false,
   isHovered = false,
   onClick,
+  href,
 }: {
   event: CalendarEvent;
   isSelected?: boolean;
   isHovered?: boolean;
   onClick?: (event: CalendarEvent) => void;
+  href?: string;
 }) {
   const dur = durationMinutes(event);
   const display = chooseDisplay(dur);
 
-  const Component = onClick ? "button" : "div";
+  const Component: "a" | "button" | "div" =
+    href ? "a" : onClick ? "button" : "div";
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!onClick) return;
+    if (Component === "a") {
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.button !== 0
+      ) {
+        return;
+      }
+      e.preventDefault();
+    }
+    onClick(event);
+  };
 
   const statusVar = `var(--oh-status-${event.status})`;
 
   return (
     <Component
-      type={onClick ? "button" : undefined}
-      onClick={onClick ? () => onClick(event) : undefined}
+      type={Component === "button" ? "button" : undefined}
+      href={Component === "a" ? href : undefined}
+      onClick={onClick ? handleClick : undefined}
       data-event-id={event.id}
       data-status={event.status}
       aria-label={`${event.title} — ${formatTimeRange(event)} — ${event.status}`}

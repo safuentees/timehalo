@@ -95,6 +95,9 @@ export function BookingsList({
     if (event.refId) setSelectedUid(event.refId);
   };
 
+  const getEventHref = (event: CalendarEvent) =>
+    event.refId ? `/bookings/${event.refId}` : "#";
+
   return (
     <OhPageShell>
       <OhPageHeader
@@ -167,6 +170,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
           {activeView === "week" ? (
@@ -175,6 +179,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
           {activeView === "month" ? (
@@ -183,6 +188,7 @@ export function BookingsList({
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
+              getHref={getEventHref}
             />
           ) : null}
         </div>

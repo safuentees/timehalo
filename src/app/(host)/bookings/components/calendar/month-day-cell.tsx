@@ -21,6 +21,7 @@ export type MonthDayCellProps = {
   isInMonth: boolean;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
 };
 
@@ -31,6 +32,7 @@ export function MonthDayCell({
   isInMonth,
   selectedRefId = null,
   onEventClick,
+  getHref,
   onOverflowClick,
 }: MonthDayCellProps) {
   const sortedEvents = [...events].sort(
@@ -67,12 +69,33 @@ export function MonthDayCell({
       </div>
 
       <div className="flex flex-col gap-0.5">
-        {visibleEvents.map((event) => (
-          <button
+        {visibleEvents.map((event) => {
+          const href = getHref ? getHref(event) : undefined;
+          const Component: "a" | "button" = href ? "a" : "button";
+          const handleClick = (e: React.MouseEvent) => {
+            if (!onEventClick) return;
+            if (Component === "a") {
+              if (
+                e.defaultPrevented ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey ||
+                e.button !== 0
+              ) {
+                return;
+              }
+              e.preventDefault();
+            }
+            onEventClick(event);
+          };
+          return (
+          <Component
             key={event.id}
-            type="button"
+            type={Component === "button" ? "button" : undefined}
+            href={Component === "a" ? href : undefined}
             data-event-id={event.id}
-            onClick={onEventClick ? () => onEventClick(event) : undefined}
+            onClick={onEventClick ? handleClick : undefined}
             aria-label={`${event.title} at ${formatChipTime(event.start)}`}
             className={cn(
               "flex w-full items-center gap-1 truncate text-left",
@@ -94,8 +117,9 @@ export function MonthDayCell({
             <span className="truncate font-sans text-[11px] font-bold leading-none">
               {event.title}
             </span>
-          </button>
-        ))}
+          </Component>
+          );
+        })}
         {overflowCount > 0 ? (
           <button
             type="button"

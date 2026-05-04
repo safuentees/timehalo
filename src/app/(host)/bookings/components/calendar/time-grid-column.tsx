@@ -18,6 +18,7 @@ export type TimeGridColumnProps = {
   oneMinuteHeightPx: number;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  getHref?: (event: CalendarEvent) => string;
   showCurrentTimeLine?: boolean;
   nowOverride?: Date;
   className?: string;
@@ -39,6 +40,7 @@ export function TimeGridColumn({
   oneMinuteHeightPx,
   selectedRefId = null,
   onEventClick,
+  getHref,
   showCurrentTimeLine = false,
   nowOverride,
   className,
@@ -87,19 +89,33 @@ export function TimeGridColumn({
         const layout = layoutMap.get(event.id);
         if (!layout) return null;
 
-        const minutesFromStart =
-          (event.start.getHours() - startHour) * 60 + event.start.getMinutes();
-        const eventDurationMinutes =
-          (event.end.getTime() - event.start.getTime()) / 60_000;
+        const visibleStartMin = 0;
+        const visibleEndMin = totalMinutes;
 
-        const top = minutesFromStart * oneMinuteHeightPx;
+        const eventStartMin =
+          (event.start.getHours() - startHour) * 60 +
+          event.start.getMinutes();
+        const eventEndMin =
+          (event.end.getHours() - startHour) * 60 +
+          event.end.getMinutes();
+
+        if (eventEndMin <= visibleStartMin || eventStartMin >= visibleEndMin) {
+          return null;
+        }
+
+        const clippedStartMin = Math.max(visibleStartMin, eventStartMin);
+        const clippedEndMin = Math.min(visibleEndMin, eventEndMin);
+        const clippedDurationMin = clippedEndMin - clippedStartMin;
+
+        const top = clippedStartMin * oneMinuteHeightPx;
         const minHeightPx = 18;
         const heightPx = Math.max(
           minHeightPx,
-          eventDurationMinutes * oneMinuteHeightPx,
+          clippedDurationMin * oneMinuteHeightPx,
         );
 
         const isSelected = selectedRefId !== null && event.refId === selectedRefId;
+        const href = getHref ? getHref(event) : undefined;
 
         return (
           <div
@@ -117,6 +133,7 @@ export function TimeGridColumn({
               event={event}
               isSelected={isSelected}
               onClick={onEventClick}
+              href={href}
             />
           </div>
         );

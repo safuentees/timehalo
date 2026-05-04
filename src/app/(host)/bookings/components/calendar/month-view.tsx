@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 import {
   buildMonthGrid,
   dayOfWeekOrder,
@@ -16,7 +17,9 @@ export type MonthViewProps = {
   weekStartsOn?: WeekStart;
   selectedRefId?: string | null;
   onEventClick?: (event: CalendarEvent) => void;
+  getHref?: (event: CalendarEvent) => string;
   onOverflowClick?: (date: Date, events: CalendarEvent[]) => void;
+  maxBodyHeightPx?: number;
   nowOverride?: Date;
 };
 
@@ -38,7 +41,9 @@ export function MonthView({
   weekStartsOn = 1,
   selectedRefId = null,
   onEventClick,
+  getHref,
   onOverflowClick,
+  maxBodyHeightPx = 640,
   nowOverride,
 }: MonthViewProps) {
   const cells = useMemo(
@@ -60,10 +65,20 @@ export function MonthView({
   const today = nowOverride ?? new Date();
   const headerDays = dayOfWeekOrder(weekStartsOn);
 
+  const wrapperStyle = maxBodyHeightPx > 0
+    ? { maxHeight: `${maxBodyHeightPx}px` }
+    : undefined;
+
   return (
-    <div className="flex flex-col">
+    <div
+      className={cn(
+        "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        maxBodyHeightPx > 0 && "overflow-y-auto",
+      )}
+      style={wrapperStyle}
+    >
       <div
-        className="grid border-y border-oh-line"
+        className="sticky top-0 z-20 grid border-b border-oh-line bg-[color:var(--oh-paper)]"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
       >
         {headerDays.map((d) => (
@@ -89,6 +104,7 @@ export function MonthView({
             isInMonth={cell.isInMonth}
             selectedRefId={selectedRefId}
             onEventClick={onEventClick}
+            getHref={getHref}
             onOverflowClick={onOverflowClick}
           />
         ))}
