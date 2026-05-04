@@ -35,6 +35,7 @@ const PLAYGROUND_ROUTES = [
   "/playground",
   "/playground/components/button",
   "/playground/components/bookings-view-switcher",
+  "/playground/components/calendar-spike",
   "/playground/pages/handle",
   "/playground/pages/booked",
   "/playground/animations/chrome-morph",
