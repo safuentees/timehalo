@@ -40,14 +40,58 @@ function chooseDisplay(eventDuration: number): DisplayType {
   return "full";
 }
 
-function formatTimeRange(event: CalendarEvent): string {
+// Time-range formatter (B.PT151).
+//
+// Two narrow-column failure modes the previous "{start} – {end}"
+// implementation hit in WeekView at <150px column widths:
+//
+//   1. Each timestamp emits "10:00 AM" — that internal space lets
+//      browsers wrap "AM" to a second line when the chip body is
+//      narrower than the full string. Wrap inflates chip height +
+//      breaks the absolute-positioned overlap layout. Fix: see the
+//      `whitespace-nowrap` on every time span in the render below.
+//
+//   2. The string was ~20 chars even when both endpoints shared a
+//      period ("10:00 AM – 10:30 AM" — 19 chars + the en-dash). Most
+//      bookings live entirely in AM or entirely in PM, so the first
+//      "AM"/"PM" is redundant. Cal.com bypasses this by formatting in
+//      24-hour ("10:00 – 10:30") which gives ~13 chars; we keep
+//      locale-aware 12-hour (en-US default; Spanish locale already
+//      emits 24-hour from toLocaleTimeString so this helper is a
+//      no-op there) but drop the redundant marker when both endpoints
+//      share a period — "10:00 – 10:30 AM" (16 chars). Crossing the
+//      noon boundary keeps both markers ("11:30 AM – 12:30 PM").
+//
+// Locales without an AM/PM marker (Spanish default) return the
+// unchanged "10:00 – 10:30" string — the suffix-stripping is a no-op
+// when the format has no period marker to begin with.
+export function formatTimeRange(event: CalendarEvent): string {
   const fmt = (d: Date) =>
     d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
-  return `${fmt(event.start)} – ${fmt(event.end)}`;
+  const start = fmt(event.start);
+  const end = fmt(event.end);
+
+  // Extract the trailing " AM" / " PM" period marker if present
+  // (case-insensitive — some locales emit lowercase "am"/"pm").
+  const periodRe = /\s(am|pm)$/i;
+  const startMatch = start.match(periodRe);
+  const endMatch = end.match(periodRe);
+
+  // No period markers → 24-hour locale; nothing to strip.
+  if (!startMatch || !endMatch) return `${start} – ${end}`;
+
+  // Both endpoints share the same period → drop the marker from the
+  // start so only the end carries it ("10:00 – 10:30 AM").
+  if (startMatch[1].toLowerCase() === endMatch[1].toLowerCase()) {
+    return `${start.replace(periodRe, "")} – ${end}`;
+  }
+
+  // Crosses the noon boundary → keep both markers.
+  return `${start} – ${end}`;
 }
 
 export function EventChip({
@@ -158,7 +202,7 @@ export function EventChip({
             <span className="truncate font-sans text-[12px] font-bold leading-none">
               {event.title}
             </span>
-            <span className="font-mono text-[10px] leading-none opacity-55 tabular-nums">
+            <span className="whitespace-nowrap font-mono text-[10px] leading-none opacity-55 tabular-nums">
               {formatTimeRange(event)}
             </span>
           </>
@@ -167,7 +211,7 @@ export function EventChip({
             <span className="truncate font-sans text-[12px] font-bold leading-tight">
               {event.title}
             </span>
-            <span className="font-mono text-[10px] leading-none opacity-55 tabular-nums">
+            <span className="truncate whitespace-nowrap font-mono text-[10px] leading-none opacity-55 tabular-nums">
               {formatTimeRange(event)}
             </span>
             {display === "full" && event.subtitle ? (
