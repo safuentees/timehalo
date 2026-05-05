@@ -166,6 +166,69 @@ while (changed) {
   }
 }
 
+// B.PT154 — follow INSTANCE.symbolID references and include the
+// referenced SYMBOL subtrees. Without this, a 1-to-1 port loses the
+// actual visual content of every component instance — the bounding-
+// box geometry travels via INSTANCE nodes but the rendered children
+// (icons, button bodies, list-item innards) live under SYMBOL nodes
+// that are descendants of OTHER frames in the same Figma file.
+//
+// Symbols can contain nested instances, so this is a fixed-point
+// loop: keep adding symbols until no new INSTANCE.symbolID references
+// surface a not-yet-included symbol.
+//
+// Variables (oh-token references) are NOT followed — TEXT and
+// fillPaints carry their concrete values inline, so the port can
+// derive token mappings from those + the project's existing token
+// table without a separate VARIABLE collection.
+function collectReferencedSymbols(initialMap, allNodes) {
+  const idOf = (g) => `${g?.sessionID || 0}:${g?.localID || 0}`;
+  const byIdLookup = new Map();
+  for (const nc of allNodes) byIdLookup.set(idOf(nc.guid), nc);
+
+  let added = true;
+  while (added) {
+    added = false;
+    const newSymbolIds = new Set();
+    for (const nc of initialMap.values()) {
+      if (nc.type !== 'INSTANCE') continue;
+      const sid = nc.symbolData?.symbolID;
+      if (!sid) continue;
+      const symId = idOf(sid);
+      if (initialMap.has(symId)) continue;
+      newSymbolIds.add(symId);
+    }
+    for (const symId of newSymbolIds) {
+      const sym = byIdLookup.get(symId);
+      if (!sym) continue;
+      initialMap.set(symId, sym);
+      added = true;
+      // Add the symbol's whole subtree by re-running the parent walk.
+      let inner = true;
+      while (inner) {
+        inner = false;
+        for (const nc of allNodes) {
+          const id = idOf(nc.guid);
+          if (initialMap.has(id)) continue;
+          const parentId = nc.parentIndex?.guid ? idOf(nc.parentIndex.guid) : null;
+          if (parentId && initialMap.has(parentId)) {
+            initialMap.set(id, nc);
+            inner = true;
+          }
+        }
+      }
+    }
+  }
+}
+const beforeSymCount = collected.size;
+collectReferencedSymbols(collected, nodes);
+const symAdded = collected.size - beforeSymCount;
+if (symAdded > 0) {
+  console.error(
+    `       + ${symAdded} nodes from referenced SYMBOL subtrees (B.PT154)`,
+  );
+}
+
 const spec = {
   meta: {
     feature,

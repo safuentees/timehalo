@@ -2,8 +2,8 @@
   "meta": {
     "feature": "untitled-324-15305",
     "nodeId": "324:15305",
-    "capturedAt": "2026-05-05T10:03:57.243Z",
-    "nodeCount": 757
+    "capturedAt": "2026-05-05T10:12:46.399Z",
+    "nodeCount": 770
   },
   "nodeChanges": [
     {
@@ -117497,6 +117497,2685 @@
       "autoRename": true,
       "textTracking": 0,
       "textAutoResize": "WIDTH_AND_HEIGHT"
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7763
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7940
+        },
+        "position": "/"
+      },
+      "type": "SYMBOL",
+      "name": "variant=15",
+      "userFacingVersion": "324:3312",
+      "isSymbolPublishable": true,
+      "sharedSymbolVersion": "324:3312",
+      "variantPropSpecs": [
+        {
+          "propDefId": {
+            "sessionID": 3026323992,
+            "localID": 2719227150
+          },
+          "value": "15"
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 16,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 30,
+        "m10": 0,
+        "m11": 1,
+        "m12": 674
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [],
+      "horizontalConstraint": "CENTER",
+      "verticalConstraint": "CENTER",
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7759
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7763
+        },
+        "position": "!"
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 0,
+        "y": 2.6666667461395264
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 5.3333330154418945,
+        "m10": 0,
+        "m11": 1,
+        "m12": 1.333333134651184
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 438,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 4,
+        "normalizedSize": {
+          "x": 0,
+          "y": 4
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7760
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7763
+        },
+        "position": "\""
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 0,
+        "y": 2.6666667461395264
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 10.666666984558105,
+        "m10": 0,
+        "m11": 1,
+        "m12": 1.333333134651184
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 438,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 4,
+        "normalizedSize": {
+          "x": 0,
+          "y": 4
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7761
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7763
+        },
+        "position": "#"
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 12,
+        "y": 12
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 1.999999761581421,
+        "m10": 0,
+        "m11": 1,
+        "m12": 2.6666665077209473
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 439,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 6,
+        "normalizedSize": {
+          "x": 18,
+          "y": 18
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7762
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7763
+        },
+        "position": "$"
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 12,
+        "y": 0
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 1.999999761581421,
+        "m10": 0,
+        "m11": 1,
+        "m12": 6.666666507720947
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 440,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 8,
+        "normalizedSize": {
+          "x": 18,
+          "y": 0
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7813
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7986
+        },
+        "position": "$"
+      },
+      "type": "SYMBOL",
+      "name": "variant=2,:hover=false",
+      "userFacingVersion": "324:3625",
+      "styleIdForFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 206
+        }
+      },
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "isSymbolPublishable": true,
+      "sharedSymbolVersion": "324:3625",
+      "componentPropDefs": [
+        {
+          "id": {
+            "sessionID": 324,
+            "localID": 20
+          },
+          "parentPropDefId": {
+            "sessionID": 324,
+            "localID": 16
+          }
+        }
+      ],
+      "variantPropSpecs": [
+        {
+          "propDefId": {
+            "sessionID": 4198790432,
+            "localID": 3632771186
+          },
+          "value": "false"
+        },
+        {
+          "propDefId": {
+            "sessionID": 3026323992,
+            "localID": 2719227150
+          },
+          "value": "2"
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 88,
+        "y": 48
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 30,
+        "m10": 0,
+        "m11": 1,
+        "m12": 108
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 109
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 445,
+          "styleID": 0
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 446,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "stackMode": "HORIZONTAL",
+      "stackHorizontalPadding": 14.5,
+      "stackVerticalPadding": 13.680000305175781,
+      "stackPrimaryAlignItems": "CENTER",
+      "stackCounterAlignItems": "CENTER",
+      "stackPaddingRight": 14.5,
+      "stackPaddingBottom": 14.319999694824219,
+      "minSize": {
+        "value": {
+          "x": 0,
+          "y": 48
+        }
+      },
+      "prototypeInteractions": [
+        {
+          "id": {
+            "sessionID": 324,
+            "localID": 7989
+          },
+          "event": {
+            "interactionType": "ON_HOVER"
+          },
+          "actions": [
+            {
+              "transitionNodeID": {
+                "sessionID": 324,
+                "localID": 7811
+              },
+              "transitionType": "INSTANT_TRANSITION",
+              "connectionType": "INTERNAL_NODE",
+              "navigationType": "SWAP_STATE"
+            }
+          ],
+          "isDeleted": false,
+          "stateManagementVersion": 1
+        }
+      ],
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"button\"}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "stackCounterSizing": "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 324,
+                    "localID": 7805
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 324,
+                    "localID": 7805
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955204,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7814
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7813
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Text",
+      "styleIdForFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "styleIdForText": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7808
+        }
+      },
+      "componentPropRefs": [
+        {
+          "defID": {
+            "sessionID": 324,
+            "localID": 20
+          },
+          "componentPropNodeField": "TEXT_DATA"
+        }
+      ],
+      "fontSize": 12,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "textCase": "UPPER",
+      "lineHeight": {
+        "value": 17.139999389648438,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "ExtraBold",
+        "postscript": "JetBrainsMono-ExtraBold"
+      },
+      "textData": {
+        "characters": "9:59 AM",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 57,
+          "y": 18
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0.31640625,
+              "y": 12.889999389648438
+            },
+            "width": 56.3671875,
+            "lineY": -3.0517577442878974e-7,
+            "lineHeight": 17.139999389648438,
+            "lineAscent": 12,
+            "firstCharacter": 0,
+            "endCharacter": 7
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 174,
+            "position": {
+              "x": 0.31640625,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 0,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 155,
+            "position": {
+              "x": 8.51171875,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 1,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 154,
+            "position": {
+              "x": 16.70703125,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 2,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 174,
+            "position": {
+              "x": 24.90234375,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 3,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 33.09765625,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 4,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 53,
+            "position": {
+              "x": 41.29296875,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 5,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 139,
+            "position": {
+              "x": 49.48828125,
+              "y": 12.889999389648438
+            },
+            "fontSize": 12,
+            "firstCharacter": 6,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "JetBrains Mono",
+              "style": "ExtraBold",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.3200000524520874,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 800
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          8.1953125,
+          16.390625,
+          24.5859375,
+          32.78125,
+          40.9765625,
+          49.171875
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 1,
+        "units": "PIXELS"
+      },
+      "fontVersion": "",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 57,
+        "y": 18
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 15.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 14.680000305175781
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "horizontalConstraint": "CENTER",
+      "autoRename": false,
+      "verticalConstraint": "CENTER",
+      "textAutoResize": "WIDTH_AND_HEIGHT",
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "propRefValue": {
+                  "defId": {
+                    "sessionID": 324,
+                    "localID": 20
+                  }
+                }
+              },
+              "dataType": "PROP_REF",
+              "resolvedDataType": "TEXT_DATA"
+            },
+            "variableField": "TEXT_DATA"
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7767
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7940
+        },
+        "position": "0"
+      },
+      "type": "SYMBOL",
+      "name": "variant=16",
+      "userFacingVersion": "324:3313",
+      "isSymbolPublishable": true,
+      "sharedSymbolVersion": "324:3313",
+      "variantPropSpecs": [
+        {
+          "propDefId": {
+            "sessionID": 3026323992,
+            "localID": 2719227150
+          },
+          "value": "16"
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 16,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 30,
+        "m10": 0,
+        "m11": 1,
+        "m12": 720
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [],
+      "horizontalConstraint": "CENTER",
+      "verticalConstraint": "CENTER",
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7765
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7767
+        },
+        "position": "!"
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 8,
+        "y": 8
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 4,
+        "m10": 0,
+        "m11": 1,
+        "m12": 4
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 441,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 442,
+        "normalizedSize": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 324,
+        "localID": 7766
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 324,
+          "localID": 7767
+        },
+        "position": "\""
+      },
+      "type": "VECTOR",
+      "name": "Vector",
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 8,
+        "y": 8
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 4,
+        "m10": 0,
+        "m11": 1,
+        "m12": 4
+      },
+      "strokeWeight": 1.3333333730697632,
+      "strokeAlign": "CENTER",
+      "strokeCap": "ROUND",
+      "strokeJoin": "ROUND",
+      "fillPaints": [],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 443,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "SCALE",
+      "verticalConstraint": "SCALE",
+      "vectorData": {
+        "vectorNetworkBlob": 444,
+        "normalizedSize": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 280,
+                    "localID": 3413
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STROKE_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 9
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777955203,
+        "createdAt": 1777955203
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 358,
+        "localID": 19000
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 358,
+          "localID": 19105
+        },
+        "position": "$"
+      },
+      "type": "SYMBOL",
+      "name": "variant=2,:hover=false",
+      "userFacingVersion": "358:4788",
+      "styleIdForFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 206
+        }
+      },
+      "styleIdForStrokeFill": {
+        "guid": {
+          "sessionID": 12,
+          "localID": 11
+        }
+      },
+      "isSymbolPublishable": true,
+      "sharedSymbolVersion": "358:4788",
+      "componentPropDefs": [
+        {
+          "id": {
+            "sessionID": 358,
+            "localID": 30
+          },
+          "parentPropDefId": {
+            "sessionID": 358,
+            "localID": 26
+          }
+        }
+      ],
+      "variantPropSpecs": [
+        {
+          "propDefId": {
+            "sessionID": 4198790432,
+            "localID": 3632771186
+          },
+          "value": "false"
+        },
+        {
+          "propDefId": {
+            "sessionID": 3026323992,
+            "localID": 2719227150
+          },
+          "value": "2"
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 668,
+        "y": 88.69999694824219
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 30,
+        "m10": 0,
+        "m11": 1,
+        "m12": 148.6999969482422
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 109
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 12,
+                  "localID": 10
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 523,
+          "styleID": 0
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 524,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackHorizontalPadding": 12.5,
+      "stackVerticalPadding": 10.5,
+      "stackPaddingRight": 12.5,
+      "stackPaddingBottom": 55.20000076293945,
+      "minSize": {
+        "value": {
+          "x": 0,
+          "y": 88
+        }
+      },
+      "prototypeInteractions": [
+        {
+          "id": {
+            "sessionID": 358,
+            "localID": 19108
+          },
+          "event": {
+            "interactionType": "ON_HOVER"
+          },
+          "actions": [
+            {
+              "transitionNodeID": {
+                "sessionID": 358,
+                "localID": 18993
+              },
+              "transitionType": "INSTANT_TRANSITION",
+              "connectionType": "INTERNAL_NODE",
+              "navigationType": "SWAP_STATE"
+            }
+          ],
+          "isDeleted": false,
+          "stateManagementVersion": 1
+        }
+      ],
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"textarea\",\"attr\":{\"id\":\"question\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "scrollDirection": "BOTH",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 358,
+                    "localID": 18982
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 12,
+                    "localID": 31
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "guid": {
+                    "sessionID": 358,
+                    "localID": 18982
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777961805,
+        "createdAt": 1777961804
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 358,
+        "localID": 19001
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 358,
+          "localID": 19000
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div#placeholder",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 641,
+        "y": 21
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 13.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 11.5
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [],
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"id\":\"placeholder\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1777961805,
+        "createdAt": 1777961804
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 358,
+        "localID": 19002
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 358,
+          "localID": 19001
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Text",
+      "styleIdForFill": {
+        "guid": {
+          "sessionID": 358,
+          "localID": 18999
+        }
+      },
+      "styleIdForText": {
+        "guid": {
+          "sessionID": 358,
+          "localID": 18989
+        }
+      },
+      "componentPropRefs": [
+        {
+          "defID": {
+            "sessionID": 358,
+            "localID": 30
+          },
+          "componentPropNodeField": "TEXT_DATA"
+        }
+      ],
+      "fontSize": 14,
+      "textAlignVertical": "CENTER",
+      "lineHeight": {
+        "value": 20.299999237060547,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "Space Grotesk",
+        "style": "Regular",
+        "postscript": ""
+      },
+      "textData": {
+        "characters": "What would you like to talk about?",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 641,
+          "y": 21
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 14.993999481201172
+            },
+            "width": 234.41796875,
+            "lineY": -1.3732909565078444e-7,
+            "lineHeight": 20.299999237060547,
+            "lineAscent": 13,
+            "firstCharacter": 0,
+            "endCharacter": 34
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 525,
+            "position": {
+              "x": 0,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 0,
+            "advance": 0.8750000596046448,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 351,
+            "position": {
+              "x": 12.25,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 1,
+            "advance": 0.6130000352859497,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 345,
+            "position": {
+              "x": 20.8359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 2,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 350,
+            "position": {
+              "x": 28.4375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 3,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 34.876953125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 4,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 348,
+            "position": {
+              "x": 38.47265625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 5,
+            "advance": 0.8010000586509705,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 352,
+            "position": {
+              "x": 49.546875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 6,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 178,
+            "position": {
+              "x": 58.201171875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 7,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 356,
+            "position": {
+              "x": 66.7734375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 8,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 344,
+            "position": {
+              "x": 70.205078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 9,
+            "advance": 0.6440000534057617,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 79.21484375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 10,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 346,
+            "position": {
+              "x": 82.810546875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 11,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 352,
+            "position": {
+              "x": 91.3828125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 12,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 178,
+            "position": {
+              "x": 100.037109375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 13,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 108.609375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 14,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 356,
+            "position": {
+              "x": 112.205078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 15,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 349,
+            "position": {
+              "x": 115.63671875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 16,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 357,
+            "position": {
+              "x": 119.068359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 17,
+            "advance": 0.5380000472068787,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 354,
+            "position": {
+              "x": 126.232421875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 18,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 134.517578125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 19,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 350,
+            "position": {
+              "x": 138.11328125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 20,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 352,
+            "position": {
+              "x": 144.306640625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 21,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 152.9609375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 22,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 350,
+            "position": {
+              "x": 156.556640625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 23,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 345,
+            "position": {
+              "x": 162.955078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 24,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 356,
+            "position": {
+              "x": 171.0078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 25,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 357,
+            "position": {
+              "x": 174.439453125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 26,
+            "advance": 0.5380000472068787,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 132,
+            "position": {
+              "x": 181.97265625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 27,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 345,
+            "position": {
+              "x": 185.568359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 28,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 526,
+            "position": {
+              "x": 193.62109375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 29,
+            "advance": 0.6440000534057617,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 352,
+            "position": {
+              "x": 202.630859375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 30,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 178,
+            "position": {
+              "x": 211.28515625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 31,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 350,
+            "position": {
+              "x": 219.857421875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 32,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 527,
+            "position": {
+              "x": 226.296875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 33,
+            "advance": 0.5800000429153442,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "Space Grotesk",
+              "style": "Regular",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.2760000228881836,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 400
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          12.25,
+          20.8359375,
+          28.4375,
+          34.876953125,
+          38.47265625,
+          49.546875,
+          58.201171875,
+          66.7734375,
+          70.205078125,
+          79.21484375,
+          82.810546875,
+          91.3828125,
+          100.037109375,
+          108.609375,
+          112.205078125,
+          115.63671875,
+          119.068359375,
+          126.232421875,
+          134.517578125,
+          138.11328125,
+          144.306640625,
+          152.9609375,
+          156.556640625,
+          162.955078125,
+          171.0078125,
+          174.439453125,
+          181.97265625,
+          185.568359375,
+          193.62109375,
+          202.630859375,
+          211.28515625,
+          219.857421875,
+          226.296875
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 0,
+        "units": "PERCENT"
+      },
+      "fontVersion": "",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 641,
+        "y": 21
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03922722861170769,
+            "g": 0.03921089321374893,
+            "b": 0.03920938819646835,
+            "a": 1
+          },
+          "opacity": 0.5,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "guid": {
+                  "sessionID": 358,
+                  "localID": 18998
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "stackChildAlignSelf": "STRETCH",
+      "autoRename": false,
+      "textTracking": 0,
+      "textAutoResize": "HEIGHT",
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "propRefValue": {
+                  "defId": {
+                    "sessionID": 358,
+                    "localID": 30
+                  }
+                }
+              },
+              "dataType": "PROP_REF",
+              "resolvedDataType": "TEXT_DATA"
+            },
+            "variableField": "TEXT_DATA"
+          }
+        ]
+      }
     }
   ]
 }
