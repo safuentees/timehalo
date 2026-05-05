@@ -13,10 +13,7 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import {
-  ModalDebugPanel,
-  useModalDebugValues,
-} from "./handle-modal-debug";
+import type { ModalDebugValues } from "./handle-modal-debug";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -42,6 +39,7 @@ type Props = {
   selectedSlot: Slot | undefined;
   rescheduleFromUid?: string;
   months?: number;
+  debug?: ModalDebugValues | null;
 };
 
 export function HandleModal({
@@ -55,6 +53,7 @@ export function HandleModal({
   selectedSlot,
   rescheduleFromUid,
   months = 3,
+  debug = null,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -65,7 +64,6 @@ export function HandleModal({
     .toUpperCase();
   const [view, setView] = useState<"picker" | "form">("picker");
 
-  const debug = useModalDebugValues();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
@@ -263,7 +261,6 @@ export function HandleModal({
           </div>
         </motion.article>
       </div>
-      <ModalDebugPanel />
     </FocusOn>
   );
 }
