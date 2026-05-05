@@ -55,16 +55,18 @@ export default function HostProfile({
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
-  // B.PT170 — when this debug toggle is on, keep the landing card
-  // mounted alongside the modal so Layer 1 (with real content)
-  // stays visible on top of Layer 2. We strip `layoutId`s on
-  // landing elements in this mode so they don't fight the modal's
-  // morph — the modal's phantoms still have layoutIds but no source
-  // rect, so they just enter at their natural position (no morph
-  // animation in this mode; user is debugging, accepts the trade).
+  // B.PT170 / B.PT171 — when this debug toggle is on, keep the
+  // landing card mounted alongside the modal. Layer 1 elements RETAIN
+  // their `layoutId`s (B.PT171 reversed B.PT170's layoutId-stripping):
+  // motion's natural behavior with two simultaneous same-layoutId
+  // elements is to render both at the LEAD's rect (the modal phantom,
+  // since it mounted last) with a crossfade. With Layer 1 opacity =
+  // 1 + Layer 2 phantom opacity = 0 via the per-element sliders, the
+  // user sees full landing content rendered AT the phantom rect —
+  // e.g. chips at 690×282 size, not the original 325×50. This is
+  // exactly what they asked for: see what Layer 1 looks like at
+  // its post-morph position.
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
-  const landingLayoutId = (id: string) =>
-    keepLandingMounted ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -286,7 +288,7 @@ export default function HostProfile({
           {!drawerOpen || keepLandingMounted ? (
             <motion.article
               key="landing-card"
-              layoutId={landingLayoutId("handle-card")}
+              layoutId="handle-card"
               transition={{ type: "spring", ...OPEN_SPRING }}
               // B.PT169 — motion's layoutId crossfade auto-animates
               // opacity FROM the source's value TO the destination's
@@ -321,7 +323,7 @@ export default function HostProfile({
                   trick: matched destinations let motion morph + crossfade in
                   one continuous transition, much smoother than a pure fade. */}
               <motion.header
-                layoutId={landingLayoutId("oh-identity")}
+                layoutId="oh-identity"
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
@@ -380,7 +382,7 @@ export default function HostProfile({
                   size, opacity 0) so motion morphs the cream container
                   alongside its child slot rows. */}
               <motion.div
-                layoutId={landingLayoutId("oh-slot-list")}
+                layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
@@ -412,7 +414,7 @@ export default function HostProfile({
                             12 (right time) stay at 50px tall during
                             the parent slot's growth to 282px tall. */}
                         <motion.div
-                          layoutId={landingLayoutId(`oh-slot-${i}`)}
+                          layoutId={`oh-slot-${i}`}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                           animate={{
                             opacity: oStyle(

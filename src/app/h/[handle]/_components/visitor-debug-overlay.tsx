@@ -185,15 +185,18 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       // fades and to what extent.
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
-      // B.PT170 — when enabled, the landing card stays mounted while
-      // the modal is open. Lets you see Layer 1 (with content) on
-      // top of Layer 2 simultaneously — useful for inspecting the
-      // morph endpoints side-by-side. Trade-off: strips the
-      // `layoutId` from landing elements so they DON'T participate
-      // in the morph (the modal's phantom rects have no source rect
-      // to FLIP from — they just appear at their natural position).
-      // The user accepts losing the morph animation in this mode in
-      // exchange for the dual-layer view.
+      // B.PT171 — when enabled, the landing card stays mounted
+      // alongside the modal AND keeps its layoutIds. Motion's natural
+      // behavior with two simultaneous same-layoutId elements: it
+      // picks one as "lead" (the latest mounted = modal phantom) and
+      // applies inverse transforms to the "follow" (landing) so it
+      // visually renders at the lead's rect. Both crossfade at the
+      // shared destination position. With Layer 1 opacity = 1 + Layer
+      // 2 phantom opacity = 0, the user sees full landing content at
+      // the phantom rect (e.g. chips at 690×282 size). The morph IS
+      // active in this mode (FLIP runs); the only non-production
+      // change is that the landing doesn't unmount after AnimatePresence
+      // exit so you can inspect it at the destination indefinitely.
       keepLandingMounted: { value: false, label: "Keep landing mounted" },
       // B.PT166 — z-index relative to the modal stacking context.
       // Modal scrim is z-40, modal dialog is z-50. Three presets:
