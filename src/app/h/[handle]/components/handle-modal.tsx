@@ -13,7 +13,7 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import { useModalDebug } from "../_components/visitor-debug-overlay";
+import { useModalDebug, zStyle } from "../_components/visitor-debug-overlay";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -123,6 +123,9 @@ export function HandleModal({
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
   const phantomOpacity = debug?.phantomOpacity ?? 0;
   const phantomOutline = debug?.showPhantomOutline ?? false;
+  // B.PT167 — Layer 2 z-index overrides for the modal article + each
+  // phantom destination. Defaults to undefined when no debug active.
+  const zL2 = debug?.zLayer2;
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
@@ -214,7 +217,10 @@ export function HandleModal({
           // animation. Removed after layout settles via
           // `onLayoutAnimationComplete` so the layer doesn't stay
           // hot when idle.
-          style={{ willChange: "transform" }}
+          style={{
+            willChange: "transform",
+            zIndex: zStyle(zL2?.layer),
+          }}
           // B.PT160 — `max-h-[1158px]` matches the Figma frame's natural
           // height (the modal frame is exactly 720×1158 in the spec).
           // Was `max-h-[800px]` from B.PT156; that capped the slot-list
@@ -282,6 +288,7 @@ export function HandleModal({
                 height: 87,
                 opacity: phantomOpacity,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                zIndex: zStyle(zL2?.identity),
               }}
             />
             {/* Slot-list (Frame 2) phantom — full-modal coverage at
@@ -297,6 +304,7 @@ export function HandleModal({
                 inset: 0,
                 opacity: phantomOpacity,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                zIndex: zStyle(zL2?.slotList),
               }}
             >
               {Array.from({ length: 4 }).map((_, i) => (
@@ -311,6 +319,11 @@ export function HandleModal({
                     width: 690,
                     height: 282,
                     outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                    zIndex: zStyle(
+                      zL2
+                        ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
+                        : undefined,
+                    ),
                   }}
                 />
               ))}

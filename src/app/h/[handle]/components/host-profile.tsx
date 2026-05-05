@@ -17,6 +17,10 @@ import {
 } from "@/lib/url-params";
 import { cn } from "@/lib/utils";
 import { HandleModal } from "./handle-modal";
+import {
+  useModalDebug,
+  zStyle,
+} from "../_components/visitor-debug-overlay";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 
 // B.PT156 — open spring is the SMART_ANIMATE physics from Figma
@@ -44,6 +48,11 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
+  // B.PT167 — read Layer 1 z-index overrides from the route-level
+  // debug overlay context. Applied as inline `style.zIndex` on each
+  // motion element. `null` in production / non-debug → all undefined.
+  const { values: debugValues } = useModalDebug();
+  const zL1 = debugValues?.zLayer1;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -267,6 +276,7 @@ export default function HostProfile({
               key="landing-card"
               layoutId="handle-card"
               transition={{ type: "spring", ...OPEN_SPRING }}
+              style={{ zIndex: zStyle(zL1?.layer) }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
@@ -289,6 +299,7 @@ export default function HostProfile({
               <motion.header
                 layoutId="oh-identity"
                 transition={{ type: "spring", ...OPEN_SPRING }}
+                style={{ zIndex: zStyle(zL1?.identity) }}
                 className="flex flex-col gap-3"
               >
                 <div className="flex items-center gap-3">
@@ -345,6 +356,7 @@ export default function HostProfile({
               <motion.div
                 layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
+                style={{ zIndex: zStyle(zL1?.slotList) }}
                 className={cn(
                   // B.PT161 — Figma Frame 2 has NO stroke; only the
                   // inner shadow defines the edge. Removed the
@@ -374,6 +386,13 @@ export default function HostProfile({
                         <motion.div
                           layoutId={`oh-slot-${i}`}
                           transition={{ type: "spring", ...OPEN_SPRING }}
+                          style={{
+                            zIndex: zStyle(
+                              zL1
+                                ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
+                                : undefined,
+                            ),
+                          }}
                         >
                           <motion.div
                             layout

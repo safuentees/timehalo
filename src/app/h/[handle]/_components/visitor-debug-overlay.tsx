@@ -63,7 +63,48 @@ export type ModalDebugValues = {
   openSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
+  /** B.PT167 — z-index overrides for SCENE elements (NOT the Leva
+   *  panel itself — that's `panelZ` above). Two layers, each with
+   *  its own element controls. Value 0 means "no override" (use CSS
+   *  default / no inline z-index). Non-zero applies as `style.zIndex`.
+   *  Consumers: `host-profile.tsx` (Layer 1 — landing) +
+   *  `handle-modal.tsx` (Layer 2 — modal + phantoms) apply the
+   *  right override to each motion element. */
+  zLayer1: {
+    /** Whole landing layer (the `motion.article layoutId="handle-card"`
+     *  on the landing page). Treats all landing children as one stack. */
+    layer: number;
+    /** Identity header (Frame 15 / `oh-identity`) on landing. */
+    identity: number;
+    /** Slot-list cream card (Frame 2 / `oh-slot-list`) on landing. */
+    slotList: number;
+    /** 4 chip rows on landing. */
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
+  zLayer2: {
+    /** Whole modal layer (the `motion.article` inside `<HandleModal>`). */
+    layer: number;
+    /** Phantom identity (rect at modal coords (192, 22)). */
+    identity: number;
+    /** Phantom slot-list wrapper (full modal coverage). */
+    slotList: number;
+    /** 4 phantom slot rects inside the modal. */
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
 };
+
+/** Map a Leva slider value (0 = unset) to a CSS `z-index` value or
+ *  undefined. Use as: `style={{ zIndex: zStyle(debug?.zLayer1.layer) }}`. */
+export function zStyle(v: number | undefined): number | undefined {
+  if (v === undefined || v === 0) return undefined;
+  return v;
+}
 
 type ModalDebugContextValue = {
   values: ModalDebugValues | null;
@@ -148,6 +189,73 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
         closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
       }),
+      // B.PT167 — z-index controls for SCENE elements. Two folders,
+      // one per layer. Each control is a slider; value 0 means
+      // "no override" (CSS default, no inline z-index). Slide
+      // positive to bring forward, negative to push back. Range
+      // -100..100 covers all useful adjustments since the scene
+      // doesn't normally use explicit z-indexes — just source
+      // order for stacking.
+      "Layer 1 (landing)": folder(
+        {
+          z_layer1: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Landing layer z",
+          },
+          z_layer1_identity: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Identity header z",
+          },
+          z_layer1_slotList: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Slot-list card z",
+          },
+          z_layer1_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Slot 0 z" },
+          z_layer1_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Slot 1 z" },
+          z_layer1_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Slot 2 z" },
+          z_layer1_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Slot 3 z" },
+        },
+        { collapsed: true },
+      ),
+      "Layer 2 (modal phantoms)": folder(
+        {
+          z_layer2: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Modal layer z",
+          },
+          z_layer2_identity: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Phantom identity z",
+          },
+          z_layer2_slotList: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Phantom slot-list z",
+          },
+          z_layer2_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 0 z" },
+          z_layer2_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 1 z" },
+          z_layer2_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 2 z" },
+          z_layer2_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 3 z" },
+        },
+        { collapsed: true },
+      ),
     },
     { collapsed: false },
   );
@@ -178,6 +286,24 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         damping: ctrls.closeDamping,
         velocity: ctrls.closeVelocity,
       },
+      zLayer1: {
+        layer: ctrls.z_layer1,
+        identity: ctrls.z_layer1_identity,
+        slotList: ctrls.z_layer1_slotList,
+        slot0: ctrls.z_layer1_slot0,
+        slot1: ctrls.z_layer1_slot1,
+        slot2: ctrls.z_layer1_slot2,
+        slot3: ctrls.z_layer1_slot3,
+      },
+      zLayer2: {
+        layer: ctrls.z_layer2,
+        identity: ctrls.z_layer2_identity,
+        slotList: ctrls.z_layer2_slotList,
+        slot0: ctrls.z_layer2_slot0,
+        slot1: ctrls.z_layer2_slot1,
+        slot2: ctrls.z_layer2_slot2,
+        slot3: ctrls.z_layer2_slot3,
+      },
     };
   }, [
     enabled,
@@ -196,6 +322,20 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeStiffness,
     ctrls.closeDamping,
     ctrls.closeVelocity,
+    ctrls.z_layer1,
+    ctrls.z_layer1_identity,
+    ctrls.z_layer1_slotList,
+    ctrls.z_layer1_slot0,
+    ctrls.z_layer1_slot1,
+    ctrls.z_layer1_slot2,
+    ctrls.z_layer1_slot3,
+    ctrls.z_layer2,
+    ctrls.z_layer2_identity,
+    ctrls.z_layer2_slotList,
+    ctrls.z_layer2_slot0,
+    ctrls.z_layer2_slot1,
+    ctrls.z_layer2_slot2,
+    ctrls.z_layer2_slot3,
   ]);
 
   // B.PT166 — map z-preset to numeric value. Modal scrim z-40,
