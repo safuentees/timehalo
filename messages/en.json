@@ -586,6 +586,8 @@
     "drawerTitle": "Schedule your meeting",
     "drawerDescription": "Pick a day and a time for your meeting.",
     "openMonthViewAria": "Open month view",
+    "backToPicker": "Back",
+    "backToPickerAria": "Back to date picker",
     "tapDateHint": "Tap a date above to see times",
     "upcomingDaysAria": "Upcoming days",
     "dayNoSlotsAria": "{date}, no slots",

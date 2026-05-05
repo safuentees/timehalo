@@ -586,6 +586,8 @@
     "drawerTitle": "Programa tu reunión",
     "drawerDescription": "Elige un día y una hora para tu reunión.",
     "openMonthViewAria": "Abrir vista de mes",
+    "backToPicker": "Atrás",
+    "backToPickerAria": "Volver al selector de fecha",
     "tapDateHint": "Toca una fecha arriba para ver horarios",
     "upcomingDaysAria": "Próximos días",
     "dayNoSlotsAria": "{date}, sin horarios",

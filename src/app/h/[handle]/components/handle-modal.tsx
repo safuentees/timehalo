@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { CalendarIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon } from "lucide-react";
 import {
-  BookingDrawer,
+  BookingForm,
   DayStrip,
   DaySlots,
   MonthDrawer,
@@ -19,6 +19,13 @@ const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
+const CONFIRM_SPRING =
+  animSpec.transitions.find(
+    (t) =>
+      t.from?.name === "handle-detail" &&
+      t.to?.name === "handle-detail" &&
+      t.from?.id !== t.to?.id,
+  )?.spring ?? animSpec.transitions[1].spring;
 
 type Props = {
   handle: string;
@@ -52,21 +59,21 @@ export function HandleModal({
   const monthBarLabel = format
     .dateTime(monthBarDate, { month: "long", year: "numeric" })
     .toUpperCase();
-  const [bookingOpen, setBookingOpen] = useState(false);
+  const [view, setView] = useState<"picker" | "form">("picker");
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
-    setBookingOpen(true);
+    setView("form");
   }
 
   function handleSelectDate(nextDate: Date | undefined) {
     if (
-      bookingOpen &&
+      view === "form" &&
       (!nextDate ||
         (selectedSlot &&
           !isSameCalendarDay(new Date(selectedSlot.start), nextDate)))
     ) {
-      setBookingOpen(false);
+      setView("picker");
     }
     onSelectDate(nextDate);
   }
@@ -101,59 +108,103 @@ export function HandleModal({
           className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-2xl"
         >
           <h2 id="handle-modal-title" className="sr-only">
-            {t("drawerTitle")}
+            {view === "form"
+              ? rescheduleFromUid
+                ? t("rescheduleFormTitle")
+                : t("bookingFormTitle")
+              : t("drawerTitle")}
           </h2>
           <p className="sr-only">{t("drawerDescription")}</p>
 
-          <div className="oh-drawer-monthbar">
-            <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
-            <MonthDrawer
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              months={months}
-            >
+          {view === "picker" ? (
+            <div className="oh-drawer-monthbar">
+              <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
+              <MonthDrawer
+                slots={slots}
+                selectedDate={selectedDate}
+                onSelectDate={handleSelectDate}
+                months={months}
+              >
+                <button
+                  type="button"
+                  className="oh-view-toggle"
+                  aria-label={t("openMonthViewAria")}
+                >
+                  <CalendarIcon />
+                </button>
+              </MonthDrawer>
+            </div>
+          ) : (
+            <div className="oh-drawer-monthbar">
               <button
                 type="button"
-                className="oh-view-toggle"
-                aria-label={t("openMonthViewAria")}
+                onClick={() => setView("picker")}
+                aria-label={t("backToPickerAria")}
+                className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
               >
-                <CalendarIcon />
+                <ArrowLeftIcon className="size-4" />
+                {t("backToPicker")}
               </button>
-            </MonthDrawer>
+              <span className="oh-drawer-monthbar-label opacity-65 truncate">
+                {selectedSlot
+                  ? format
+                      .dateTime(new Date(selectedSlot.start), {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                      .toUpperCase()
+                  : ""}
+              </span>
+            </div>
+          )}
+
+          <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+            <AnimatePresence mode="wait" initial={false}>
+              {view === "picker" ? (
+                <motion.div
+                  key="picker"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                >
+                  <DayStrip
+                    slots={slots}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                  />
+                  {selectedDate ? (
+                    <DaySlots
+                      date={selectedDate}
+                      slots={dayOfSlots}
+                      onPick={handlePickSlot}
+                    />
+                  ) : (
+                    <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                >
+                  {selectedSlot ? (
+                    <BookingForm
+                      handle={handle}
+                      slotStart={selectedSlot.start}
+                      rescheduleFromUid={rescheduleFromUid}
+                    />
+                  ) : null}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-
-          <motion.div
-            className="oh-drawer-body min-h-0 flex-1 overflow-y-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, delay: 0.15 }}
-          >
-            <DayStrip
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-            />
-
-            {selectedDate ? (
-              <DaySlots
-                date={selectedDate}
-                slots={dayOfSlots}
-                onPick={handlePickSlot}
-              />
-            ) : (
-              <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-            )}
-          </motion.div>
-
-          <BookingDrawer
-            handle={handle}
-            slot={selectedSlot}
-            open={bookingOpen}
-            onOpenChange={setBookingOpen}
-            rescheduleFromUid={rescheduleFromUid}
-          />
         </motion.article>
       </div>
     </FocusOn>
