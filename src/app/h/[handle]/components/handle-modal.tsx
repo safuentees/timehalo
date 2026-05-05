@@ -150,10 +150,19 @@ export function HandleModal({
     >
       {/* Backdrop — fades in/out with the modal. Outside the
           motion.article so it doesn't participate in the layoutId
-          morph. Click is handled by FocusOn's onClickOutside above. */}
+          morph. Click is handled by FocusOn's onClickOutside above.
+          B.PT159: dropped `backdrop-blur-sm` — backdrop-filter is
+          significantly more expensive in Firefox than in Chrome
+          (Firefox falls back to a CPU path on most platforms),
+          which compounded with the simultaneous layout-shared
+          morph below to make the whole transition feel choppy.
+          Solid 40% ink on dark contrasts enough for the dialog
+          chrome to read; if a future polish pass brings blur back,
+          gate it behind `prefers-reduced-motion: no-preference`
+          and re-enable AFTER the morph settles via `onLayoutAnimationComplete`. */}
       <motion.div
         aria-hidden
-        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/30 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -175,8 +184,85 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
-          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-2xl"
+          // B.PT159: hint the compositor that we'll be transforming
+          // this element. Motion sets `transform` itself but `will-
+          // change: transform` lets the browser promote the layer
+          // pre-emptively, smoothing the very first frame on
+          // Firefox where the layer otherwise gets created mid-
+          // animation. Removed after layout settles via
+          // `onLayoutAnimationComplete` so the layer doesn't stay
+          // hot when idle.
+          style={{ willChange: "transform" }}
+          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
+          {/* B.PT159 — PHANTOM destinations matching the Figma spec
+              EXACTLY. The user designed the modal with phantom
+              (opacity 0) copies of the slot rows + identity header at
+              their target positions inside frame 2. Per
+              `docs/figma/anim-h-handle-redesign.json` transition[0]
+              deltas:
+                - Frame 15 (identity)  pos (192, 22),  size 336×87
+                - Frame 2  (slot list) pos (0, 0),     size 720×1158
+                - Frame 18 (inner)     pos (15, 15),   size 690×1128
+                - Slot rows (× 4)      pos (0, 0|282|564|846), size 690×282
+              These coordinates are relative to the modal frame's
+              outer edge (Figma frames have no padding; children
+              position absolutely from 0,0). Our `<motion.article>`
+              has `p-[15px]` so its content box starts at (15,15) in
+              article-outer coords. The phantom container extends to
+              the article's outer edge via `inset:-15px`, then the
+              phantoms inside use raw Figma pixel coords.
+              At the article's max size (720×800) the slots overflow
+              the bottom (4 × 282 = 1128px > 800), but `overflow-
+              hidden` on the article clips the visual; motion's
+              `getBoundingClientRect()`-based layoutId measurement
+              still sees the un-clipped DOM rect, so the morph
+              targets match the design even when the article is
+              shorter than Figma's 1158. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-[15px]"
+          >
+            {/* Identity header phantom — exact Figma coords (192, 22)
+                with size 336×87. */}
+            <motion.div
+              layoutId="oh-identity"
+              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+              style={{
+                position: "absolute",
+                top: 22,
+                left: 192,
+                width: 336,
+                height: 87,
+                opacity: 0,
+              }}
+            />
+            {/* Slot-list (Frame 2) phantom — full-modal coverage at
+                (0, 0). The Frame 18 inner wrapper is 15px-margined
+                inside it, then the 4 slot rows stack at exact Figma
+                offsets (0/282/564/846, height 282 each, full width
+                of Frame 18 = 690). */}
+            <motion.div
+              layoutId="oh-slot-list"
+              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+              style={{ position: "absolute", inset: 0, opacity: 0 }}
+            >
+              {Array.from({ length: 4 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  layoutId={`oh-slot-${i}`}
+                  transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+                  style={{
+                    position: "absolute",
+                    top: 15 + i * 282,
+                    left: 15,
+                    width: 690,
+                    height: 282,
+                  }}
+                />
+              ))}
+            </motion.div>
+          </div>
           <h2 id="handle-modal-title" className="sr-only">
             {view === "form"
               ? rescheduleFromUid

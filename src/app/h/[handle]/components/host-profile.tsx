@@ -271,12 +271,32 @@ export default function HostProfile({
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
                 "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+                // B.PT159 — INNER_SHADOW from spec on Frame 1
+                // (radius=14.9, color=black/0.25). Tailwind arbitrary
+                // value; same shadow lives on the modal card so the
+                // morph keeps the shadow continuous.
+                "shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]",
               )}
             >
-              {/* Identity header — Frame 15 (336×87) */}
-              <header className="flex flex-col gap-3">
+              {/* Identity header — Frame 15 (336×87). `layoutId="oh-identity"`
+                  pairs with the phantom inside `<HandleModal>` at the modal's
+                  target position (192,22), opacity 0 — the user's Smart Animate
+                  trick: matched destinations let motion morph + crossfade in
+                  one continuous transition, much smoother than a pure fade. */}
+              <motion.header
+                layoutId="oh-identity"
+                transition={{ type: "spring", ...OPEN_SPRING }}
+                className="flex flex-col gap-3"
+              >
                 <div className="flex items-center gap-3">
-                  <span className="relative inline-flex size-[55px] shrink-0">
+                  <span
+                    className={cn(
+                      "relative inline-flex size-[55px] shrink-0",
+                      // DROP_SHADOW on span.relative (avatar wrapper)
+                      // from spec: offset (0,4), radius 4.
+                      "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                    )}
+                  >
                     <Avatar className="size-[55px]">
                       <AvatarImage src={user.image ?? undefined} alt={displayName} />
                       <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
@@ -296,29 +316,40 @@ export default function HostProfile({
                   </h1>
                 </div>
                 <p className="oh-description">{t("defaultBio")}</p>
-              </header>
+              </motion.header>
 
               {/* Slot-list inner card — Frame 2 (355×260). Cream bg
                   (#F5EFDF in Figma) is between paper (#EEE7D5) and white;
                   no existing token, so explicit hex per the 1-to-1
-                  directive. Empty / closed-host states render the
-                  existing HostEmpty shape inside the same card. */}
-              <div
+                  directive. INNER_SHADOW radius=4 from spec. The card
+                  itself shares `layoutId="oh-slot-list"` with the modal's
+                  phantom slot-list wrapper (positioned at (0,0) full-modal
+                  size, opacity 0) so motion morphs the cream container
+                  alongside its child slot rows. */}
+              <motion.div
+                layoutId="oh-slot-list"
+                transition={{ type: "spring", ...OPEN_SPRING }}
                 className={cn(
                   "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
                   "bg-[#F5EFDF]",
+                  "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
                 )}
               >
                 {hasOpenSlots ? (
                   <ul className="flex flex-col gap-2.5">
-                    {SLOT_OPTIONS.map((opt) => (
+                    {SLOT_OPTIONS.map((opt, i) => (
                       <li key={opt.label}>
-                        <SlotRow
-                          title="intro"
-                          description="quick chat, voice only"
-                          durationLabel={opt.label}
-                          onClick={() => setDrawerOpen(true)}
-                        />
+                        <motion.div
+                          layoutId={`oh-slot-${i}`}
+                          transition={{ type: "spring", ...OPEN_SPRING }}
+                        >
+                          <SlotRow
+                            title="intro"
+                            description="quick chat, voice only"
+                            durationLabel={opt.label}
+                            onClick={() => setDrawerOpen(true)}
+                          />
+                        </motion.div>
                       </li>
                     ))}
                   </ul>
@@ -329,7 +360,7 @@ export default function HostProfile({
                       : t("emptyBookedDescription", { name: displayName })}
                   </p>
                 )}
-              </div>
+              </motion.div>
             </motion.article>
           ) : null}
         </AnimatePresence>
@@ -409,6 +440,9 @@ function SlotRow({
       className={cn(
         "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
         "rounded-[14px] bg-[color:var(--oh-paper)] px-3 text-left",
+        // B.PT159 — DROP_SHADOW on each slot row (Figma spec
+        // effects[]: offset (0,0), radius 4, color black/0.25).
+        "shadow-[0_0_4px_rgba(0,0,0,0.25)]",
         "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
       )}
     >
