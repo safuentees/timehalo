@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -48,9 +48,6 @@ export default function HostProfile({
   const oL1 = debugValues?.oLayer1;
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
   const mounted = useMounted();
-  const stripLandingLayoutId = mounted && keepLandingMounted;
-  const landingLayoutId = (id: string) =>
-    stripLandingLayoutId ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -72,6 +69,10 @@ export default function HostProfile({
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
+  const landingLayoutId = (id: string) =>
+    stripLandingLayoutId ? undefined : id;
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
   const [rescheduleFromUid, setRescheduleFromUid] = useState<
@@ -189,6 +190,7 @@ export default function HostProfile({
         </div>
       ) : null}
 
+      <LayoutGroup>
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
         <AnimatePresence mode="popLayout">
           {!drawerOpen || keepLandingMounted ? (
@@ -363,6 +365,7 @@ export default function HostProfile({
           />
         ) : null}
       </AnimatePresence>
+      </LayoutGroup>
     </OhVisitorShell>
   );
 }
