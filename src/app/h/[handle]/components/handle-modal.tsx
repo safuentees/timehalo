@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
@@ -44,6 +44,7 @@ type Props = {
   selectedSlot: Slot | undefined;
   rescheduleFromUid?: string;
   months?: number;
+  identityContent?: ReactNode;
 };
 
 export function HandleModal({
@@ -57,6 +58,7 @@ export function HandleModal({
   selectedSlot,
   rescheduleFromUid,
   months = 3,
+  identityContent,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -146,8 +148,11 @@ export function HandleModal({
                 height: 87,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.identity),
+                pointerEvents: "none",
               }}
-            />
+            >
+              {showLandingAtDest && identityContent ? identityContent : null}
+            </motion.div>
             <motion.div
               layoutId="oh-slot-list"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}

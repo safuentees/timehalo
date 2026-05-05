@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
+import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
@@ -46,8 +47,10 @@ export default function HostProfile({
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
+  const mounted = useMounted();
+  const stripLandingLayoutId = mounted && keepLandingMounted;
   const landingLayoutId = (id: string) =>
-    keepLandingMounted ? undefined : id;
+    stripLandingLayoutId ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -195,7 +198,10 @@ export default function HostProfile({
               transition={{ type: "spring", ...OPEN_SPRING }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
-              style={{ zIndex: zStyle(zL1?.layer) }}
+              style={{
+                position: zL1?.layer ? "relative" : undefined,
+                zIndex: zStyle(zL1?.layer),
+              }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
@@ -327,6 +333,33 @@ export default function HostProfile({
               setSelectedSlot(s);
               updateQueryParam("slot", s.start, { pushEntry: true });
             }}
+            identityContent={
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "relative inline-flex size-[55px] shrink-0",
+                    "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                  )}
+                >
+                  <Avatar className="size-[55px]">
+                    <AvatarImage
+                      src={user.image ?? undefined}
+                      alt={displayName}
+                    />
+                    <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                  />
+                </span>
+                <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
+                  {displayName}
+                </h1>
+              </div>
+            }
           />
         ) : null}
       </AnimatePresence>

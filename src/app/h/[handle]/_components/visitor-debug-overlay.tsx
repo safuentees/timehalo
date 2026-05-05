@@ -25,50 +25,43 @@ const SPEC_CLOSE =
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
 
+type SpringValues = {
+  mass: number;
+  stiffness: number;
+  damping: number;
+  velocity: number;
+};
+
+type ZBlock = {
+  layer: number;
+  identity: number;
+  slotList: number;
+  slot0: number;
+  slot1: number;
+  slot2: number;
+  slot3: number;
+};
+
+type OBlock = {
+  layer: number;
+  identity: number;
+  slotList: number;
+  slot0: number;
+  slot1: number;
+  slot2: number;
+  slot3: number;
+};
+
 export type ModalDebugValues = {
-  phantomOpacity: number;
   showPhantomOutline: boolean;
-  disableMorph: boolean;
   keepLandingMounted: boolean;
-  openSpring: { mass: number; stiffness: number; damping: number; velocity: number };
-  closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
-  confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
-  zLayer1: {
-    layer: number;
-    identity: number;
-    slotList: number;
-    slot0: number;
-    slot1: number;
-    slot2: number;
-    slot3: number;
-  };
-  zLayer2: {
-    layer: number;
-    identity: number;
-    slotList: number;
-    slot0: number;
-    slot1: number;
-    slot2: number;
-    slot3: number;
-  };
-  oLayer1: {
-    layer: number;
-    identity: number;
-    slotList: number;
-    slot0: number;
-    slot1: number;
-    slot2: number;
-    slot3: number;
-  };
-  oLayer2: {
-    layer: number;
-    identity: number;
-    slotList: number;
-    slot0: number;
-    slot1: number;
-    slot2: number;
-    slot3: number;
-  };
+  openSpring: SpringValues;
+  closeSpring: SpringValues;
+  confirmSpring: SpringValues;
+  zLayer1: ZBlock;
+  zLayer2: ZBlock;
+  oLayer1: OBlock;
+  oLayer2: OBlock;
 };
 
 export function zStyle(v: number | undefined): number | undefined {
@@ -94,6 +87,36 @@ export function useModalDebug() {
   return useContext(ModalDebugContext);
 }
 
+const NO_Z: ZBlock = {
+  layer: 0,
+  identity: 0,
+  slotList: 0,
+  slot0: 0,
+  slot1: 0,
+  slot2: 0,
+  slot3: 0,
+};
+
+const LAYER1_PROD_O: OBlock = {
+  layer: 1,
+  identity: 1,
+  slotList: 1,
+  slot0: 1,
+  slot1: 1,
+  slot2: 1,
+  slot3: 1,
+};
+
+const LAYER2_PROD_O: OBlock = {
+  layer: 1, // modal article — has real content, visible
+  identity: 0,
+  slotList: 0,
+  slot0: 0,
+  slot1: 0,
+  slot2: 0,
+  slot3: 0,
+};
+
 export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const enabled =
@@ -101,69 +124,45 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const panelShardRef = useRef<HTMLDivElement | null>(null);
 
   const ctrls = useControls(
-    "Handle modal animation",
     {
-      showPhantomOutline: { value: false, label: "Show outlines" },
-      disableMorph: { value: false, label: "Disable morph" },
-      keepLandingMounted: { value: true, label: "Keep landing mounted" },
-      panelZ: {
-        value: "above",
-        options: ["above", "between", "below scrim"] as const,
-        label: "Panel z-index",
+      mode: {
+        value: "production",
+        options: ["production", "inspect", "outline"] as const,
+        label: "mode",
+        hint:
+          "production = real animation; inspect = frozen post-morph view (chip content rendered at destination rects, landing kept mounted); outline = dashed outline around phantom rects so you can see where motion is targeting.",
       },
-      openSpring: folder({
-        openMass: { value: SPEC_OPEN.mass, min: 0.1, max: 10, step: 0.1 },
-        openStiffness: { value: SPEC_OPEN.stiffness, min: 1, max: 1000, step: 1 },
-        openDamping: { value: SPEC_OPEN.damping, min: 0, max: 100, step: 0.1 },
-        openVelocity: { value: SPEC_OPEN.velocity, min: -50, max: 50, step: 0.5 },
-      }),
-      confirmSpring: folder({
-        confirmMass: { value: SPEC_CONFIRM.mass, min: 0.1, max: 10, step: 0.1 },
-        confirmStiffness: { value: SPEC_CONFIRM.stiffness, min: 1, max: 1000, step: 1 },
-        confirmDamping: { value: SPEC_CONFIRM.damping, min: 0, max: 100, step: 0.1 },
-        confirmVelocity: { value: SPEC_CONFIRM.velocity, min: -50, max: 50, step: 0.5 },
-      }),
-      closeSpring: folder({
-        closeMass: { value: SPEC_CLOSE.mass, min: 0.1, max: 10, step: 0.1 },
-        closeStiffness: { value: SPEC_CLOSE.stiffness, min: 1, max: 1000, step: 1 },
-        closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
-        closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
-      }),
-      "Layer 1 (landing)": folder(
+      phantomOpacity: {
+        value: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        label: "phantom opacity",
+        hint:
+          "How visible the destination chip content is in inspect mode. 0 hides; 1 fully opaque.",
+        render: (get) => get("mode") === "inspect",
+      },
+      stackOrder: {
+        value: "modal on top",
+        options: ["modal on top", "landing on top"] as const,
+        label: "stack order",
+        hint:
+          "modal on top = production stacking (modal's z-50 wrapper covers the landing). landing on top = lift the landing card to z=100 so Layer 1 renders over Layer 2 — most useful while inspect mode keeps both mounted.",
+      },
+      "Spring tuning": folder(
         {
-          z_layer1: { value: 0, min: -100, max: 100, step: 1, label: "Landing layer z" },
-          z_layer1_identity: { value: 0, min: -100, max: 100, step: 1, label: "Identity header z" },
-          z_layer1_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Slot-list card z" },
-          z_layer1_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Slot 0 z" },
-          z_layer1_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Slot 1 z" },
-          z_layer1_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Slot 2 z" },
-          z_layer1_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Slot 3 z" },
-          o_layer1: { value: 1, min: 0, max: 1, step: 0.05, label: "Landing layer opacity" },
-          o_layer1_identity: { value: 1, min: 0, max: 1, step: 0.05, label: "Identity opacity" },
-          o_layer1_slotList: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot-list opacity" },
-          o_layer1_slot0: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 0 opacity" },
-          o_layer1_slot1: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 1 opacity" },
-          o_layer1_slot2: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 2 opacity" },
-          o_layer1_slot3: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 3 opacity" },
-        },
-        { collapsed: true },
-      ),
-      "Layer 2 (modal phantoms)": folder(
-        {
-          z_layer2: { value: 0, min: -100, max: 100, step: 1, label: "Modal layer z" },
-          z_layer2_identity: { value: 0, min: -100, max: 100, step: 1, label: "Phantom identity z" },
-          z_layer2_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot-list z" },
-          z_layer2_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 0 z" },
-          z_layer2_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 1 z" },
-          z_layer2_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 2 z" },
-          z_layer2_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 3 z" },
-          o_layer2: { value: 1, min: 0, max: 1, step: 0.05, label: "Modal article opacity" },
-          o_layer2_identity: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom identity opacity" },
-          o_layer2_slotList: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot-list opacity" },
-          o_layer2_slot0: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 0 opacity" },
-          o_layer2_slot1: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 1 opacity" },
-          o_layer2_slot2: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 2 opacity" },
-          o_layer2_slot3: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 3 opacity" },
+          openMass: { value: SPEC_OPEN.mass, min: 0.1, max: 10, step: 0.1 },
+          openStiffness: { value: SPEC_OPEN.stiffness, min: 1, max: 1000, step: 1 },
+          openDamping: { value: SPEC_OPEN.damping, min: 0, max: 100, step: 0.1 },
+          openVelocity: { value: SPEC_OPEN.velocity, min: -50, max: 50, step: 0.5 },
+          confirmMass: { value: SPEC_CONFIRM.mass, min: 0.1, max: 10, step: 0.1 },
+          confirmStiffness: { value: SPEC_CONFIRM.stiffness, min: 1, max: 1000, step: 1 },
+          confirmDamping: { value: SPEC_CONFIRM.damping, min: 0, max: 100, step: 0.1 },
+          confirmVelocity: { value: SPEC_CONFIRM.velocity, min: -50, max: 50, step: 0.5 },
+          closeMass: { value: SPEC_CLOSE.mass, min: 0.1, max: 10, step: 0.1 },
+          closeStiffness: { value: SPEC_CLOSE.stiffness, min: 1, max: 1000, step: 1 },
+          closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
+          closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
         },
         { collapsed: true },
       ),
@@ -173,11 +172,19 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
 
   const value = useMemo<ModalDebugValues | null>(() => {
     if (!enabled) return null;
+
+    const inspect = ctrls.mode === "inspect";
+    const outline = ctrls.mode === "outline";
+    const phantomVis = ctrls.phantomOpacity;
+    const landingOnTop = ctrls.stackOrder === "landing on top";
+
+    const zL1: ZBlock = landingOnTop
+      ? { ...NO_Z, layer: 100 }
+      : NO_Z;
+
     return {
-      phantomOpacity: ctrls.o_layer2_identity,
-      showPhantomOutline: ctrls.showPhantomOutline,
-      disableMorph: ctrls.disableMorph,
-      keepLandingMounted: ctrls.keepLandingMounted,
+      showPhantomOutline: outline,
+      keepLandingMounted: inspect,
       openSpring: {
         mass: ctrls.openMass,
         stiffness: ctrls.openStiffness,
@@ -196,48 +203,26 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         damping: ctrls.closeDamping,
         velocity: ctrls.closeVelocity,
       },
-      zLayer1: {
-        layer: ctrls.z_layer1,
-        identity: ctrls.z_layer1_identity,
-        slotList: ctrls.z_layer1_slotList,
-        slot0: ctrls.z_layer1_slot0,
-        slot1: ctrls.z_layer1_slot1,
-        slot2: ctrls.z_layer1_slot2,
-        slot3: ctrls.z_layer1_slot3,
-      },
-      zLayer2: {
-        layer: ctrls.z_layer2,
-        identity: ctrls.z_layer2_identity,
-        slotList: ctrls.z_layer2_slotList,
-        slot0: ctrls.z_layer2_slot0,
-        slot1: ctrls.z_layer2_slot1,
-        slot2: ctrls.z_layer2_slot2,
-        slot3: ctrls.z_layer2_slot3,
-      },
-      oLayer1: {
-        layer: ctrls.o_layer1,
-        identity: ctrls.o_layer1_identity,
-        slotList: ctrls.o_layer1_slotList,
-        slot0: ctrls.o_layer1_slot0,
-        slot1: ctrls.o_layer1_slot1,
-        slot2: ctrls.o_layer1_slot2,
-        slot3: ctrls.o_layer1_slot3,
-      },
-      oLayer2: {
-        layer: ctrls.o_layer2,
-        identity: ctrls.o_layer2_identity,
-        slotList: ctrls.o_layer2_slotList,
-        slot0: ctrls.o_layer2_slot0,
-        slot1: ctrls.o_layer2_slot1,
-        slot2: ctrls.o_layer2_slot2,
-        slot3: ctrls.o_layer2_slot3,
-      },
+      zLayer1: zL1,
+      zLayer2: NO_Z,
+      oLayer1: LAYER1_PROD_O,
+      oLayer2: inspect
+        ? {
+            layer: 1,
+            identity: phantomVis,
+            slotList: 0,
+            slot0: phantomVis,
+            slot1: phantomVis,
+            slot2: phantomVis,
+            slot3: phantomVis,
+          }
+        : LAYER2_PROD_O,
     };
   }, [
     enabled,
-    ctrls.showPhantomOutline,
-    ctrls.disableMorph,
-    ctrls.keepLandingMounted,
+    ctrls.mode,
+    ctrls.phantomOpacity,
+    ctrls.stackOrder,
     ctrls.openMass,
     ctrls.openStiffness,
     ctrls.openDamping,
@@ -250,42 +235,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeStiffness,
     ctrls.closeDamping,
     ctrls.closeVelocity,
-    ctrls.z_layer1,
-    ctrls.z_layer1_identity,
-    ctrls.z_layer1_slotList,
-    ctrls.z_layer1_slot0,
-    ctrls.z_layer1_slot1,
-    ctrls.z_layer1_slot2,
-    ctrls.z_layer1_slot3,
-    ctrls.z_layer2,
-    ctrls.z_layer2_identity,
-    ctrls.z_layer2_slotList,
-    ctrls.z_layer2_slot0,
-    ctrls.z_layer2_slot1,
-    ctrls.z_layer2_slot2,
-    ctrls.z_layer2_slot3,
-    ctrls.o_layer1,
-    ctrls.o_layer1_identity,
-    ctrls.o_layer1_slotList,
-    ctrls.o_layer1_slot0,
-    ctrls.o_layer1_slot1,
-    ctrls.o_layer1_slot2,
-    ctrls.o_layer1_slot3,
-    ctrls.o_layer2,
-    ctrls.o_layer2_identity,
-    ctrls.o_layer2_slotList,
-    ctrls.o_layer2_slot0,
-    ctrls.o_layer2_slot1,
-    ctrls.o_layer2_slot2,
-    ctrls.o_layer2_slot3,
   ]);
-
-  const panelZIndex =
-    ctrls.panelZ === "above"
-      ? 200
-      : ctrls.panelZ === "between"
-        ? 45
-        : 30; // below scrim
 
   return (
     <ModalDebugContext.Provider
@@ -295,7 +245,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         <div
           ref={panelShardRef}
           data-oh-debug-panel=""
-          style={{ position: "relative", zIndex: panelZIndex }}
+          style={{ position: "relative", zIndex: 200 }}
         >
           <Leva collapsed={false} oneLineLabels />
         </div>
