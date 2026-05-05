@@ -270,7 +270,10 @@ export default function HostProfile({
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+                // B.PT161 — Figma spec has NO stroke on Frame 1; the
+                // inner shadow + cream-vs-Sisal contrast carry the
+                // edge. Removed `border border-oh-line` from B.PT155.
+                "rounded-[25px] bg-[color:var(--oh-paper)]",
                 // B.PT159 — INNER_SHADOW from spec on Frame 1
                 // (radius=14.9, color=black/0.25). Tailwind arbitrary
                 // value; same shadow lives on the modal card so the
@@ -306,16 +309,29 @@ export default function HostProfile({
                     {/* ::after — 1px ring overlay matching Figma. Lives on
                         top of the image so the ring stays crisp when the
                         avatar image fills the circle. */}
+                    {/* B.PT161 — ring color matches spec stroke
+                        `#E5E5E5` exactly (was `--oh-line` rgba alpha
+                        which composited differently against paper). */}
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
+                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
                     />
                   </span>
-                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                  {/* B.PT161 — spec is Space Grotesk **Bold** (700) at
+                      51.7px / line-height 54.6px / letter-spacing
+                      -1.3px. Was `font-black` (900); too heavy. The
+                      clamp keeps the type fluid for narrow viewports
+                      but caps at 52px which matches the spec exactly.
+                      `tracking-[-1.3px]` is the explicit letter-
+                      spacing value rather than the loose
+                      `tracking-tight`. */}
+                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
                     {displayName}
                   </h1>
                 </div>
-                <p className="oh-description">{t("defaultBio")}</p>
+                {/* B.PT161 — tagline is text-align CENTER per spec
+                    (textAlignHorizontal: CENTER). Was left-default. */}
+                <p className="oh-description text-center">{t("defaultBio")}</p>
               </motion.header>
 
               {/* Slot-list inner card — Frame 2 (355×260). Cream bg
@@ -330,7 +346,10 @@ export default function HostProfile({
                 layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 className={cn(
-                  "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+                  // B.PT161 — Figma Frame 2 has NO stroke; only the
+                  // inner shadow defines the edge. Removed the
+                  // `border border-oh-line` that B.PT155 added.
+                  "flex flex-col gap-2.5 rounded-[20px] p-[15px]",
                   "bg-[#F5EFDF]",
                   "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
                 )}
@@ -438,26 +457,45 @@ function SlotRow({
       type="button"
       onClick={onClick}
       className={cn(
+        // B.PT161 — Figma slot is 325×50 with paddingLeft=11 (Frame 9
+        // sits at x=11, width 303). px-[11px] matches; was `px-3`
+        // (12px) which was off by 1px each side.
         "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
-        "rounded-[14px] bg-[color:var(--oh-paper)] px-3 text-left",
+        "rounded-[14px] bg-[color:var(--oh-paper)] px-[11px] text-left",
         // B.PT159 — DROP_SHADOW on each slot row (Figma spec
         // effects[]: offset (0,0), radius 4, color black/0.25).
         "shadow-[0_0_4px_rgba(0,0,0,0.25)]",
         "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
       )}
     >
-      <div className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate font-sans text-[15px] font-bold leading-[20px]">
+      {/* B.PT161 — left text block. Per Figma, both lines are
+          textAlignHorizontal=CENTER (despite being left of the
+          right-time block). Title "intro" is Space Grotesk Bold 16px
+          / line-height 19.2; description "quick chat..." is Regular
+          12px / line-height 15. NEITHER has opacity reduction —
+          previous `opacity-65` on description was wrong (the FRAME
+          parent doesn't have opacity reduction either, only the
+          tagline frame does). */}
+      <div className="flex min-w-0 flex-col items-center leading-tight">
+        <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
         </span>
-        <span className="truncate font-sans text-[12px] leading-[15px] opacity-65">
+        <span className="truncate font-sans text-[12px] font-normal leading-[15px]">
           {description}
         </span>
       </div>
-      <div className="flex items-baseline gap-1 shrink-0 font-[family-name:var(--oh-mono)] tabular-nums">
-        <span className="text-[24px] font-bold leading-none">{num}</span>
+      {/* B.PT161 — right time block. Per Figma each numeric (Bold,
+          27.6px, line-height 29.14, letter-spacing -0.69px) sits
+          horizontally next to the unit (Regular 12px, line-height
+          15). Was 24/11 with bold unit + opacity-65; corrected to
+          spec values. `tabular-nums` keeps the digit-width stable
+          across the 4 hardcoded options (15/25/30/01). */}
+      <div className="flex items-baseline shrink-0 font-sans tabular-nums">
+        <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
+          {num}
+        </span>
         {unit ? (
-          <span className="text-[11px] font-bold leading-none opacity-65">
+          <span className="ml-1 text-[12px] font-normal leading-[15px]">
             {unit}
           </span>
         ) : null}

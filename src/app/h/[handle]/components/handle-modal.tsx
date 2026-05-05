@@ -202,7 +202,10 @@ export function HandleModal({
           // wrapper clamps to viewport-minus-padding); only impact is
           // tall ≥1158px monitors where the modal can now reach its
           // exact Figma size for full 1-to-1 phantom positioning.
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
+          // B.PT161 — Figma Frame 1 has NO stroke; only the inner
+          // shadow defines the modal's edge against the dark backdrop.
+          // Removed `border border-oh-line` from B.PT156 to match.
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
           {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
               Figma spec EXACTLY. The user designed the modal with
