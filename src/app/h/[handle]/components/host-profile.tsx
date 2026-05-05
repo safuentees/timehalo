@@ -26,6 +26,10 @@ import {
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
+const CLOSE_SPRING =
+  animSpec.transitions.find(
+    (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
+  )?.spring ?? animSpec.transitions[2].spring;
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -46,6 +50,8 @@ export default function HostProfile({
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
+  const openSpring = debugValues?.openSpring ?? OPEN_SPRING;
+  const closeSpring = debugValues?.closeSpring ?? CLOSE_SPRING;
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
   const mounted = useMounted();
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
@@ -197,7 +203,7 @@ export default function HostProfile({
             <motion.article
               key="landing-card"
               layoutId={landingLayoutId("handle-card")}
-              transition={{ type: "spring", ...OPEN_SPRING }}
+              transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
               style={{
@@ -213,7 +219,7 @@ export default function HostProfile({
             >
               <motion.header
                 layoutId={landingLayoutId("oh-identity")}
-                transition={{ type: "spring", ...OPEN_SPRING }}
+                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
                 style={{ zIndex: zStyle(zL1?.identity) }}
@@ -246,7 +252,7 @@ export default function HostProfile({
 
               <motion.div
                 layoutId={landingLayoutId("oh-slot-list")}
-                transition={{ type: "spring", ...OPEN_SPRING }}
+                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
                 style={{ zIndex: zStyle(zL1?.slotList) }}
@@ -262,7 +268,7 @@ export default function HostProfile({
                       <li key={opt.label}>
                         <motion.div
                           layoutId={landingLayoutId(`oh-slot-${i}`)}
-                          transition={{ type: "spring", ...OPEN_SPRING }}
+                          transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           animate={{
                             opacity: oStyle(
                               oL1
@@ -289,7 +295,7 @@ export default function HostProfile({
                         >
                           <motion.div
                             layout
-                            transition={{ type: "spring", ...OPEN_SPRING }}
+                            transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           >
                             <SlotRow
                               title="intro"
