@@ -361,8 +361,16 @@ export function HandleModal({
                   slot wrapper below + future-proof if the rect
                   delta grows. */}
               {showLandingAtDest && identityContent ? (
+                // B.PT182 — `layout="size"` not `layout`. See the
+                // sibling comment in host-profile.tsx for the long
+                // explanation: default `layout` (true) tracks BOTH
+                // size + position, causing inverse-translation to
+                // freeze content at its previous absolute position
+                // while the outer rect moves. `size` keeps inverse-
+                // scale correction but lets CSS-driven translation
+                // follow the parent.
                 <motion.div
-                  layout
+                  layout="size"
                   transition={{
                     type: "spring",
                     ...(open ? openSpring : closeSpring),
@@ -480,8 +488,11 @@ export function HandleModal({
                       // wrapper on the LANDING side (B.PT162); the
                       // modal side was missing it, breaking the
                       // symmetric Smart-Animate behavior.
+                      // B.PT182 — `layout="size"` not `layout`.
+                      // Mirrors the host-profile slot wrapper. See
+                      // long-form comment there.
                       <motion.div
-                        layout
+                        layout="size"
                         transition={{
                           type: "spring",
                           ...(open ? openSpring : closeSpring),
