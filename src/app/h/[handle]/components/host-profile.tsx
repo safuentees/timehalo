@@ -550,35 +550,31 @@ export default function HostProfile({
                             ),
                           }}
                         >
-                          {/* B.PT182 — `layout="size"` (was `layout`).
-                              Default `layout` (true) tracks BOTH size
-                              AND position, so when the parent's
-                              layoutId rect morphs, this wrapper sees
-                              its own bounding box change (because
-                              parent transformed it) and runs an
-                              inverse FLIP that includes
-                              translation — keeping the SlotRow
-                              CONTENT stuck at its previous absolute
-                              position while the outer rect moves to
-                              modal coords. User saw "outer container
-                              moves but chips fade in place."
-                              `layout="size"` tracks size only — the
-                              wrapper still inverse-corrects the
-                              parent's scale (so text doesn't stretch
-                              5.6x tall) but lets CSS layout follow
-                              the parent's translation, so content
-                              moves with the chip. */}
-                          <motion.div
-                            layout="size"
-                            transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                          >
+                          {/* B.PT183 — inverse-correction wrapper
+                              REMOVED. The wrapper was freezing the
+                              visible size of SlotRow at its natural
+                              CSS rect (690 wide in modal context,
+                              325 in landing). User reported the chip
+                              "spawns at max width already" instead
+                              of interpolating from landing width to
+                              modal width. Removing the wrapper lets
+                              the parent's transform (FLIP from
+                              325×50 to 690×282) compose onto the
+                              SlotRow naturally — visual width
+                              interpolates with the parent's scale.
+                              Trade-off: content inside SlotRow
+                              (text, duration label) also scales
+                              with the parent's transform mid-flight,
+                              so they're briefly distorted. Matches
+                              Figma's Smart-Animate fill-container
+                              behavior where chip rect interpolates
+                              and contents follow auto-layout. */}
                             <SlotRow
                               title="intro"
                               description="quick chat, voice only"
                               durationLabel={opt.label}
                               onClick={() => setDrawerOpen(true)}
                             />
-                          </motion.div>
                         </motion.div>
                       </li>
                     ))}

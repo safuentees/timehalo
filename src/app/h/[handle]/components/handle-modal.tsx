@@ -360,25 +360,13 @@ export function HandleModal({
                   distortion was small here, but symmetric with the
                   slot wrapper below + future-proof if the rect
                   delta grows. */}
-              {showLandingAtDest && identityContent ? (
-                // B.PT182 — `layout="size"` not `layout`. See the
-                // sibling comment in host-profile.tsx for the long
-                // explanation: default `layout` (true) tracks BOTH
-                // size + position, causing inverse-translation to
-                // freeze content at its previous absolute position
-                // while the outer rect moves. `size` keeps inverse-
-                // scale correction but lets CSS-driven translation
-                // follow the parent.
-                <motion.div
-                  layout="size"
-                  transition={{
-                    type: "spring",
-                    ...(open ? openSpring : closeSpring),
-                  }}
-                >
-                  {identityContent}
-                </motion.div>
-              ) : null}
+              {/* B.PT183 — inverse-correction wrapper REMOVED. See
+                  the long-form comment in host-profile.tsx slot
+                  rendering. Net: identity content's visual size
+                  interpolates with the parent transform (Figma
+                  fill-container behavior); accept brief mid-flight
+                  text scaling. */}
+              {showLandingAtDest && identityContent ? identityContent : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
                   identity
@@ -488,23 +476,17 @@ export function HandleModal({
                       // wrapper on the LANDING side (B.PT162); the
                       // modal side was missing it, breaking the
                       // symmetric Smart-Animate behavior.
-                      // B.PT182 — `layout="size"` not `layout`.
-                      // Mirrors the host-profile slot wrapper. See
-                      // long-form comment there.
-                      <motion.div
-                        layout="size"
-                        transition={{
-                          type: "spring",
-                          ...(open ? openSpring : closeSpring),
-                        }}
-                      >
-                        <SlotRow
-                          title="intro"
-                          description="quick chat, voice only"
-                          durationLabel={opt.label}
-                          onClick={() => {}}
-                        />
-                      </motion.div>
+                      // B.PT183 — inverse-correction wrapper REMOVED.
+                      // SlotRow scales with parent transform → width
+                      // interpolates from landing rect to phantom
+                      // rect (Figma fill-container behavior). Brief
+                      // text distortion mid-flight is accepted.
+                      <SlotRow
+                        title="intro"
+                        description="quick chat, voice only"
+                        durationLabel={opt.label}
+                        onClick={() => {}}
+                      />
                     ) : null}
                     {phantomLabels ? (
                       <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
