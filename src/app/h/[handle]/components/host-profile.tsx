@@ -6,9 +6,9 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
+import { AnimatePresence, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
-import { AvailabilityDrawer } from "@/components/calendar";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
 import {
   getQueryParam,
@@ -16,6 +16,17 @@ import {
   updateQueryParams,
 } from "@/lib/url-params";
 import { cn } from "@/lib/utils";
+import { HandleModal } from "./handle-modal";
+import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+
+// B.PT156 — open spring is the SMART_ANIMATE physics from Figma
+// `handle` → `handle-detail` (`docs/figma/anim-h-handle-redesign.json`
+// transitions[0]). Same spring drives the `motion.article` landing
+// card + the `<HandleModal>`'s shared-`layoutId` element so the morph
+// reads as one continuous element. Keeping the constant at the page
+// level (vs. duplicated per file) lets re-extracted anim specs
+// flow to both sides automatically.
+const OPEN_SPRING = animSpec.transitions[0].spring;
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -241,100 +252,122 @@ export default function HostProfile({
           header's nominal height (~64px on mobile / 80px sm+) so the
           card visually sits in the OPTICAL center of the remaining
           viewport, not a literal middle that includes the header. */}
+      {/* B.PT156 — landing card wrapped in `<motion.article layoutId>`
+          so it shares its measured rect with `<HandleModal>`'s same
+          `layoutId`. When the modal opens, motion measures both rects
+          and morphs the card from 385×387 to the modal's max bounds
+          using the spring physics from Figma frame 1 → frame 2.
+          `<AnimatePresence>` keeps the unmounting card alive long
+          enough for the morph to play; without it, the card would
+          pop out instantly. */}
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
-        <article
-          aria-label={t("landingCardAria", { name: displayName })}
-          className={cn(
-            "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-            "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
-          )}
-        >
-          {/* Identity header — Frame 15 (336×87) */}
-          <header className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="relative inline-flex size-[55px] shrink-0">
-                <Avatar className="size-[55px]">
-                  <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                  <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                {/* ::after — 1px ring overlay matching Figma. Lives on
-                    top of the image so the ring stays crisp when the
-                    avatar image fills the circle. */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
-                />
-              </span>
-              <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
-                {displayName}
-              </h1>
-            </div>
-            <p className="oh-description">{t("defaultBio")}</p>
-          </header>
-
-          {/* Slot-list inner card — Frame 2 (355×260). Cream bg
-              (#F5EFDF in Figma) is between paper (#EEE7D5) and white;
-              no existing token, so explicit hex per the 1-to-1 directive.
-              Empty / closed-host states render the existing HostEmpty
-              shape inside the same card (same chrome, different content)
-              so the layout stays anchored. */}
-          <div
-            className={cn(
-              "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
-              "bg-[#F5EFDF]",
-            )}
-          >
-            {hasOpenSlots ? (
-              <ul className="flex flex-col gap-2.5">
-                {SLOT_OPTIONS.map((opt) => (
-                  <li key={opt.label}>
-                    <SlotRow
-                      title="intro"
-                      description="quick chat, voice only"
-                      durationLabel={opt.label}
-                      onClick={() => setDrawerOpen(true)}
+        <AnimatePresence mode="popLayout">
+          {!drawerOpen ? (
+            <motion.article
+              key="landing-card"
+              layoutId="handle-card"
+              transition={{ type: "spring", ...OPEN_SPRING }}
+              aria-label={t("landingCardAria", { name: displayName })}
+              className={cn(
+                "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+                "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+              )}
+            >
+              {/* Identity header — Frame 15 (336×87) */}
+              <header className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="relative inline-flex size-[55px] shrink-0">
+                    <Avatar className="size-[55px]">
+                      <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                      <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* ::after — 1px ring overlay matching Figma. Lives on
+                        top of the image so the ring stays crisp when the
+                        avatar image fills the circle. */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
                     />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="oh-description py-6 text-center">
-                {!hasSlots
-                  ? t("emptyClosedDescription", { name: displayName })
-                  : t("emptyBookedDescription", { name: displayName })}
-              </p>
-            )}
-          </div>
-        </article>
+                  </span>
+                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                    {displayName}
+                  </h1>
+                </div>
+                <p className="oh-description">{t("defaultBio")}</p>
+              </header>
+
+              {/* Slot-list inner card — Frame 2 (355×260). Cream bg
+                  (#F5EFDF in Figma) is between paper (#EEE7D5) and white;
+                  no existing token, so explicit hex per the 1-to-1
+                  directive. Empty / closed-host states render the
+                  existing HostEmpty shape inside the same card. */}
+              <div
+                className={cn(
+                  "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+                  "bg-[#F5EFDF]",
+                )}
+              >
+                {hasOpenSlots ? (
+                  <ul className="flex flex-col gap-2.5">
+                    {SLOT_OPTIONS.map((opt) => (
+                      <li key={opt.label}>
+                        <SlotRow
+                          title="intro"
+                          description="quick chat, voice only"
+                          durationLabel={opt.label}
+                          onClick={() => setDrawerOpen(true)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="oh-description py-6 text-center">
+                    {!hasSlots
+                      ? t("emptyClosedDescription", { name: displayName })
+                      : t("emptyBookedDescription", { name: displayName })}
+                  </p>
+                )}
+              </div>
+            </motion.article>
+          ) : null}
+        </AnimatePresence>
       </div>
 
       {/* Visitor TZ probe + days-with-slots are computed but not surfaced
-          in the new landing layout — kept around because the AvailabilityDrawer
-          still relies on the same query state. The values themselves are
-          re-derived inside the drawer; passing them through props is a
-          drawer-API concern that B.PT156's bespoke modal will obviate. */}
+          in the new landing layout. They're consumed inside the modal +
+          BookingDrawer indirectly via the same store; keep the
+          computations alive so the popstate handler + URL sync work. */}
       <span className="sr-only" aria-hidden>
         {visitorTz} · {daysWithOpenSlotsThisWeek} · {nextSlot?.start ?? ""}
       </span>
 
-      {hasOpenSlots ? (
-        <AvailabilityDrawer
-          handle={handle}
-          slots={slots}
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          selectedDate={selectedDate}
-          onSelectDate={handleSelectDate}
-          selectedSlot={selectedSlot}
-          rescheduleFromUid={rescheduleFromUid}
-          onPickSlot={(s) => {
-            setSelectedSlot(s);
-            updateQueryParam("slot", s.start, { pushEntry: true });
-          }}
-        />
-      ) : null}
+      {/* B.PT156 — bespoke morphing modal replaces `<AvailabilityDrawer>`
+          on this page. `AnimatePresence` keeps the unmounting modal
+          alive long enough to morph back into the landing card.
+          `popLayout` mode is required on the parent (above) so the
+          shared-`layoutId` element transition works across mount/unmount
+          boundaries without intermediate jumps. */}
+      <AnimatePresence mode="popLayout">
+        {hasOpenSlots && drawerOpen ? (
+          <HandleModal
+            key="handle-modal"
+            handle={handle}
+            slots={slots}
+            open
+            onOpenChange={setDrawerOpen}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            selectedSlot={selectedSlot}
+            rescheduleFromUid={rescheduleFromUid}
+            onPickSlot={(s) => {
+              setSelectedSlot(s);
+              updateQueryParam("slot", s.start, { pushEntry: true });
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
     </OhVisitorShell>
   );
 }
