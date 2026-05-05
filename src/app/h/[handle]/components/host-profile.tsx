@@ -29,10 +29,18 @@ import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 // `handle` → `handle-detail` (`docs/figma/anim-h-handle-redesign.json`
 // transitions[0]). Same spring drives the `motion.article` landing
 // card + the `<HandleModal>`'s shared-`layoutId` element so the morph
-// reads as one continuous element. Keeping the constant at the page
-// level (vs. duplicated per file) lets re-extracted anim specs
-// flow to both sides automatically.
+// reads as one continuous element.
 const OPEN_SPRING = animSpec.transitions[0].spring;
+// B.PT179 — close spring is the dismissal SMART_ANIMATE from Figma
+// (`handle-detail` → `handle`). The landing's transition needs this
+// for the rollback animation; without it, motion picks up
+// OPEN_SPRING on the entering-side (landing remount on modal close)
+// and the close animation reuses the open spring's physics + ignores
+// any debug-overlay duration override (B.PT178).
+const CLOSE_SPRING =
+  animSpec.transitions.find(
+    (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
+  )?.spring ?? animSpec.transitions[2].spring;
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -56,6 +64,14 @@ export default function HostProfile({
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
+  // B.PT179 — landing's transition prop drives the morph on the
+  // ENTERING side. When modal closes, motion picks up the entering
+  // landing's transition for the rollback FLIP. Without these, the
+  // landing was hardcoded to OPEN_SPRING for both directions and
+  // any debug-overlay duration override applied only to the open
+  // side.
+  const openSpring = debugValues?.openSpring ?? OPEN_SPRING;
+  const closeSpring = debugValues?.closeSpring ?? CLOSE_SPRING;
   // B.PT170 / B.PT171 / B.PT172 — `keepLandingMounted` strategy
   // revised again. B.PT171 had landing keep its layoutIds in this
   // mode; motion empirically picked the persistent landing as
@@ -351,7 +367,7 @@ export default function HostProfile({
             <motion.article
               key="landing-card"
               layoutId={landingLayoutId("handle-card")}
-              transition={{ type: "spring", ...OPEN_SPRING }}
+              transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
               // B.PT169 — motion's layoutId crossfade auto-animates
               // opacity FROM the source's value TO the destination's
               // value during the morph. With the destination phantom
@@ -396,7 +412,7 @@ export default function HostProfile({
                   one continuous transition, much smoother than a pure fade. */}
               <motion.header
                 layoutId={landingLayoutId("oh-identity")}
-                transition={{ type: "spring", ...OPEN_SPRING }}
+                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
                 style={{ zIndex: zStyle(zL1?.identity) }}
@@ -455,7 +471,7 @@ export default function HostProfile({
                   alongside its child slot rows. */}
               <motion.div
                 layoutId={landingLayoutId("oh-slot-list")}
-                transition={{ type: "spring", ...OPEN_SPRING }}
+                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
                 style={{ zIndex: zStyle(zL1?.slotList) }}
@@ -487,7 +503,7 @@ export default function HostProfile({
                             the parent slot's growth to 282px tall. */}
                         <motion.div
                           layoutId={landingLayoutId(`oh-slot-${i}`)}
-                          transition={{ type: "spring", ...OPEN_SPRING }}
+                          transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           animate={{
                             opacity: oStyle(
                               oL1
@@ -514,7 +530,7 @@ export default function HostProfile({
                         >
                           <motion.div
                             layout
-                            transition={{ type: "spring", ...OPEN_SPRING }}
+                            transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           >
                             <SlotRow
                               title="intro"
