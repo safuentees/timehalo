@@ -46,6 +46,8 @@ export default function HostProfile({
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
+  const landingLayoutId = (id: string) =>
+    keepLandingMounted ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -189,7 +191,7 @@ export default function HostProfile({
           {!drawerOpen || keepLandingMounted ? (
             <motion.article
               key="landing-card"
-              layoutId="handle-card"
+              layoutId={landingLayoutId("handle-card")}
               transition={{ type: "spring", ...OPEN_SPRING }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
@@ -202,7 +204,7 @@ export default function HostProfile({
               )}
             >
               <motion.header
-                layoutId="oh-identity"
+                layoutId={landingLayoutId("oh-identity")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
@@ -235,7 +237,7 @@ export default function HostProfile({
               </motion.header>
 
               <motion.div
-                layoutId="oh-slot-list"
+                layoutId={landingLayoutId("oh-slot-list")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
@@ -251,7 +253,7 @@ export default function HostProfile({
                     {SLOT_OPTIONS.map((opt, i) => (
                       <li key={opt.label}>
                         <motion.div
-                          layoutId={`oh-slot-${i}`}
+                          layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                           animate={{
                             opacity: oStyle(
@@ -332,14 +334,14 @@ export default function HostProfile({
   );
 }
 
-const SLOT_OPTIONS = [
+export const SLOT_OPTIONS = [
   { label: "15 min" },
   { label: "25 min" },
   { label: "30 min" },
   { label: "1 hr" },
 ] as const;
 
-function SlotRow({
+export function SlotRow({
   title,
   description,
   durationLabel,

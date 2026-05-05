@@ -18,6 +18,7 @@ import {
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
+import { SLOT_OPTIONS, SlotRow } from "./host-profile";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -73,6 +74,7 @@ export function HandleModal({
   const phantomOutline = debug?.showPhantomOutline ?? false;
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
+  const showLandingAtDest = debug?.keepLandingMounted ?? false;
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
@@ -158,42 +160,60 @@ export function HandleModal({
                 zIndex: zStyle(zL2?.slotList),
               }}
             >
-              {Array.from({ length: 4 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  layoutId={`oh-slot-${i}`}
-                  transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-                  animate={{
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+              {Array.from({ length: 4 }).map((_, i) => {
+                const opt = SLOT_OPTIONS[i];
+                return (
+                  <motion.div
+                    key={i}
+                    layoutId={`oh-slot-${i}`}
+                    transition={{
+                      type: "spring",
+                      ...(open ? openSpring : closeSpring),
+                    }}
+                    animate={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
+                    }}
+                    exit={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: 15 + i * 282,
+                      left: 15,
+                      width: 690,
+                      height: 282,
+                      outline: phantomOutline
+                        ? "1px dashed currentColor"
                         : undefined,
-                      0,
-                    ),
-                  }}
-                  exit={{
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                        : undefined,
-                      0,
-                    ),
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: 15 + i * 282,
-                    left: 15,
-                    width: 690,
-                    height: 282,
-                    outline: phantomOutline ? "1px dashed currentColor" : undefined,
-                    zIndex: zStyle(
-                      zL2
-                        ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
-                        : undefined,
-                    ),
-                  }}
-                />
-              ))}
+                      zIndex: zStyle(
+                        zL2
+                          ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
+                          : undefined,
+                      ),
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {showLandingAtDest && opt ? (
+                      <SlotRow
+                        title="intro"
+                        description="quick chat, voice only"
+                        durationLabel={opt.label}
+                        onClick={() => {}}
+                      />
+                    ) : null}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
           <h2 id="handle-modal-title" className="sr-only">

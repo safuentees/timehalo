@@ -105,7 +105,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     {
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
-      keepLandingMounted: { value: false, label: "Keep landing mounted" },
+      keepLandingMounted: { value: true, label: "Keep landing mounted" },
       panelZ: {
         value: "above",
         options: ["above", "between", "below scrim"] as const,
