@@ -279,10 +279,19 @@ export default function HostProfile({
               key="landing-card"
               layoutId="handle-card"
               transition={{ type: "spring", ...OPEN_SPRING }}
-              style={{
-                zIndex: zStyle(zL1?.layer),
-                opacity: oStyle(oL1?.layer, 1),
-              }}
+              // B.PT169 — motion's layoutId crossfade auto-animates
+              // opacity FROM the source's value TO the destination's
+              // value during the morph. With the destination phantom
+              // at opacity 0 (production default), the source landing
+              // element fades to 0 even when we set
+              // `style.opacity: 1`. Adding explicit `animate` +
+              // `exit` makes motion treat the slider value as the
+              // interpolation TARGET, overriding the auto-crossfade.
+              // User can now set Layer 1 opacity = 1 and the landing
+              // stays visible through the entire morph.
+              animate={{ opacity: oStyle(oL1?.layer, 1) }}
+              exit={{ opacity: oStyle(oL1?.layer, 1) }}
+              style={{ zIndex: zStyle(zL1?.layer) }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
@@ -305,10 +314,9 @@ export default function HostProfile({
               <motion.header
                 layoutId="oh-identity"
                 transition={{ type: "spring", ...OPEN_SPRING }}
-                style={{
-                  zIndex: zStyle(zL1?.identity),
-                  opacity: oStyle(oL1?.identity, 1),
-                }}
+                animate={{ opacity: oStyle(oL1?.identity, 1) }}
+                exit={{ opacity: oStyle(oL1?.identity, 1) }}
+                style={{ zIndex: zStyle(zL1?.identity) }}
                 className="flex flex-col gap-3"
               >
                 <div className="flex items-center gap-3">
@@ -365,10 +373,9 @@ export default function HostProfile({
               <motion.div
                 layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
-                style={{
-                  zIndex: zStyle(zL1?.slotList),
-                  opacity: oStyle(oL1?.slotList, 1),
-                }}
+                animate={{ opacity: oStyle(oL1?.slotList, 1) }}
+                exit={{ opacity: oStyle(oL1?.slotList, 1) }}
+                style={{ zIndex: zStyle(zL1?.slotList) }}
                 className={cn(
                   // B.PT161 — Figma Frame 2 has NO stroke; only the
                   // inner shadow defines the edge. Removed the
@@ -398,17 +405,27 @@ export default function HostProfile({
                         <motion.div
                           layoutId={`oh-slot-${i}`}
                           transition={{ type: "spring", ...OPEN_SPRING }}
-                          style={{
-                            zIndex: zStyle(
-                              zL1
-                                ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
-                                : undefined,
-                            ),
+                          animate={{
                             opacity: oStyle(
                               oL1
                                 ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
                                 : undefined,
                               1,
+                            ),
+                          }}
+                          exit={{
+                            opacity: oStyle(
+                              oL1
+                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
+                                : undefined,
+                              1,
+                            ),
+                          }}
+                          style={{
+                            zIndex: zStyle(
+                              zL1
+                                ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
+                                : undefined,
                             ),
                           }}
                         >

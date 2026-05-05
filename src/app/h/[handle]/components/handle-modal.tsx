@@ -225,10 +225,15 @@ export function HandleModal({
           // animation. Removed after layout settles via
           // `onLayoutAnimationComplete` so the layer doesn't stay
           // hot when idle.
+          // B.PT169 — explicit `animate` + `exit` opacity overrides
+          // motion's auto layoutId crossfade (which would otherwise
+          // tween the modal article's opacity to match the
+          // crossfade target). Slider value wins.
+          animate={{ opacity: oStyle(oL2?.layer, 1) }}
+          exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
-            opacity: oStyle(oL2?.layer, 1),
           }}
           // B.PT160 — `max-h-[1158px]` matches the Figma frame's natural
           // height (the modal frame is exactly 720×1158 in the spec).
@@ -289,13 +294,14 @@ export function HandleModal({
             <motion.div
               layoutId="oh-identity"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              animate={{ opacity: oStyle(oL2?.identity, 0) }}
+              exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
                 position: "absolute",
                 top: 22,
                 left: 192,
                 width: 336,
                 height: 87,
-                opacity: oStyle(oL2?.identity, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.identity),
               }}
@@ -308,10 +314,11 @@ export function HandleModal({
             <motion.div
               layoutId="oh-slot-list"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              animate={{ opacity: oStyle(oL2?.slotList, 0) }}
+              exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: oStyle(oL2?.slotList, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
@@ -321,6 +328,22 @@ export function HandleModal({
                   key={i}
                   layoutId={`oh-slot-${i}`}
                   transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+                  animate={{
+                    opacity: oStyle(
+                      oL2
+                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                        : undefined,
+                      0,
+                    ),
+                  }}
+                  exit={{
+                    opacity: oStyle(
+                      oL2
+                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                        : undefined,
+                      0,
+                    ),
+                  }}
                   style={{
                     position: "absolute",
                     top: 15 + i * 282,
@@ -332,12 +355,6 @@ export function HandleModal({
                       zL2
                         ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
                         : undefined,
-                    ),
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                        : undefined,
-                      0,
                     ),
                   }}
                 />
