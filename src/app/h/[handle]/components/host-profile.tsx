@@ -17,10 +17,6 @@ import {
 } from "@/lib/url-params";
 import { cn } from "@/lib/utils";
 import { HandleModal } from "./handle-modal";
-import {
-  ModalDebugPanel,
-  useModalDebugValues,
-} from "./handle-modal-debug";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
@@ -41,7 +37,6 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
-  const modalDebug = useModalDebugValues();
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -285,7 +280,6 @@ export default function HostProfile({
             onSelectDate={handleSelectDate}
             selectedSlot={selectedSlot}
             rescheduleFromUid={rescheduleFromUid}
-            debug={modalDebug}
             onPickSlot={(s) => {
               setSelectedSlot(s);
               updateQueryParam("slot", s.start, { pushEntry: true });
@@ -293,7 +287,6 @@ export default function HostProfile({
           />
         ) : null}
       </AnimatePresence>
-      <ModalDebugPanel />
     </OhVisitorShell>
   );
 }

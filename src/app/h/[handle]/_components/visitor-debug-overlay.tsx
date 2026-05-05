@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  createContext,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { folder, Leva, useControls } from "leva";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
@@ -26,7 +32,13 @@ export type ModalDebugValues = {
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
 };
 
-export function useModalDebugValues(): ModalDebugValues | null {
+const ModalDebugContext = createContext<ModalDebugValues | null>(null);
+
+export function useModalDebug(): ModalDebugValues | null {
+  return useContext(ModalDebugContext);
+}
+
+export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const enabled =
     process.env.NODE_ENV === "development" && params?.get("debug") === "1";
@@ -65,37 +77,54 @@ export function useModalDebugValues(): ModalDebugValues | null {
     { collapsed: false },
   );
 
-  if (!enabled) return null;
+  const value = useMemo<ModalDebugValues | null>(() => {
+    if (!enabled) return null;
+    return {
+      phantomOpacity: ctrls.phantomOpacity,
+      showPhantomOutline: ctrls.showPhantomOutline,
+      disableMorph: ctrls.disableMorph,
+      openSpring: {
+        mass: ctrls.openMass,
+        stiffness: ctrls.openStiffness,
+        damping: ctrls.openDamping,
+        velocity: ctrls.openVelocity,
+      },
+      confirmSpring: {
+        mass: ctrls.confirmMass,
+        stiffness: ctrls.confirmStiffness,
+        damping: ctrls.confirmDamping,
+        velocity: ctrls.confirmVelocity,
+      },
+      closeSpring: {
+        mass: ctrls.closeMass,
+        stiffness: ctrls.closeStiffness,
+        damping: ctrls.closeDamping,
+        velocity: ctrls.closeVelocity,
+      },
+    };
+  }, [
+    enabled,
+    ctrls.phantomOpacity,
+    ctrls.showPhantomOutline,
+    ctrls.disableMorph,
+    ctrls.openMass,
+    ctrls.openStiffness,
+    ctrls.openDamping,
+    ctrls.openVelocity,
+    ctrls.confirmMass,
+    ctrls.confirmStiffness,
+    ctrls.confirmDamping,
+    ctrls.confirmVelocity,
+    ctrls.closeMass,
+    ctrls.closeStiffness,
+    ctrls.closeDamping,
+    ctrls.closeVelocity,
+  ]);
 
-  return {
-    phantomOpacity: ctrls.phantomOpacity,
-    showPhantomOutline: ctrls.showPhantomOutline,
-    disableMorph: ctrls.disableMorph,
-    openSpring: {
-      mass: ctrls.openMass,
-      stiffness: ctrls.openStiffness,
-      damping: ctrls.openDamping,
-      velocity: ctrls.openVelocity,
-    },
-    confirmSpring: {
-      mass: ctrls.confirmMass,
-      stiffness: ctrls.confirmStiffness,
-      damping: ctrls.confirmDamping,
-      velocity: ctrls.confirmVelocity,
-    },
-    closeSpring: {
-      mass: ctrls.closeMass,
-      stiffness: ctrls.closeStiffness,
-      damping: ctrls.closeDamping,
-      velocity: ctrls.closeVelocity,
-    },
-  };
-}
-
-export function ModalDebugPanel() {
-  const params = useSearchParams();
-  const enabled =
-    process.env.NODE_ENV === "development" && params?.get("debug") === "1";
-  if (!enabled) return null;
-  return <Leva collapsed={false} oneLineLabels />;
+  return (
+    <ModalDebugContext.Provider value={value}>
+      {enabled ? <Leva collapsed={false} oneLineLabels /> : null}
+      {children}
+    </ModalDebugContext.Provider>
+  );
 }
