@@ -25,12 +25,18 @@ const SPEC_CLOSE =
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
 
-type SpringValues = {
-  mass: number;
-  stiffness: number;
-  damping: number;
-  velocity: number;
-};
+type SpringValues =
+  | {
+      mass: number;
+      stiffness: number;
+      damping: number;
+      velocity: number;
+    }
+  | {
+      visualDuration: number;
+      bounce: number;
+      velocity: number;
+    };
 
 type ZBlock = {
   layer: number;
@@ -191,6 +197,24 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
           closeStiffness: { value: SPEC_CLOSE.stiffness, min: 1, max: 1000, step: 1 },
           closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
           closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
+          visualDuration: {
+            value: 0,
+            min: 0,
+            max: 3,
+            step: 0.05,
+            label: "duration (s)",
+            hint:
+              "Time the spring takes to visually reach target. 0 = use physics (mass/stiffness/damping above). Any value > 0 overrides the physics for ALL three springs (open/confirm/close) — drop physics keys, pass {visualDuration, bounce} instead.",
+          },
+          bounce: {
+            value: 0.25,
+            min: 0,
+            max: 1,
+            step: 0.05,
+            label: "bounce",
+            hint:
+              "Bounciness of the spring (0 = critically damped, 1 = very bouncy). Only applies when duration > 0. Default 0.25 reads as a gentle settle.",
+          },
         },
         { collapsed: true },
       ),
@@ -211,28 +235,43 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
 
     const slots = ctrls.slotsOpacity;
 
+    const useDuration = ctrls.visualDuration > 0;
+    const springFor = (
+      mass: number,
+      stiffness: number,
+      damping: number,
+      velocity: number,
+    ): SpringValues =>
+      useDuration
+        ? {
+            visualDuration: ctrls.visualDuration,
+            bounce: ctrls.bounce,
+            velocity,
+          }
+        : { mass, stiffness, damping, velocity };
+
     return {
       showPhantomOutline: outline,
       showPhantomLabels: inspect && ctrls.showLabels,
       keepLandingMounted: inspect,
-      openSpring: {
-        mass: ctrls.openMass,
-        stiffness: ctrls.openStiffness,
-        damping: ctrls.openDamping,
-        velocity: ctrls.openVelocity,
-      },
-      confirmSpring: {
-        mass: ctrls.confirmMass,
-        stiffness: ctrls.confirmStiffness,
-        damping: ctrls.confirmDamping,
-        velocity: ctrls.confirmVelocity,
-      },
-      closeSpring: {
-        mass: ctrls.closeMass,
-        stiffness: ctrls.closeStiffness,
-        damping: ctrls.closeDamping,
-        velocity: ctrls.closeVelocity,
-      },
+      openSpring: springFor(
+        ctrls.openMass,
+        ctrls.openStiffness,
+        ctrls.openDamping,
+        ctrls.openVelocity,
+      ),
+      confirmSpring: springFor(
+        ctrls.confirmMass,
+        ctrls.confirmStiffness,
+        ctrls.confirmDamping,
+        ctrls.confirmVelocity,
+      ),
+      closeSpring: springFor(
+        ctrls.closeMass,
+        ctrls.closeStiffness,
+        ctrls.closeDamping,
+        ctrls.closeVelocity,
+      ),
       zLayer1: zL1,
       zLayer2: NO_Z,
       oLayer1: LAYER1_PROD_O,
@@ -268,6 +307,8 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeStiffness,
     ctrls.closeDamping,
     ctrls.closeVelocity,
+    ctrls.visualDuration,
+    ctrls.bounce,
   ]);
 
   return (
