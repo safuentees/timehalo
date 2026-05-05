@@ -59,6 +59,12 @@ export type ModalDebugValues = {
    *  compare. NOTE: implementation in `<HandleModal>` reads this
    *  flag but the bypass is best-effort — most consumers can ignore. */
   disableMorph: boolean;
+  /** B.PT170 — keep the landing card mounted while the modal is open.
+   *  Strips its `layoutId` so it doesn't fight the modal's morph;
+   *  user sees Layer 1 + Layer 2 simultaneously at their natural
+   *  positions. Trade-off: the morph itself is bypassed in this mode
+   *  (modal phantoms enter at their natural rect with no source). */
+  keepLandingMounted: boolean;
   /** Spring physics — defaults read from the anim spec. */
   openSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
@@ -179,6 +185,16 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       // fades and to what extent.
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
+      // B.PT170 — when enabled, the landing card stays mounted while
+      // the modal is open. Lets you see Layer 1 (with content) on
+      // top of Layer 2 simultaneously — useful for inspecting the
+      // morph endpoints side-by-side. Trade-off: strips the
+      // `layoutId` from landing elements so they DON'T participate
+      // in the morph (the modal's phantom rects have no source rect
+      // to FLIP from — they just appear at their natural position).
+      // The user accepts losing the morph animation in this mode in
+      // exchange for the dual-layer view.
+      keepLandingMounted: { value: false, label: "Keep landing mounted" },
       // B.PT166 — z-index relative to the modal stacking context.
       // Modal scrim is z-40, modal dialog is z-50. Three presets:
       //   - above (default): z-[200] — panel always on top
@@ -287,6 +303,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       phantomOpacity: ctrls.o_layer2_identity,
       showPhantomOutline: ctrls.showPhantomOutline,
       disableMorph: ctrls.disableMorph,
+      keepLandingMounted: ctrls.keepLandingMounted,
       openSpring: {
         mass: ctrls.openMass,
         stiffness: ctrls.openStiffness,
@@ -346,6 +363,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     enabled,
     ctrls.showPhantomOutline,
     ctrls.disableMorph,
+    ctrls.keepLandingMounted,
     ctrls.openMass,
     ctrls.openStiffness,
     ctrls.openDamping,
