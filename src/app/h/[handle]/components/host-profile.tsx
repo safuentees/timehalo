@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { HandleModal } from "./handle-modal";
 import {
+  oStyle,
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
@@ -48,11 +49,13 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
-  // B.PT167 — read Layer 1 z-index overrides from the route-level
-  // debug overlay context. Applied as inline `style.zIndex` on each
-  // motion element. `null` in production / non-debug → all undefined.
+  // B.PT167 / B.PT168 — Layer 1 z-index + opacity overrides from the
+  // route-level debug overlay context. `null` in production / non-debug
+  // → falls back to undefined (no inline z) + 1 (full opacity, matches
+  // landing's production behavior).
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
+  const oL1 = debugValues?.oLayer1;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -276,7 +279,10 @@ export default function HostProfile({
               key="landing-card"
               layoutId="handle-card"
               transition={{ type: "spring", ...OPEN_SPRING }}
-              style={{ zIndex: zStyle(zL1?.layer) }}
+              style={{
+                zIndex: zStyle(zL1?.layer),
+                opacity: oStyle(oL1?.layer, 1),
+              }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
@@ -299,7 +305,10 @@ export default function HostProfile({
               <motion.header
                 layoutId="oh-identity"
                 transition={{ type: "spring", ...OPEN_SPRING }}
-                style={{ zIndex: zStyle(zL1?.identity) }}
+                style={{
+                  zIndex: zStyle(zL1?.identity),
+                  opacity: oStyle(oL1?.identity, 1),
+                }}
                 className="flex flex-col gap-3"
               >
                 <div className="flex items-center gap-3">
@@ -356,7 +365,10 @@ export default function HostProfile({
               <motion.div
                 layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
-                style={{ zIndex: zStyle(zL1?.slotList) }}
+                style={{
+                  zIndex: zStyle(zL1?.slotList),
+                  opacity: oStyle(oL1?.slotList, 1),
+                }}
                 className={cn(
                   // B.PT161 — Figma Frame 2 has NO stroke; only the
                   // inner shadow defines the edge. Removed the
@@ -391,6 +403,12 @@ export default function HostProfile({
                               zL1
                                 ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
                                 : undefined,
+                            ),
+                            opacity: oStyle(
+                              oL1
+                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
+                                : undefined,
+                              1,
                             ),
                           }}
                         >

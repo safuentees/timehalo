@@ -13,7 +13,11 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import { useModalDebug, zStyle } from "../_components/visitor-debug-overlay";
+import {
+  oStyle,
+  useModalDebug,
+  zStyle,
+} from "../_components/visitor-debug-overlay";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -121,11 +125,15 @@ export function HandleModal({
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
-  const phantomOpacity = debug?.phantomOpacity ?? 0;
   const phantomOutline = debug?.showPhantomOutline ?? false;
-  // B.PT167 — Layer 2 z-index overrides for the modal article + each
-  // phantom destination. Defaults to undefined when no debug active.
+  // B.PT167 / B.PT168 — Layer 2 z-index + opacity overrides for the
+  // modal article + each phantom destination. Defaults: zIndex
+  // undefined (no inline z), opacity 1 for the modal article + 0 for
+  // phantoms (production behavior). The retired `phantomOpacity`
+  // field still sets `oLayer2.identity` for back-compat (a unified
+  // "show all phantoms" toggle is now the per-element sliders).
   const zL2 = debug?.zLayer2;
+  const oL2 = debug?.oLayer2;
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
@@ -220,6 +228,7 @@ export function HandleModal({
           style={{
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
+            opacity: oStyle(oL2?.layer, 1),
           }}
           // B.PT160 — `max-h-[1158px]` matches the Figma frame's natural
           // height (the modal frame is exactly 720×1158 in the spec).
@@ -286,7 +295,7 @@ export function HandleModal({
                 left: 192,
                 width: 336,
                 height: 87,
-                opacity: phantomOpacity,
+                opacity: oStyle(oL2?.identity, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.identity),
               }}
@@ -302,7 +311,7 @@ export function HandleModal({
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: phantomOpacity,
+                opacity: oStyle(oL2?.slotList, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
@@ -323,6 +332,12 @@ export function HandleModal({
                       zL2
                         ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
                         : undefined,
+                    ),
+                    opacity: oStyle(
+                      oL2
+                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                        : undefined,
+                      0,
                     ),
                   }}
                 />

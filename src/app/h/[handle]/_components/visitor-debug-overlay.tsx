@@ -64,34 +64,48 @@ export type ModalDebugValues = {
   closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   /** B.PT167 — z-index overrides for SCENE elements (NOT the Leva
-   *  panel itself — that's `panelZ` above). Two layers, each with
-   *  its own element controls. Value 0 means "no override" (use CSS
-   *  default / no inline z-index). Non-zero applies as `style.zIndex`.
-   *  Consumers: `host-profile.tsx` (Layer 1 — landing) +
-   *  `handle-modal.tsx` (Layer 2 — modal + phantoms) apply the
-   *  right override to each motion element. */
+   *  panel itself — that's `panelZ` above). Value 0 means "no
+   *  override" (use CSS default / no inline z-index); non-zero
+   *  applies as `style.zIndex`. */
   zLayer1: {
-    /** Whole landing layer (the `motion.article layoutId="handle-card"`
-     *  on the landing page). Treats all landing children as one stack. */
     layer: number;
-    /** Identity header (Frame 15 / `oh-identity`) on landing. */
     identity: number;
-    /** Slot-list cream card (Frame 2 / `oh-slot-list`) on landing. */
     slotList: number;
-    /** 4 chip rows on landing. */
     slot0: number;
     slot1: number;
     slot2: number;
     slot3: number;
   };
   zLayer2: {
-    /** Whole modal layer (the `motion.article` inside `<HandleModal>`). */
     layer: number;
-    /** Phantom identity (rect at modal coords (192, 22)). */
     identity: number;
-    /** Phantom slot-list wrapper (full modal coverage). */
     slotList: number;
-    /** 4 phantom slot rects inside the modal. */
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
+  /** B.PT168 — opacity overrides for SCENE elements. Replaces the
+   *  blunter B.PT159 `phantomOpacity` slider (which only flipped the
+   *  empty phantom rects' style.opacity — visible at 1 only as
+   *  outlines because there's no content inside). Per-layer +
+   *  per-element so the user can fade either side of the morph
+   *  independently. Layer 1 (landing) defaults to 1.0 (visible);
+   *  Layer 2 (modal phantoms) defaults to 0.0 (invisible — matches
+   *  production). Range 0..1. */
+  oLayer1: {
+    layer: number;
+    identity: number;
+    slotList: number;
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
+  oLayer2: {
+    layer: number;
+    identity: number;
+    slotList: number;
     slot0: number;
     slot1: number;
     slot2: number;
@@ -104,6 +118,16 @@ export type ModalDebugValues = {
 export function zStyle(v: number | undefined): number | undefined {
   if (v === undefined || v === 0) return undefined;
   return v;
+}
+
+/** Map a Leva opacity slider (0..1) to a style.opacity value, falling
+ *  back to the production default when the debug context is null.
+ *  Use as: `style={{ opacity: oStyle(debug?.oLayer1.identity, 1) }}`.
+ *  The fallback differs by element role:
+ *   - Landing elements default to 1 (visible in production)
+ *   - Modal phantom elements default to 0 (invisible in production) */
+export function oStyle(v: number | undefined, fallback: number): number {
+  return v ?? fallback;
 }
 
 type ModalDebugContextValue = {
@@ -147,13 +171,12 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const ctrls = useControls(
     "Handle modal animation",
     {
-      phantomOpacity: {
-        value: 0,
-        min: 0,
-        max: 1,
-        step: 0.05,
-        label: "Phantom opacity",
-      },
+      // B.PT168 — `phantomOpacity` retired. Replaced by per-element
+      // opacity controls in the Layer 1 / Layer 2 folders below
+      // (`o_layer2_*` sliders default to 0 so behavior matches the
+      // old `phantomOpacity: 0` default exactly). The new controls
+      // give finer-grained control over which side of the morph
+      // fades and to what extent.
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
       // B.PT166 — z-index relative to the modal stacking context.
@@ -198,61 +221,52 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       // order for stacking.
       "Layer 1 (landing)": folder(
         {
-          z_layer1: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Landing layer z",
-          },
-          z_layer1_identity: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Identity header z",
-          },
-          z_layer1_slotList: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Slot-list card z",
-          },
+          // z-index overrides (B.PT167)
+          z_layer1: { value: 0, min: -100, max: 100, step: 1, label: "Landing layer z" },
+          z_layer1_identity: { value: 0, min: -100, max: 100, step: 1, label: "Identity header z" },
+          z_layer1_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Slot-list card z" },
           z_layer1_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Slot 0 z" },
           z_layer1_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Slot 1 z" },
           z_layer1_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Slot 2 z" },
           z_layer1_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Slot 3 z" },
+          // opacity overrides (B.PT168) — Layer 1 has actual content
+          // (avatar, h1, slot-list card with 4 chips), so default 1
+          // matches production. Slide down to fade the landing during
+          // the morph.
+          o_layer1: { value: 1, min: 0, max: 1, step: 0.05, label: "Landing layer opacity" },
+          o_layer1_identity: { value: 1, min: 0, max: 1, step: 0.05, label: "Identity opacity" },
+          o_layer1_slotList: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot-list opacity" },
+          o_layer1_slot0: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 0 opacity" },
+          o_layer1_slot1: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 1 opacity" },
+          o_layer1_slot2: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 2 opacity" },
+          o_layer1_slot3: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 3 opacity" },
         },
         { collapsed: true },
       ),
       "Layer 2 (modal phantoms)": folder(
         {
-          z_layer2: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Modal layer z",
-          },
-          z_layer2_identity: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Phantom identity z",
-          },
-          z_layer2_slotList: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Phantom slot-list z",
-          },
+          // z-index overrides (B.PT167)
+          z_layer2: { value: 0, min: -100, max: 100, step: 1, label: "Modal layer z" },
+          z_layer2_identity: { value: 0, min: -100, max: 100, step: 1, label: "Phantom identity z" },
+          z_layer2_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot-list z" },
           z_layer2_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 0 z" },
           z_layer2_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 1 z" },
           z_layer2_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 2 z" },
           z_layer2_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 3 z" },
+          // opacity overrides (B.PT168) — Layer 2's "layer" is the
+          // modal article (has real content: drawer body etc.) so
+          // its layer-level opacity defaults to 1. The PHANTOM
+          // children (identity/slotList/slot0..3) default to 0 since
+          // they're empty rects — production behavior. User dials
+          // up to inspect destinations, but each phantom's content
+          // is empty rect + outline (toggle outline above).
+          o_layer2: { value: 1, min: 0, max: 1, step: 0.05, label: "Modal article opacity" },
+          o_layer2_identity: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom identity opacity" },
+          o_layer2_slotList: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot-list opacity" },
+          o_layer2_slot0: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 0 opacity" },
+          o_layer2_slot1: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 1 opacity" },
+          o_layer2_slot2: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 2 opacity" },
+          o_layer2_slot3: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 3 opacity" },
         },
         { collapsed: true },
       ),
@@ -265,7 +279,12 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const value = useMemo<ModalDebugValues | null>(() => {
     if (!enabled) return null;
     return {
-      phantomOpacity: ctrls.phantomOpacity,
+      // B.PT168 — `phantomOpacity` retired. Surfaced as
+      // `oLayer2.identity/slotList/slot0..3` (each defaults to 0).
+      // Kept the field on the type for back-compat with any external
+      // consumer that still reads it; mirrors `oLayer2.identity` so
+      // the simplest "make phantoms visible" toggle still works.
+      phantomOpacity: ctrls.o_layer2_identity,
       showPhantomOutline: ctrls.showPhantomOutline,
       disableMorph: ctrls.disableMorph,
       openSpring: {
@@ -304,10 +323,27 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         slot2: ctrls.z_layer2_slot2,
         slot3: ctrls.z_layer2_slot3,
       },
+      oLayer1: {
+        layer: ctrls.o_layer1,
+        identity: ctrls.o_layer1_identity,
+        slotList: ctrls.o_layer1_slotList,
+        slot0: ctrls.o_layer1_slot0,
+        slot1: ctrls.o_layer1_slot1,
+        slot2: ctrls.o_layer1_slot2,
+        slot3: ctrls.o_layer1_slot3,
+      },
+      oLayer2: {
+        layer: ctrls.o_layer2,
+        identity: ctrls.o_layer2_identity,
+        slotList: ctrls.o_layer2_slotList,
+        slot0: ctrls.o_layer2_slot0,
+        slot1: ctrls.o_layer2_slot1,
+        slot2: ctrls.o_layer2_slot2,
+        slot3: ctrls.o_layer2_slot3,
+      },
     };
   }, [
     enabled,
-    ctrls.phantomOpacity,
     ctrls.showPhantomOutline,
     ctrls.disableMorph,
     ctrls.openMass,
@@ -336,6 +372,20 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.z_layer2_slot1,
     ctrls.z_layer2_slot2,
     ctrls.z_layer2_slot3,
+    ctrls.o_layer1,
+    ctrls.o_layer1_identity,
+    ctrls.o_layer1_slotList,
+    ctrls.o_layer1_slot0,
+    ctrls.o_layer1_slot1,
+    ctrls.o_layer1_slot2,
+    ctrls.o_layer1_slot3,
+    ctrls.o_layer2,
+    ctrls.o_layer2_identity,
+    ctrls.o_layer2_slotList,
+    ctrls.o_layer2_slot0,
+    ctrls.o_layer2_slot1,
+    ctrls.o_layer2_slot2,
+    ctrls.o_layer2_slot3,
   ]);
 
   // B.PT166 — map z-preset to numeric value. Modal scrim z-40,
