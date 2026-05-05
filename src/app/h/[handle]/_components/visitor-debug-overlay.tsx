@@ -38,12 +38,27 @@ const SPEC_CLOSE =
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
 
-type SpringValues = {
-  mass: number;
-  stiffness: number;
-  damping: number;
-  velocity: number;
-};
+// B.PT178 — union so spring tuning can drive EITHER physics OR a
+// target visual duration. Per Context7-verified motion docs:
+// `visualDuration` (seconds to visually reach target) + `bounce`
+// (0-1) override physics; "Bounce and duration are overridden if
+// stiffness, damping, or mass are set." So the transition object
+// must contain ONLY one shape — we never pass physics keys when
+// duration mode is on. Shapes have no discriminator field; consumer
+// narrows via `'visualDuration' in spring` so the spread into
+// motion's transition object is clean (no stray fields).
+type SpringValues =
+  | {
+      mass: number;
+      stiffness: number;
+      damping: number;
+      velocity: number;
+    }
+  | {
+      visualDuration: number;
+      bounce: number;
+      velocity: number;
+    };
 
 type ZBlock = {
   layer: number;
@@ -250,6 +265,31 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
           closeStiffness: { value: SPEC_CLOSE.stiffness, min: 1, max: 1000, step: 1 },
           closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
           closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
+          // B.PT178 — duration override. Per motion docs,
+          // `visualDuration` (seconds to visually reach target) +
+          // `bounce` (0-1) override the physics keys above. We pass
+          // EITHER physics OR duration into the transition object,
+          // never both, because motion's rule is "physics wins when
+          // both are set." Sentinel: visualDuration === 0 means
+          // "use physics"; >0 means "use duration".
+          visualDuration: {
+            value: 0,
+            min: 0,
+            max: 3,
+            step: 0.05,
+            label: "duration (s)",
+            hint:
+              "Time the spring takes to visually reach target. 0 = use physics (mass/stiffness/damping above). Any value > 0 overrides the physics for ALL three springs (open/confirm/close) — drop physics keys, pass {visualDuration, bounce} instead.",
+          },
+          bounce: {
+            value: 0.25,
+            min: 0,
+            max: 1,
+            step: 0.05,
+            label: "bounce",
+            hint:
+              "Bounciness of the spring (0 = critically damped, 1 = very bouncy). Only applies when duration > 0. Default 0.25 reads as a gentle settle.",
+          },
         },
         { collapsed: true },
       ),
@@ -281,28 +321,50 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     // slot-list slider (default 1 in inspect mode).
     const slots = ctrls.slotsOpacity;
 
+    // B.PT178 — duration override. When visualDuration > 0, all
+    // three springs use {visualDuration, bounce, velocity (per
+    // spring)} instead of physics. Per motion docs the duration
+    // keys override physics — so the transition object has to
+    // contain only one shape. Velocity is preserved per-spring
+    // because it isn't overridden by duration mode (physics-only
+    // keys are mass/stiffness/damping).
+    const useDuration = ctrls.visualDuration > 0;
+    const springFor = (
+      mass: number,
+      stiffness: number,
+      damping: number,
+      velocity: number,
+    ): SpringValues =>
+      useDuration
+        ? {
+            visualDuration: ctrls.visualDuration,
+            bounce: ctrls.bounce,
+            velocity,
+          }
+        : { mass, stiffness, damping, velocity };
+
     return {
       showPhantomOutline: outline,
       showPhantomLabels: inspect && ctrls.showLabels,
       keepLandingMounted: inspect,
-      openSpring: {
-        mass: ctrls.openMass,
-        stiffness: ctrls.openStiffness,
-        damping: ctrls.openDamping,
-        velocity: ctrls.openVelocity,
-      },
-      confirmSpring: {
-        mass: ctrls.confirmMass,
-        stiffness: ctrls.confirmStiffness,
-        damping: ctrls.confirmDamping,
-        velocity: ctrls.confirmVelocity,
-      },
-      closeSpring: {
-        mass: ctrls.closeMass,
-        stiffness: ctrls.closeStiffness,
-        damping: ctrls.closeDamping,
-        velocity: ctrls.closeVelocity,
-      },
+      openSpring: springFor(
+        ctrls.openMass,
+        ctrls.openStiffness,
+        ctrls.openDamping,
+        ctrls.openVelocity,
+      ),
+      confirmSpring: springFor(
+        ctrls.confirmMass,
+        ctrls.confirmStiffness,
+        ctrls.confirmDamping,
+        ctrls.confirmVelocity,
+      ),
+      closeSpring: springFor(
+        ctrls.closeMass,
+        ctrls.closeStiffness,
+        ctrls.closeDamping,
+        ctrls.closeVelocity,
+      ),
       zLayer1: zL1,
       zLayer2: NO_Z,
       oLayer1: LAYER1_PROD_O,
@@ -338,6 +400,8 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeStiffness,
     ctrls.closeDamping,
     ctrls.closeVelocity,
+    ctrls.visualDuration,
+    ctrls.bounce,
   ]);
 
   return (
