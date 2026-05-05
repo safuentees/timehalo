@@ -358,16 +358,34 @@ export default function HostProfile({
                   <ul className="flex flex-col gap-2.5">
                     {SLOT_OPTIONS.map((opt, i) => (
                       <li key={opt.label}>
+                        {/* B.PT162 — `layoutId` wrapper morphs the
+                            chip from landing rect (325×50) to phantom
+                            rect (690×282) via FLIP transforms. WITHOUT
+                            an inner `<motion.div layout>`, the SlotRow
+                            content (text + time) would scale 5.6x in
+                            paint with the parent's transform, looking
+                            stretched mid-flight. With it, motion
+                            applies an inverse transform to the inner
+                            so its content stays at its CSS dimensions
+                            throughout the morph — matches Figma's
+                            spec where Frame 6 (left text) and Frame
+                            12 (right time) stay at 50px tall during
+                            the parent slot's growth to 282px tall. */}
                         <motion.div
                           layoutId={`oh-slot-${i}`}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                         >
-                          <SlotRow
-                            title="intro"
-                            description="quick chat, voice only"
-                            durationLabel={opt.label}
-                            onClick={() => setDrawerOpen(true)}
-                          />
+                          <motion.div
+                            layout
+                            transition={{ type: "spring", ...OPEN_SPRING }}
+                          >
+                            <SlotRow
+                              title="intro"
+                              description="quick chat, voice only"
+                              durationLabel={opt.label}
+                              onClick={() => setDrawerOpen(true)}
+                            />
+                          </motion.div>
                         </motion.div>
                       </li>
                     ))}
