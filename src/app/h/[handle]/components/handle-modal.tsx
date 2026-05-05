@@ -13,7 +13,7 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import type { ModalDebugValues } from "./handle-modal-debug";
+import { useModalDebug } from "../_components/visitor-debug-overlay";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -79,10 +79,6 @@ type Props = {
   rescheduleFromUid?: string;
   /** How many calendar months the inner MonthDrawer should render. */
   months?: number;
-  /** B.PT163 — debug overrides from `useModalDebugValues()` hoisted at
-   *  page root. `null`/undefined in production. When set (?debug=1 in
-   *  dev), each value replaces the spec default. */
-  debug?: ModalDebugValues | null;
 };
 
 export function HandleModal({
@@ -96,7 +92,6 @@ export function HandleModal({
   selectedSlot,
   rescheduleFromUid,
   months = 3,
-  debug = null,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -116,9 +111,10 @@ export function HandleModal({
   // transitions[1] — stiffer + more damped than the open spring.
   const [view, setView] = useState<"picker" | "form">("picker");
 
-  // B.PT163 — debug overrides come in via the `debug` prop (hoisted
-  // to host-profile.tsx so the Leva panel renders even before the
-  // modal opens). `null` in production / non-debug.
+  // B.PT164 — debug overrides come from the route-level overlay
+  // mounted in `/h/[handle]/layout.tsx` via React Context. `null` in
+  // production / when `?debug=1` is absent — fall back to spec.
+  const debug = useModalDebug();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
