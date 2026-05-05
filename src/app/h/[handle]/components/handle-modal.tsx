@@ -13,7 +13,7 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import { useModalDebug } from "../_components/visitor-debug-overlay";
+import { useModalDebug, zStyle } from "../_components/visitor-debug-overlay";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -68,6 +68,7 @@ export function HandleModal({
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
   const phantomOpacity = debug?.phantomOpacity ?? 0;
   const phantomOutline = debug?.showPhantomOutline ?? false;
+  const zL2 = debug?.zLayer2;
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
@@ -114,7 +115,10 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-          style={{ willChange: "transform" }}
+          style={{
+            willChange: "transform",
+            zIndex: zStyle(zL2?.layer),
+          }}
           className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
           <div
@@ -132,6 +136,7 @@ export function HandleModal({
                 height: 87,
                 opacity: phantomOpacity,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                zIndex: zStyle(zL2?.identity),
               }}
             />
             <motion.div
@@ -142,6 +147,7 @@ export function HandleModal({
                 inset: 0,
                 opacity: phantomOpacity,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                zIndex: zStyle(zL2?.slotList),
               }}
             >
               {Array.from({ length: 4 }).map((_, i) => (
@@ -156,6 +162,11 @@ export function HandleModal({
                     width: 690,
                     height: 282,
                     outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                    zIndex: zStyle(
+                      zL2
+                        ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
+                        : undefined,
+                    ),
                   }}
                 />
               ))}

@@ -32,7 +32,30 @@ export type ModalDebugValues = {
   openSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
+  zLayer1: {
+    layer: number;
+    identity: number;
+    slotList: number;
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
+  zLayer2: {
+    layer: number;
+    identity: number;
+    slotList: number;
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
 };
+
+export function zStyle(v: number | undefined): number | undefined {
+  if (v === undefined || v === 0) return undefined;
+  return v;
+}
 
 type ModalDebugContextValue = {
   values: ModalDebugValues | null;
@@ -89,6 +112,66 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         closeDamping: { value: SPEC_CLOSE.damping, min: 0, max: 100, step: 0.1 },
         closeVelocity: { value: SPEC_CLOSE.velocity, min: -50, max: 50, step: 0.5 },
       }),
+      "Layer 1 (landing)": folder(
+        {
+          z_layer1: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Landing layer z",
+          },
+          z_layer1_identity: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Identity header z",
+          },
+          z_layer1_slotList: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Slot-list card z",
+          },
+          z_layer1_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Slot 0 z" },
+          z_layer1_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Slot 1 z" },
+          z_layer1_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Slot 2 z" },
+          z_layer1_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Slot 3 z" },
+        },
+        { collapsed: true },
+      ),
+      "Layer 2 (modal phantoms)": folder(
+        {
+          z_layer2: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Modal layer z",
+          },
+          z_layer2_identity: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Phantom identity z",
+          },
+          z_layer2_slotList: {
+            value: 0,
+            min: -100,
+            max: 100,
+            step: 1,
+            label: "Phantom slot-list z",
+          },
+          z_layer2_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 0 z" },
+          z_layer2_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 1 z" },
+          z_layer2_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 2 z" },
+          z_layer2_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 3 z" },
+        },
+        { collapsed: true },
+      ),
     },
     { collapsed: false },
   );
@@ -117,6 +200,24 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         damping: ctrls.closeDamping,
         velocity: ctrls.closeVelocity,
       },
+      zLayer1: {
+        layer: ctrls.z_layer1,
+        identity: ctrls.z_layer1_identity,
+        slotList: ctrls.z_layer1_slotList,
+        slot0: ctrls.z_layer1_slot0,
+        slot1: ctrls.z_layer1_slot1,
+        slot2: ctrls.z_layer1_slot2,
+        slot3: ctrls.z_layer1_slot3,
+      },
+      zLayer2: {
+        layer: ctrls.z_layer2,
+        identity: ctrls.z_layer2_identity,
+        slotList: ctrls.z_layer2_slotList,
+        slot0: ctrls.z_layer2_slot0,
+        slot1: ctrls.z_layer2_slot1,
+        slot2: ctrls.z_layer2_slot2,
+        slot3: ctrls.z_layer2_slot3,
+      },
     };
   }, [
     enabled,
@@ -135,6 +236,20 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeStiffness,
     ctrls.closeDamping,
     ctrls.closeVelocity,
+    ctrls.z_layer1,
+    ctrls.z_layer1_identity,
+    ctrls.z_layer1_slotList,
+    ctrls.z_layer1_slot0,
+    ctrls.z_layer1_slot1,
+    ctrls.z_layer1_slot2,
+    ctrls.z_layer1_slot3,
+    ctrls.z_layer2,
+    ctrls.z_layer2_identity,
+    ctrls.z_layer2_slotList,
+    ctrls.z_layer2_slot0,
+    ctrls.z_layer2_slot1,
+    ctrls.z_layer2_slot2,
+    ctrls.z_layer2_slot3,
   ]);
 
   const panelZIndex =
