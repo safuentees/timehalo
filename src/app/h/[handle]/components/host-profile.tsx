@@ -236,12 +236,17 @@ export default function HostProfile({
                           layoutId={`oh-slot-${i}`}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                         >
-                          <SlotRow
-                            title="intro"
-                            description="quick chat, voice only"
-                            durationLabel={opt.label}
-                            onClick={() => setDrawerOpen(true)}
-                          />
+                          <motion.div
+                            layout
+                            transition={{ type: "spring", ...OPEN_SPRING }}
+                          >
+                            <SlotRow
+                              title="intro"
+                              description="quick chat, voice only"
+                              durationLabel={opt.label}
+                              onClick={() => setDrawerOpen(true)}
+                            />
+                          </motion.div>
                         </motion.div>
                       </li>
                     ))}
