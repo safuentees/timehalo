@@ -479,7 +479,8 @@
     "nextSlotAria": "Próximo horario disponible",
     "metaSession": "Sesión",
     "metaOpen": "Abiertos",
-    "metaTz": "Zona horaria"
+    "metaTz": "Zona horaria",
+    "landingCardAria": "Tarjeta de reserva para {name}"
   },
   "Auth": {
     "loginTitle": "Iniciar sesión",

@@ -2,30 +2,14 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
-import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  OhEmpty,
-  OhEmptyDescription,
-  OhEmptyHeader,
-  OhEmptyMedia,
-  OhEmptyTitle,
-} from "@/components/oh/oh-empty";
-import { OhPageShell } from "@/components/oh/page-shell";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
-import {
-  AvailabilityDrawer,
-  TriggerCard,
-} from "@/components/calendar";
-import {
-  isOpenSlot,
-  toKey,
-  type Slot,
-} from "@/lib/availability";
+import { AvailabilityDrawer } from "@/components/calendar";
+import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
 import {
   getQueryParam,
   updateQueryParam,
@@ -171,13 +155,40 @@ export default function HostProfile({
   const hasSlots = slots.length > 0;
   const hasOpenSlots = availableSlots.length > 0;
 
-  // B.PT110 — OhVisitorShell consumes viewport-fill + sticky-header
-  // discipline. Pre-B.PT110 the page used `<main className="min-h-
-  // screen bg-oh-bg" id="top">` + a hand-rolled bordered profile bar
-  // wrapped around the page-shell. Now the shell owns the chrome
-  // skeleton; the bar contents move into the `header` prop slot. The
-  // sticky `<header>` from OhVisitorShell wraps `mx-auto max-w-[760px]`
-  // inside so the inner bar still aligns with the page-shell column.
+  // B.PT155 — visitor-page redesign frame 1 (handle landing).
+  // 1-to-1 port of `desktop - dashboard / handle` (324:15683) in the
+  // user's Figma file (spec at `docs/figma/spec-h-handle-redesign.json`).
+  //
+  // Layout (Figma absolute geometry):
+  //   - Outer chrome: `oh-host-content` Sisal frame (existing token,
+  //     #EEE7D5 paper inside #D3CCBD frame). Provided by OhVisitorShell.
+  //   - Sticky header: `/h/<handle>` eyebrow left + 8px status dot +
+  //     status eyebrow right. (Same shape as B.PT110, the redesign
+  //     keeps the chrome.)
+  //   - Centered card 385×387, padding 15, gap 10 between header
+  //     section and slot-list section. Paper bg, cornerRadius 25,
+  //     1px hairline border.
+  //     - Identity header (Frame 15, 336×87): avatar 55×55 fully
+  //       rounded with 1px ring + h1 name (Space Grotesk Bold ~52px,
+  //       size 269×55) on the same row, gap 12; then
+  //       `oh-description` tagline below (336×20).
+  //     - Slot-list inner card (Frame 2, 355×260): cream bg (#F5EFDF
+  //       — between paper and white, no existing token; explicit hex
+  //       per 1-to-1 directive), cornerRadius 20, 1px border, padding
+  //       15 + gap 10. Contains 4 slot rows (each 325×50, paper bg,
+  //       cornerRadius 14, gap 10 between).
+  //
+  // 1-to-1 visual fidelity directive (user, 2026-05-05): hardcode the
+  // 4 slot row contents — "intro / quick chat, voice only / 15m | 25m
+  // | 30m | 1h" — even though we don't have a multi-event-type model
+  // per host yet (all bookings today are 15-min single-type slots).
+  // The data-model gap is logged as B.PT158 (canonical-win, OPEN /
+  // OPTIONAL — don't implement until promoted).
+  //
+  // Click semantics: tapping any slot row opens the existing
+  // `<AvailabilityDrawer>` so the booking flow stays functional while
+  // B.PT156 lands the bespoke modal redesign that replaces the drawer.
+
   return (
     <OhVisitorShell
       header={
@@ -203,9 +214,9 @@ export default function HostProfile({
       {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>` is in
           the URL so the visitor knows they're picking a NEW slot to swap
           into, not booking fresh. Subtle tint (oh-tint, ~6% ink) reads as
-          a status strip without competing with the page's content.
-          Lives inside `<main>` (children of OhVisitorShell) so the sticky
-          header above it stays at the very top of the viewport. */}
+          a status strip without competing with the page's content. Sits
+          ABOVE the centered card so it doesn't compete with the card's
+          white space. */}
       {rescheduleFromUid ? (
         <div
           role="status"
@@ -223,70 +234,90 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <OhPageShell>
-        <header className="flex flex-col gap-7">
-          <div className="flex items-center gap-3">
-            <Avatar size="lg">
-              <AvatarImage src={user.image ?? undefined} alt={displayName} />
-              <AvatarFallback className="bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col leading-tight">
-              <span className="oh-eyebrow opacity-100">@{user.handle}</span>
-              <span className="mt-1 text-[12px] tabular-nums opacity-55">
-                {t("daysWithSlots", { count: daysWithOpenSlotsThisWeek })}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <h1 className="text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.05] tracking-tight">
-              {displayName}
-            </h1>
-            <p className="oh-description">{t("defaultBio")}</p>
-          </div>
-        </header>
-
-        {/* Meta strip — three hairline cells, mono numerals. Same vocabulary
-            as the dashboard's `/settings` legend rhythm: oh-eyebrow label,
-            mono-numeral value, hairline dividers. No card chrome. */}
-        <dl className="mt-10 grid grid-cols-3 divide-x divide-oh-line border-y border-oh-line">
-          <MetaCell
-            label={t("metaSession")}
-            value={
-              <>
-                15
-                <span className="ml-0.5 text-[12px] opacity-55">m</span>
-              </>
-            }
-          />
-          <MetaCell
-            label={t("metaOpen")}
-            value={availableSlots.length.toString().padStart(2, "0")}
-          />
-          <MetaCell label={t("metaTz")} value={visitorTz} compact />
-        </dl>
-
-        <section
-          className="mt-10 flex flex-col gap-6"
-          aria-label={t("pickADate")}
+      {/* Centered-card scaffold. The card is exactly 385×387 per Figma;
+          on viewports narrower than ~415px the card shrinks to fit
+          (w-full + max-w-[385px] + horizontal padding on the wrapper).
+          Vertical centering uses min-h calc that subtracts the sticky
+          header's nominal height (~64px on mobile / 80px sm+) so the
+          card visually sits in the OPTICAL center of the remaining
+          viewport, not a literal middle that includes the header. */}
+      <div className="flex w-full justify-center px-4 py-10 sm:py-14">
+        <article
+          aria-label={t("landingCardAria", { name: displayName })}
+          className={cn(
+            "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+            "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+          )}
         >
-          {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
-          {!hasSlots ? (
-            <HostEmpty displayName={displayName} kind="closed" />
-          ) : !hasOpenSlots ? (
-            <HostEmpty displayName={displayName} kind="booked" />
-          ) : null}
-          {hasOpenSlots ? (
-            <TriggerCard
-              selectedDate={selectedDate}
-              selectedSlot={selectedSlot}
-              onClick={() => setDrawerOpen(true)}
-            />
-          ) : null}
-        </section>
-      </OhPageShell>
+          {/* Identity header — Frame 15 (336×87) */}
+          <header className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <span className="relative inline-flex size-[55px] shrink-0">
+                <Avatar className="size-[55px]">
+                  <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                  <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                {/* ::after — 1px ring overlay matching Figma. Lives on
+                    top of the image so the ring stays crisp when the
+                    avatar image fills the circle. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
+                />
+              </span>
+              <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                {displayName}
+              </h1>
+            </div>
+            <p className="oh-description">{t("defaultBio")}</p>
+          </header>
+
+          {/* Slot-list inner card — Frame 2 (355×260). Cream bg
+              (#F5EFDF in Figma) is between paper (#EEE7D5) and white;
+              no existing token, so explicit hex per the 1-to-1 directive.
+              Empty / closed-host states render the existing HostEmpty
+              shape inside the same card (same chrome, different content)
+              so the layout stays anchored. */}
+          <div
+            className={cn(
+              "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+              "bg-[#F5EFDF]",
+            )}
+          >
+            {hasOpenSlots ? (
+              <ul className="flex flex-col gap-2.5">
+                {SLOT_OPTIONS.map((opt) => (
+                  <li key={opt.label}>
+                    <SlotRow
+                      title="intro"
+                      description="quick chat, voice only"
+                      durationLabel={opt.label}
+                      onClick={() => setDrawerOpen(true)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="oh-description py-6 text-center">
+                {!hasSlots
+                  ? t("emptyClosedDescription", { name: displayName })
+                  : t("emptyBookedDescription", { name: displayName })}
+              </p>
+            )}
+          </div>
+        </article>
+      </div>
+
+      {/* Visitor TZ probe + days-with-slots are computed but not surfaced
+          in the new landing layout — kept around because the AvailabilityDrawer
+          still relies on the same query state. The values themselves are
+          re-derived inside the drawer; passing them through props is a
+          drawer-API concern that B.PT156's bespoke modal will obviate. */}
+      <span className="sr-only" aria-hidden>
+        {visitorTz} · {daysWithOpenSlotsThisWeek} · {nextSlot?.start ?? ""}
+      </span>
 
       {hasOpenSlots ? (
         <AvailabilityDrawer
@@ -300,9 +331,6 @@ export default function HostProfile({
           rescheduleFromUid={rescheduleFromUid}
           onPickSlot={(s) => {
             setSelectedSlot(s);
-            // Slot pick is commit-ish — pushState so browser back
-            // returns to "date picked, no slot" instead of skipping
-            // straight back to the page entry.
             updateQueryParam("slot", s.start, { pushEntry: true });
           }}
         />
@@ -311,84 +339,63 @@ export default function HostProfile({
   );
 }
 
-function MetaCell({
-  label,
-  value,
-  compact = false,
+// 1-to-1 hardcoded slot durations from Figma frame 1 (B.PT155).
+// Real multi-event-type wiring is B.PT158 (canonical-win, deferred).
+const SLOT_OPTIONS = [
+  { label: "15 min" },
+  { label: "25 min" },
+  { label: "30 min" },
+  { label: "1 hr" },
+] as const;
+
+// Slot row — 325×50 button, paper bg, rounded-14 (Figma cornerRadius).
+// Layout: title + description on the left (stacked), duration label on
+// the right. Click opens the AvailabilityDrawer (preserved booking flow
+// until B.PT156's bespoke modal lands).
+function SlotRow({
+  title,
+  description,
+  durationLabel,
+  onClick,
 }: {
-  label: string;
-  value: React.ReactNode;
-  compact?: boolean;
+  title: string;
+  description: string;
+  durationLabel: string;
+  onClick: () => void;
 }) {
+  // Split duration label into number + unit so the unit can render at
+  // a smaller mono size, matching Figma where "15" is 30px-ish and
+  // "min" / "hr" sits at ~15px below the number.
+  const match = /^(\d+)\s*(.+)$/.exec(durationLabel);
+  const num = match?.[1] ?? durationLabel;
+  const unit = match?.[2] ?? "";
   return (
-    <div className="flex flex-col gap-1.5 px-4 py-4">
-      <dt className="oh-eyebrow">{label}</dt>
-      <dd
-        className={cn(
-          "font-[family-name:var(--oh-mono)] font-bold tabular-nums truncate",
-          compact ? "text-[13px]" : "text-[16px]",
-        )}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function HostEmpty({
-  displayName,
-  kind,
-}: {
-  displayName: string;
-  kind: "closed" | "booked";
-}) {
-  const t = useTranslations("HostProfile");
-  const title =
-    kind === "closed" ? t("emptyClosedTitle") : t("emptyBookedTitle");
-  const description =
-    kind === "closed"
-      ? t("emptyClosedDescription", { name: displayName })
-      : t("emptyBookedDescription", { name: displayName });
-
-  return (
-    <OhEmpty>
-      <OhEmptyHeader>
-        <OhEmptyMedia>
-          <CalendarIcon />
-        </OhEmptyMedia>
-        <OhEmptyTitle>{title}</OhEmptyTitle>
-        <OhEmptyDescription>{description}</OhEmptyDescription>
-      </OhEmptyHeader>
-    </OhEmpty>
-  );
-}
-
-function NextAvailable({ slot }: { slot: Slot }) {
-  const t = useTranslations("HostProfile");
-  // B.PT26 — drop the inline ENGLISH WEEKDAY array; ICU `weekday: "short"`
-  // resolves to the user's locale (Mon/Lun/月) honoring next-intl's
-  // request locale. `day: "numeric"` produces the unpadded day-of-month
-  // verbatim — matches the prior shape "MON 15" → "Mon 15" → "Lun 15".
-  // Uppercased via CSS in the consumer (oh-eyebrow).
-  const format = useFormatter();
-  const startDate = new Date(slot.start);
-  const weekday = format.dateTime(startDate, { weekday: "short" });
-  const dayNum = format.dateTime(startDate, { day: "numeric" });
-  return (
-    <section
-      aria-label={t("nextSlotAria")}
-      className="flex items-baseline justify-between gap-4 border-b border-oh-line pb-4"
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
+        "rounded-[14px] bg-[color:var(--oh-paper)] px-3 text-left",
+        "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
+      )}
     >
-      <span className="oh-eyebrow opacity-100">{t("nextAvailable")}</span>
-      <div className="flex items-baseline gap-3">
-        <span className="font-[family-name:var(--oh-mono)] text-[18px] font-bold tabular-nums">
-          {fmtTime(startDate)}
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate font-sans text-[15px] font-bold leading-[20px]">
+          {title}
         </span>
-        <span className="oh-eyebrow tabular-nums">
-          {weekday} {dayNum}
+        <span className="truncate font-sans text-[12px] leading-[15px] opacity-65">
+          {description}
         </span>
       </div>
-    </section>
+      <div className="flex items-baseline gap-1 shrink-0 font-[family-name:var(--oh-mono)] tabular-nums">
+        <span className="text-[24px] font-bold leading-none">{num}</span>
+        {unit ? (
+          <span className="text-[11px] font-bold leading-none opacity-65">
+            {unit}
+          </span>
+        ) : null}
+      </div>
+    </button>
   );
 }
 
@@ -401,13 +408,6 @@ function parseDateKey(key: string): Date | undefined {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
   if (!m) return undefined;
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-}
-
-function fmtTime(d: Date): string {
-  const hour24 = d.getHours();
-  const hour12 = ((hour24 + 11) % 12) + 1;
-  const suffix = hour24 < 12 ? "AM" : "PM";
-  return `${hour12}:${String(d.getMinutes()).padStart(2, "0")} ${suffix}`;
 }
 
 function countOpenDaysThisWeek(slots: Slot[], now: Date): number {
