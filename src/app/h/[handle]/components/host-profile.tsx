@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
+import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
@@ -71,8 +72,27 @@ export default function HostProfile({
   // Default for the toggle is now TRUE — user is in debug mode,
   // wants the dual-layer / frozen-at-destination view by default.
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
+  // B.PT175 — defer layoutId stripping by one render so motion has
+  // a chance to measure the landing's source rects before they're
+  // removed. Without this, an initial render with keepLandingMounted
+  // = true means motion never sees the layoutIds → modal phantoms
+  // mount with no source rect for `handle-card` / `oh-identity` /
+  // `oh-slot-N` → fade-only entry instead of the spring morph. The
+  // user discovered this empirically: toggling keepLandingMounted
+  // OFF then back ON made the morph play, because the OFF state
+  // briefly registered the landing's layoutIds with motion and
+  // motion's per-layoutId rect cache persists even after the
+  // element re-renders without that layoutId. `useMounted()` is
+  // false on the first render (server + first client paint) and
+  // flips to true after the mount effect — during the false phase
+  // we render the landing WITH its layoutIds (motion records the
+  // rects), then the post-mount re-render strips them if
+  // keepLandingMounted is on. Cached rects survive the strip → next
+  // modal open uses them as the FLIP source → spring morph plays.
+  const mounted = useMounted();
+  const stripLandingLayoutId = mounted && keepLandingMounted;
   const landingLayoutId = (id: string) =>
-    keepLandingMounted ? undefined : id;
+    stripLandingLayoutId ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -308,7 +328,17 @@ export default function HostProfile({
               // stays visible through the entire morph.
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
-              style={{ zIndex: zStyle(zL1?.layer) }}
+              // B.PT174 — CSS zIndex only applies to positioned
+              // elements; the landing motion.article is normally
+              // static. When the debug overlay sets a non-zero
+              // zL1.layer (via the "landing on top" stack order),
+              // pair it with `position: relative` so the zIndex
+              // competes against the modal's fixed z-50 wrapper in
+              // the document root stacking context.
+              style={{
+                position: zL1?.layer ? "relative" : undefined,
+                zIndex: zStyle(zL1?.layer),
+              }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
@@ -504,6 +534,41 @@ export default function HostProfile({
               setSelectedSlot(s);
               updateQueryParam("slot", s.start, { pushEntry: true });
             }}
+            // B.PT175 — content rendered inside the modal's
+            // `oh-identity` phantom rect (336×87 at 192,22 inside
+            // the modal's frame) when keepLandingMounted is on.
+            // Mirrors what B.PT172 did for slot rows (phantom rects
+            // had no content → user couldn't see chips at
+            // destination → SlotRow rendered inside). The identity
+            // phantom was skipped in B.PT172 because the user
+            // hadn't asked for it yet; surfaced now.
+            identityContent={
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "relative inline-flex size-[55px] shrink-0",
+                    "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                  )}
+                >
+                  <Avatar className="size-[55px]">
+                    <AvatarImage
+                      src={user.image ?? undefined}
+                      alt={displayName}
+                    />
+                    <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                  />
+                </span>
+                <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
+                  {displayName}
+                </h1>
+              </div>
+            }
           />
         ) : null}
       </AnimatePresence>

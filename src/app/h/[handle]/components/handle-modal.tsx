@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
@@ -84,6 +84,13 @@ type Props = {
   rescheduleFromUid?: string;
   /** How many calendar months the inner MonthDrawer should render. */
   months?: number;
+  /** B.PT175 — content rendered inside the `oh-identity` phantom
+   *  rect (336×87 at 192,22 inside the modal frame) when the debug
+   *  overlay's keepLandingMounted is on. Without this, the phantom
+   *  is an empty rect and the user can't see what the identity
+   *  header looks like at its post-morph destination. Mirrors what
+   *  B.PT172 did for slot rows. */
+  identityContent?: ReactNode;
 };
 
 export function HandleModal({
@@ -97,6 +104,7 @@ export function HandleModal({
   selectedSlot,
   rescheduleFromUid,
   months = 3,
+  identityContent,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -300,7 +308,14 @@ export function HandleModal({
             className="pointer-events-none absolute -inset-[15px]"
           >
             {/* Identity header phantom — exact Figma coords (192, 22)
-                with size 336×87. */}
+                with size 336×87. B.PT175 — when the debug overlay
+                passes `identityContent` (avatar + h1 from the parent),
+                render it inside so the user can see the title/avatar
+                at its post-morph destination. Without content the
+                phantom is an empty rect and the destination identity
+                is invisible. Pair with `pointerEvents: "none"` so the
+                phantom can never intercept clicks on the modal
+                interior. */}
             <motion.div
               layoutId="oh-identity"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
@@ -314,8 +329,11 @@ export function HandleModal({
                 height: 87,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.identity),
+                pointerEvents: "none",
               }}
-            />
+            >
+              {showLandingAtDest && identityContent ? identityContent : null}
+            </motion.div>
             {/* Slot-list (Frame 2) phantom — full-modal coverage at
                 (0, 0). The Frame 18 inner wrapper is 15px-margined
                 inside it, then the 4 slot rows stack at exact Figma
