@@ -66,6 +66,11 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       },
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
+      panelZ: {
+        value: "above",
+        options: ["above", "between", "below scrim"] as const,
+        label: "Panel z-index",
+      },
       openSpring: folder({
         openMass: { value: SPEC_OPEN.mass, min: 0.1, max: 10, step: 0.1 },
         openStiffness: { value: SPEC_OPEN.stiffness, min: 1, max: 1000, step: 1 },
@@ -132,12 +137,23 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeVelocity,
   ]);
 
+  const panelZIndex =
+    ctrls.panelZ === "above"
+      ? 200
+      : ctrls.panelZ === "between"
+        ? 45
+        : 30; // below scrim
+
   return (
     <ModalDebugContext.Provider
       value={{ values: value, panelShardRef: enabled ? panelShardRef : null }}
     >
       {enabled ? (
-        <div ref={panelShardRef} data-oh-debug-panel="">
+        <div
+          ref={panelShardRef}
+          data-oh-debug-panel=""
+          style={{ position: "relative", zIndex: panelZIndex }}
+        >
           <Leva collapsed={false} oneLineLabels />
         </div>
       ) : null}
