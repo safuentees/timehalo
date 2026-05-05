@@ -156,7 +156,7 @@ export function HandleModal({
             >
               {showLandingAtDest && identityContent ? (
                 <motion.div
-                  layout
+                  layout="size"
                   transition={{
                     type: "spring",
                     ...(open ? openSpring : closeSpring),
@@ -242,7 +242,7 @@ export function HandleModal({
                   >
                     {showLandingAtDest && opt ? (
                       <motion.div
-                        layout
+                        layout="size"
                         transition={{
                           type: "spring",
                           ...(open ? openSpring : closeSpring),

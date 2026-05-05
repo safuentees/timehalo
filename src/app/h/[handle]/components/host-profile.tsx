@@ -305,7 +305,7 @@ export default function HostProfile({
                           }}
                         >
                           <motion.div
-                            layout
+                            layout="size"
                             transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           >
                             <SlotRow
