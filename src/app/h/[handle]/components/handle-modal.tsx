@@ -193,32 +193,53 @@ export function HandleModal({
           // `onLayoutAnimationComplete` so the layer doesn't stay
           // hot when idle.
           style={{ willChange: "transform" }}
-          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
+          // B.PT160 — `max-h-[1158px]` matches the Figma frame's natural
+          // height (the modal frame is exactly 720×1158 in the spec).
+          // Was `max-h-[800px]` from B.PT156; that capped the slot-list
+          // phantom morph short of its target rect on tall viewports.
+          // Most real viewports are < 1158 tall so practical UX
+          // unchanged (the parent `fixed inset-0 ... p-4 sm:p-8`
+          // wrapper clamps to viewport-minus-padding); only impact is
+          // tall ≥1158px monitors where the modal can now reach its
+          // exact Figma size for full 1-to-1 phantom positioning.
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
-          {/* B.PT159 — PHANTOM destinations matching the Figma spec
-              EXACTLY. The user designed the modal with phantom
-              (opacity 0) copies of the slot rows + identity header at
-              their target positions inside frame 2. Per
+          {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
+              Figma spec EXACTLY. The user designed the modal with
+              phantom (opacity 0) copies of the slot rows + identity
+              header at their target positions inside frame 2. Per
               `docs/figma/anim-h-handle-redesign.json` transition[0]
               deltas:
-                - Frame 15 (identity)  pos (192, 22),  size 336×87
-                - Frame 2  (slot list) pos (0, 0),     size 720×1158
-                - Frame 18 (inner)     pos (15, 15),   size 690×1128
+                - Frame 15 (identity)  pos (192.5, 21.5), size 336×87
+                - Frame 2  (slot list) pos (0.5, -0.5),   size 720×1158
+                - Frame 18 (inner)     pos (15, 15),      size 690×1128
                 - Slot rows (× 4)      pos (0, 0|282|564|846), size 690×282
               These coordinates are relative to the modal frame's
               outer edge (Figma frames have no padding; children
               position absolutely from 0,0). Our `<motion.article>`
               has `p-[15px]` so its content box starts at (15,15) in
               article-outer coords. The phantom container extends to
-              the article's outer edge via `inset:-15px`, then the
-              phantoms inside use raw Figma pixel coords.
-              At the article's max size (720×800) the slots overflow
-              the bottom (4 × 282 = 1128px > 800), but `overflow-
-              hidden` on the article clips the visual; motion's
-              `getBoundingClientRect()`-based layoutId measurement
-              still sees the un-clipped DOM rect, so the morph
-              targets match the design even when the article is
-              shorter than Figma's 1158. */}
+              the article's outer edge via `-inset-[15px]`, then the
+              phantoms inside use raw Figma pixel coords. Sub-pixel
+              0.5px offsets (192.5, 21.5, etc.) rounded to integers —
+              motion's FLIP measurement is rect-based and the visual
+              difference is below display-pixel resolution.
+              B.PT160 audit findings on what's NOT animated 1-to-1:
+                - **cornerRadius (14 → 0)** on each slot row in the
+                  spec is NOT animated. Reason: borderRadius is paint-
+                  bound; animating it would regress the Firefox
+                  smoothness gain from B.PT159's backdrop-blur drop.
+                  Acceptable trade-off: chip opacity tweens 1 → 0
+                  alongside the morph, so the radius change is
+                  invisible at the end state.
+                - **Chip internals (Frame 6 left text, Frame 12
+                  duration display)** stay 50px tall in spec while
+                  the slot row grows to 282px. Our impl scales them
+                  uniformly via the parent's FLIP transform. Reason:
+                  invisible at end state (opacity 0); skipping their
+                  layoutIds keeps the layoutId count low for perf.
+              Both deviations are deliberate — net visual at any
+              snapshot during the morph is indistinguishable. */}
           <div
             aria-hidden
             className="pointer-events-none absolute -inset-[15px]"
