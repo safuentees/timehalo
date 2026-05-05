@@ -13,6 +13,10 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import {
+  ModalDebugPanel,
+  useModalDebugValues,
+} from "./handle-modal-debug";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -61,6 +65,13 @@ export function HandleModal({
     .toUpperCase();
   const [view, setView] = useState<"picker" | "form">("picker");
 
+  const debug = useModalDebugValues();
+  const openSpring = debug?.openSpring ?? OPEN_SPRING;
+  const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
+  const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
+  const phantomOpacity = debug?.phantomOpacity ?? 0;
+  const phantomOutline = debug?.showPhantomOutline ?? false;
+
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
     setView("form");
@@ -104,7 +115,7 @@ export function HandleModal({
       >
         <motion.article
           layoutId="handle-card"
-          transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+          transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           style={{ willChange: "transform" }}
           className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
@@ -114,32 +125,39 @@ export function HandleModal({
           >
             <motion.div
               layoutId="oh-identity"
-              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               style={{
                 position: "absolute",
                 top: 22,
                 left: 192,
                 width: 336,
                 height: 87,
-                opacity: 0,
+                opacity: phantomOpacity,
+                outline: phantomOutline ? "1px dashed currentColor" : undefined,
               }}
             />
             <motion.div
               layoutId="oh-slot-list"
-              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
-              style={{ position: "absolute", inset: 0, opacity: 0 }}
+              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                opacity: phantomOpacity,
+                outline: phantomOutline ? "1px dashed currentColor" : undefined,
+              }}
             >
               {Array.from({ length: 4 }).map((_, i) => (
                 <motion.div
                   key={i}
                   layoutId={`oh-slot-${i}`}
-                  transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+                  transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
                   style={{
                     position: "absolute",
                     top: 15 + i * 282,
                     left: 15,
                     width: 690,
                     height: 282,
+                    outline: phantomOutline ? "1px dashed currentColor" : undefined,
                   }}
                 />
               ))}
@@ -207,7 +225,7 @@ export function HandleModal({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                  transition={{ type: "spring", ...confirmSpring }}
                 >
                   <DayStrip
                     slots={slots}
@@ -230,7 +248,7 @@ export function HandleModal({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                  transition={{ type: "spring", ...confirmSpring }}
                 >
                   {selectedSlot ? (
                     <BookingForm
@@ -245,6 +263,7 @@ export function HandleModal({
           </div>
         </motion.article>
       </div>
+      <ModalDebugPanel />
     </FocusOn>
   );
 }
