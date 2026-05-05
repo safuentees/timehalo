@@ -119,10 +119,11 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+          animate={{ opacity: oStyle(oL2?.layer, 1) }}
+          exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
-            opacity: oStyle(oL2?.layer, 1),
           }}
           className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
@@ -133,13 +134,14 @@ export function HandleModal({
             <motion.div
               layoutId="oh-identity"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              animate={{ opacity: oStyle(oL2?.identity, 0) }}
+              exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
                 position: "absolute",
                 top: 22,
                 left: 192,
                 width: 336,
                 height: 87,
-                opacity: oStyle(oL2?.identity, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.identity),
               }}
@@ -147,10 +149,11 @@ export function HandleModal({
             <motion.div
               layoutId="oh-slot-list"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              animate={{ opacity: oStyle(oL2?.slotList, 0) }}
+              exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: oStyle(oL2?.slotList, 0),
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
@@ -160,6 +163,22 @@ export function HandleModal({
                   key={i}
                   layoutId={`oh-slot-${i}`}
                   transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+                  animate={{
+                    opacity: oStyle(
+                      oL2
+                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                        : undefined,
+                      0,
+                    ),
+                  }}
+                  exit={{
+                    opacity: oStyle(
+                      oL2
+                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                        : undefined,
+                      0,
+                    ),
+                  }}
                   style={{
                     position: "absolute",
                     top: 15 + i * 282,
@@ -171,12 +190,6 @@ export function HandleModal({
                       zL2
                         ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
                         : undefined,
-                    ),
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                        : undefined,
-                      0,
                     ),
                   }}
                 />
