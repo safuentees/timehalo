@@ -135,6 +135,9 @@ export function HandleModal({
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
   const phantomOutline = debug?.showPhantomOutline ?? false;
+  // B.PT176 — overlay element-name labels on each phantom rect for
+  // visual identification during inspection.
+  const phantomLabels = debug?.showPhantomLabels ?? false;
   // B.PT167 / B.PT168 — Layer 2 z-index + opacity overrides for the
   // modal article + each phantom destination. Defaults: zIndex
   // undefined (no inline z), opacity 1 for the modal article + 0 for
@@ -333,6 +336,11 @@ export function HandleModal({
               }}
             >
               {showLandingAtDest && identityContent ? identityContent : null}
+              {phantomLabels ? (
+                <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                  identity
+                </span>
+              ) : null}
             </motion.div>
             {/* Slot-list (Frame 2) phantom — full-modal coverage at
                 (0, 0). The Frame 18 inner wrapper is 15px-margined
@@ -351,6 +359,11 @@ export function HandleModal({
                 zIndex: zStyle(zL2?.slotList),
               }}
             >
+              {phantomLabels ? (
+                <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
+                  slot list
+                </span>
+              ) : null}
               {Array.from({ length: 4 }).map((_, i) => {
                 const opt = SLOT_OPTIONS[i];
                 return (
@@ -408,17 +421,18 @@ export function HandleModal({
                       // CSS-natural size (50px tall) anchored to the
                       // top-left of the 282-tall phantom rect — same
                       // as the spec's "Frame 6/12 stay 50px while
-                      // slot grows to 282" behavior. To make this
-                      // visible, the user must also bump the
-                      // matching `Phantom slot N opacity` slider in
-                      // the Layer 2 folder up from the production
-                      // default of 0.
+                      // slot grows to 282" behavior.
                       <SlotRow
                         title="intro"
                         description="quick chat, voice only"
                         durationLabel={opt.label}
                         onClick={() => {}}
                       />
+                    ) : null}
+                    {phantomLabels ? (
+                      <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                        slot {i}
+                      </span>
                     ) : null}
                   </motion.div>
                 );

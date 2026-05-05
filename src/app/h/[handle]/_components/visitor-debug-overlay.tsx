@@ -69,6 +69,11 @@ export type ModalDebugValues = {
   /** When true, render a 1px dashed outline around each phantom. Set
    *  by the `outline` mode preset. */
   showPhantomOutline: boolean;
+  /** B.PT176 — when true, overlay each phantom rect with a small text
+   *  label naming the element ("identity", "slot list", "slot 0",
+   *  etc.) so the user can identify which phantom is at which
+   *  position on screen. Useful in inspect mode for diagnosis. */
+  showPhantomLabels: boolean;
   /** When true, the landing card stays mounted alongside the modal
    *  with its layoutIds stripped, and the modal phantoms render real
    *  chip content (frozen at destination). Set by the `inspect` mode. */
@@ -82,7 +87,8 @@ export type ModalDebugValues = {
   /** Layer 1 (landing) defaults to 1 (visible). Layer 2's `layer` is
    *  the modal article (1, visible); the phantom children
    *  (identity / slotList / slot0..3) default to 0 (invisible) in
-   *  production and inspect-mode raises slot0..3 to the slider value. */
+   *  production and inspect-mode raises them per the per-element
+   *  sliders. */
   oLayer1: OBlock;
   oLayer2: OBlock;
 };
@@ -170,14 +176,50 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         hint:
           "production = real animation; inspect = frozen post-morph view (chip content rendered at destination rects, landing kept mounted); outline = dashed outline around phantom rects so you can see where motion is targeting.",
       },
-      phantomOpacity: {
+      // B.PT176 — replaced the single `phantomOpacity` master with
+      // per-element sliders. The master was hiding a bug: synthesis
+      // hardcoded `oLayer2.slotList = 0` while the slot-list phantom
+      // is the PARENT of slot0..3 in the DOM. CSS opacity composes
+      // multiplicatively, so children at opacity=1 inside a parent
+      // at 0 render at effective 0 → user couldn't see chips even
+      // though their slider was at 1. Per-element sliders let the
+      // user (and future-debugger) see WHICH phantom is hidden and
+      // by what.
+      identityOpacity: {
         value: 1,
         min: 0,
         max: 1,
         step: 0.05,
-        label: "phantom opacity",
+        label: "identity opacity",
         hint:
-          "How visible the destination chip content is in inspect mode. 0 hides; 1 fully opaque.",
+          "Modal identity-phantom rect (336×87 at 192,22). Renders avatar + name when keepLandingMounted is on.",
+        render: (get) => get("mode") === "inspect",
+      },
+      slotListOpacity: {
+        value: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        label: "slot-list opacity",
+        hint:
+          "Slot-list phantom is the PARENT of the 4 slot phantoms. CSS opacity composes multiplicatively — set this to 0 and the slot chips disappear regardless of their own opacity.",
+        render: (get) => get("mode") === "inspect",
+      },
+      slotsOpacity: {
+        value: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        label: "slots opacity",
+        hint:
+          "All 4 slot-row phantoms (uniform). Renders the SlotRow content at destination size 690×282 when keepLandingMounted is on.",
+        render: (get) => get("mode") === "inspect",
+      },
+      showLabels: {
+        value: false,
+        label: "show element labels",
+        hint:
+          "Overlay each phantom rect with a small text label naming the element ('identity' / 'slot list' / 'slot 0..3'). Helps identify which phantom is rendering at which position when something looks wrong.",
         render: (get) => get("mode") === "inspect",
       },
       // B.PT174 — bring the landing card above the modal during the
@@ -220,7 +262,6 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
 
     const inspect = ctrls.mode === "inspect";
     const outline = ctrls.mode === "outline";
-    const phantomVis = ctrls.phantomOpacity;
     const landingOnTop = ctrls.stackOrder === "landing on top";
 
     // Modal wrapper bakes z-50 in CSS; lift landing to 100 so it
@@ -232,8 +273,17 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       ? { ...NO_Z, layer: 100 }
       : NO_Z;
 
+    // B.PT176 — slot-list is the DOM parent of slot0..3. Setting
+    // it to anything < 1 zeroes out the children's effective opacity
+    // multiplicatively (CSS opacity). User reported chips invisible
+    // even with slot opacity at 1; root cause was the prior synthesis
+    // hardcoding `oLayer2.slotList = 0`. Now driven by the explicit
+    // slot-list slider (default 1 in inspect mode).
+    const slots = ctrls.slotsOpacity;
+
     return {
       showPhantomOutline: outline,
+      showPhantomLabels: inspect && ctrls.showLabels,
       keepLandingMounted: inspect,
       openSpring: {
         mass: ctrls.openMass,
@@ -259,19 +309,22 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       oLayer2: inspect
         ? {
             layer: 1,
-            identity: phantomVis,
-            slotList: 0,
-            slot0: phantomVis,
-            slot1: phantomVis,
-            slot2: phantomVis,
-            slot3: phantomVis,
+            identity: ctrls.identityOpacity,
+            slotList: ctrls.slotListOpacity,
+            slot0: slots,
+            slot1: slots,
+            slot2: slots,
+            slot3: slots,
           }
         : LAYER2_PROD_O,
     };
   }, [
     enabled,
     ctrls.mode,
-    ctrls.phantomOpacity,
+    ctrls.identityOpacity,
+    ctrls.slotListOpacity,
+    ctrls.slotsOpacity,
+    ctrls.showLabels,
     ctrls.stackOrder,
     ctrls.openMass,
     ctrls.openStiffness,
