@@ -250,6 +250,16 @@ export function HandleModal({
           // motion's auto layoutId crossfade (which would otherwise
           // tween the modal article's opacity to match the
           // crossfade target). Slider value wins.
+          // B.PT181 — initial matches animate so motion doesn't run
+          // an opacity fade-in on phantom mount. Without this, motion
+          // treats the freshly-mounted layoutId element as "entering"
+          // and tweens opacity from 0 → animate target — visible as
+          // a "clone fades in beside the source" alongside the
+          // ongoing FLIP. With initial = animate, phantom enters at
+          // its target opacity, no extra crossfade tween, and the
+          // morph reads as a single element transitioning (matches
+          // Figma's Smart-Animate behavior).
+          initial={{ opacity: oStyle(oL2?.layer, 1) }}
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
           exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
@@ -322,6 +332,7 @@ export function HandleModal({
             <motion.div
               layoutId="oh-identity"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
@@ -374,6 +385,7 @@ export function HandleModal({
             <motion.div
               layoutId="oh-slot-list"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}
               exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
@@ -397,6 +409,14 @@ export function HandleModal({
                     transition={{
                       type: "spring",
                       ...(open ? openSpring : closeSpring),
+                    }}
+                    initial={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
                     }}
                     animate={{
                       opacity: oStyle(

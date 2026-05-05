@@ -378,6 +378,18 @@ export default function HostProfile({
               // interpolation TARGET, overriding the auto-crossfade.
               // User can now set Layer 1 opacity = 1 and the landing
               // stays visible through the entire morph.
+              // B.PT181 — initial matches animate so motion doesn't
+              // fade-in on (re)mount. Without this, when the modal
+              // closes and the landing remounts, motion treats the
+              // remount as an entrance and tweens opacity from 0 →
+              // animate target — visible as a "clone fades in" beside
+              // the still-exiting modal phantom. Same applies on
+              // initial mount. With initial = animate, the element
+              // starts at its target opacity immediately, the
+              // layoutId FLIP transforms its rect without any
+              // accompanying opacity tween, and the morph reads as a
+              // single element transitioning between rects.
+              initial={{ opacity: oStyle(oL1?.layer, 1) }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
               // B.PT174 — CSS zIndex only applies to positioned
@@ -413,6 +425,7 @@ export default function HostProfile({
               <motion.header
                 layoutId={landingLayoutId("oh-identity")}
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                initial={{ opacity: oStyle(oL1?.identity, 1) }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
                 style={{ zIndex: zStyle(zL1?.identity) }}
@@ -472,6 +485,7 @@ export default function HostProfile({
               <motion.div
                 layoutId={landingLayoutId("oh-slot-list")}
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                initial={{ opacity: oStyle(oL1?.slotList, 1) }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
                 style={{ zIndex: zStyle(zL1?.slotList) }}
@@ -504,6 +518,14 @@ export default function HostProfile({
                         <motion.div
                           layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                          initial={{
+                            opacity: oStyle(
+                              oL1
+                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
+                                : undefined,
+                              1,
+                            ),
+                          }}
                           animate={{
                             opacity: oStyle(
                               oL1
