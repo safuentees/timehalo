@@ -55,18 +55,24 @@ export default function HostProfile({
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
-  // B.PT170 / B.PT171 — when this debug toggle is on, keep the
-  // landing card mounted alongside the modal. Layer 1 elements RETAIN
-  // their `layoutId`s (B.PT171 reversed B.PT170's layoutId-stripping):
-  // motion's natural behavior with two simultaneous same-layoutId
-  // elements is to render both at the LEAD's rect (the modal phantom,
-  // since it mounted last) with a crossfade. With Layer 1 opacity =
-  // 1 + Layer 2 phantom opacity = 0 via the per-element sliders, the
-  // user sees full landing content rendered AT the phantom rect —
-  // e.g. chips at 690×282 size, not the original 325×50. This is
-  // exactly what they asked for: see what Layer 1 looks like at
-  // its post-morph position.
+  // B.PT170 / B.PT171 / B.PT172 — `keepLandingMounted` strategy
+  // revised again. B.PT171 had landing keep its layoutIds in this
+  // mode; motion empirically picked the persistent landing as
+  // "lead" so both elements rendered at LANDING's rect (not the
+  // modal phantom's). User saw landing animate "back" to its origin
+  // instead of frozen at destination. Final approach (B.PT172):
+  //   - Strip landing's `layoutId`s when this toggle is on (no
+  //     shared-element conflict; landing renders independently at
+  //     its center-of-page natural position).
+  //   - Render REAL chip content (SlotRow) inside the modal
+  //     phantoms so the destinations aren't empty rects but show
+  //     the chip at its 690×282 post-morph rect with full content
+  //     (text + duration). See `handle-modal.tsx`.
+  // Default for the toggle is now TRUE — user is in debug mode,
+  // wants the dual-layer / frozen-at-destination view by default.
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
+  const landingLayoutId = (id: string) =>
+    keepLandingMounted ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -288,7 +294,7 @@ export default function HostProfile({
           {!drawerOpen || keepLandingMounted ? (
             <motion.article
               key="landing-card"
-              layoutId="handle-card"
+              layoutId={landingLayoutId("handle-card")}
               transition={{ type: "spring", ...OPEN_SPRING }}
               // B.PT169 — motion's layoutId crossfade auto-animates
               // opacity FROM the source's value TO the destination's
@@ -323,7 +329,7 @@ export default function HostProfile({
                   trick: matched destinations let motion morph + crossfade in
                   one continuous transition, much smoother than a pure fade. */}
               <motion.header
-                layoutId="oh-identity"
+                layoutId={landingLayoutId("oh-identity")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
@@ -382,7 +388,7 @@ export default function HostProfile({
                   size, opacity 0) so motion morphs the cream container
                   alongside its child slot rows. */}
               <motion.div
-                layoutId="oh-slot-list"
+                layoutId={landingLayoutId("oh-slot-list")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
@@ -414,7 +420,7 @@ export default function HostProfile({
                             12 (right time) stay at 50px tall during
                             the parent slot's growth to 282px tall. */}
                         <motion.div
-                          layoutId={`oh-slot-${i}`}
+                          layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                           animate={{
                             opacity: oStyle(
@@ -507,7 +513,10 @@ export default function HostProfile({
 
 // 1-to-1 hardcoded slot durations from Figma frame 1 (B.PT155).
 // Real multi-event-type wiring is B.PT158 (canonical-win, deferred).
-const SLOT_OPTIONS = [
+// B.PT172 — exported so `<HandleModal>` can render the same labels
+// inside phantom slot rects when `keepLandingMounted` debug is on
+// (lets the user see Layer 1 content at its post-morph position).
+export const SLOT_OPTIONS = [
   { label: "15 min" },
   { label: "25 min" },
   { label: "30 min" },
@@ -518,7 +527,9 @@ const SLOT_OPTIONS = [
 // Layout: title + description on the left (stacked), duration label on
 // the right. Click opens the AvailabilityDrawer (preserved booking flow
 // until B.PT156's bespoke modal lands).
-function SlotRow({
+// B.PT172 — exported (was a private helper) so the debug overlay
+// can render the same chip rendering inside modal phantom rects.
+export function SlotRow({
   title,
   description,
   durationLabel,

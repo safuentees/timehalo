@@ -18,6 +18,7 @@ import {
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
+import { SLOT_OPTIONS, SlotRow } from "./host-profile";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -134,6 +135,15 @@ export function HandleModal({
   // "show all phantoms" toggle is now the per-element sliders).
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
+  // B.PT172 — when this debug toggle is on, the modal phantoms get
+  // REAL chip content rendered inside them (instead of empty rects).
+  // The user sees the post-morph "frozen" view of Layer 1 at modal
+  // coordinates: each chip at 690×282 size, with text + duration
+  // visible. Combined with B.PT170/171's landing-stays-mounted +
+  // layoutId-stripping, the overall debug experience is: landing
+  // visible at center + chip content visible at modal phantom
+  // positions, no morph fight.
+  const showLandingAtDest = debug?.keepLandingMounted ?? false;
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
@@ -323,42 +333,78 @@ export function HandleModal({
                 zIndex: zStyle(zL2?.slotList),
               }}
             >
-              {Array.from({ length: 4 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  layoutId={`oh-slot-${i}`}
-                  transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-                  animate={{
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+              {Array.from({ length: 4 }).map((_, i) => {
+                const opt = SLOT_OPTIONS[i];
+                return (
+                  <motion.div
+                    key={i}
+                    layoutId={`oh-slot-${i}`}
+                    transition={{
+                      type: "spring",
+                      ...(open ? openSpring : closeSpring),
+                    }}
+                    animate={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
+                    }}
+                    exit={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: 15 + i * 282,
+                      left: 15,
+                      width: 690,
+                      height: 282,
+                      outline: phantomOutline
+                        ? "1px dashed currentColor"
                         : undefined,
-                      0,
-                    ),
-                  }}
-                  exit={{
-                    opacity: oStyle(
-                      oL2
-                        ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                        : undefined,
-                      0,
-                    ),
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: 15 + i * 282,
-                    left: 15,
-                    width: 690,
-                    height: 282,
-                    outline: phantomOutline ? "1px dashed currentColor" : undefined,
-                    zIndex: zStyle(
-                      zL2
-                        ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
-                        : undefined,
-                    ),
-                  }}
-                />
-              ))}
+                      zIndex: zStyle(
+                        zL2
+                          ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
+                          : undefined,
+                      ),
+                      // B.PT172 — when not in debug "show at destination"
+                      // mode, phantoms are pure invisible morph targets
+                      // (no pointer events). When debug mode is on we
+                      // still don't want phantoms intercepting clicks
+                      // on the modal interior — leave pointer-events
+                      // disabled regardless.
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {showLandingAtDest && opt ? (
+                      // B.PT172 — render the actual chip rendering at
+                      // the phantom's destination rect so the user
+                      // sees what Layer 1 looks like AT post-morph
+                      // position. The slot's content stays at its
+                      // CSS-natural size (50px tall) anchored to the
+                      // top-left of the 282-tall phantom rect — same
+                      // as the spec's "Frame 6/12 stay 50px while
+                      // slot grows to 282" behavior. To make this
+                      // visible, the user must also bump the
+                      // matching `Phantom slot N opacity` slider in
+                      // the Layer 2 folder up from the production
+                      // default of 0.
+                      <SlotRow
+                        title="intro"
+                        description="quick chat, voice only"
+                        durationLabel={opt.label}
+                        onClick={() => {}}
+                      />
+                    ) : null}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
           <h2 id="handle-modal-title" className="sr-only">
