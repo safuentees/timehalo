@@ -28,6 +28,7 @@ import {
 import {
   isFigWireFrame,
   extractCompressedSchema,
+  isZstdCompressed,
 } from '../vendor/figma-kiwi/lib/kiwi.mjs';
 import {
   decodePage,
@@ -70,14 +71,27 @@ if (!schema) {
 // 2. Compile schema -> decoder
 const decoder = compileSchema(schema);
 
-// 3. Decode every non-schema RECV frame
+// 3. Decode every non-schema RECV frame.
+//
+// B.PT153: scenegraph data frames arrive zstd-compressed (raw zstd
+// magic 28 B5 2F FD at byte 0 — no fig-wire header). Schema frames
+// are framed by `fig-wire` + version + zstd. Both need fzstd
+// decompression before kiwi-decode; the bug was that data frames
+// were passed straight to kiwi which then failed with "invalid
+// message" on every payload, producing a 0-node scenegraph.
 const pages = [];
 for (const f of files) {
   if (!f.includes('_recv_')) continue;
   const buf = readFileSync(join(DIR, f));
-  if (isFigWireFrame(new Uint8Array(buf))) continue;
+  const u8 = new Uint8Array(buf);
+  if (isFigWireFrame(u8)) continue; // schema frame, already handled
   try {
-    const page = decodePage(new Uint8Array(buf), decoder);
+    // Raw zstd payload → decompress, then kiwi-decode. The
+    // `isZstdCompressed` helper has lived in `vendor/figma-kiwi/
+    // lib/kiwi.mjs` since the original vendor pull — wiring it here
+    // is the one-line fix.
+    const payload = isZstdCompressed(u8) ? fzstdDecompress(u8) : u8;
+    const page = decodePage(payload, decoder);
     if (page?.nodeChanges?.length) {
       pages.push(page);
     }
