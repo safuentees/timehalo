@@ -4,7 +4,9 @@ import {
   createContext,
   useContext,
   useMemo,
+  useRef,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { folder, Leva, useControls } from "leva";
@@ -63,13 +65,25 @@ export type ModalDebugValues = {
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
 };
 
-const ModalDebugContext = createContext<ModalDebugValues | null>(null);
+type ModalDebugContextValue = {
+  values: ModalDebugValues | null;
+  /** Ref to the DOM container holding the Leva panel. `<HandleModal>`
+   *  passes this as a `<FocusOn shards>` so clicks/focus on the panel
+   *  don't trigger the modal's onClickOutside / focus-trap escape.
+   *  null when debug is disabled. */
+  panelShardRef: RefObject<HTMLDivElement | null> | null;
+};
+
+const ModalDebugContext = createContext<ModalDebugContextValue>({
+  values: null,
+  panelShardRef: null,
+});
 
 /** Read debug overrides from the page-level overlay. Returns `null`
- *  in production / when `?debug=1` is absent — consumers fall back
- *  to spec defaults. Safe to call from any component inside the
+ *  values in production / when `?debug=1` is absent — consumers fall
+ *  back to spec defaults. Safe to call from any component inside the
  *  `/h/[handle]/*` route group. */
-export function useModalDebug(): ModalDebugValues | null {
+export function useModalDebug() {
   return useContext(ModalDebugContext);
 }
 
@@ -80,6 +94,11 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const enabled =
     process.env.NODE_ENV === "development" && params?.get("debug") === "1";
+  // B.PT165 — ref to the Leva panel container. Passed via context so
+  // `<HandleModal>`'s `<FocusOn>` treats interactions on the panel as
+  // "inside" the modal scope (no onClickOutside fires when clicking a
+  // slider; focus trap doesn't try to pull tab back from the panel).
+  const panelShardRef = useRef<HTMLDivElement | null>(null);
 
   // Always register controls (React hook rules); only the consumer
   // contract gates on `enabled`. Leva caches duplicate registrations
@@ -165,8 +184,22 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   ]);
 
   return (
-    <ModalDebugContext.Provider value={value}>
-      {enabled ? <Leva collapsed={false} oneLineLabels /> : null}
+    <ModalDebugContext.Provider
+      value={{ values: value, panelShardRef: enabled ? panelShardRef : null }}
+    >
+      {enabled ? (
+        // Wrapper div carries the shard ref. Leva itself renders to
+        // `document.body` via portal, so the wrapper is empty in the
+        // visible tree — but FocusOn's shards check ALSO includes
+        // children of the shard root via DOM tree walks; the empty
+        // wrapper is enough as a hook into the portal target. NOTE
+        // if Leva ever stops portalling (newer versions or theme
+        // configs), the panel will render inside this wrapper
+        // directly, which is also fine for shards.
+        <div ref={panelShardRef} data-oh-debug-panel="">
+          <Leva collapsed={false} oneLineLabels />
+        </div>
+      ) : null}
       {children}
     </ModalDebugContext.Provider>
   );

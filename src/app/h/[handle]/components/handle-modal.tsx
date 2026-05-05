@@ -111,10 +111,13 @@ export function HandleModal({
   // transitions[1] — stiffer + more damped than the open spring.
   const [view, setView] = useState<"picker" | "form">("picker");
 
-  // B.PT164 — debug overrides come from the route-level overlay
-  // mounted in `/h/[handle]/layout.tsx` via React Context. `null` in
-  // production / when `?debug=1` is absent — fall back to spec.
-  const debug = useModalDebug();
+  // B.PT164 / B.PT165 — debug overrides come from the route-level
+  // overlay mounted in `/h/[handle]/layout.tsx` via React Context.
+  // `values` is null in production / when `?debug=1` is absent — fall
+  // back to spec defaults. `panelShardRef` (B.PT165) gets passed to
+  // <FocusOn shards> so interactions on the Leva panel don't fire
+  // the modal's onClickOutside / focus-trap escape.
+  const { values: debug, panelShardRef } = useModalDebug();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
@@ -158,6 +161,14 @@ export function HandleModal({
       // that opened the modal) on close. Standard a11y contract Radix
       // Dialog gave us before; FocusOn restores it.
       returnFocus
+      // B.PT165 — when the Leva debug panel is mounted (?debug=1 in
+      // dev), pass its container ref as a shard so clicks/focus on
+      // the panel are treated as "inside" the modal: no
+      // onClickOutside fires when sliding a control, focus trap
+      // doesn't pull tab back from the panel, scroll-lock doesn't
+      // disable wheel events on the panel. Production (no debug):
+      // `panelShardRef` is null → empty array → no-op.
+      shards={panelShardRef ? [panelShardRef] : undefined}
     >
       {/* Backdrop — fades in/out with the modal. Outside the
           motion.article so it doesn't participate in the layoutId
