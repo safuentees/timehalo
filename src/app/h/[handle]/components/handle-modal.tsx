@@ -13,10 +13,7 @@ import {
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
-import {
-  ModalDebugPanel,
-  useModalDebugValues,
-} from "./handle-modal-debug";
+import type { ModalDebugValues } from "./handle-modal-debug";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -82,6 +79,10 @@ type Props = {
   rescheduleFromUid?: string;
   /** How many calendar months the inner MonthDrawer should render. */
   months?: number;
+  /** B.PT163 — debug overrides from `useModalDebugValues()` hoisted at
+   *  page root. `null`/undefined in production. When set (?debug=1 in
+   *  dev), each value replaces the spec default. */
+  debug?: ModalDebugValues | null;
 };
 
 export function HandleModal({
@@ -95,6 +96,7 @@ export function HandleModal({
   selectedSlot,
   rescheduleFromUid,
   months = 3,
+  debug = null,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -114,10 +116,9 @@ export function HandleModal({
   // transitions[1] — stiffer + more damped than the open spring.
   const [view, setView] = useState<"picker" | "form">("picker");
 
-  // B.PT163 — debug overrides. `null` in production / non-debug. When
-  // active (?debug=1 in dev), these values replace the spec defaults
-  // so a designer can slide stiffness / damping etc. live.
-  const debug = useModalDebugValues();
+  // B.PT163 — debug overrides come in via the `debug` prop (hoisted
+  // to host-profile.tsx so the Leva panel renders even before the
+  // modal opens). `null` in production / non-debug.
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
@@ -417,10 +418,6 @@ export function HandleModal({
           </div>
         </motion.article>
       </div>
-      {/* B.PT163 — Leva debug panel. Self-gates to dev + ?debug=1 so
-          shipping doesn't expose it to visitors. Mounted inside the
-          modal so it only shows up when the modal itself is open. */}
-      <ModalDebugPanel />
     </FocusOn>
   );
 }

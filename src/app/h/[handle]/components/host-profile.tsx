@@ -17,6 +17,10 @@ import {
 } from "@/lib/url-params";
 import { cn } from "@/lib/utils";
 import { HandleModal } from "./handle-modal";
+import {
+  ModalDebugPanel,
+  useModalDebugValues,
+} from "./handle-modal-debug";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 
 // B.PT156 — open spring is the SMART_ANIMATE physics from Figma
@@ -44,6 +48,12 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
+  // B.PT163 — debug values (Leva panel for live animation tweaking).
+  // Hook always runs (React hook rules); returns `null` in production
+  // and when `?debug=1` is absent. Hoisted from `<HandleModal>` so
+  // the panel + controls register the moment the page loads — user
+  // no longer has to open the modal first to see the Leva UI.
+  const modalDebug = useModalDebugValues();
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -429,6 +439,7 @@ export default function HostProfile({
             onSelectDate={handleSelectDate}
             selectedSlot={selectedSlot}
             rescheduleFromUid={rescheduleFromUid}
+            debug={modalDebug}
             onPickSlot={(s) => {
               setSelectedSlot(s);
               updateQueryParam("slot", s.start, { pushEntry: true });
@@ -436,6 +447,13 @@ export default function HostProfile({
           />
         ) : null}
       </AnimatePresence>
+      {/* B.PT163 — Leva debug panel mount. Self-gates to dev +
+          ?debug=1 so production users never see it. Mounted here
+          (page root) so the panel is present from page load — the
+          B.PT163 first-pass mounted it inside HandleModal which only
+          rendered after the modal opened, leaving the panel
+          invisible until that point. */}
+      <ModalDebugPanel />
     </OhVisitorShell>
   );
 }
