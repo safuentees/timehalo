@@ -29,6 +29,7 @@ export type ModalDebugValues = {
   phantomOpacity: number;
   showPhantomOutline: boolean;
   disableMorph: boolean;
+  keepLandingMounted: boolean;
   openSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   closeSpring: { mass: number; stiffness: number; damping: number; velocity: number };
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
@@ -104,6 +105,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     {
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
+      keepLandingMounted: { value: false, label: "Keep landing mounted" },
       panelZ: {
         value: "above",
         options: ["above", "between", "below scrim"] as const,
@@ -175,6 +177,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       phantomOpacity: ctrls.o_layer2_identity,
       showPhantomOutline: ctrls.showPhantomOutline,
       disableMorph: ctrls.disableMorph,
+      keepLandingMounted: ctrls.keepLandingMounted,
       openSpring: {
         mass: ctrls.openMass,
         stiffness: ctrls.openStiffness,
@@ -234,6 +237,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     enabled,
     ctrls.showPhantomOutline,
     ctrls.disableMorph,
+    ctrls.keepLandingMounted,
     ctrls.openMass,
     ctrls.openStiffness,
     ctrls.openDamping,

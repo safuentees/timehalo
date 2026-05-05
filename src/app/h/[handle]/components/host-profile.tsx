@@ -45,6 +45,9 @@ export default function HostProfile({
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
+  const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
+  const landingLayoutId = (id: string) =>
+    keepLandingMounted ? undefined : id;
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -185,10 +188,10 @@ export default function HostProfile({
 
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
         <AnimatePresence mode="popLayout">
-          {!drawerOpen ? (
+          {!drawerOpen || keepLandingMounted ? (
             <motion.article
               key="landing-card"
-              layoutId="handle-card"
+              layoutId={landingLayoutId("handle-card")}
               transition={{ type: "spring", ...OPEN_SPRING }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
@@ -201,7 +204,7 @@ export default function HostProfile({
               )}
             >
               <motion.header
-                layoutId="oh-identity"
+                layoutId={landingLayoutId("oh-identity")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
@@ -234,7 +237,7 @@ export default function HostProfile({
               </motion.header>
 
               <motion.div
-                layoutId="oh-slot-list"
+                layoutId={landingLayoutId("oh-slot-list")}
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
@@ -250,7 +253,7 @@ export default function HostProfile({
                     {SLOT_OPTIONS.map((opt, i) => (
                       <li key={opt.label}>
                         <motion.div
-                          layoutId={`oh-slot-${i}`}
+                          layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...OPEN_SPRING }}
                           animate={{
                             opacity: oStyle(
