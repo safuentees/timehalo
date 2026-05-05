@@ -124,6 +124,7 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+          initial={{ opacity: oStyle(oL2?.layer, 1) }}
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
           exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
@@ -139,6 +140,7 @@ export function HandleModal({
             <motion.div
               layoutId="oh-identity"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
@@ -172,6 +174,7 @@ export function HandleModal({
             <motion.div
               layoutId="oh-slot-list"
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}
               exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
@@ -195,6 +198,14 @@ export function HandleModal({
                     transition={{
                       type: "spring",
                       ...(open ? openSpring : closeSpring),
+                    }}
+                    initial={{
+                      opacity: oStyle(
+                        oL2
+                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
+                          : undefined,
+                        0,
+                      ),
                     }}
                     animate={{
                       opacity: oStyle(

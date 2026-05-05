@@ -204,6 +204,7 @@ export default function HostProfile({
               key="landing-card"
               layoutId={landingLayoutId("handle-card")}
               transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+              initial={{ opacity: oStyle(oL1?.layer, 1) }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
               style={{
@@ -220,6 +221,7 @@ export default function HostProfile({
               <motion.header
                 layoutId={landingLayoutId("oh-identity")}
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                initial={{ opacity: oStyle(oL1?.identity, 1) }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
                 exit={{ opacity: oStyle(oL1?.identity, 1) }}
                 style={{ zIndex: zStyle(zL1?.identity) }}
@@ -253,6 +255,7 @@ export default function HostProfile({
               <motion.div
                 layoutId={landingLayoutId("oh-slot-list")}
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                initial={{ opacity: oStyle(oL1?.slotList, 1) }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
                 exit={{ opacity: oStyle(oL1?.slotList, 1) }}
                 style={{ zIndex: zStyle(zL1?.slotList) }}
@@ -269,6 +272,14 @@ export default function HostProfile({
                         <motion.div
                           layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
+                          initial={{
+                            opacity: oStyle(
+                              oL1
+                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
+                                : undefined,
+                              1,
+                            ),
+                          }}
                           animate={{
                             opacity: oStyle(
                               oL1
