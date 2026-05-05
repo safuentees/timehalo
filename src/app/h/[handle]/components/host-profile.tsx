@@ -185,7 +185,7 @@ export default function HostProfile({
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+                "rounded-[25px] bg-[color:var(--oh-paper)]",
                 "shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]",
               )}
             >
@@ -209,21 +209,21 @@ export default function HostProfile({
                     </Avatar>
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
+                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
                     />
                   </span>
-                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
                     {displayName}
                   </h1>
                 </div>
-                <p className="oh-description">{t("defaultBio")}</p>
+                <p className="oh-description text-center">{t("defaultBio")}</p>
               </motion.header>
 
               <motion.div
                 layoutId="oh-slot-list"
                 transition={{ type: "spring", ...OPEN_SPRING }}
                 className={cn(
-                  "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+                  "flex flex-col gap-2.5 rounded-[20px] p-[15px]",
                   "bg-[#F5EFDF]",
                   "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
                 )}
@@ -313,23 +313,25 @@ function SlotRow({
       onClick={onClick}
       className={cn(
         "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
-        "rounded-[14px] bg-[color:var(--oh-paper)] px-3 text-left",
+        "rounded-[14px] bg-[color:var(--oh-paper)] px-[11px] text-left",
         "shadow-[0_0_4px_rgba(0,0,0,0.25)]",
         "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
       )}
     >
-      <div className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate font-sans text-[15px] font-bold leading-[20px]">
+      <div className="flex min-w-0 flex-col items-center leading-tight">
+        <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
         </span>
-        <span className="truncate font-sans text-[12px] leading-[15px] opacity-65">
+        <span className="truncate font-sans text-[12px] font-normal leading-[15px]">
           {description}
         </span>
       </div>
-      <div className="flex items-baseline gap-1 shrink-0 font-[family-name:var(--oh-mono)] tabular-nums">
-        <span className="text-[24px] font-bold leading-none">{num}</span>
+      <div className="flex items-baseline shrink-0 font-sans tabular-nums">
+        <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
+          {num}
+        </span>
         {unit ? (
-          <span className="text-[11px] font-bold leading-none opacity-65">
+          <span className="ml-1 text-[12px] font-normal leading-[15px]">
             {unit}
           </span>
         ) : null}
