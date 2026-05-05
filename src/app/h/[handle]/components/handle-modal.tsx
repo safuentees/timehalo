@@ -152,7 +152,17 @@ export function HandleModal({
                 pointerEvents: "none",
               }}
             >
-              {showLandingAtDest && identityContent ? identityContent : null}
+              {showLandingAtDest && identityContent ? (
+                <motion.div
+                  layout
+                  transition={{
+                    type: "spring",
+                    ...(open ? openSpring : closeSpring),
+                  }}
+                >
+                  {identityContent}
+                </motion.div>
+              ) : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
                   identity
@@ -220,12 +230,20 @@ export function HandleModal({
                     }}
                   >
                     {showLandingAtDest && opt ? (
-                      <SlotRow
-                        title="intro"
-                        description="quick chat, voice only"
-                        durationLabel={opt.label}
-                        onClick={() => {}}
-                      />
+                      <motion.div
+                        layout
+                        transition={{
+                          type: "spring",
+                          ...(open ? openSpring : closeSpring),
+                        }}
+                      >
+                        <SlotRow
+                          title="intro"
+                          description="quick chat, voice only"
+                          durationLabel={opt.label}
+                          onClick={() => {}}
+                        />
+                      </motion.div>
                     ) : null}
                     {phantomLabels ? (
                       <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
