@@ -89,7 +89,7 @@ export function HandleModal({
     >
       <motion.div
         aria-hidden
-        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/30 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -105,8 +105,46 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
-          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-2xl"
+          style={{ willChange: "transform" }}
+          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-[15px]"
+          >
+            <motion.div
+              layoutId="oh-identity"
+              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+              style={{
+                position: "absolute",
+                top: 22,
+                left: 192,
+                width: 336,
+                height: 87,
+                opacity: 0,
+              }}
+            />
+            <motion.div
+              layoutId="oh-slot-list"
+              transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+              style={{ position: "absolute", inset: 0, opacity: 0 }}
+            >
+              {Array.from({ length: 4 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  layoutId={`oh-slot-${i}`}
+                  transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
+                  style={{
+                    position: "absolute",
+                    top: 15 + i * 282,
+                    left: 15,
+                    width: 690,
+                    height: 282,
+                  }}
+                />
+              ))}
+            </motion.div>
+          </div>
           <h2 id="handle-modal-title" className="sr-only">
             {view === "form"
               ? rescheduleFromUid
