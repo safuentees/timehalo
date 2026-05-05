@@ -106,7 +106,7 @@ export function HandleModal({
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? OPEN_SPRING : CLOSE_SPRING) }}
           style={{ willChange: "transform" }}
-          className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
         >
           <div
             aria-hidden
