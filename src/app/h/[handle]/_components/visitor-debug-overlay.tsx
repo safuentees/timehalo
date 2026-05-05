@@ -50,11 +50,33 @@ export type ModalDebugValues = {
     slot2: number;
     slot3: number;
   };
+  oLayer1: {
+    layer: number;
+    identity: number;
+    slotList: number;
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
+  oLayer2: {
+    layer: number;
+    identity: number;
+    slotList: number;
+    slot0: number;
+    slot1: number;
+    slot2: number;
+    slot3: number;
+  };
 };
 
 export function zStyle(v: number | undefined): number | undefined {
   if (v === undefined || v === 0) return undefined;
   return v;
+}
+
+export function oStyle(v: number | undefined, fallback: number): number {
+  return v ?? fallback;
 }
 
 type ModalDebugContextValue = {
@@ -80,13 +102,6 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const ctrls = useControls(
     "Handle modal animation",
     {
-      phantomOpacity: {
-        value: 0,
-        min: 0,
-        max: 1,
-        step: 0.05,
-        label: "Phantom opacity",
-      },
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
       panelZ: {
@@ -114,61 +129,39 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       }),
       "Layer 1 (landing)": folder(
         {
-          z_layer1: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Landing layer z",
-          },
-          z_layer1_identity: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Identity header z",
-          },
-          z_layer1_slotList: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Slot-list card z",
-          },
+          z_layer1: { value: 0, min: -100, max: 100, step: 1, label: "Landing layer z" },
+          z_layer1_identity: { value: 0, min: -100, max: 100, step: 1, label: "Identity header z" },
+          z_layer1_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Slot-list card z" },
           z_layer1_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Slot 0 z" },
           z_layer1_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Slot 1 z" },
           z_layer1_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Slot 2 z" },
           z_layer1_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Slot 3 z" },
+          o_layer1: { value: 1, min: 0, max: 1, step: 0.05, label: "Landing layer opacity" },
+          o_layer1_identity: { value: 1, min: 0, max: 1, step: 0.05, label: "Identity opacity" },
+          o_layer1_slotList: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot-list opacity" },
+          o_layer1_slot0: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 0 opacity" },
+          o_layer1_slot1: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 1 opacity" },
+          o_layer1_slot2: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 2 opacity" },
+          o_layer1_slot3: { value: 1, min: 0, max: 1, step: 0.05, label: "Slot 3 opacity" },
         },
         { collapsed: true },
       ),
       "Layer 2 (modal phantoms)": folder(
         {
-          z_layer2: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Modal layer z",
-          },
-          z_layer2_identity: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Phantom identity z",
-          },
-          z_layer2_slotList: {
-            value: 0,
-            min: -100,
-            max: 100,
-            step: 1,
-            label: "Phantom slot-list z",
-          },
+          z_layer2: { value: 0, min: -100, max: 100, step: 1, label: "Modal layer z" },
+          z_layer2_identity: { value: 0, min: -100, max: 100, step: 1, label: "Phantom identity z" },
+          z_layer2_slotList: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot-list z" },
           z_layer2_slot0: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 0 z" },
           z_layer2_slot1: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 1 z" },
           z_layer2_slot2: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 2 z" },
           z_layer2_slot3: { value: 0, min: -100, max: 100, step: 1, label: "Phantom slot 3 z" },
+          o_layer2: { value: 1, min: 0, max: 1, step: 0.05, label: "Modal article opacity" },
+          o_layer2_identity: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom identity opacity" },
+          o_layer2_slotList: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot-list opacity" },
+          o_layer2_slot0: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 0 opacity" },
+          o_layer2_slot1: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 1 opacity" },
+          o_layer2_slot2: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 2 opacity" },
+          o_layer2_slot3: { value: 0, min: 0, max: 1, step: 0.05, label: "Phantom slot 3 opacity" },
         },
         { collapsed: true },
       ),
@@ -179,7 +172,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const value = useMemo<ModalDebugValues | null>(() => {
     if (!enabled) return null;
     return {
-      phantomOpacity: ctrls.phantomOpacity,
+      phantomOpacity: ctrls.o_layer2_identity,
       showPhantomOutline: ctrls.showPhantomOutline,
       disableMorph: ctrls.disableMorph,
       openSpring: {
@@ -218,10 +211,27 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         slot2: ctrls.z_layer2_slot2,
         slot3: ctrls.z_layer2_slot3,
       },
+      oLayer1: {
+        layer: ctrls.o_layer1,
+        identity: ctrls.o_layer1_identity,
+        slotList: ctrls.o_layer1_slotList,
+        slot0: ctrls.o_layer1_slot0,
+        slot1: ctrls.o_layer1_slot1,
+        slot2: ctrls.o_layer1_slot2,
+        slot3: ctrls.o_layer1_slot3,
+      },
+      oLayer2: {
+        layer: ctrls.o_layer2,
+        identity: ctrls.o_layer2_identity,
+        slotList: ctrls.o_layer2_slotList,
+        slot0: ctrls.o_layer2_slot0,
+        slot1: ctrls.o_layer2_slot1,
+        slot2: ctrls.o_layer2_slot2,
+        slot3: ctrls.o_layer2_slot3,
+      },
     };
   }, [
     enabled,
-    ctrls.phantomOpacity,
     ctrls.showPhantomOutline,
     ctrls.disableMorph,
     ctrls.openMass,
@@ -250,6 +260,20 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.z_layer2_slot1,
     ctrls.z_layer2_slot2,
     ctrls.z_layer2_slot3,
+    ctrls.o_layer1,
+    ctrls.o_layer1_identity,
+    ctrls.o_layer1_slotList,
+    ctrls.o_layer1_slot0,
+    ctrls.o_layer1_slot1,
+    ctrls.o_layer1_slot2,
+    ctrls.o_layer1_slot3,
+    ctrls.o_layer2,
+    ctrls.o_layer2_identity,
+    ctrls.o_layer2_slotList,
+    ctrls.o_layer2_slot0,
+    ctrls.o_layer2_slot1,
+    ctrls.o_layer2_slot2,
+    ctrls.o_layer2_slot3,
   ]);
 
   const panelZIndex =
