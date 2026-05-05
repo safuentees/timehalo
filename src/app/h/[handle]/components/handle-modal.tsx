@@ -335,7 +335,31 @@ export function HandleModal({
                 pointerEvents: "none",
               }}
             >
-              {showLandingAtDest && identityContent ? identityContent : null}
+              {/* B.PT180 — inverse-scale wrapper. Per motion docs:
+                  "layout animations that change size can distort child
+                  components. This can be corrected by providing child
+                  components with a layout prop as well. Only
+                  immediate children need to be corrected for scale
+                  distortion." Without this wrapper, the avatar + h1
+                  inside scale with the parent's transform during the
+                  morph (the phantom rect grows from landing's
+                  natural identity size to its 336×87 destination,
+                  any size delta gets applied to children's paint).
+                  Identity sizes match closely so the visible
+                  distortion was small here, but symmetric with the
+                  slot wrapper below + future-proof if the rect
+                  delta grows. */}
+              {showLandingAtDest && identityContent ? (
+                <motion.div
+                  layout
+                  transition={{
+                    type: "spring",
+                    ...(open ? openSpring : closeSpring),
+                  }}
+                >
+                  {identityContent}
+                </motion.div>
+              ) : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
                   identity
@@ -422,12 +446,34 @@ export function HandleModal({
                       // top-left of the 282-tall phantom rect — same
                       // as the spec's "Frame 6/12 stay 50px while
                       // slot grows to 282" behavior.
-                      <SlotRow
-                        title="intro"
-                        description="quick chat, voice only"
-                        durationLabel={opt.label}
-                        onClick={() => {}}
-                      />
+                      // B.PT180 — `<motion.div layout>` is the
+                      // inverse-scale wrapper. The phantom's rect
+                      // morphs from 325×50 (landing source) to
+                      // 690×282 (modal destination) — a 2.12× wider
+                      // and 5.64× taller scale transform. Without
+                      // this wrapper the SlotRow children paint with
+                      // that transform applied → text + duration
+                      // label squished/elongated mid-morph (and
+                      // visibly squished at destination because the
+                      // transform doesn't fully unwind for content
+                      // rendered conditionally). Mirrors the same
+                      // wrapper on the LANDING side (B.PT162); the
+                      // modal side was missing it, breaking the
+                      // symmetric Smart-Animate behavior.
+                      <motion.div
+                        layout
+                        transition={{
+                          type: "spring",
+                          ...(open ? openSpring : closeSpring),
+                        }}
+                      >
+                        <SlotRow
+                          title="intro"
+                          description="quick chat, voice only"
+                          durationLabel={opt.label}
+                          onClick={() => {}}
+                        />
+                      </motion.div>
                     ) : null}
                     {phantomLabels ? (
                       <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
