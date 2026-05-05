@@ -479,7 +479,8 @@
     "nextSlotAria": "Next available slot",
     "metaSession": "Session",
     "metaOpen": "Open",
-    "metaTz": "Time zone"
+    "metaTz": "Time zone",
+    "landingCardAria": "Booking card for {name}"
   },
   "Auth": {
     "loginTitle": "Sign in",

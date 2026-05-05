@@ -2,30 +2,14 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
-import { CalendarIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  OhEmpty,
-  OhEmptyDescription,
-  OhEmptyHeader,
-  OhEmptyMedia,
-  OhEmptyTitle,
-} from "@/components/oh/oh-empty";
-import { OhPageShell } from "@/components/oh/page-shell";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
-import {
-  AvailabilityDrawer,
-  TriggerCard,
-} from "@/components/calendar";
-import {
-  isOpenSlot,
-  toKey,
-  type Slot,
-} from "@/lib/availability";
+import { AvailabilityDrawer } from "@/components/calendar";
+import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
 import {
   getQueryParam,
   updateQueryParam,
@@ -187,67 +171,68 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <OhPageShell>
-        <header className="flex flex-col gap-7">
-          <div className="flex items-center gap-3">
-            <Avatar size="lg">
-              <AvatarImage src={user.image ?? undefined} alt={displayName} />
-              <AvatarFallback className="bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col leading-tight">
-              <span className="oh-eyebrow opacity-100">@{user.handle}</span>
-              <span className="mt-1 text-[12px] tabular-nums opacity-55">
-                {t("daysWithSlots", { count: daysWithOpenSlotsThisWeek })}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <h1 className="text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.05] tracking-tight">
-              {displayName}
-            </h1>
-            <p className="oh-description">{t("defaultBio")}</p>
-          </div>
-        </header>
-
-        <dl className="mt-10 grid grid-cols-3 divide-x divide-oh-line border-y border-oh-line">
-          <MetaCell
-            label={t("metaSession")}
-            value={
-              <>
-                15
-                <span className="ml-0.5 text-[12px] opacity-55">m</span>
-              </>
-            }
-          />
-          <MetaCell
-            label={t("metaOpen")}
-            value={availableSlots.length.toString().padStart(2, "0")}
-          />
-          <MetaCell label={t("metaTz")} value={visitorTz} compact />
-        </dl>
-
-        <section
-          className="mt-10 flex flex-col gap-6"
-          aria-label={t("pickADate")}
+      <div className="flex w-full justify-center px-4 py-10 sm:py-14">
+        <article
+          aria-label={t("landingCardAria", { name: displayName })}
+          className={cn(
+            "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+            "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+          )}
         >
-          {nextSlot ? <NextAvailable slot={nextSlot} /> : null}
-          {!hasSlots ? (
-            <HostEmpty displayName={displayName} kind="closed" />
-          ) : !hasOpenSlots ? (
-            <HostEmpty displayName={displayName} kind="booked" />
-          ) : null}
-          {hasOpenSlots ? (
-            <TriggerCard
-              selectedDate={selectedDate}
-              selectedSlot={selectedSlot}
-              onClick={() => setDrawerOpen(true)}
-            />
-          ) : null}
-        </section>
-      </OhPageShell>
+          <header className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <span className="relative inline-flex size-[55px] shrink-0">
+                <Avatar className="size-[55px]">
+                  <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                  <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
+                />
+              </span>
+              <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                {displayName}
+              </h1>
+            </div>
+            <p className="oh-description">{t("defaultBio")}</p>
+          </header>
+
+          <div
+            className={cn(
+              "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+              "bg-[#F5EFDF]",
+            )}
+          >
+            {hasOpenSlots ? (
+              <ul className="flex flex-col gap-2.5">
+                {SLOT_OPTIONS.map((opt) => (
+                  <li key={opt.label}>
+                    <SlotRow
+                      title="intro"
+                      description="quick chat, voice only"
+                      durationLabel={opt.label}
+                      onClick={() => setDrawerOpen(true)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="oh-description py-6 text-center">
+                {!hasSlots
+                  ? t("emptyClosedDescription", { name: displayName })
+                  : t("emptyBookedDescription", { name: displayName })}
+              </p>
+            )}
+          </div>
+        </article>
+      </div>
+
+      <span className="sr-only" aria-hidden>
+        {visitorTz} · {daysWithOpenSlotsThisWeek} · {nextSlot?.start ?? ""}
+      </span>
 
       {hasOpenSlots ? (
         <AvailabilityDrawer
@@ -269,79 +254,54 @@ export default function HostProfile({
   );
 }
 
-function MetaCell({
-  label,
-  value,
-  compact = false,
+const SLOT_OPTIONS = [
+  { label: "15 min" },
+  { label: "25 min" },
+  { label: "30 min" },
+  { label: "1 hr" },
+] as const;
+
+function SlotRow({
+  title,
+  description,
+  durationLabel,
+  onClick,
 }: {
-  label: string;
-  value: React.ReactNode;
-  compact?: boolean;
+  title: string;
+  description: string;
+  durationLabel: string;
+  onClick: () => void;
 }) {
+  const match = /^(\d+)\s*(.+)$/.exec(durationLabel);
+  const num = match?.[1] ?? durationLabel;
+  const unit = match?.[2] ?? "";
   return (
-    <div className="flex flex-col gap-1.5 px-4 py-4">
-      <dt className="oh-eyebrow">{label}</dt>
-      <dd
-        className={cn(
-          "font-[family-name:var(--oh-mono)] font-bold tabular-nums truncate",
-          compact ? "text-[13px]" : "text-[16px]",
-        )}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function HostEmpty({
-  displayName,
-  kind,
-}: {
-  displayName: string;
-  kind: "closed" | "booked";
-}) {
-  const t = useTranslations("HostProfile");
-  const title =
-    kind === "closed" ? t("emptyClosedTitle") : t("emptyBookedTitle");
-  const description =
-    kind === "closed"
-      ? t("emptyClosedDescription", { name: displayName })
-      : t("emptyBookedDescription", { name: displayName });
-
-  return (
-    <OhEmpty>
-      <OhEmptyHeader>
-        <OhEmptyMedia>
-          <CalendarIcon />
-        </OhEmptyMedia>
-        <OhEmptyTitle>{title}</OhEmptyTitle>
-        <OhEmptyDescription>{description}</OhEmptyDescription>
-      </OhEmptyHeader>
-    </OhEmpty>
-  );
-}
-
-function NextAvailable({ slot }: { slot: Slot }) {
-  const t = useTranslations("HostProfile");
-  const format = useFormatter();
-  const startDate = new Date(slot.start);
-  const weekday = format.dateTime(startDate, { weekday: "short" });
-  const dayNum = format.dateTime(startDate, { day: "numeric" });
-  return (
-    <section
-      aria-label={t("nextSlotAria")}
-      className="flex items-baseline justify-between gap-4 border-b border-oh-line pb-4"
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
+        "rounded-[14px] bg-[color:var(--oh-paper)] px-3 text-left",
+        "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
+      )}
     >
-      <span className="oh-eyebrow opacity-100">{t("nextAvailable")}</span>
-      <div className="flex items-baseline gap-3">
-        <span className="font-[family-name:var(--oh-mono)] text-[18px] font-bold tabular-nums">
-          {fmtTime(startDate)}
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate font-sans text-[15px] font-bold leading-[20px]">
+          {title}
         </span>
-        <span className="oh-eyebrow tabular-nums">
-          {weekday} {dayNum}
+        <span className="truncate font-sans text-[12px] leading-[15px] opacity-65">
+          {description}
         </span>
       </div>
-    </section>
+      <div className="flex items-baseline gap-1 shrink-0 font-[family-name:var(--oh-mono)] tabular-nums">
+        <span className="text-[24px] font-bold leading-none">{num}</span>
+        {unit ? (
+          <span className="text-[11px] font-bold leading-none opacity-65">
+            {unit}
+          </span>
+        ) : null}
+      </div>
+    </button>
   );
 }
 
@@ -349,13 +309,6 @@ function parseDateKey(key: string): Date | undefined {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
   if (!m) return undefined;
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-}
-
-function fmtTime(d: Date): string {
-  const hour24 = d.getHours();
-  const hour12 = ((hour24 + 11) % 12) + 1;
-  const suffix = hour24 < 12 ? "AM" : "PM";
-  return `${hour12}:${String(d.getMinutes()).padStart(2, "0")} ${suffix}`;
 }
 
 function countOpenDaysThisWeek(slots: Slot[], now: Date): number {
