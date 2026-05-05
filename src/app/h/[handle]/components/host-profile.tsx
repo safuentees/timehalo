@@ -6,9 +6,9 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
+import { AnimatePresence, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
-import { AvailabilityDrawer } from "@/components/calendar";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
 import {
   getQueryParam,
@@ -16,6 +16,10 @@ import {
   updateQueryParams,
 } from "@/lib/url-params";
 import { cn } from "@/lib/utils";
+import { HandleModal } from "./handle-modal";
+import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+
+const OPEN_SPRING = animSpec.transitions[0].spring;
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -172,84 +176,94 @@ export default function HostProfile({
       ) : null}
 
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
-        <article
-          aria-label={t("landingCardAria", { name: displayName })}
-          className={cn(
-            "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-            "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
-          )}
-        >
-          <header className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="relative inline-flex size-[55px] shrink-0">
-                <Avatar className="size-[55px]">
-                  <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                  <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
-                />
-              </span>
-              <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
-                {displayName}
-              </h1>
-            </div>
-            <p className="oh-description">{t("defaultBio")}</p>
-          </header>
-
-          <div
-            className={cn(
-              "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
-              "bg-[#F5EFDF]",
-            )}
-          >
-            {hasOpenSlots ? (
-              <ul className="flex flex-col gap-2.5">
-                {SLOT_OPTIONS.map((opt) => (
-                  <li key={opt.label}>
-                    <SlotRow
-                      title="intro"
-                      description="quick chat, voice only"
-                      durationLabel={opt.label}
-                      onClick={() => setDrawerOpen(true)}
+        <AnimatePresence mode="popLayout">
+          {!drawerOpen ? (
+            <motion.article
+              key="landing-card"
+              layoutId="handle-card"
+              transition={{ type: "spring", ...OPEN_SPRING }}
+              aria-label={t("landingCardAria", { name: displayName })}
+              className={cn(
+                "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+                "rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)]",
+              )}
+            >
+              <header className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="relative inline-flex size-[55px] shrink-0">
+                    <Avatar className="size-[55px]">
+                      <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                      <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[color:var(--oh-line)]"
                     />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="oh-description py-6 text-center">
-                {!hasSlots
-                  ? t("emptyClosedDescription", { name: displayName })
-                  : t("emptyBookedDescription", { name: displayName })}
-              </p>
-            )}
-          </div>
-        </article>
+                  </span>
+                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-black leading-[1.06] tracking-tight">
+                    {displayName}
+                  </h1>
+                </div>
+                <p className="oh-description">{t("defaultBio")}</p>
+              </header>
+
+              <div
+                className={cn(
+                  "flex flex-col gap-2.5 rounded-[20px] border border-oh-line p-[15px]",
+                  "bg-[#F5EFDF]",
+                )}
+              >
+                {hasOpenSlots ? (
+                  <ul className="flex flex-col gap-2.5">
+                    {SLOT_OPTIONS.map((opt) => (
+                      <li key={opt.label}>
+                        <SlotRow
+                          title="intro"
+                          description="quick chat, voice only"
+                          durationLabel={opt.label}
+                          onClick={() => setDrawerOpen(true)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="oh-description py-6 text-center">
+                    {!hasSlots
+                      ? t("emptyClosedDescription", { name: displayName })
+                      : t("emptyBookedDescription", { name: displayName })}
+                  </p>
+                )}
+              </div>
+            </motion.article>
+          ) : null}
+        </AnimatePresence>
       </div>
 
       <span className="sr-only" aria-hidden>
         {visitorTz} · {daysWithOpenSlotsThisWeek} · {nextSlot?.start ?? ""}
       </span>
 
-      {hasOpenSlots ? (
-        <AvailabilityDrawer
-          handle={handle}
-          slots={slots}
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          selectedDate={selectedDate}
-          onSelectDate={handleSelectDate}
-          selectedSlot={selectedSlot}
-          rescheduleFromUid={rescheduleFromUid}
-          onPickSlot={(s) => {
-            setSelectedSlot(s);
-            updateQueryParam("slot", s.start, { pushEntry: true });
-          }}
-        />
-      ) : null}
+      <AnimatePresence mode="popLayout">
+        {hasOpenSlots && drawerOpen ? (
+          <HandleModal
+            key="handle-modal"
+            handle={handle}
+            slots={slots}
+            open
+            onOpenChange={setDrawerOpen}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            selectedSlot={selectedSlot}
+            rescheduleFromUid={rescheduleFromUid}
+            onPickSlot={(s) => {
+              setSelectedSlot(s);
+              updateQueryParam("slot", s.start, { pushEntry: true });
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
     </OhVisitorShell>
   );
 }
