@@ -54,6 +54,7 @@ type OBlock = {
 
 export type ModalDebugValues = {
   showPhantomOutline: boolean;
+  showPhantomLabels: boolean;
   keepLandingMounted: boolean;
   openSpring: SpringValues;
   closeSpring: SpringValues;
@@ -132,14 +133,41 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         hint:
           "production = real animation; inspect = frozen post-morph view (chip content rendered at destination rects, landing kept mounted); outline = dashed outline around phantom rects so you can see where motion is targeting.",
       },
-      phantomOpacity: {
+      identityOpacity: {
         value: 1,
         min: 0,
         max: 1,
         step: 0.05,
-        label: "phantom opacity",
+        label: "identity opacity",
         hint:
-          "How visible the destination chip content is in inspect mode. 0 hides; 1 fully opaque.",
+          "Modal identity-phantom rect (336×87 at 192,22). Renders avatar + name when keepLandingMounted is on.",
+        render: (get) => get("mode") === "inspect",
+      },
+      slotListOpacity: {
+        value: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        label: "slot-list opacity",
+        hint:
+          "Slot-list phantom is the PARENT of the 4 slot phantoms. CSS opacity composes multiplicatively — set this to 0 and the slot chips disappear regardless of their own opacity.",
+        render: (get) => get("mode") === "inspect",
+      },
+      slotsOpacity: {
+        value: 1,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        label: "slots opacity",
+        hint:
+          "All 4 slot-row phantoms (uniform). Renders the SlotRow content at destination size 690×282 when keepLandingMounted is on.",
+        render: (get) => get("mode") === "inspect",
+      },
+      showLabels: {
+        value: false,
+        label: "show element labels",
+        hint:
+          "Overlay each phantom rect with a small text label naming the element ('identity' / 'slot list' / 'slot 0..3'). Helps identify which phantom is rendering at which position when something looks wrong.",
         render: (get) => get("mode") === "inspect",
       },
       stackOrder: {
@@ -175,15 +203,17 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
 
     const inspect = ctrls.mode === "inspect";
     const outline = ctrls.mode === "outline";
-    const phantomVis = ctrls.phantomOpacity;
     const landingOnTop = ctrls.stackOrder === "landing on top";
 
     const zL1: ZBlock = landingOnTop
       ? { ...NO_Z, layer: 100 }
       : NO_Z;
 
+    const slots = ctrls.slotsOpacity;
+
     return {
       showPhantomOutline: outline,
+      showPhantomLabels: inspect && ctrls.showLabels,
       keepLandingMounted: inspect,
       openSpring: {
         mass: ctrls.openMass,
@@ -209,19 +239,22 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       oLayer2: inspect
         ? {
             layer: 1,
-            identity: phantomVis,
-            slotList: 0,
-            slot0: phantomVis,
-            slot1: phantomVis,
-            slot2: phantomVis,
-            slot3: phantomVis,
+            identity: ctrls.identityOpacity,
+            slotList: ctrls.slotListOpacity,
+            slot0: slots,
+            slot1: slots,
+            slot2: slots,
+            slot3: slots,
           }
         : LAYER2_PROD_O,
     };
   }, [
     enabled,
     ctrls.mode,
-    ctrls.phantomOpacity,
+    ctrls.identityOpacity,
+    ctrls.slotListOpacity,
+    ctrls.slotsOpacity,
+    ctrls.showLabels,
     ctrls.stackOrder,
     ctrls.openMass,
     ctrls.openStiffness,

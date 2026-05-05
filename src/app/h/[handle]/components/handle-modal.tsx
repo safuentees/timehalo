@@ -74,6 +74,7 @@ export function HandleModal({
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
   const phantomOutline = debug?.showPhantomOutline ?? false;
+  const phantomLabels = debug?.showPhantomLabels ?? false;
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
   const showLandingAtDest = debug?.keepLandingMounted ?? false;
@@ -152,6 +153,11 @@ export function HandleModal({
               }}
             >
               {showLandingAtDest && identityContent ? identityContent : null}
+              {phantomLabels ? (
+                <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                  identity
+                </span>
+              ) : null}
             </motion.div>
             <motion.div
               layoutId="oh-slot-list"
@@ -165,6 +171,11 @@ export function HandleModal({
                 zIndex: zStyle(zL2?.slotList),
               }}
             >
+              {phantomLabels ? (
+                <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
+                  slot list
+                </span>
+              ) : null}
               {Array.from({ length: 4 }).map((_, i) => {
                 const opt = SLOT_OPTIONS[i];
                 return (
@@ -215,6 +226,11 @@ export function HandleModal({
                         durationLabel={opt.label}
                         onClick={() => {}}
                       />
+                    ) : null}
+                    {phantomLabels ? (
+                      <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                        slot {i}
+                      </span>
                     ) : null}
                   </motion.div>
                 );
