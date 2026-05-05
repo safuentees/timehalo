@@ -4,7 +4,9 @@ import {
   createContext,
   useContext,
   useMemo,
+  useRef,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { folder, Leva, useControls } from "leva";
@@ -32,9 +34,17 @@ export type ModalDebugValues = {
   confirmSpring: { mass: number; stiffness: number; damping: number; velocity: number };
 };
 
-const ModalDebugContext = createContext<ModalDebugValues | null>(null);
+type ModalDebugContextValue = {
+  values: ModalDebugValues | null;
+  panelShardRef: RefObject<HTMLDivElement | null> | null;
+};
 
-export function useModalDebug(): ModalDebugValues | null {
+const ModalDebugContext = createContext<ModalDebugContextValue>({
+  values: null,
+  panelShardRef: null,
+});
+
+export function useModalDebug() {
   return useContext(ModalDebugContext);
 }
 
@@ -42,6 +52,7 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const enabled =
     process.env.NODE_ENV === "development" && params?.get("debug") === "1";
+  const panelShardRef = useRef<HTMLDivElement | null>(null);
 
   const ctrls = useControls(
     "Handle modal animation",
@@ -122,8 +133,14 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   ]);
 
   return (
-    <ModalDebugContext.Provider value={value}>
-      {enabled ? <Leva collapsed={false} oneLineLabels /> : null}
+    <ModalDebugContext.Provider
+      value={{ values: value, panelShardRef: enabled ? panelShardRef : null }}
+    >
+      {enabled ? (
+        <div ref={panelShardRef} data-oh-debug-panel="">
+          <Leva collapsed={false} oneLineLabels />
+        </div>
+      ) : null}
       {children}
     </ModalDebugContext.Provider>
   );

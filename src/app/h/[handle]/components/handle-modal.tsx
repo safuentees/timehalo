@@ -62,7 +62,7 @@ export function HandleModal({
     .toUpperCase();
   const [view, setView] = useState<"picker" | "form">("picker");
 
-  const debug = useModalDebug();
+  const { values: debug, panelShardRef } = useModalDebug();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const confirmSpring = debug?.confirmSpring ?? CONFIRM_SPRING;
@@ -94,6 +94,7 @@ export function HandleModal({
       onEscapeKey={() => onOpenChange(false)}
       onClickOutside={() => onOpenChange(false)}
       returnFocus
+      shards={panelShardRef ? [panelShardRef] : undefined}
     >
       <motion.div
         aria-hidden
