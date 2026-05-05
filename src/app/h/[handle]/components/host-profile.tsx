@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -90,9 +90,19 @@ export default function HostProfile({
   // keepLandingMounted is on. Cached rects survive the strip → next
   // modal open uses them as the FLIP source → spring morph plays.
   const mounted = useMounted();
-  const stripLandingLayoutId = mounted && keepLandingMounted;
-  const landingLayoutId = (id: string) =>
-    stripLandingLayoutId ? undefined : id;
+  // The drawerOpen condition (B.PT177) is critical: it keeps the
+  // landing's layoutIds ACTIVE for as long as the modal is closed,
+  // so motion always has a fresh rect measurement to fall back on.
+  // The strip only fires at the moment the modal opens — motion's
+  // last-recorded rect (from the previous render's measurement)
+  // becomes the FLIP source for the modal phantoms. Without this,
+  // a prior production-mode modal cycle (which unmounts + remounts
+  // the landing) shuffles motion's cache state, and a subsequent
+  // switch to inspect mode fires the strip on a still-mounted
+  // landing before any fresh measurement → motion's cache becomes
+  // stale → next modal open in inspect mode skips the morph and
+  // just fades. Tying the strip to drawerOpen means motion always
+  // measures the landing right before it goes invisible.
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
     { initialData: initialUser },
@@ -114,6 +124,21 @@ export default function HostProfile({
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // B.PT175 + B.PT177 — the strip only fires when ALL three hold:
+  // (a) we're past the initial mount (motion has had a chance to
+  //     measure landing's layoutIds at least once),
+  // (b) keepLandingMounted is on (inspect mode),
+  // (c) the modal is currently opening or open.
+  // (a) and (b) together prevent SSR/first-paint weirdness; (c)
+  // keeps the rect cache fresh across mode-switches that follow a
+  // production-mode modal cycle. Layout ID stripping in the same
+  // render where the modal opens means motion's last measurement
+  // (taken just before drawerOpen flipped) becomes the FLIP source
+  // for the modal phantoms.
+  const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
+  const landingLayoutId = (id: string) =>
+    stripLandingLayoutId ? undefined : id;
+
   // URL is a mirror of the visitor's selection — start undefined so SSR
   // and the first client render agree, then hydrate from `?date=`/`?slot=`
   // in the effect below. cal.com pattern: store is the truth at runtime,
@@ -309,6 +334,17 @@ export default function HostProfile({
           `<AnimatePresence>` keeps the unmounting card alive long
           enough for the morph to play; without it, the card would
           pop out instantly. */}
+      {/* B.PT177 — wrap both AnimatePresence containers (landing +
+          modal) in a single LayoutGroup so motion coordinates layout
+          measurements ACROSS the AnimatePresence boundaries. Per
+          motion docs: "Use LayoutGroup to coordinate layout
+          animations between AnimatePresence children and external
+          components when mixing exit and layout animations." Without
+          this wrapper, the per-layoutId rect cache lives in the
+          global motion tree but the AnimatePresence boundaries don't
+          share their lifecycle signals — leading to a stale cache
+          after a production-mode modal cycle. */}
+      <LayoutGroup>
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
         <AnimatePresence mode="popLayout">
           {!drawerOpen || keepLandingMounted ? (
@@ -572,6 +608,7 @@ export default function HostProfile({
           />
         ) : null}
       </AnimatePresence>
+      </LayoutGroup>
     </OhVisitorShell>
   );
 }
