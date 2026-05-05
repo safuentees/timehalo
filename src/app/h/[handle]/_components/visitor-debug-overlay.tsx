@@ -115,6 +115,21 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
       },
       showPhantomOutline: { value: false, label: "Show outlines" },
       disableMorph: { value: false, label: "Disable morph" },
+      // B.PT166 — z-index relative to the modal stacking context.
+      // Modal scrim is z-40, modal dialog is z-50. Three presets:
+      //   - above (default): z-[200] — panel always on top
+      //   - between: z-[45] — sits between scrim + modal so the
+      //     panel reads on top of the dimmed background but the
+      //     modal content covers it (useful for inspecting modal
+      //     drop shadow / edge effects without the panel obscuring)
+      //   - below scrim: z-[30] — panel goes BEHIND the scrim,
+      //     gets dimmed alongside the page; useful to see how the
+      //     modal looks "alone" without panel distraction
+      panelZ: {
+        value: "above",
+        options: ["above", "between", "below scrim"] as const,
+        label: "Panel z-index",
+      },
       openSpring: folder({
         openMass: { value: SPEC_OPEN.mass, min: 0.1, max: 10, step: 0.1 },
         openStiffness: { value: SPEC_OPEN.stiffness, min: 1, max: 1000, step: 1 },
@@ -183,20 +198,29 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
     ctrls.closeVelocity,
   ]);
 
+  // B.PT166 — map z-preset to numeric value. Modal scrim z-40,
+  // modal dialog z-50; panel choices straddle those layers.
+  const panelZIndex =
+    ctrls.panelZ === "above"
+      ? 200
+      : ctrls.panelZ === "between"
+        ? 45
+        : 30; // below scrim
+
   return (
     <ModalDebugContext.Provider
       value={{ values: value, panelShardRef: enabled ? panelShardRef : null }}
     >
       {enabled ? (
-        // Wrapper div carries the shard ref. Leva itself renders to
-        // `document.body` via portal, so the wrapper is empty in the
-        // visible tree — but FocusOn's shards check ALSO includes
-        // children of the shard root via DOM tree walks; the empty
-        // wrapper is enough as a hook into the portal target. NOTE
-        // if Leva ever stops portalling (newer versions or theme
-        // configs), the panel will render inside this wrapper
-        // directly, which is also fine for shards.
-        <div ref={panelShardRef} data-oh-debug-panel="">
+        // Wrapper div carries the shard ref AND the configurable
+        // z-index. Leva renders inline (default isRoot=false) so the
+        // wrapper is the actual panel container. `position: relative`
+        // is required for `zIndex` to take effect.
+        <div
+          ref={panelShardRef}
+          data-oh-debug-panel=""
+          style={{ position: "relative", zIndex: panelZIndex }}
+        >
           <Leva collapsed={false} oneLineLabels />
         </div>
       ) : null}
