@@ -139,6 +139,71 @@ sync (colors, type sizes). NOT useful for layout.
   prototype, not for in-tree work.
 - **Native Figma DTCG export** — announced but rollout incomplete
   as of May 2026.
+- **`framer-motion` (npm package)** — superseded by `motion`. Same
+  API, smaller, MIT, post-rebrand. The project uses `motion@^12`
+  (B.PT158); don't add `framer-motion` alongside.
+
+### Animation library decisions
+
+The project uses **`motion@^12` + `gsap@^3` together** (since
+B.PT158). Pick per-element, not per-page:
+
+| Use case | Lib |
+|---|---|
+| Spring-physics transitions (Smart Animate parity) | `motion` |
+| Layout-shared element tweens between states | `motion` `<motion.div layout>` |
+| Multi-element timelines, FLIP, ScrollTrigger | GSAP |
+| Procedural / continuous (marquees, parallax) | GSAP |
+| CSS-only hover variants | Tailwind `hover:` |
+
+**Don't combine `motion`'s `layout` prop with GSAP transforms on the
+same element** — both rewrite `transform` and clash. Pick one per
+element.
+
+### Pipeline bug history (don't regress)
+
+Three bugs in the figma:spec / figma:anim pipeline went live before
+the bugs were caught. If you see the symptom, the root cause is
+known:
+
+| Symptom | Likely regression |
+|---|---|
+| `figma:spec` writes a 0-node scenegraph or "Node not found" with valid captures | **B.PT153** — `figma-decode.mjs` not zstd-decompressing data frames |
+| `INSTANCE` nodes in spec have no visible content | **B.PT154** — `figma-spec.mjs` not following `INSTANCE.symbolID` references |
+| App code reads `prototypeInteractions` directly from `spec-*.json` | **B.PT158** — missing the `figma:anim` extraction step; run `pnpm figma:anim <feature>` |
+
+All three fixed in their respective commits. If you find yourself
+debugging similar symptoms, check those commits first.
+
+## Phase 1.5 — Extract animations (when the design has prototype interactions)
+
+Path B already captures `prototypeInteractions` per node (Smart Animate
+triggers + spring params + state swaps), but app code shouldn't read
+that tree directly. Run the extractor once, commit the artifact:
+
+```bash
+pnpm figma:anim <feature>
+# → docs/figma/anim-<feature>.json
+```
+
+The extractor (B.PT158, `scripts/figma-extract-anim.mjs`) does three
+things app code can't easily redo per render:
+
+1. Walks every node's `prototypeInteractions`, classifies each action
+   (SMART_ANIMATE / INSTANT_TRANSITION / state-swap / unhandled).
+2. For SMART_ANIMATE — matches layers between source + destination
+   frames by **relative name path** (the same algorithm Figma uses)
+   and emits property deltas (position / size / opacity /
+   cornerRadius / fillPaints) only for layers that actually change.
+3. Decodes SPRING easingFunction tuples as
+   `{ mass, stiffness, damping, velocity }` while keeping the raw
+   array — drops directly into `motion`'s spring API.
+
+Full schema + recipes: `references/animation-spec-format.md`.
+
+**Skip this phase only if** the design has zero prototype
+interactions (rare — even hover variants count). When in doubt, run
+the extractor; an empty `anim-*.json` is the trivial case.
 
 ## Phase 2 — Implement against the spec
 
