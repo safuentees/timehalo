@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { CalendarIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon } from "lucide-react";
 import {
-  BookingDrawer,
+  BookingForm,
   DayStrip,
   DaySlots,
   MonthDrawer,
@@ -49,13 +49,22 @@ import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 // transitions[2] is "handle-detail → handle" — the dismiss spring.
-// transitions[1] is the picker → confirm state change (handled in
-// B.PT157). Index by event semantics rather than position to avoid
-// silent breakage if the extractor reorders.
+// Index by event semantics rather than position to avoid silent
+// breakage if the extractor reorders.
 const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
+// B.PT157 — transitions[1] is the picker → confirm state change.
+// Snappier physics (stiffer + more damped) so the content swap feels
+// crisper than the modal-open morph.
+const CONFIRM_SPRING =
+  animSpec.transitions.find(
+    (t) =>
+      t.from?.name === "handle-detail" &&
+      t.to?.name === "handle-detail" &&
+      t.from?.id !== t.to?.id,
+  )?.spring ?? animSpec.transitions[1].spring;
 
 type Props = {
   handle: string;
@@ -90,24 +99,42 @@ export function HandleModal({
   const monthBarLabel = format
     .dateTime(monthBarDate, { month: "long", year: "numeric" })
     .toUpperCase();
-  const [bookingOpen, setBookingOpen] = useState(false);
+  // B.PT157 — internal view state. Picker view = day strip + slots;
+  // form view = name/email/question (or reschedule confirm). Was a
+  // nested ResponsiveModal via <BookingDrawer> in B.PT156; replaced
+  // with inline state swap so the picker → form transition is a
+  // CONTENT SWAP inside the same morphing modal element (matches
+  // Figma frame 2 → frame 3 SMART_ANIMATE prototype reaction; both
+  // frames are named "handle-detail" with different ids 324:16654 +
+  // 358:20746). Spring physics for the swap come from anim spec
+  // transitions[1] — stiffer + more damped than the open spring.
+  const [view, setView] = useState<"picker" | "form">("picker");
 
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
-    setBookingOpen(true);
+    setView("form");
   }
 
   function handleSelectDate(nextDate: Date | undefined) {
+    // If the user changes date while in form view, drop back to
+    // picker so they can re-select a slot in the new date.
     if (
-      bookingOpen &&
+      view === "form" &&
       (!nextDate ||
         (selectedSlot &&
           !isSameCalendarDay(new Date(selectedSlot.start), nextDate)))
     ) {
-      setBookingOpen(false);
+      setView("picker");
     }
     onSelectDate(nextDate);
   }
+
+  // Reset to picker on close happens for free — when `open` flips to
+  // false, AnimatePresence in the parent runs the exit animation, then
+  // unmounts this component. Next open mounts fresh, `useState`'s
+  // initial value re-applies, view starts at picker. No effect needed
+  // (a `useEffect` setState would trip the React 19 compiler ESLint
+  // rule against cascading renders inside an effect).
 
   if (!open) return null;
 
@@ -151,69 +178,112 @@ export function HandleModal({
           className="flex h-full max-h-[800px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] border border-oh-line bg-[color:var(--oh-paper)] p-[15px] shadow-2xl"
         >
           <h2 id="handle-modal-title" className="sr-only">
-            {t("drawerTitle")}
+            {view === "form"
+              ? rescheduleFromUid
+                ? t("rescheduleFormTitle")
+                : t("bookingFormTitle")
+              : t("drawerTitle")}
           </h2>
           <p className="sr-only">{t("drawerDescription")}</p>
 
-          {/* monthbar — preserved from AvailabilityDrawer. Same class
-              `oh-drawer-monthbar` so existing CSS still applies. */}
-          <div className="oh-drawer-monthbar">
-            <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
-            <MonthDrawer
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              months={months}
-            >
+          {/* monthbar — picker view only. In form view it's hidden +
+              replaced by a back-to-picker control. Same `oh-drawer-
+              monthbar` class so existing CSS still applies. */}
+          {view === "picker" ? (
+            <div className="oh-drawer-monthbar">
+              <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
+              <MonthDrawer
+                slots={slots}
+                selectedDate={selectedDate}
+                onSelectDate={handleSelectDate}
+                months={months}
+              >
+                <button
+                  type="button"
+                  className="oh-view-toggle"
+                  aria-label={t("openMonthViewAria")}
+                >
+                  <CalendarIcon />
+                </button>
+              </MonthDrawer>
+            </div>
+          ) : (
+            <div className="oh-drawer-monthbar">
               <button
                 type="button"
-                className="oh-view-toggle"
-                aria-label={t("openMonthViewAria")}
+                onClick={() => setView("picker")}
+                aria-label={t("backToPickerAria")}
+                className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
               >
-                <CalendarIcon />
+                <ArrowLeftIcon className="size-4" />
+                {t("backToPicker")}
               </button>
-            </MonthDrawer>
+              <span className="oh-drawer-monthbar-label opacity-65 truncate">
+                {selectedSlot
+                  ? format
+                      .dateTime(new Date(selectedSlot.start), {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                      .toUpperCase()
+                  : ""}
+              </span>
+            </div>
+          )}
+
+          {/* B.PT157 — picker / form swap. AnimatePresence with
+              `mode="wait"` waits for the outgoing view to exit before
+              the incoming one mounts, so we don't see both stacked
+              mid-tween. Spring comes from the Figma prototype's
+              transitions[1] capture (anim spec) — stiffer than the
+              modal-open spring so the swap feels snappier. */}
+          <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+            <AnimatePresence mode="wait" initial={false}>
+              {view === "picker" ? (
+                <motion.div
+                  key="picker"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                >
+                  <DayStrip
+                    slots={slots}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                  />
+                  {selectedDate ? (
+                    <DaySlots
+                      date={selectedDate}
+                      slots={dayOfSlots}
+                      onPick={handlePickSlot}
+                    />
+                  ) : (
+                    <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: "spring", ...CONFIRM_SPRING }}
+                >
+                  {selectedSlot ? (
+                    <BookingForm
+                      handle={handle}
+                      slotStart={selectedSlot.start}
+                      rescheduleFromUid={rescheduleFromUid}
+                    />
+                  ) : null}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-
-          {/* drawer body — preserved. Inner content fades in once the
-              morph completes so users don't see the picker stretching.
-              Initial-delay is half the open spring's nominal 650ms so
-              the contents arrive after the card is ~half-way to its
-              new size — matches the visual rhythm the Figma prototype
-              implies. */}
-          <motion.div
-            className="oh-drawer-body min-h-0 flex-1 overflow-y-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, delay: 0.15 }}
-          >
-            <DayStrip
-              slots={slots}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-            />
-
-            {selectedDate ? (
-              <DaySlots
-                date={selectedDate}
-                slots={dayOfSlots}
-                onPick={handlePickSlot}
-              />
-            ) : (
-              <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-            )}
-          </motion.div>
-
-          {/* Booking drawer — nested form once a slot is picked.
-              Preserved verbatim from AvailabilityDrawer. */}
-          <BookingDrawer
-            handle={handle}
-            slot={selectedSlot}
-            open={bookingOpen}
-            onOpenChange={setBookingOpen}
-            rescheduleFromUid={rescheduleFromUid}
-          />
         </motion.article>
       </div>
     </FocusOn>
