@@ -304,17 +304,12 @@ export default function HostProfile({
                             ),
                           }}
                         >
-                          <motion.div
-                            layout="size"
-                            transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                          >
                             <SlotRow
                               title="intro"
                               description="quick chat, voice only"
                               durationLabel={opt.label}
                               onClick={() => setDrawerOpen(true)}
                             />
-                          </motion.div>
                         </motion.div>
                       </li>
                     ))}
