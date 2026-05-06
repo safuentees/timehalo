@@ -277,7 +277,14 @@ export function HandleModal({
           // B.PT161 — Figma Frame 1 has NO stroke; only the inner
           // shadow defines the modal's edge against the dark backdrop.
           // Removed `border border-oh-line` from B.PT156 to match.
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          // B.PT202 — `p-[15px]` adds 15px inner padding to the modal
+          // article (Layer 2 main container). The slot-list cream
+          // container + calendar content + phantom stack all sit
+          // inside the padded inner area, leaving a 15px paper
+          // border around the cream container. Mirrors the closed-
+          // state landing card structure (paper outer + 15px padding
+          // around cream slot-list).
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)] p-[15px]"
         >
           {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
               Figma spec EXACTLY. The user designed the modal with
@@ -383,11 +390,16 @@ export function HandleModal({
                 opacity: oStyle(oL2?.slotList, 0),
               }}
               style={{
+                // B.PT202 — slot-list phantom positioning changed
+                // from edge-bound (`top:-0.5, left:0.5, 720×1158`)
+                // to `inset: 0`, so it fills the modal article's
+                // PADDING box (690×1128 after the new 15px modal
+                // padding) instead of the article's outer rect.
+                // Visually: 15px paper border around the cream
+                // container, matching the closed-state landing
+                // card's nested-card structure.
                 position: "absolute",
-                top: -0.5,
-                left: 0.5,
-                width: 720,
-                height: 1158,
+                inset: 0,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
