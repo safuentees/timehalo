@@ -141,7 +141,7 @@ export function HandleModal({
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)] p-[15px]"
         >
           <div
             aria-hidden
@@ -194,10 +194,7 @@ export function HandleModal({
               }}
               style={{
                 position: "absolute",
-                top: -0.5,
-                left: 0.5,
-                width: 720,
-                height: 1158,
+                inset: 0,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
