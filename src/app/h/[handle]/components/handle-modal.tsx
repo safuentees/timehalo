@@ -26,7 +26,8 @@ import {
   SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
-} from "./host-profile";
+} from "./handle-morph-parts";
+import { HandleMorphCard } from "./handle-morph-card";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -223,7 +224,7 @@ export function HandleModal({
         aria-labelledby="handle-modal-title"
         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
       >
-        <motion.article
+        <HandleMorphCard
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           // B.PT159: hint the compositor that we'll be transforming
@@ -261,8 +262,6 @@ export function HandleModal({
           }}
           style={{
             position: "relative",
-            ...HANDLE_CARD_RADIUS_STYLE,
-            boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
@@ -294,7 +293,7 @@ export function HandleModal({
           // expressed as viewport-relative so it adapts. Pattern per
           // industry standard (Cal.com, Calendly use viewport-
           // relative heights, not data-computed).
-          className="flex min-h-[clamp(500px,70dvh,900px)] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          className="min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden"
         >
           {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
               Figma spec EXACTLY. The user designed the modal with
@@ -454,7 +453,7 @@ export function HandleModal({
                 // landing's motion.ul which already uses the same
                 // class. Same CSS at runtime, single styling
                 // vocabulary across the morph.
-                className="p-[15px]"
+                className="p-[15px] "
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
@@ -726,7 +725,7 @@ export function HandleModal({
               </AnimatePresence>
             </div>
           </div>
-        </motion.article>
+        </HandleMorphCard>
       </motion.div>
     </FocusOn>
   );
