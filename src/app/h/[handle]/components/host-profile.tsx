@@ -12,7 +12,12 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  SwitchLayoutGroupContext,
+} from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -46,6 +51,10 @@ const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
+
+const PRESERVE_SHARED_FOLLOW_OPACITY = {
+  shouldPreserveFollowOpacity: () => true,
+};
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -363,31 +372,23 @@ export default function HostProfile({
           global motion tree but the AnimatePresence boundaries don't
           share their lifecycle signals — leading to a stale cache
           after a production-mode modal cycle. */}
-      <LayoutGroup>
+      {/* Motion's default shared-layout behavior crossfades old/new
+          leads. `layoutCrossfade={false}` removes that fade by hiding
+          the old lead immediately, which creates a one-frame content
+          gap on chip/title morphs. This internal Motion context keeps
+          the follow element opaque while the new lead promotes, so the
+          visible content stays continuous through the Smart Animate
+          handoff. */}
+      <SwitchLayoutGroupContext.Provider
+        value={PRESERVE_SHARED_FOLLOW_OPACITY}
+      >
+        <LayoutGroup>
         <div className="flex w-full justify-center px-4 py-10 sm:py-14">
           <AnimatePresence mode="popLayout">
             {!drawerOpen || keepLandingMounted ? (
               <motion.article
                 key="landing-card"
                 layoutId={landingLayoutId("handle-card")}
-                // B.PT189 — `layoutCrossfade={false}` is the documented
-                // motion-dom prop (`MotionNodeOptions.layoutCrossfade`):
-                // "By default, shared layout elements will crossfade.
-                // By setting this to `false`, this element will take
-                // its default opacity throughout the animation." With
-                // it false, motion calls `prevLead.hide()` on promote
-                // (motion source line 8045) — sets `visibility: hidden`
-                // on the previous lead instead of running the auto
-                // opacity crossfade (mixValues line 9123 with
-                // easeCrossfadeIn 0→1 over 0-0.5 + easeCrossfadeOut
-                // 1→0 over 0.5-0.95). The auto crossfade was the root
-                // cause of the close-direction "text fades out at 0.5
-                // progress, fades back in at 0.7-0.8" glitch the user
-                // reported. Hiding the previous lead via visibility
-                // cascades to all descendants — phantom subtree is
-                // entirely invisible during landing's lead phase, so
-                // the morph reads as a single element transitioning.
-                layoutCrossfade={false}
                 transition={{
                   type: "spring",
                   ...(drawerOpen ? openSpring : closeSpring),
@@ -449,9 +450,6 @@ export default function HostProfile({
                   one continuous transition, much smoother than a pure fade. */}
                 <motion.header
                   layoutId={landingLayoutId("oh-identity")}
-                  // B.PT200 — mirror of handle-modal.tsx oh-identity:
-                  // disable motion's auto opacity crossfade.
-                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -520,17 +518,6 @@ export default function HostProfile({
                   alongside its child slot rows. */}
                 <motion.div
                   layoutId={landingLayoutId("oh-slot-list")}
-                  // B.PT198 — mirror of handle-modal.tsx slot-list:
-                  // disable the auto opacity crossfade so phantom
-                  // slot-list doesn't fade in 0→1 on open. With this
-                  // on BOTH sides of the pair, motion's promote()
-                  // calls prevLead.hide() on whichever side becomes
-                  // follow, and shouldCrossfadeOpacity returns false
-                  // → no opacity tween. The tracer
-                  // (handoff/trace-page-fade.js) caught the slot-list
-                  // 0→1 ramp and confirmed it as the only animating
-                  // opacity in the open animation.
-                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -548,10 +535,7 @@ export default function HostProfile({
                     // inner shadow defines the edge. Removed the
                     // `border border-oh-line` that B.PT155 added.
                     "flex flex-col gap-2.5 p-[15px]",
-                    // DEBUG-B.PT199 — bg swapped from cream
-                    // `#F5EFDF` to amber. Revert to bg-[#F5EFDF]
-                    // before shipping production.
-                    "bg-amber-300/70",
+                    "bg-[#F5EFDF]",
                   )}
                 >
                   {hasOpenSlots ? (
@@ -719,7 +703,8 @@ export default function HostProfile({
             />
           ) : null}
         </AnimatePresence>
-      </LayoutGroup>
+        </LayoutGroup>
+      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }
@@ -934,13 +919,6 @@ export function SlotRow({
         aria-hidden="true"
         data-oh-figma-layer={figmaLayer}
         layoutId={layoutId}
-        // B.PT200 — disable motion's auto opacity crossfade on the
-        // shared-layout pair (`oh-slot-N`) so the chip doesn't fade
-        // 0→1 on open / 1→0 on close. Both inert (modal phantom)
-        // and non-inert (landing button) variants need the prop
-        // since they BOTH carry the layoutId; either one missing
-        // means motion's crossfade kicks in for that side.
-        layoutCrossfade={false}
         transition={transition}
         initial={initial}
         animate={animate}
@@ -959,8 +937,6 @@ export function SlotRow({
       onClick={onClick}
       data-oh-figma-layer={figmaLayer}
       layoutId={layoutId}
-      // B.PT200 — see comment on inert variant above.
-      layoutCrossfade={false}
       transition={transition}
       initial={initial}
       animate={animate}

@@ -217,14 +217,6 @@ export function HandleModal({
       >
         <motion.article
           layoutId="handle-card"
-          // B.PT189 — see long-form comment in host-profile.tsx;
-          // mirrored here so the modal article's projection options
-          // also have crossfade disabled. With both shared elements
-          // setting layoutCrossfade={false}, motion hides the
-          // previous lead on every promote (open AND close) so the
-          // morph always reads as a single-element transition with
-          // the inactive side fully hidden via visibility:hidden.
-          layoutCrossfade={false}
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           // B.PT159: hint the compositor that we'll be transforming
           // this element. Motion sets `transform` itself but `will-
@@ -321,13 +313,6 @@ export function HandleModal({
                 interior. */}
             <motion.div
               layoutId="oh-identity"
-              // B.PT200 — same fix as B.PT198 / B.PT189: this
-              // shared-layout pair (`oh-identity`) had its own
-              // crossfade running, fading the title from 0→1 on
-              // open. layoutCrossfade={false} suppresses motion's
-              // mixValues opacity tween so the title renders at
-              // its explicit `animate.opacity` throughout.
-              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
@@ -377,21 +362,6 @@ export function HandleModal({
                 of Frame 18 = 690). */}
             <motion.div
               layoutId="oh-slot-list"
-              // B.PT198 — `layoutCrossfade={false}` on the slot-list
-              // shared-layout pair. Without this, motion runs the
-              // auto opacity crossfade (mixValues line ~9123) on
-              // phantom slot-list since its layoutId pair doesn't
-              // inherit the modal article's crossfade=false. The
-              // tracer caught the symptom: phantom slot-list's
-              // opacity ramps 0 → 1 over progress (visible fade-in
-              // since B.PT195 made the cream slot-list visible in
-              // production). With layoutCrossfade=false here motion
-              // calls prevLead.hide() on landing slot-list (already
-              // visibility:hidden via the modal article's hide so
-              // no visual change there) and shouldCrossfadeOpacity
-              // returns false → mixValues skips the opacity tween →
-              // phantom renders at latestValues.opacity = 1.
-              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}
@@ -407,11 +377,7 @@ export function HandleModal({
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
-              // DEBUG-B.PT199 — bg swapped from cream `#F5EFDF` to
-              // amber so the slot-list container is visually
-              // distinct during the morph. Revert to bg-[#F5EFDF]
-              // before shipping production.
-              className="bg-amber-300/70"
+              className="bg-[#F5EFDF]"
             >
               {phantomLabels ? (
                 <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
