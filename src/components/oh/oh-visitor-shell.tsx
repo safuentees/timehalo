@@ -9,17 +9,19 @@ type Props = {
 
 export function OhVisitorShell({ children, header, footer, className }: Props) {
   return (
-    <div
-      className={[
-        "flex min-h-dvh flex-col bg-oh-bg text-oh-content",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-      <main className="flex-1">{children}</main>
-      {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+    <div className="flex min-h-dvh flex-col bg-[color:var(--oh-frame)] p-[15px]">
+      <div
+        className={[
+          "flex flex-1 flex-col rounded-[25px] bg-oh-bg text-oh-content",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
+        <main className="flex-1">{children}</main>
+        {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+      </div>
     </div>
   );
 }
