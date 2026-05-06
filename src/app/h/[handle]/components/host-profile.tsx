@@ -459,7 +459,7 @@ export function SlotRow({
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 1 }}
-      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
+      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3 bg-lime-300/40 outline outline-1 outline-lime-600"
     >
       <motion.span
         layoutId={textLayoutId}
@@ -468,7 +468,7 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="flex min-w-0 flex-col items-center leading-tight"
+        className="flex min-w-0 flex-col items-center leading-tight bg-cyan-300/50 outline outline-1 outline-cyan-700"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
@@ -484,7 +484,7 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="flex shrink-0 items-baseline font-sans tabular-nums"
+        className="flex shrink-0 items-baseline font-sans tabular-nums bg-pink-300/60 outline outline-1 outline-pink-700"
       >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
           {num}
