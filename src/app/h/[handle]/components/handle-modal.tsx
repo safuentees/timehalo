@@ -4,7 +4,13 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { ArrowLeftIcon, CalendarIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  ChevronLeftIcon,
+  XIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   BookingForm,
   DayStrip,
@@ -177,18 +183,26 @@ export function HandleModal({
           </div>
 
           <div className="absolute inset-[15px] z-10 flex min-h-0 flex-col gap-[15px]">
-            <div className="relative z-30 flex shrink-0 items-start justify-between gap-4">
-              <h2
-                id="handle-modal-title"
-                className="m-0 max-w-[min(560px,100%)] font-[family-name:var(--font-grotesk)] text-[clamp(28px,4.4vw,34px)] font-black leading-[0.98] tracking-[-0.045em] text-[color:var(--oh-ink)] [text-wrap:balance]"
+            <div className="relative z-30 flex shrink-0 items-center justify-between">
+              <button
+                type="button"
+                onClick={() => view === "form" && setView("picker")}
+                aria-label={t("backToPickerAria")}
+                aria-disabled={view === "picker"}
+                disabled={view === "picker"}
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent] disabled:cursor-default"
               >
-                {view === "form"
-                  ? rescheduleFromUid
-                    ? t("rescheduleFormTitle")
-                    : t("bookingFormTitle")
-                  : t("drawerTitle")}
-              </h2>
-              <p className="sr-only">{t("drawerDescription")}</p>
+                <ChevronLeftIcon
+                  className={cn(
+                    "size-5 transition-[opacity,transform] duration-150 ease-oh",
+                    view === "picker"
+                      ? "opacity-[0.25]"
+                      : "opacity-[0.55] group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100",
+                  )}
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+              </button>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
@@ -342,6 +356,19 @@ export function HandleModal({
               </div>
 
               <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[#F5EFDF]">
+                <div className="relative z-10 shrink-0 px-5 pb-[clamp(14px,2vw,18px)] pt-[clamp(30px,4vw,40px)] sm:px-6">
+                  <h2
+                    id="handle-modal-title"
+                    className="m-0 max-w-[min(560px,100%)] font-[family-name:var(--font-grotesk)] text-[clamp(28px,4.4vw,34px)] font-black leading-[0.98] tracking-[-0.045em] text-[color:var(--oh-ink)] [text-wrap:balance]"
+                  >
+                    {view === "form"
+                      ? rescheduleFromUid
+                        ? t("rescheduleFormTitle")
+                        : t("bookingFormTitle")
+                      : t("drawerTitle")}
+                  </h2>
+                  <p className="sr-only">{t("drawerDescription")}</p>
+                </div>
                 {view === "picker" ? (
                   <div className="oh-drawer-monthbar">
                     <span className="oh-drawer-monthbar-label">
