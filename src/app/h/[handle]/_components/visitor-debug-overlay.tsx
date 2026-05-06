@@ -170,7 +170,16 @@ const LAYER1_PROD_O: OBlock = {
 const LAYER2_PROD_O: OBlock = {
   layer: 1, // modal article — has real content, visible
   identity: 0,
-  slotList: 0,
+  // B.PT195 — slot-list visible in production (was 0). The phantom
+  // slot-list is the cream container with `inset 0 0 4px rgba(0,0,
+  // 0,0.25)` inner shadow that morphs from landing's cream card.
+  // Keeping it visible in production preserves the closed-state's
+  // nested-card aesthetic in the open state — paper modal article
+  // (outer) + cream slot-list (inner) with concentric inner shadows.
+  // Slot-list expands during the morph the same way the chip
+  // morphs expand. Slot phantoms inside (slot0..3) stay at 0 so
+  // we don't see the chip rectangles in production.
+  slotList: 1,
   slot0: 0,
   slot1: 0,
   slot2: 0,

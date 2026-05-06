@@ -302,7 +302,13 @@ export function HandleModal({
               follows fill-container behavior without scaling the text. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-20"
+            // B.PT195 — phantom container moved to z-0 so the
+            // cream slot-list phantom (now visible in production)
+            // sits BEHIND the calendar content (z-10). Identity
+            // phantom and slot phantoms also drop to z-0; both are
+            // at opacity 0 in production so this doesn't affect
+            // their visibility, only their stacking with calendar.
+            className="pointer-events-none absolute inset-0 z-0"
           >
             {/* Identity header phantom — exact Figma coords (192, 22)
                 with size 336×87. B.PT175 — when the debug overlay
@@ -505,7 +511,14 @@ export function HandleModal({
               </motion.div>
             </motion.div>
           </div>
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[color:var(--oh-paper)]">
+          {/* B.PT195 — calendar wrapper bg dropped from
+              `bg-[color:var(--oh-paper)]` to transparent. The cream
+              slot-list phantom now sits behind this layer (z-0)
+              with its `inset 0 0 4px rgba(0,0,0,0.25)` inner shadow
+              visible. Calendar content renders directly on the
+              cream bg, mirroring how landing's slot-list cream
+              card hosts the chips directly on cream. */}
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
