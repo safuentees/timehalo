@@ -103,13 +103,16 @@ function SlotChip({
 
   if (isTakenSlot(slot)) {
     return (
-      <div
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
         className="oh-slot-chip oh-slot-chip--taken"
         aria-label={t("slotTakenAria", { time: timeLabel })}
       >
         <span>{timeLabel}</span>
         <span className="oh-slot-chip-badge">{t("slotTakenBadge")}</span>
-      </div>
+      </button>
     );
   }
 
