@@ -18,7 +18,14 @@ import {
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
-import { SLOT_OPTIONS, SlotRow } from "./host-profile";
+import {
+  HANDLE_CARD_RADIUS_STYLE,
+  HANDLE_SLOT_LIST_RADIUS_STYLE,
+  HANDLE_SLOT_ROW_RADIUS_STYLE,
+  SLOT_OPTIONS,
+  SlotRow,
+  cornerRadiusStyle,
+} from "./host-profile";
 
 // B.PT156 — bespoke morphing modal that replaces `AvailabilityDrawer`'s
 // `<ResponsiveModal>` chrome on the visitor `/h/[handle]` page. The
@@ -239,12 +246,21 @@ export function HandleModal({
           // its target opacity, no extra crossfade tween, and the
           // morph reads as a single element transitioning (matches
           // Figma's Smart-Animate behavior).
-          initial={{ opacity: oStyle(oL2?.layer, 1) }}
-          animate={{ opacity: oStyle(oL2?.layer, 1) }}
-          exit={{ opacity: oStyle(oL2?.layer, 1) }}
+          initial={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
+          animate={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
+          exit={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
           style={{
             position: "relative",
-            borderRadius: 25,
+            ...HANDLE_CARD_RADIUS_STYLE,
             boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
@@ -313,7 +329,10 @@ export function HandleModal({
                 interior. */}
             <motion.div
               layoutId="oh-identity"
-              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              transition={{
+                type: "spring",
+                ...(open ? openSpring : closeSpring),
+              }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
@@ -328,26 +347,11 @@ export function HandleModal({
                 pointerEvents: "none",
               }}
             >
-              {/* B.PT180 — inverse-scale wrapper. Per motion docs:
-                  "layout animations that change size can distort child
-                  components. This can be corrected by providing child
-                  components with a layout prop as well. Only
-                  immediate children need to be corrected for scale
-                  distortion." Without this wrapper, the avatar + h1
-                  inside scale with the parent's transform during the
-                  morph (the phantom rect grows from landing's
-                  natural identity size to its 336×87 destination,
-                  any size delta gets applied to children's paint).
-                  Identity sizes match closely so the visible
-                  distortion was small here, but symmetric with the
-                  slot wrapper below + future-proof if the rect
-                  delta grows. */}
-              {/* B.PT183 — inverse-correction wrapper REMOVED. See
-                  the long-form comment in host-profile.tsx slot
-                  rendering. Net: identity content's visual size
-                  interpolates with the parent transform (Figma
-                  fill-container behavior); accept brief mid-flight
-                  text scaling. */}
+              {/* Identity content is supplied with its own child
+                  `layout` / `layout="position"` nodes from
+                  host-profile.tsx. Motion's scale correction then
+                  keeps the avatar/title paint from stretching while
+                  this shared identity frame changes size. */}
               {identityContent ? identityContent : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
@@ -362,17 +366,29 @@ export function HandleModal({
                 of Frame 18 = 690). */}
             <motion.div
               layoutId="oh-slot-list"
-              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-              initial={{ opacity: oStyle(oL2?.slotList, 0) }}
-              animate={{ opacity: oStyle(oL2?.slotList, 0) }}
-              exit={{ opacity: oStyle(oL2?.slotList, 0) }}
+              transition={{
+                type: "spring",
+                ...(open ? openSpring : closeSpring),
+              }}
+              initial={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
+              animate={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
+              exit={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
               style={{
                 position: "absolute",
                 top: -0.5,
                 left: 0.5,
                 width: 720,
                 height: 1158,
-                borderRadius: 20,
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
@@ -396,11 +412,21 @@ export function HandleModal({
                   left: 15,
                   width: 690,
                   height: 1128,
-                  boxShadow: "0 0 10px rgba(0,0,0,0.25)",
+                  // Figma's Frame 18 has no fill/radius, only a drop shadow.
+                  // Projecting that shadow reads as an unintended square
+                  // wrapper around the chips; Frame 2 already paints the
+                  // intended rounded shell.
+                  boxShadow: "none",
                 }}
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
+                  const slotRadiusStyle = cornerRadiusStyle(
+                    i === 0 ? 5 : 0,
+                    i === 0 ? 5 : 0,
+                    i === 3 ? 5 : 0,
+                    i === 3 ? 5 : 0,
+                  );
                   return opt ? (
                     <div key={i}>
                       <SlotRow
@@ -412,31 +438,28 @@ export function HandleModal({
                           ...(open ? openSpring : closeSpring),
                         }}
                         initial={{
+                          ...HANDLE_SLOT_ROW_RADIUS_STYLE,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
                         }}
                         animate={{
+                          ...slotRadiusStyle,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
                         }}
                         exit={{
+                          ...HANDLE_SLOT_ROW_RADIUS_STYLE,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
@@ -455,34 +478,20 @@ export function HandleModal({
                           // to the FIRST chip's TOP corners and the
                           // LAST chip's BOTTOM corners; middle chips
                           // stay sharp so the row dividers read as
-                          // a clean segmented stack. The chip's CSS
-                          // base radius is 14 from SlotRow's frame
-                          // style; setting `borderRadius: 0` here
-                          // overrides it to sharp, then per-corner
-                          // properties override the corners we want
-                          // rounded.
-                          borderRadius: 0,
-                          ...(i === 0
-                            ? {
-                                borderTopLeftRadius: 5,
-                                borderTopRightRadius: 5,
-                              }
-                            : {}),
-                          ...(i === 3
-                            ? {
-                                borderBottomLeftRadius: 5,
-                                borderBottomRightRadius: 5,
-                              }
-                            : {}),
+                          // a clean segmented stack. Use explicit
+                          // per-corner longhands instead of the
+                          // borderRadius shorthand so Motion's
+                          // shared-layout radius mixer interpolates
+                          // from the real 14px source radius rather
+                          // than a stale 0px corner value.
+                          ...slotRadiusStyle,
                           boxShadow: "none",
                           outline: phantomOutline
                             ? "1px dashed currentColor"
                             : undefined,
                           zIndex: zStyle(
                             zL2
-                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][
-                                  i
-                                ]
+                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
                               : undefined,
                           ),
                           pointerEvents: "none",
