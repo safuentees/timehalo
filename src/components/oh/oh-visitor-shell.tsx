@@ -127,7 +127,12 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
 //   <Link href={`/h/${handle}`}>/h/{handle}</Link>
 function OhVisitorHeader({ children }: { children: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-[1.5px] border-oh-line bg-oh-bg/85 px-5 py-4 backdrop-blur sm:px-8 sm:py-5 lg:px-12">
+    // B.PT220 — `border-b-[1.5px] border-oh-line` removed (was the
+    // hairline separator between header and main content). User
+    // wants the header to read as part of the panel rather than a
+    // chrome-divided strip. Restore later if a visual divider is
+    // needed against scroll content.
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-oh-bg/85 px-5 py-4 backdrop-blur sm:px-8 sm:py-5 lg:px-12">
       {children}
     </header>
   );
