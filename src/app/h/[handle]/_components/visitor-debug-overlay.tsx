@@ -135,6 +135,11 @@ const ModalDebugContext = createContext<ModalDebugContextValue>({
   panelShardRef: null,
 });
 
+const DISABLED_DEBUG_CONTEXT: ModalDebugContextValue = {
+  values: null,
+  panelShardRef: null,
+};
+
 /** Read debug overrides from the page-level overlay. Returns `null`
  *  values in production / when `?debug=1` is absent — consumers fall
  *  back to spec defaults. */
@@ -176,6 +181,19 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const enabled =
     process.env.NODE_ENV === "development" && params?.get("debug") === "1";
+
+  if (!enabled) {
+    return (
+      <ModalDebugContext.Provider value={DISABLED_DEBUG_CONTEXT}>
+        {children}
+      </ModalDebugContext.Provider>
+    );
+  }
+
+  return <EnabledVisitorDebugOverlay>{children}</EnabledVisitorDebugOverlay>;
+}
+
+function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
   const panelShardRef = useRef<HTMLDivElement | null>(null);
 
   // Schema lives at the root (no namespace prefix) so Leva's `get()`
@@ -298,8 +316,6 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<ModalDebugValues | null>(() => {
-    if (!enabled) return null;
-
     const inspect = ctrls.mode === "inspect";
     const outline = ctrls.mode === "outline";
     const landingOnTop = ctrls.stackOrder === "landing on top";
@@ -381,7 +397,6 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
         : LAYER2_PROD_O,
     };
   }, [
-    enabled,
     ctrls.mode,
     ctrls.identityOpacity,
     ctrls.slotListOpacity,
@@ -406,17 +421,15 @@ export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
 
   return (
     <ModalDebugContext.Provider
-      value={{ values: value, panelShardRef: enabled ? panelShardRef : null }}
+      value={{ values: value, panelShardRef }}
     >
-      {enabled ? (
-        <div
-          ref={panelShardRef}
-          data-oh-debug-panel=""
-          style={{ position: "relative", zIndex: 200 }}
-        >
-          <Leva collapsed={false} oneLineLabels />
-        </div>
-      ) : null}
+      <div
+        ref={panelShardRef}
+        data-oh-debug-panel=""
+        style={{ position: "relative", zIndex: 200 }}
+      >
+        <Leva collapsed={false} oneLineLabels />
+      </div>
       {children}
     </ModalDebugContext.Provider>
   );

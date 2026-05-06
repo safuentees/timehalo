@@ -40,11 +40,20 @@ type Props = {
   header?: ReactNode;
   /** Optional desktop-only footer content — brand left, metadata right. */
   footer?: ReactNode;
+  /** Optional root-level overrides for one-off Figma-exact visitor surfaces. */
+  className?: string;
 };
 
-export function OhVisitorShell({ children, header, footer }: Props) {
+export function OhVisitorShell({ children, header, footer, className }: Props) {
   return (
-    <div className="flex min-h-dvh flex-col bg-[color:var(--oh-bg)] text-[color:var(--oh-content)]">
+    <div
+      className={[
+        "flex min-h-dvh flex-col bg-oh-bg text-oh-content",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
       <main className="flex-1">{children}</main>
       {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
@@ -58,7 +67,7 @@ export function OhVisitorShell({ children, header, footer }: Props) {
 //   <Link href={`/h/${handle}`}>/h/{handle}</Link>
 function OhVisitorHeader({ children }: { children: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-[1.5px] border-oh-line bg-[color:var(--oh-bg)]/85 px-5 py-4 backdrop-blur sm:px-8 sm:py-5 lg:px-12">
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-[1.5px] border-oh-line bg-oh-bg/85 px-5 py-4 backdrop-blur sm:px-8 sm:py-5 lg:px-12">
       {children}
     </header>
   );

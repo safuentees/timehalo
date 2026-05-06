@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { ArrowLeftIcon, CalendarIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, XIcon } from "lucide-react";
 import {
   BookingForm,
   DayStrip,
@@ -146,16 +146,6 @@ export function HandleModal({
   // "show all phantoms" toggle is now the per-element sliders).
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
-  // B.PT172 — when this debug toggle is on, the modal phantoms get
-  // REAL chip content rendered inside them (instead of empty rects).
-  // The user sees the post-morph "frozen" view of Layer 1 at modal
-  // coordinates: each chip at 690×282 size, with text + duration
-  // visible. Combined with B.PT170/171's landing-stays-mounted +
-  // layoutId-stripping, the overall debug experience is: landing
-  // visible at center + chip content visible at modal phantom
-  // positions, no morph fight.
-  const showLandingAtDest = debug?.keepLandingMounted ?? false;
-
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
     setView("form");
@@ -229,7 +219,8 @@ export function HandleModal({
           flips `open` to false; motion picks up the prop on the next
           render so the closing animation uses the dismissed-spring
           curve from Figma. Centered via flex parent. */}
-      <div
+      <motion.div
+        layoutRoot
         role="dialog"
         aria-modal="true"
         aria-labelledby="handle-modal-title"
@@ -263,6 +254,9 @@ export function HandleModal({
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
           exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
+            position: "relative",
+            borderRadius: 25,
+            boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
@@ -278,7 +272,7 @@ export function HandleModal({
           // B.PT161 — Figma Frame 1 has NO stroke; only the inner
           // shadow defines the modal's edge against the dark backdrop.
           // Removed `border border-oh-line` from B.PT156 to match.
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
         >
           {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
               Figma spec EXACTLY. The user designed the modal with
@@ -292,33 +286,26 @@ export function HandleModal({
                 - Slot rows (× 4)      pos (0, 0|282|564|846), size 690×282
               These coordinates are relative to the modal frame's
               outer edge (Figma frames have no padding; children
-              position absolutely from 0,0). Our `<motion.article>`
-              has `p-[15px]` so its content box starts at (15,15) in
-              article-outer coords. The phantom container extends to
-              the article's outer edge via `-inset-[15px]`, then the
-              phantoms inside use raw Figma pixel coords. Sub-pixel
-              0.5px offsets (192.5, 21.5, etc.) rounded to integers —
-              motion's FLIP measurement is rect-based and the visual
-              difference is below display-pixel resolution.
-              B.PT160 audit findings on what's NOT animated 1-to-1:
-                - **cornerRadius (14 → 0)** on each slot row in the
-                  spec is NOT animated. Reason: borderRadius is paint-
-                  bound; animating it would regress the Firefox
-                  smoothness gain from B.PT159's backdrop-blur drop.
-                  Acceptable trade-off: chip opacity tweens 1 → 0
-                  alongside the morph, so the radius change is
-                  invisible at the end state.
-                - **Chip internals (Frame 6 left text, Frame 12
-                  duration display)** stay 50px tall in spec while
-                  the slot row grows to 282px. Our impl scales them
-                  uniformly via the parent's FLIP transform. Reason:
-                  invisible at end state (opacity 0); skipping their
-                  layoutIds keeps the layoutId count low for perf.
-              Both deviations are deliberate — net visual at any
-              snapshot during the morph is indistinguishable. */}
+              position absolutely from 0,0). The article has no
+              padding; the phantom layer is `inset-0`, and the
+              phantoms inside use raw Figma pixel coords including
+              sub-pixel offsets like 192.5 / 21.5.
+
+              The slot path mirrors the Figma layer hierarchy:
+                - `oh-slot-list` = Frame 2 cream container.
+                - `oh-slot-stack` = Frame 18 inner stack.
+                - `oh-slot-N` = each painted slot frame, with
+                  borderRadius 14 → 0 and size 325×50 → 690×282.
+
+              The one accepted approximation is inside the slot:
+              Frame 9 grows 303 → 668 wide while its 50px height stays
+              fixed. SlotRow keeps that layer as a projected
+              `motion.span layout` anchored top-left, then projects the
+              text groups with `layout="position"` so the row width
+              follows fill-container behavior without scaling the text. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -inset-[15px]"
+            className="pointer-events-none absolute inset-0 z-20"
           >
             {/* Identity header phantom — exact Figma coords (192, 22)
                 with size 336×87. B.PT175 — when the debug overlay
@@ -337,8 +324,8 @@ export function HandleModal({
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
                 position: "absolute",
-                top: 22,
-                left: 192,
+                top: 21.5,
+                left: 192.5,
                 width: 336,
                 height: 87,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -366,7 +353,7 @@ export function HandleModal({
                   interpolates with the parent transform (Figma
                   fill-container behavior); accept brief mid-flight
                   text scaling. */}
-              {showLandingAtDest && identityContent ? identityContent : null}
+              {identityContent ? identityContent : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
                   identity
@@ -386,227 +373,239 @@ export function HandleModal({
               exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
                 position: "absolute",
-                inset: 0,
+                top: -0.5,
+                left: 0.5,
+                width: 720,
+                height: 1158,
+                borderRadius: 20,
+                boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
+              className="bg-[#F5EFDF]"
             >
               {phantomLabels ? (
                 <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
                   slot list
                 </span>
               ) : null}
-              {Array.from({ length: 4 }).map((_, i) => {
-                const opt = SLOT_OPTIONS[i];
-                return (
-                  <motion.div
-                    key={i}
-                    layoutId={`oh-slot-${i}`}
-                    transition={{
-                      type: "spring",
-                      ...(open ? openSpring : closeSpring),
-                    }}
-                    initial={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    animate={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    exit={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    style={{
-                      position: "absolute",
-                      top: 15 + i * 282,
-                      left: 15,
-                      width: 690,
-                      height: 282,
-                      outline: phantomOutline
-                        ? "1px dashed currentColor"
-                        : undefined,
-                      zIndex: zStyle(
-                        zL2
-                          ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
-                          : undefined,
-                      ),
-                      // B.PT172 — when not in debug "show at destination"
-                      // mode, phantoms are pure invisible morph targets
-                      // (no pointer events). When debug mode is on we
-                      // still don't want phantoms intercepting clicks
-                      // on the modal interior — leave pointer-events
-                      // disabled regardless.
-                      pointerEvents: "none",
-                    }}
-                  >
-                    {showLandingAtDest && opt ? (
-                      // B.PT172 — render the actual chip rendering at
-                      // the phantom's destination rect so the user
-                      // sees what Layer 1 looks like AT post-morph
-                      // position. The slot's content stays at its
-                      // CSS-natural size (50px tall) anchored to the
-                      // top-left of the 282-tall phantom rect — same
-                      // as the spec's "Frame 6/12 stay 50px while
-                      // slot grows to 282" behavior.
-                      // B.PT180 — `<motion.div layout>` is the
-                      // inverse-scale wrapper. The phantom's rect
-                      // morphs from 325×50 (landing source) to
-                      // 690×282 (modal destination) — a 2.12× wider
-                      // and 5.64× taller scale transform. Without
-                      // this wrapper the SlotRow children paint with
-                      // that transform applied → text + duration
-                      // label squished/elongated mid-morph (and
-                      // visibly squished at destination because the
-                      // transform doesn't fully unwind for content
-                      // rendered conditionally). Mirrors the same
-                      // wrapper on the LANDING side (B.PT162); the
-                      // modal side was missing it, breaking the
-                      // symmetric Smart-Animate behavior.
-                      // B.PT183 — inverse-correction wrapper REMOVED.
-                      // SlotRow scales with parent transform → width
-                      // interpolates from landing rect to phantom
-                      // rect (Figma fill-container behavior). Brief
-                      // text distortion mid-flight is accepted.
+              <motion.div
+                layoutId="oh-slot-stack"
+                transition={{
+                  type: "spring",
+                  ...(open ? openSpring : closeSpring),
+                }}
+                style={{
+                  position: "absolute",
+                  top: 15,
+                  left: 15,
+                  width: 690,
+                  height: 1128,
+                  boxShadow: "0 0 10px rgba(0,0,0,0.25)",
+                }}
+              >
+                {Array.from({ length: 4 }).map((_, i) => {
+                  const opt = SLOT_OPTIONS[i];
+                  return opt ? (
+                    <div key={i}>
                       <SlotRow
+                        inert
+                        figmaLayer={`modal-slot-${i}`}
+                        layoutId={`oh-slot-${i}`}
+                        transition={{
+                          type: "spring",
+                          ...(open ? openSpring : closeSpring),
+                        }}
+                        initial={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        animate={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        exit={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: i * 282,
+                          left: 0,
+                          width: 690,
+                          height: 282,
+                          borderRadius: 0,
+                          boxShadow: "none",
+                          outline: phantomOutline
+                            ? "1px dashed currentColor"
+                            : undefined,
+                          zIndex: zStyle(
+                            zL2
+                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                          ),
+                          pointerEvents: "none",
+                        }}
                         title="intro"
                         description="quick chat, voice only"
                         durationLabel={opt.label}
                         onClick={() => {}}
                       />
-                    ) : null}
-                    {phantomLabels ? (
-                      <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
-                        slot {i}
-                      </span>
-                    ) : null}
-                  </motion.div>
-                );
-              })}
+                      {phantomLabels ? (
+                        <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                          slot {i}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null;
+                })}
+              </motion.div>
             </motion.div>
           </div>
-          <h2 id="handle-modal-title" className="sr-only">
-            {view === "form"
-              ? rescheduleFromUid
-                ? t("rescheduleFormTitle")
-                : t("bookingFormTitle")
-              : t("drawerTitle")}
-          </h2>
-          <p className="sr-only">{t("drawerDescription")}</p>
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[color:var(--oh-paper)]">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label={t("closeDrawerAria")}
+              className="oh-focus-ring absolute right-[14px] top-[14px] z-10 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+            <div className="oh-modal-close-bar" aria-hidden />
+            <div className="oh-drawer-head">
+              <h2 id="handle-modal-title" className="oh-drawer-title">
+                {view === "form"
+                  ? rescheduleFromUid
+                    ? t("rescheduleFormTitle")
+                    : t("bookingFormTitle")
+                  : t("drawerTitle")}
+              </h2>
+              <p className="sr-only">{t("drawerDescription")}</p>
+            </div>
 
-          {/* monthbar — picker view only. In form view it's hidden +
-              replaced by a back-to-picker control. Same `oh-drawer-
-              monthbar` class so existing CSS still applies. */}
-          {view === "picker" ? (
-            <div className="oh-drawer-monthbar">
-              <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
-              <MonthDrawer
-                slots={slots}
-                selectedDate={selectedDate}
-                onSelectDate={handleSelectDate}
-                months={months}
-              >
+            {/* monthbar — picker view only. In form view it's hidden +
+                replaced by a back-to-picker control. Same `oh-drawer-
+                monthbar` class so existing CSS still applies. */}
+            {view === "picker" ? (
+              <div className="oh-drawer-monthbar">
+                <span className="oh-drawer-monthbar-label">
+                  {monthBarLabel}
+                </span>
+                <MonthDrawer
+                  slots={slots}
+                  selectedDate={selectedDate}
+                  onSelectDate={handleSelectDate}
+                  months={months}
+                >
+                  <button
+                    type="button"
+                    className="oh-view-toggle"
+                    aria-label={t("openMonthViewAria")}
+                  >
+                    <CalendarIcon />
+                  </button>
+                </MonthDrawer>
+              </div>
+            ) : (
+              <div className="oh-drawer-monthbar">
                 <button
                   type="button"
-                  className="oh-view-toggle"
-                  aria-label={t("openMonthViewAria")}
+                  onClick={() => setView("picker")}
+                  aria-label={t("backToPickerAria")}
+                  className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
                 >
-                  <CalendarIcon />
+                  <ArrowLeftIcon className="size-4" />
+                  {t("backToPicker")}
                 </button>
-              </MonthDrawer>
-            </div>
-          ) : (
-            <div className="oh-drawer-monthbar">
-              <button
-                type="button"
-                onClick={() => setView("picker")}
-                aria-label={t("backToPickerAria")}
-                className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
-              >
-                <ArrowLeftIcon className="size-4" />
-                {t("backToPicker")}
-              </button>
-              <span className="oh-drawer-monthbar-label opacity-65 truncate">
-                {selectedSlot
-                  ? format
-                      .dateTime(new Date(selectedSlot.start), {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })
-                      .toUpperCase()
-                  : ""}
-              </span>
-            </div>
-          )}
+                <span className="oh-drawer-monthbar-label truncate opacity-65">
+                  {selectedSlot
+                    ? format
+                        .dateTime(new Date(selectedSlot.start), {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                        .toUpperCase()
+                    : ""}
+                </span>
+              </div>
+            )}
 
-          {/* B.PT157 — picker / form swap. AnimatePresence with
-              `mode="wait"` waits for the outgoing view to exit before
-              the incoming one mounts, so we don't see both stacked
-              mid-tween. Spring comes from the Figma prototype's
-              transitions[1] capture (anim spec) — stiffer than the
-              modal-open spring so the swap feels snappier. */}
-          <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait" initial={false}>
-              {view === "picker" ? (
-                <motion.div
-                  key="picker"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...confirmSpring }}
-                >
-                  <DayStrip
-                    slots={slots}
-                    selectedDate={selectedDate}
-                    onSelectDate={handleSelectDate}
-                  />
-                  {selectedDate ? (
-                    <DaySlots
-                      date={selectedDate}
-                      slots={dayOfSlots}
-                      onPick={handlePickSlot}
+            {/* B.PT157 — picker / form swap. AnimatePresence with
+                `mode="wait"` waits for the outgoing view to exit before
+                the incoming one mounts, so we don't see both stacked
+                mid-tween. Spring comes from the Figma prototype's
+                transitions[1] capture (anim spec) — stiffer than the
+                modal-open spring so the swap feels snappier. */}
+            <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+              <AnimatePresence mode="wait" initial={false}>
+                {view === "picker" ? (
+                  <motion.div
+                    key="picker"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", ...confirmSpring }}
+                  >
+                    <DayStrip
+                      slots={slots}
+                      selectedDate={selectedDate}
+                      onSelectDate={handleSelectDate}
                     />
-                  ) : (
-                    <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...confirmSpring }}
-                >
-                  {selectedSlot ? (
-                    <BookingForm
-                      handle={handle}
-                      slotStart={selectedSlot.start}
-                      rescheduleFromUid={rescheduleFromUid}
-                    />
-                  ) : null}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    {selectedDate ? (
+                      <DaySlots
+                        date={selectedDate}
+                        slots={dayOfSlots}
+                        onPick={handlePickSlot}
+                      />
+                    ) : (
+                      <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", ...confirmSpring }}
+                  >
+                    {selectedSlot ? (
+                      <BookingForm
+                        handle={handle}
+                        slotStart={selectedSlot.start}
+                        rescheduleFromUid={rescheduleFromUid}
+                      />
+                    ) : null}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.article>
-      </div>
+      </motion.div>
     </FocusOn>
   );
 }

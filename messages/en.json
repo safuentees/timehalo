@@ -585,6 +585,7 @@
     "triggerFullAria": "{date} at {time}, edit",
     "drawerTitle": "Schedule your meeting",
     "drawerDescription": "Pick a day and a time for your meeting.",
+    "closeDrawerAria": "Close scheduler",
     "openMonthViewAria": "Open month view",
     "backToPicker": "Back",
     "backToPickerAria": "Back to date picker",
