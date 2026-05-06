@@ -101,6 +101,9 @@ export default function HostProfile({
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
+    string | undefined
+  >(undefined);
   const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
   const landingLayoutId = (id: string) =>
     stripLandingLayoutId ? undefined : id;
@@ -434,7 +437,10 @@ export default function HostProfile({
                               title="intro"
                               description="quick chat, voice only"
                               durationLabel={opt.label}
-                              onClick={() => setDrawerOpen(true)}
+                              onClick={() => {
+                                setSelectedDurationLabel(opt.label);
+                                setDrawerOpen(true);
+                              }}
                             />
                           </li>
                         );
@@ -468,6 +474,7 @@ export default function HostProfile({
                 onSelectDate={handleSelectDate}
                 selectedSlot={selectedSlot}
                 rescheduleFromUid={rescheduleFromUid}
+                durationLabel={selectedDurationLabel}
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });

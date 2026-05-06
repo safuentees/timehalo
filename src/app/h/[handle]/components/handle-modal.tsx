@@ -54,6 +54,7 @@ type Props = {
   rescheduleFromUid?: string;
   months?: number;
   identityContent?: ReactNode;
+  durationLabel?: string;
 };
 
 export function HandleModal({
@@ -68,6 +69,7 @@ export function HandleModal({
   rescheduleFromUid,
   months = 3,
   identityContent,
+  durationLabel,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -177,7 +179,7 @@ export function HandleModal({
           </div>
 
           <div className="absolute inset-[15px] z-10 flex min-h-0 flex-col gap-[15px]">
-            <div className="relative z-30 flex shrink-0 items-center justify-between">
+            <div className="relative z-30 grid h-7 shrink-0 grid-cols-3 items-center">
               <button
                 type="button"
                 onClick={() =>
@@ -188,7 +190,7 @@ export function HandleModal({
                     ? t("backToPickerAria")
                     : t("closeDrawerAria")
                 }
-                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <ChevronLeftIcon
                   className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
@@ -196,11 +198,18 @@ export function HandleModal({
                   aria-hidden
                 />
               </button>
+              {durationLabel ? (
+                <span className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]">
+                  {durationLabel}
+                </span>
+              ) : (
+                <span className="justify-self-center" aria-hidden />
+              )}
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
                 aria-label={t("closeDrawerAria")}
-                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <XIcon
                   className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
