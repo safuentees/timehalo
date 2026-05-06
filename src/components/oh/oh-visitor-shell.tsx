@@ -9,7 +9,7 @@ type Props = {
 
 export function OhVisitorShell({ children, header, footer, className }: Props) {
   return (
-    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
+    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]">
       <div
         className={[
           "relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
