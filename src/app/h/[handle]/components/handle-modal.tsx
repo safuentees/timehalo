@@ -295,10 +295,11 @@ export function HandleModal({
           // relative heights, not data-computed).
           className="min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden"
         >
-          {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
-              Figma spec EXACTLY. The user designed the modal with
-              phantom (opacity 0) copies of the slot rows + identity
-              header at their target positions inside frame 2. Per
+          {/* B.PT159 / B.PT160 — SMART_ANIMATE destinations matching
+              the Figma spec. Identity remains an aria-hidden phantom;
+              slot-list is now the visible cream shell that contains the
+              real calendar UI, with slot-row phantoms overlaid behind
+              that content for shared-layout measurement. Per
               `docs/figma/anim-h-handle-redesign.json` transition[0]
               deltas:
                 - Frame 15 (identity)  pos (192.5, 21.5), size 336×87
@@ -308,9 +309,9 @@ export function HandleModal({
               These coordinates are relative to the modal frame's
               outer edge (Figma frames have no padding; children
               position absolutely from 0,0). The article has no
-              padding; the phantom layer is `inset-0`, and the
-              phantoms inside use raw Figma pixel coords including
-              sub-pixel offsets like 192.5 / 21.5.
+              padding; identity uses raw Figma pixel coords, and
+              slot-list keeps the modal's 15px inset as the visible
+              flex-column content shell.
 
               The slot path mirrors the Figma layer hierarchy:
                 - `oh-slot-list` = Frame 2 cream container.
@@ -326,12 +327,9 @@ export function HandleModal({
               follows fill-container behavior without scaling the text. */}
           <div
             aria-hidden
-            // B.PT195 — phantom container moved to z-0 so the
-            // cream slot-list phantom (now visible in production)
-            // sits BEHIND the calendar content (z-10). Identity
-            // phantom and slot phantoms also drop to z-0; both are
-            // at opacity 0 in production so this doesn't affect
-            // their visibility, only their stacking with calendar.
+            // Identity stays separate from the visible slot-list shell
+            // so its shared-layout rect can be measured without making
+            // real controls part of an aria-hidden tree.
             className="pointer-events-none absolute inset-0 z-0"
           >
             {/* Identity header phantom — exact Figma coords (192, 22)
@@ -375,11 +373,34 @@ export function HandleModal({
                 </span>
               ) : null}
             </motion.div>
-            {/* Slot-list (Frame 2) phantom — full-modal coverage at
-                (0, 0). The Frame 18 inner wrapper is 15px-margined
-                inside it, then the 4 slot rows stack at exact Figma
-                offsets (0/282/564/846, height 282 each, full width
-                of Frame 18 = 690). */}
+          </div>
+
+          {/* Visible modal content. Header controls sit above the shared
+              `oh-slot-list`; calendar contents remain nested inside the
+              cream shared shell below. */}
+          <div className="absolute inset-[15px] z-10 flex min-h-0 flex-col">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label={t("closeDrawerAria")}
+              className="oh-focus-ring absolute right-[14px] top-[14px] z-30 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+            <div className="relative z-20 shrink-0 bg-[color:var(--oh-paper)]">
+              <div className="oh-modal-close-bar" aria-hidden />
+              <div className="oh-drawer-head">
+                <h2 id="handle-modal-title" className="oh-drawer-title">
+                  {view === "form"
+                    ? rescheduleFromUid
+                      ? t("rescheduleFormTitle")
+                      : t("bookingFormTitle")
+                    : t("drawerTitle")}
+                </h2>
+                <p className="sr-only">{t("drawerDescription")}</p>
+              </div>
+            </div>
+
             <motion.div
               layoutId="oh-slot-list"
               transition={{
@@ -388,39 +409,33 @@ export function HandleModal({
               }}
               initial={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               animate={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               exit={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               style={{
-                // B.PT210 — `padding: 15` REMOVED from slot-list
-                // (was added in B.PT207). The cream gutter now lives
-                // only on slot-stack (mirrors landing motion.ul's
-                // `p-[15px]`). Single source of truth for the inner
-                // padding — no more compounding with slot-list's own
-                // padding (was producing 30px total instead of 15px).
-                // Slot-list keeps `inset: 15` of modal article so
-                // paper is visible 15px around the cream rect.
-                position: "absolute",
-                inset: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
-                outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                outline: phantomOutline
+                  ? "1px dashed currentColor"
+                  : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
-              className="bg-[#F5EFDF]"
+              className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
             >
               {phantomLabels ? (
-                <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
+                <span className="pointer-events-none absolute left-1 top-1 z-30 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
                   slot list
                 </span>
               ) : null}
+
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
               <motion.div
                 layoutId="oh-slot-stack"
                 transition={{
@@ -453,7 +468,7 @@ export function HandleModal({
                 // landing's motion.ul which already uses the same
                 // class. Same CSS at runtime, single styling
                 // vocabulary across the morph.
-                className="p-[15px] "
+                className="p-[15px]"
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
@@ -521,29 +536,8 @@ export function HandleModal({
                           ),
                         }}
                         style={{
-                          // B.PT207 — chip fills its flex-1 wrapper
-                          // via `inset: 0` (no hardcoded pixel dims).
-                          // The wrapper takes 1/4 of slot-stack's
-                          // height; slot-stack fills slot-list's
-                          // padding box (660×1098). If the slot-list
-                          // size or padding changes, chips resize
-                          // automatically.
                           position: "absolute",
                           inset: 0,
-                          // B.PT194 — Apple HIG concentric-corner
-                          // formula: inner radius = outer radius -
-                          // margin. Slot-list outer cornerRadius =
-                          // 20, Frame 18 inner padding = 15, so
-                          // inner radius = 20 − 15 = 5. Apply only
-                          // to the FIRST chip's TOP corners and the
-                          // LAST chip's BOTTOM corners; middle chips
-                          // stay sharp so the row dividers read as
-                          // a clean segmented stack. Use explicit
-                          // per-corner longhands instead of the
-                          // borderRadius shorthand so Motion's
-                          // shared-layout radius mixer interpolates
-                          // from the real 14px source radius rather
-                          // than a stale 0px corner value.
                           ...slotRadiusStyle,
                           boxShadow: "none",
                           outline: phantomOutline
@@ -570,160 +564,135 @@ export function HandleModal({
                   ) : null;
                 })}
               </motion.div>
-            </motion.div>
-          </div>
-          {/* B.PT195 — calendar wrapper bg dropped from
-              `bg-[color:var(--oh-paper)]` to transparent. The cream
-              slot-list phantom now sits behind this layer (z-0)
-              with its `inset 0 0 4px rgba(0,0,0,0.25)` inner shadow
-              visible. Calendar content renders directly on the
-              cream bg, mirroring how landing's slot-list cream
-              card hosts the chips directly on cream. */}
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              aria-label={t("closeDrawerAria")}
-              className="oh-focus-ring absolute right-[14px] top-[14px] z-10 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
-            >
-              <XIcon className="size-4" aria-hidden />
-            </button>
-            <div className="oh-modal-close-bar" aria-hidden />
-            <div className="oh-drawer-head">
-              <h2 id="handle-modal-title" className="oh-drawer-title">
-                {view === "form"
-                  ? rescheduleFromUid
-                    ? t("rescheduleFormTitle")
-                    : t("bookingFormTitle")
-                  : t("drawerTitle")}
-              </h2>
-              <p className="sr-only">{t("drawerDescription")}</p>
             </div>
 
-            {/* monthbar — picker view only. In form view it's hidden +
-                replaced by a back-to-picker control. Same `oh-drawer-
-                monthbar` class so existing CSS still applies. */}
-            {view === "picker" ? (
-              <div className="oh-drawer-monthbar">
-                <span className="oh-drawer-monthbar-label">
-                  {monthBarLabel}
-                </span>
-                <MonthDrawer
-                  slots={slots}
-                  selectedDate={selectedDate}
-                  onSelectDate={handleSelectDate}
-                  months={months}
-                >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[#F5EFDF]">
+              {/* monthbar — picker view only. In form view it's hidden +
+                  replaced by a back-to-picker control. Same `oh-drawer-
+                  monthbar` class so existing CSS still applies. */}
+              {view === "picker" ? (
+                <div className="oh-drawer-monthbar">
+                  <span className="oh-drawer-monthbar-label">
+                    {monthBarLabel}
+                  </span>
+                  <MonthDrawer
+                    slots={slots}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    months={months}
+                  >
+                    <button
+                      type="button"
+                      className="oh-view-toggle"
+                      aria-label={t("openMonthViewAria")}
+                    >
+                      <CalendarIcon />
+                    </button>
+                  </MonthDrawer>
+                </div>
+              ) : (
+                <div className="oh-drawer-monthbar">
                   <button
                     type="button"
-                    className="oh-view-toggle"
-                    aria-label={t("openMonthViewAria")}
+                    onClick={() => setView("picker")}
+                    aria-label={t("backToPickerAria")}
+                    className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
                   >
-                    <CalendarIcon />
+                    <ArrowLeftIcon className="size-4" />
+                    {t("backToPicker")}
                   </button>
-                </MonthDrawer>
-              </div>
-            ) : (
-              <div className="oh-drawer-monthbar">
-                <button
-                  type="button"
-                  onClick={() => setView("picker")}
-                  aria-label={t("backToPickerAria")}
-                  className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
-                >
-                  <ArrowLeftIcon className="size-4" />
-                  {t("backToPicker")}
-                </button>
-                <span className="oh-drawer-monthbar-label truncate opacity-65">
-                  {selectedSlot
-                    ? format
-                        .dateTime(new Date(selectedSlot.start), {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
-                        .toUpperCase()
-                    : ""}
-                </span>
-              </div>
-            )}
+                  <span className="oh-drawer-monthbar-label truncate opacity-65">
+                    {selectedSlot
+                      ? format
+                          .dateTime(new Date(selectedSlot.start), {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })
+                          .toUpperCase()
+                      : ""}
+                  </span>
+                </div>
+              )}
 
-            {/* B.PT157 — picker / form swap. AnimatePresence with
-                `mode="wait"` waits for the outgoing view to exit before
-                the incoming one mounts, so we don't see both stacked
-                mid-tween. Spring comes from the Figma prototype's
-                transitions[1] capture (anim spec) — stiffer than the
-                modal-open spring so the swap feels snappier. */}
-            <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
-              <AnimatePresence mode="wait" initial={false}>
-                {view === "picker" ? (
-                  <motion.div
-                    key="picker"
-                    // B.PT196 / B.PT197 — both `initial` and `exit`
-                    // pinned to opacity 1 (matching `animate`). The
-                    // picker/form motion.divs no longer fade in on
-                    // mount nor fade out on unmount. AnimatePresence
-                    // `mode="wait"` still serializes the swap (waits
-                    // for the outgoing element to "exit" before the
-                    // incoming one mounts), but with exit at opacity
-                    // 1 the wait completes instantly. Net: no
-                    // crossfade in either direction. Required because
-                    // after B.PT195 the calendar wrapper's bg dropped
-                    // (cream slot-list peeks through) so any 0→1 or
-                    // 1→0 fade became visible against the cream bg.
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 1 }}
-                    transition={{ type: "spring", ...confirmSpring }}
-                  >
-                    <DayStrip
-                      slots={slots}
-                      selectedDate={selectedDate}
-                      onSelectDate={handleSelectDate}
-                    />
-                    {selectedDate ? (
-                      <DaySlots
-                        date={selectedDate}
-                        slots={dayOfSlots}
-                        onPick={handlePickSlot}
+              {/* B.PT157 — picker / form swap. AnimatePresence with
+                  `mode="wait"` waits for the outgoing view to exit before
+                  the incoming one mounts, so we don't see both stacked
+                  mid-tween. Spring comes from the Figma prototype's
+                  transitions[1] capture (anim spec) — stiffer than the
+                  modal-open spring so the swap feels snappier. */}
+              <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+                <AnimatePresence mode="wait" initial={false}>
+                  {view === "picker" ? (
+                    <motion.div
+                      key="picker"
+                      // B.PT196 / B.PT197 — both `initial` and `exit`
+                      // pinned to opacity 1 (matching `animate`). The
+                      // picker/form motion.divs no longer fade in on
+                      // mount nor fade out on unmount. AnimatePresence
+                      // `mode="wait"` still serializes the swap (waits
+                      // for the outgoing element to "exit" before the
+                      // incoming one mounts), but with exit at opacity
+                      // 1 the wait completes instantly. Net: no
+                      // crossfade in either direction. Required because
+                      // after B.PT195 the calendar wrapper's bg dropped
+                      // (cream slot-list peeks through) so any 0→1 or
+                      // 1→0 fade became visible against the cream bg.
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      transition={{ type: "spring", ...confirmSpring }}
+                    >
+                      <DayStrip
+                        slots={slots}
+                        selectedDate={selectedDate}
+                        onSelectDate={handleSelectDate}
                       />
-                    ) : (
-                      <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="form"
-                    // B.PT196 / B.PT197 — both `initial` and `exit`
-                    // pinned to opacity 1 (matching `animate`). The
-                    // picker/form motion.divs no longer fade in on
-                    // mount nor fade out on unmount. AnimatePresence
-                    // `mode="wait"` still serializes the swap (waits
-                    // for the outgoing element to "exit" before the
-                    // incoming one mounts), but with exit at opacity
-                    // 1 the wait completes instantly. Net: no
-                    // crossfade in either direction. Required because
-                    // after B.PT195 the calendar wrapper's bg dropped
-                    // (cream slot-list peeks through) so any 0→1 or
-                    // 1→0 fade became visible against the cream bg.
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 1 }}
-                    transition={{ type: "spring", ...confirmSpring }}
-                  >
-                    {selectedSlot ? (
-                      <BookingForm
-                        handle={handle}
-                        slotStart={selectedSlot.start}
-                        rescheduleFromUid={rescheduleFromUid}
-                      />
-                    ) : null}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {selectedDate ? (
+                        <DaySlots
+                          date={selectedDate}
+                          slots={dayOfSlots}
+                          onPick={handlePickSlot}
+                        />
+                      ) : (
+                        <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="form"
+                      // B.PT196 / B.PT197 — both `initial` and `exit`
+                      // pinned to opacity 1 (matching `animate`). The
+                      // picker/form motion.divs no longer fade in on
+                      // mount nor fade out on unmount. AnimatePresence
+                      // `mode="wait"` still serializes the swap (waits
+                      // for the outgoing element to "exit" before the
+                      // incoming one mounts), but with exit at opacity
+                      // 1 the wait completes instantly. Net: no
+                      // crossfade in either direction. Required because
+                      // after B.PT195 the calendar wrapper's bg dropped
+                      // (cream slot-list peeks through) so any 0→1 or
+                      // 1→0 fade became visible against the cream bg.
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      transition={{ type: "spring", ...confirmSpring }}
+                    >
+                      {selectedSlot ? (
+                        <BookingForm
+                          handle={handle}
+                          slotStart={selectedSlot.start}
+                          rescheduleFromUid={rescheduleFromUid}
+                        />
+                      ) : null}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
+            </motion.div>
           </div>
         </HandleMorphCard>
       </motion.div>
