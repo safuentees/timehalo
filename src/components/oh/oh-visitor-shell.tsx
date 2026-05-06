@@ -65,7 +65,13 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     // shorthand.
     // Inner radius `rounded-[25px]` matches landing card
     // `HANDLE_CARD_RADIUS = 25` for cross-route corner vocabulary.
-    <div className="flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
+    // B.PT217 — `oh-visitor-shell` class hooks the global override
+    // in `globals.css` (`:where(html, body):has(.oh-visitor-shell)
+    // { overflow: hidden; scrollbar-gutter: auto }`) which kills
+    // the scrollbar gutter the global `html { scrollbar-gutter:
+    // stable }` rule otherwise reserves on the right edge of the
+    // viewport. Visible as a thin sliver of html bg without this.
+    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
       <div
         className={[
           "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
@@ -75,7 +81,18 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
           .join(" ")}
       >
         {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-        <main className="min-h-0 flex-1 overflow-auto">{children}</main>
+        {/* B.PT217 — `<main>` was `overflow-auto` (B.PT216), which
+            kept showing a scrollbar gutter on the right whenever the
+            content was even 1px taller than the panel. User wants no
+            scrolling at all. Switching to `overflow-hidden` removes
+            the gutter entirely. Content that exceeds the panel
+            simply clips — fits the user's "everything in the
+            viewport" intent. Tailwind has no built-in
+            `scrollbar-hidden` utility (would need a custom
+            `@utility scrollbar-hidden { &::-webkit-scrollbar
+            { display: none } }` per docs); `overflow-hidden` is the
+            simpler answer when scrolling isn't wanted. */}
+        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
         {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
       </div>
     </div>

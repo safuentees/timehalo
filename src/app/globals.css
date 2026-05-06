@@ -369,6 +369,21 @@
   scrollbar-gutter: auto;
 }
 
+/* B.PT217 — same trick for the visitor shell. The OhVisitorShell
+   sits at `h-dvh overflow-hidden` and clips internal overflow, so
+   the body never needs a scrollbar. But the global `html
+   { scrollbar-gutter: stable }` rule above keeps a gutter reserved
+   regardless, painting a thin sliver of html's bg on the right of
+   the viewport — visible against the visitor shell's full-bleed
+   sisal/muted-paper outer. Scoped via `:has(.oh-visitor-shell)` so
+   only visitor routes (`/h/[handle]`, `/h/[handle]/booked/[uid]`,
+   future `/w/[slug]/*`) drop the gutter. Auth + dashboard routes
+   keep the global `stable` gutter for jump-free overflow toggles. */
+:where(html, body):has(.oh-visitor-shell) {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
 /* Outer dashboard shell — flex-col so the dashboard bar sits above
    the sidebar+content row. h-svh anchors the column to the viewport;
    inner SidebarProvider takes the rest via the override below. The
