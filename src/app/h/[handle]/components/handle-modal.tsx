@@ -600,20 +600,21 @@ export function HandleModal({
                 {view === "picker" ? (
                   <motion.div
                     key="picker"
-                    // B.PT196 — `initial: opacity 1` (was 0) so the
-                    // picker does NOT fade in on first modal mount.
-                    // The fade-in was visible after B.PT195 removed
-                    // the calendar wrapper's paper bg — picker now
-                    // fades over cream (visible) instead of paper
-                    // (invisible). The AnimatePresence's
-                    // `initial={false}` was supposed to suppress
-                    // first-mount fade but didn't do so consistently.
-                    // The picker → form swap still reads cleanly:
-                    // old exits via `exit: opacity 0` under
-                    // `mode="wait"`, new appears at opacity 1.
+                    // B.PT196 / B.PT197 — both `initial` and `exit`
+                    // pinned to opacity 1 (matching `animate`). The
+                    // picker/form motion.divs no longer fade in on
+                    // mount nor fade out on unmount. AnimatePresence
+                    // `mode="wait"` still serializes the swap (waits
+                    // for the outgoing element to "exit" before the
+                    // incoming one mounts), but with exit at opacity
+                    // 1 the wait completes instantly. Net: no
+                    // crossfade in either direction. Required because
+                    // after B.PT195 the calendar wrapper's bg dropped
+                    // (cream slot-list peeks through) so any 0→1 or
+                    // 1→0 fade became visible against the cream bg.
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    exit={{ opacity: 1 }}
                     transition={{ type: "spring", ...confirmSpring }}
                   >
                     <DayStrip
@@ -634,20 +635,21 @@ export function HandleModal({
                 ) : (
                   <motion.div
                     key="form"
-                    // B.PT196 — `initial: opacity 1` (was 0) so the
-                    // picker does NOT fade in on first modal mount.
-                    // The fade-in was visible after B.PT195 removed
-                    // the calendar wrapper's paper bg — picker now
-                    // fades over cream (visible) instead of paper
-                    // (invisible). The AnimatePresence's
-                    // `initial={false}` was supposed to suppress
-                    // first-mount fade but didn't do so consistently.
-                    // The picker → form swap still reads cleanly:
-                    // old exits via `exit: opacity 0` under
-                    // `mode="wait"`, new appears at opacity 1.
+                    // B.PT196 / B.PT197 — both `initial` and `exit`
+                    // pinned to opacity 1 (matching `animate`). The
+                    // picker/form motion.divs no longer fade in on
+                    // mount nor fade out on unmount. AnimatePresence
+                    // `mode="wait"` still serializes the swap (waits
+                    // for the outgoing element to "exit" before the
+                    // incoming one mounts), but with exit at opacity
+                    // 1 the wait completes instantly. Net: no
+                    // crossfade in either direction. Required because
+                    // after B.PT195 the calendar wrapper's bg dropped
+                    // (cream slot-list peeks through) so any 0→1 or
+                    // 1→0 fade became visible against the cream bg.
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    exit={{ opacity: 1 }}
                     transition={{ type: "spring", ...confirmSpring }}
                   >
                     {selectedSlot ? (
