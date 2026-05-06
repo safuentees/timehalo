@@ -142,7 +142,7 @@ export function HandleModal({
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          className="flex min-h-[clamp(500px,70dvh,900px)] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
         >
           <div
             aria-hidden
