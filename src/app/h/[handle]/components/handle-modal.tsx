@@ -389,16 +389,16 @@ export function HandleModal({
                 opacity: oStyle(oL2?.slotList, 0),
               }}
               style={{
-                // B.PT203 — slot-list phantom uses `inset: 15` so
-                // it sits 15px inside the modal article on every
-                // edge. ONLY the absolutely-positioned phantom is
-                // pushed inward; the calendar content at z-10 keeps
-                // its full inner area. Net visual: 15px paper
-                // border around the cream phantom container, no
-                // effect on the calendar / form interactive
-                // surface.
+                // B.PT205 — slot-list cream rect fills the FULL modal
+                // article (Figma Frame 2 = 720×1158). The 15px gutter
+                // lives on slot-stack below (`inset: 15`) so chips
+                // sit inside the cream rect with cream visible around
+                // them — matches landing's `p-[15px]` cream-frame
+                // aesthetic. Calendar content at z-10 still keeps its
+                // full inner area (only the phantom's children are
+                // pushed inward, not the modal article).
                 position: "absolute",
-                inset: 15,
+                inset: 0,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -418,18 +418,16 @@ export function HandleModal({
                   ...(open ? openSpring : closeSpring),
                 }}
                 style={{
-                  // B.PT204 — slot-stack fills slot-list. Pre-B.PT203
-                  // the stack used Figma absolute coords (top:15,
-                  // left:15, width:690, height:1128) which positioned
-                  // it inside the FULL 720×1158 modal article. After
-                  // B.PT203 the slot-list phantom is already
-                  // `inset:15` (= 690×1128), so re-applying 15,15
-                  // offset overflowed the slot-list by 15px right +
-                  // bottom. `inset: 0` lets the stack fill the
-                  // already-padded slot-list parent — chips fill
-                  // remaining space, no double-padding.
+                  // B.PT205 — slot-stack `inset: 15` of slot-list so
+                  // the chip area sits inside the cream rect with a
+                  // 15px cream gutter on all sides (Figma Frame 18 =
+                  // 690×1128 inside Frame 2's 720×1158, matches
+                  // landing's `p-[15px]` cream-frame aesthetic). The
+                  // 4 chips at width:690, height:282 fill this padded
+                  // inner area pixel-exact (slot-stack: 720-30 = 690
+                  // wide, 1158-30 = 1128 tall = 4×282).
                   position: "absolute",
-                  inset: 0,
+                  inset: 15,
                   // Figma's Frame 18 has no fill/radius, only a drop shadow.
                   // Projecting that shadow reads as an unintended square
                   // wrapper around the chips; Frame 2 already paints the
