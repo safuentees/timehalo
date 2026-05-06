@@ -46,26 +46,36 @@ type Props = {
 
 export function OhVisitorShell({ children, header, footer, className }: Props) {
   return (
-    // B.PT215 — Two-layer shell: sisal `--oh-frame` painted at the
-    // viewport (highest visitor-only position in the DOM, sits just
-    // inside the route layout's `oh-root`), then a 15px inset to a
-    // paper panel that holds the actual content. Mirrors the modal's
-    // 15px paper-around-cream inset (B.PT203 / B.PT211) so the
-    // landing → modal morph reads as one consistent two-layer chrome
-    // rather than landing-on-paper → modal-on-paper-inside-paper.
-    // Outer rounded corners match the landing card's
-    // `HANDLE_CARD_RADIUS = 25` for visual continuity.
-    <div className="flex min-h-dvh flex-col bg-[color:var(--oh-frame)] p-[15px]">
+    // B.PT216 — Two-layer shell, viewport-fit (no scroll).
+    // Outer: `h-dvh overflow-hidden` pins the box to dynamic viewport
+    // height (mobile-safe — `dvh` adapts to address bar collapse,
+    // unlike `vh`). Per Tailwind docs (tailwindcss.com/docs/height
+    // and the v3.4 dynamic-viewport blog), `h-dvh` is the canonical
+    // unit for this. `overflow-hidden` clips so the page never
+    // scrolls past the viewport in either axis.
+    // Inner: `flex flex-1 flex-col min-h-0 overflow-hidden`. The
+    // critical `min-h-0` overrides flex's default
+    // `min-height: auto` — without it, the inner flex column
+    // wouldn't shrink below its content's intrinsic height and the
+    // outer `overflow-hidden` couldn't contain it.
+    // Color: `bg-oh-bg-muted` (= `--oh-twdivider-bg`, 8% ink in
+    // oklab over paper). Subtler than `--oh-frame` (sisal at 12%).
+    // Sisal looked too dark per user feedback; this is the
+    // "slightly darker paper" the codebase exposes via Tailwind
+    // shorthand.
+    // Inner radius `rounded-[25px]` matches landing card
+    // `HANDLE_CARD_RADIUS = 25` for cross-route corner vocabulary.
+    <div className="flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
       <div
         className={[
-          "flex flex-1 flex-col rounded-[25px] bg-oh-bg text-oh-content",
+          "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
           className,
         ]
           .filter(Boolean)
           .join(" ")}
       >
         {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-        <main className="flex-1">{children}</main>
+        <main className="min-h-0 flex-1 overflow-auto">{children}</main>
         {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
       </div>
     </div>
