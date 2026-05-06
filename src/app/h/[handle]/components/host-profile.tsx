@@ -720,38 +720,43 @@ export function SlotRow({
     boxShadow: "0 0 4px rgba(0,0,0,0.25)",
     ...style,
   };
-  // B.PT186 — REMOVED per-frame layoutIds added in B.PT184. Motion
-  // source (motion.dev.js mixValues, line ~9123) shows shared-layout
-  // crossfade IS unconditional: when an element with layoutId has
-  // a sibling sharing the layoutId, motion overrides explicit
-  // animate.opacity by setting target.opacity =
-  // mixNumber(0, lead.opacity, easeCrossfadeIn(p)) and
-  // target.opacityExit = mixNumber(follow.opacity, 0,
-  // easeCrossfadeOut(p)) regardless of explicit values.
+  // B.PT187 — restore the per-frame layoutIds + opacity pinning that
+  // codex/chatgpt originally landed (B.PT184) and that B.PT186 wrongly
+  // reverted. Motion source confirms the mechanism: in `mixValues`
+  // the path check `!this.path.some(hasOpacityCrossfade)` skips the
+  // shared-layout opacity tween on a child when an ANCESTOR already
+  // has `opacityExit` set on its animationValues. The outer chip's
+  // crossfade always sets opacityExit, so the inner spans' OWN
+  // crossfade is suppressed AS LONG AS the inner spans have layoutId
+  // (so they're recognized as shared-layout) AND explicit
+  // initial/animate/exit opacity pinned to 1 (so motion doesn't fall
+  // through to the auto crossfade-in/out branch). Without layoutId
+  // (the B.PT186 attempt) the inner spans aren't matched between
+  // landing and modal renders — the close direction sees the
+  // landing's text spans mount fresh and motion fades them in via the
+  // entrance animation, producing the 0.7-progress pop-in glitch the
+  // codex prompt called out.
   //
-  // On CLOSE: phantom is still treated as "lead" (latest mounted)
-  // until it actually unmounts via AnimatePresence. So motion drives
-  // the LANDING text's opacity through easeCrossfadeOut (1→0 over
-  // 0.5-0.95) as if it were the exiting element. Mid-animation
-  // phantom unmounts, relegate() promotes landing to lead, opacity
-  // jumps back to 1 — visible as "text fades out, disappears, then
-  // fades back in." Open didn't have this because phantom is the
-  // unambiguous lead (just mounted) the whole way through.
-  //
-  // Fix: drop layoutId from inner spans. They become single-element
-  // layout-tracked elements (`layout` / `layout="position"`) that
-  // ride their parent's transform without running their own
-  // shared-layout crossfade. Matches the codex commit 0755eb1's
-  // original setup. The `layoutAnchor` prop is also dropped — it's
-  // a projection-internal option (motion source: this.options.
-  // layoutAnchor) that isn't exposed as a component prop, so it
-  // was being silently ignored anyway.
+  // The `layoutAnchor` prop seen in earlier iterations stays removed:
+  // motion source shows it as a projection-internal option
+  // (`this.options.layoutAnchor`), not a component prop, so the
+  // earlier `layoutAnchor={{ x: 0, y: 0 }}` were being silently
+  // dropped anyway.
+  const frame9LayoutId = layoutId ? `${layoutId}-frame-9` : undefined;
+  const textLayoutId = layoutId ? `${layoutId}-frame-17` : undefined;
+  const durationLayoutId = layoutId ? `${layoutId}-frame-12` : undefined;
   const content = (
     <motion.span
+      layoutId={frame9LayoutId}
       layout
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 1 }}
       // Figma keeps Frame 9 at 50px high while its width fills the
       // growing slot. Giving this direct child its own layout
       // projection lets Motion counter-scale inherited slot stretch.
+      // Opacity is pinned so shared-layout close does not crossfade
+      // cloned text layers before the chip finishes shrinking.
       className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
       {/* B.PT161 — left text block. Per Figma, both lines are
@@ -763,7 +768,11 @@ export function SlotRow({
           parent doesn't have opacity reduction either, only the
           tagline frame does). */}
       <motion.span
+        layoutId={textLayoutId}
         layout="position"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 1 }}
         // Text should move with the projected row, not scale with it.
         className="flex min-w-0 flex-col items-center leading-tight"
       >
@@ -781,7 +790,11 @@ export function SlotRow({
           spec values. `tabular-nums` keeps the digit-width stable
           across the 4 hardcoded options (15/25/30/01). */}
       <motion.span
+        layoutId={durationLayoutId}
         layout="position"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 1 }}
         // The duration group rides the right edge as Frame 9 widens.
         className="flex shrink-0 items-baseline font-sans tabular-nums"
       >
