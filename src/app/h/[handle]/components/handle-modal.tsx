@@ -389,18 +389,20 @@ export function HandleModal({
                 opacity: oStyle(oL2?.slotList, 0),
               }}
               style={{
-                // B.PT206 — concentric three-level nesting (paper →
-                // cream → chips), each step 15px inward. Slot-list
-                // cream rect at `inset: 15` of modal article so paper
-                // visible 15px around cream (NOT Figma-faithful — the
-                // Figma spec has slot-list filling Frame 2 = 720×1158
-                // edge-to-edge — but matches landing's nested-card
-                // illusion the user is going for in the open state).
-                // Slot-stack below adds another `inset: 15` so cream
-                // visible around chip stack. Calendar at z-10 still
-                // untouched (only the phantom layer's nesting changed).
+                // B.PT207 — concentric nesting via INTERNAL padding,
+                // not slot-stack inset. Slot-list `inset: 15` of
+                // modal article (paper visible around cream) +
+                // `padding: 15` (cream visible around chip stack).
+                // Slot-stack below at `inset: 0` fills slot-list's
+                // PADDING BOX (CSS containing-block rule for abs-pos
+                // children) — so chip container literally fills its
+                // parent's content area, with the cream gutter coming
+                // from slot-list's own padding rather than offsetting
+                // slot-stack. Architecturally responsive: change
+                // padding to 0 → chips edge-to-edge automatically.
                 position: "absolute",
                 inset: 15,
+                padding: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -420,16 +422,18 @@ export function HandleModal({
                   ...(open ? openSpring : closeSpring),
                 }}
                 style={{
-                  // B.PT205 — slot-stack `inset: 15` of slot-list so
-                  // the chip area sits inside the cream rect with a
-                  // 15px cream gutter on all sides (Figma Frame 18 =
-                  // 690×1128 inside Frame 2's 720×1158, matches
-                  // landing's `p-[15px]` cream-frame aesthetic). The
-                  // 4 chips at width:690, height:282 fill this padded
-                  // inner area pixel-exact (slot-stack: 720-30 = 690
-                  // wide, 1158-30 = 1128 tall = 4×282).
+                  // B.PT207 — slot-stack fills slot-list's PADDING
+                  // BOX via `inset: 0` (CSS abs-pos containing-block
+                  // rule). Slot-list owns the 15px cream gutter via
+                  // its own `padding: 15`; slot-stack just fills the
+                  // remaining content area. Becomes a flex column so
+                  // the 4 chip wrappers below split height equally
+                  // via `flex: 1` (responsive — no hardcoded chip
+                  // dims tied to a specific parent size).
                   position: "absolute",
-                  inset: 15,
+                  inset: 0,
+                  display: "flex",
+                  flexDirection: "column",
                   // Figma's Frame 18 has no fill/radius, only a drop shadow.
                   // Projecting that shadow reads as an unintended square
                   // wrapper around the chips; Frame 2 already paints the
@@ -446,7 +450,20 @@ export function HandleModal({
                     i === 3 ? 5 : 0,
                   );
                   return opt ? (
-                    <div key={i}>
+                    <div
+                      key={i}
+                      style={{
+                        // B.PT207 — flex-1 so each wrapper takes
+                        // equal share of slot-stack's height.
+                        // `position: relative` + `minHeight: 0`
+                        // makes the wrapper a positioning context
+                        // for the chip's `inset: 0` and prevents
+                        // flex from forcing min-content height.
+                        flex: 1,
+                        minHeight: 0,
+                        position: "relative",
+                      }}
+                    >
                       <SlotRow
                         inert
                         figmaLayer={`modal-slot-${i}`}
@@ -483,16 +500,15 @@ export function HandleModal({
                           ),
                         }}
                         style={{
-                          // B.PT206 — chip dims rescaled to fit
-                          // slot-stack's new 660×1098 inner area
-                          // (slot-list 690×1128 minus 15px on each
-                          // side). 4 chips at 1098/4 = 274.5px tall,
-                          // 660 wide, fill pixel-exact.
+                          // B.PT207 — chip fills its flex-1 wrapper
+                          // via `inset: 0` (no hardcoded pixel dims).
+                          // The wrapper takes 1/4 of slot-stack's
+                          // height; slot-stack fills slot-list's
+                          // padding box (660×1098). If the slot-list
+                          // size or padding changes, chips resize
+                          // automatically.
                           position: "absolute",
-                          top: i * 274.5,
-                          left: 0,
-                          width: 660,
-                          height: 274.5,
+                          inset: 0,
                           // B.PT194 — Apple HIG concentric-corner
                           // formula: inner radius = outer radius -
                           // margin. Slot-list outer cornerRadius =
