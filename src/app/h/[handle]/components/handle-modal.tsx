@@ -284,7 +284,17 @@ export function HandleModal({
           // absolutely-positioned phantom layer behind the window.
           // The calendar content (z-10) keeps its full inner area
           // untouched.
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          // B.PT222 — `min-h-[clamp(500px,70dvh,900px)]` baseline so
+          // the modal never compresses to a too-tight rect when slot
+          // data is sparse. Viewport-clamped instead of arbitrary
+          // fixed value: floor 500px (small phones), prefers 70dvh
+          // (scales with user's screen), cap 900px (huge monitors
+          // don't get an overwhelming-tall modal). Roughly matches
+          // the "fully populated 3 sections × 8 slots" max state but
+          // expressed as viewport-relative so it adapts. Pattern per
+          // industry standard (Cal.com, Calendly use viewport-
+          // relative heights, not data-computed).
+          className="flex min-h-[clamp(500px,70dvh,900px)] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
         >
           {/* B.PT159 / B.PT160 — PHANTOM destinations matching the
               Figma spec EXACTLY. The user designed the modal with
