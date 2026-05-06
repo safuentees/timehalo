@@ -360,7 +360,7 @@ export function HandleModal({
                     key="picker"
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    exit={{ opacity: 1 }}
                     transition={{ type: "spring", ...confirmSpring }}
                   >
                     <DayStrip
@@ -383,7 +383,7 @@ export function HandleModal({
                     key="form"
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    exit={{ opacity: 1 }}
                     transition={{ type: "spring", ...confirmSpring }}
                   >
                     {selectedSlot ? (
