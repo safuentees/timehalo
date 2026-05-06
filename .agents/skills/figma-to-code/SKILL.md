@@ -160,6 +160,25 @@ B.PT158). Pick per-element, not per-page:
 same element** — both rewrite `transform` and clash. Pick one per
 element.
 
+### Smart Animate stretch vs no-stretch internals
+
+When translating Figma Smart Animate into Motion shared-layout code,
+decide per layer whether children should stretch with the resized
+container:
+
+- **Stretch with parent**: keep children as normal DOM, or only give
+  the outer frame a `layoutId`.
+- **Resize child container but preserve child paint**: give the direct
+  child `layout` and forward the same `transition`.
+- **Move text/images without scaling**: give the wrapper
+  `layout="position"`, forward the same `transition`, pin
+  `initial` / `animate` / `exit` opacity to `1`, and use stable child
+  `layoutId`s when source and destination both render the child.
+
+For the canonical `/h/[handle]` chip morph, see
+`.claude/rules/motion-shared-layout.md` before changing
+`SlotRow`, `oh-identity-*`, or any other nested shared-layout node.
+
 ### Pipeline bug history (don't regress)
 
 Three bugs in the figma:spec / figma:anim pipeline went live before

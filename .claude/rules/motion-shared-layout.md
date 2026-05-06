@@ -49,6 +49,44 @@ that reparents):
   entrance fade-in (0 → 1) on first mount — visible as the
   "clone fades in beside the source" glitch.
 
+## Choosing stretch vs no-stretch internals
+
+Motion layout animations use `transform: scale()` under the hood.
+That means plain descendants visually scale with the parent. Treat
+this as an explicit design choice when porting Figma Smart Animate:
+
+- **To let internals stretch with the container**, keep the child as
+  normal DOM or only put `layoutId` on the outer shared element. This
+  matches Figma layers whose content should scale with the resized
+  frame.
+
+- **To let a child container resize while preserving its own child
+  paint**, put `layout` on that direct child and forward the same
+  `transition`. In the `/h/[handle]` chip morph, Frame 9 uses this:
+  it widens from the landing chip to the modal chip while Motion
+  counter-scales its contents.
+
+- **To move text/images without visual stretch**, put
+  `layout="position"` on the text/image wrapper, forward the same
+  `transition`, and pin `initial` / `animate` / `exit` opacity to
+  `1`. Use stable child `layoutId`s on both source and destination
+  when the child exists in both states; otherwise Motion treats the
+  destination as a new node and may fade or duplicate it.
+
+- **To hide the stale source when inspect mode keeps Layer 1 mounted**,
+  strip the source `layoutId` only after measurement and set
+  `visibility: hidden` on the stripped Layer 1 child row. This keeps
+  Motion's source rect cache while preventing the old title/text from
+  fading in place beside the promoted clone.
+
+Current canonical examples:
+
+- `SlotRow` Frame 9: child container resizes with `layout`; inner
+  text/time wrappers use `layout="position"` to avoid text stretching.
+- `oh-identity-row` / `oh-identity-title`: stable child `layoutId`s +
+  pinned opacity prevent the title from becoming two visible copies
+  during the Layer 1 → Layer 2 handoff.
+
 ## Reference example (canonical SlotRow setup)
 
 `src/app/h/[handle]/components/host-profile.tsx` `SlotRow`:
