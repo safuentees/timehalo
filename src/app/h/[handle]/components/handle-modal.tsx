@@ -418,11 +418,18 @@ export function HandleModal({
                   ...(open ? openSpring : closeSpring),
                 }}
                 style={{
+                  // B.PT204 — slot-stack fills slot-list. Pre-B.PT203
+                  // the stack used Figma absolute coords (top:15,
+                  // left:15, width:690, height:1128) which positioned
+                  // it inside the FULL 720×1158 modal article. After
+                  // B.PT203 the slot-list phantom is already
+                  // `inset:15` (= 690×1128), so re-applying 15,15
+                  // offset overflowed the slot-list by 15px right +
+                  // bottom. `inset: 0` lets the stack fill the
+                  // already-padded slot-list parent — chips fill
+                  // remaining space, no double-padding.
                   position: "absolute",
-                  top: 15,
-                  left: 15,
-                  width: 690,
-                  height: 1128,
+                  inset: 0,
                   // Figma's Frame 18 has no fill/radius, only a drop shadow.
                   // Projecting that shadow reads as an unintended square
                   // wrapper around the chips; Frame 2 already paints the
