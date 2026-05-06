@@ -704,28 +704,12 @@ export function HandleModal({
                       </button>
                     </MonthDrawer>
                   </div>
-                ) : (
-                  // B.PT228 — Back-to-picker button removed from the
-                  // form-view monthbar (chrome-row chevron handles
-                  // back-navigation now per B.PT225/227). Selected
-                  // slot label remains as the form's contextual
-                  // header.
-                  <div className="oh-drawer-monthbar">
-                    <span className="oh-drawer-monthbar-label truncate opacity-65">
-                      {selectedSlot
-                        ? format
-                            .dateTime(new Date(selectedSlot.start), {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })
-                            .toUpperCase()
-                        : ""}
-                    </span>
-                  </div>
-                )}
+                ) : null}
+                {/* B.PT233 — Form-view monthbar dropped entirely.
+                    Date + start time were duplicating what the
+                    chrome row now shows ("15 minutes on May 6 at
+                    10:30 AM" via B.PT232). Picker view's monthbar
+                    above is unaffected. */}
 
                 {/* B.PT157 — picker / form swap. AnimatePresence with
                   `mode="wait"` waits for the outgoing view to exit before
