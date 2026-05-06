@@ -72,28 +72,37 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     // stable }` rule otherwise reserves on the right edge of the
     // viewport. Visible as a thin sliver of html bg without this.
     <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
+      {/* B.PT218 — Inner panel switches from flex column to
+          `relative` so children can absolute-position. Per Tailwind
+          docs (tailwindcss.com/docs/position): "absolute … neighboring
+          elements behave as if the absolutely positioned element
+          doesn't exist." Header pinned top, footer pinned bottom,
+          `<main>` absolute-fills the panel and centers its content
+          via `flex items-center justify-center`. Result: <main> is
+          centered relative to the ENTIRE panel, not centered between
+          header and footer (which is what flex column produced
+          previously). */}
       <div
         className={[
-          "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
+          "relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
           className,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-        {/* B.PT217 — `<main>` was `overflow-auto` (B.PT216), which
-            kept showing a scrollbar gutter on the right whenever the
-            content was even 1px taller than the panel. User wants no
-            scrolling at all. Switching to `overflow-hidden` removes
-            the gutter entirely. Content that exceeds the panel
-            simply clips — fits the user's "everything in the
-            viewport" intent. Tailwind has no built-in
-            `scrollbar-hidden` utility (would need a custom
-            `@utility scrollbar-hidden { &::-webkit-scrollbar
-            { display: none } }` per docs); `overflow-hidden` is the
-            simpler answer when scrolling isn't wanted. */}
-        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
-        {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+        {header ? (
+          <div className="absolute inset-x-0 top-0 z-10">
+            <OhVisitorHeader>{header}</OhVisitorHeader>
+          </div>
+        ) : null}
+        <main className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          {children}
+        </main>
+        {footer ? (
+          <div className="absolute inset-x-0 bottom-0 z-10">
+            <OhVisitorFooter>{footer}</OhVisitorFooter>
+          </div>
+        ) : null}
       </div>
     </div>
   );
