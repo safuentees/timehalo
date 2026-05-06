@@ -358,7 +358,7 @@ export function HandleModal({
                 {view === "picker" ? (
                   <motion.div
                     key="picker"
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ type: "spring", ...confirmSpring }}
@@ -381,7 +381,7 @@ export function HandleModal({
                 ) : (
                   <motion.div
                     key="form"
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ type: "spring", ...confirmSpring }}
