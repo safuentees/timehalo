@@ -228,6 +228,7 @@ export default function HostProfile({
               >
                 <motion.header
                   layoutId={landingLayoutId("oh-identity")}
+                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -542,6 +543,7 @@ export function SlotRow({
         aria-hidden="true"
         data-oh-figma-layer={figmaLayer}
         layoutId={layoutId}
+        layoutCrossfade={false}
         transition={transition}
         initial={initial}
         animate={animate}
@@ -560,6 +562,7 @@ export function SlotRow({
       onClick={onClick}
       data-oh-figma-layer={figmaLayer}
       layoutId={layoutId}
+      layoutCrossfade={false}
       transition={transition}
       initial={initial}
       animate={animate}

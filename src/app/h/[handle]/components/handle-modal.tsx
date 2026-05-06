@@ -134,6 +134,7 @@ export function HandleModal({
           >
             <motion.div
               layoutId="oh-identity"
+              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
