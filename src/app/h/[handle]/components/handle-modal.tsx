@@ -20,6 +20,7 @@ import {
 } from "../_components/visitor-debug-overlay";
 import {
   HANDLE_CARD_RADIUS_STYLE,
+  HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
   HANDLE_SLOT_ROW_RADIUS_STYLE,
   SLOT_OPTIONS,
@@ -216,19 +217,20 @@ export function HandleModal({
                 style={{
                   position: "absolute",
                   inset: 0,
-                  padding: 15,
                   display: "flex",
                   flexDirection: "column",
                   boxShadow: "none",
                 }}
+                className="p-[15px]"
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
+                  const concentricRadius = HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
                   const slotRadiusStyle = cornerRadiusStyle(
-                    i === 0 ? 5 : 0,
-                    i === 0 ? 5 : 0,
-                    i === 3 ? 5 : 0,
-                    i === 3 ? 5 : 0,
+                    i === 0 ? concentricRadius : 0,
+                    i === 0 ? concentricRadius : 0,
+                    i === 3 ? concentricRadius : 0,
+                    i === 3 ? concentricRadius : 0,
                   );
                   return opt ? (
                     <div

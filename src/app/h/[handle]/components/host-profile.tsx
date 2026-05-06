@@ -70,9 +70,22 @@ export function cornerRadiusStyle(
   };
 }
 
-export const HANDLE_CARD_RADIUS_STYLE = cornerRadiusStyle(25);
-export const HANDLE_SLOT_LIST_RADIUS_STYLE = cornerRadiusStyle(20);
-export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(14);
+export const HANDLE_CARD_RADIUS = 25;
+export const HANDLE_SLOT_LIST_RADIUS = 20;
+export const HANDLE_SLOT_ROW_RADIUS = 14;
+export const HANDLE_SLOT_LIST_INNER_PADDING = 15;
+export const HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS = Math.max(
+  0,
+  HANDLE_SLOT_LIST_RADIUS - HANDLE_SLOT_LIST_INNER_PADDING,
+);
+
+export const HANDLE_CARD_RADIUS_STYLE = cornerRadiusStyle(HANDLE_CARD_RADIUS);
+export const HANDLE_SLOT_LIST_RADIUS_STYLE = cornerRadiusStyle(
+  HANDLE_SLOT_LIST_RADIUS,
+);
+export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
+  HANDLE_SLOT_ROW_RADIUS,
+);
 
 const HANDLE_AVATAR_PROJECTION_STYLE = {
   borderRadius: 9999,
