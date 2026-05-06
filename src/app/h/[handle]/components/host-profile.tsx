@@ -261,149 +261,148 @@ export default function HostProfile({
 
       <SwitchLayoutGroupContext.Provider value={PRESERVE_SHARED_FOLLOW_OPACITY}>
         <LayoutGroup>
-          <div className="flex w-full justify-center px-4 py-10 sm:py-14">
-            <AnimatePresence mode="popLayout">
-              {!drawerOpen || keepLandingMounted ? (
-                <motion.article
-                  key="landing-card"
-                  layoutId={landingLayoutId("handle-card")}
+          <AnimatePresence mode="popLayout">
+            {!drawerOpen || keepLandingMounted ? (
+              <motion.article
+                key="landing-card"
+                layoutId={landingLayoutId("handle-card")}
+                transition={{
+                  type: "spring",
+                  ...(drawerOpen ? openSpring : closeSpring),
+                }}
+                initial={{
+                  ...HANDLE_CARD_RADIUS_STYLE,
+                  opacity: oStyle(oL1?.layer, 1),
+                }}
+                animate={{
+                  ...HANDLE_CARD_RADIUS_STYLE,
+                  opacity: oStyle(oL1?.layer, 1),
+                }}
+                exit={{
+                  ...HANDLE_CARD_RADIUS_STYLE,
+                  opacity: oStyle(oL1?.layer, 1),
+                }}
+                style={{
+                  ...HANDLE_CARD_RADIUS_STYLE,
+                  boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
+                  position: zL1?.layer ? "relative" : undefined,
+                  zIndex: zStyle(zL1?.layer),
+                }}
+                aria-label={t("landingCardAria", { name: displayName })}
+                className={cn(
+                  "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+                  "bg-[color:var(--oh-paper)]",
+                )}
+              >
+                <motion.header
+                  layoutId={landingLayoutId("oh-identity")}
+                  transition={identityProjectionTransition}
+                  initial={{ opacity: oStyle(oL1?.identity, 1) }}
+                  animate={{ opacity: oStyle(oL1?.identity, 1) }}
+                  exit={{ opacity: 0 }}
+                  style={{ zIndex: zStyle(zL1?.identity) }}
+                  className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
+                >
+                  <motion.div
+                    layoutId={landingLayoutId("oh-identity-row")}
+                    layout
+                    transition={identityProjectionTransition}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 1 }}
+                    style={{
+                      visibility: stripLandingLayoutId ? "hidden" : undefined,
+                    }}
+                    className="flex items-center gap-3"
+                  >
+                    <motion.span
+                      layoutId={landingLayoutId("oh-identity-avatar")}
+                      layout="position"
+                      transition={identityProjectionTransition}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      style={HANDLE_AVATAR_PROJECTION_STYLE}
+                      className="relative inline-flex size-[55px] shrink-0"
+                    >
+                      <Avatar className="size-[55px]">
+                        <AvatarImage
+                          src={user.image ?? undefined}
+                          alt={displayName}
+                        />
+                        <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                      />
+                    </motion.span>
+                    <motion.h1
+                      layoutId={landingLayoutId("oh-identity-title")}
+                      layout="position"
+                      transition={identityProjectionTransition}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
+                    >
+                      {displayName}
+                    </motion.h1>
+                  </motion.div>
+                  <motion.p
+                    layout="position"
+                    transition={identityProjectionTransition}
+                    className="oh-description text-center"
+                  >
+                    {t("defaultBio")}
+                  </motion.p>
+                </motion.header>
+
+                <motion.div
+                  layoutId={landingLayoutId("oh-slot-list")}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
                   }}
                   initial={{
-                    ...HANDLE_CARD_RADIUS_STYLE,
-                    opacity: oStyle(oL1?.layer, 1),
+                    ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                    opacity: oStyle(oL1?.slotList, 1),
                   }}
                   animate={{
-                    ...HANDLE_CARD_RADIUS_STYLE,
-                    opacity: oStyle(oL1?.layer, 1),
+                    ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                    opacity: oStyle(oL1?.slotList, 1),
                   }}
                   exit={{
-                    ...HANDLE_CARD_RADIUS_STYLE,
-                    opacity: oStyle(oL1?.layer, 1),
+                    ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                    opacity: 0,
                   }}
                   style={{
-                    ...HANDLE_CARD_RADIUS_STYLE,
-                    boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
-                    position: zL1?.layer ? "relative" : undefined,
-                    zIndex: zStyle(zL1?.layer),
+                    ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                    boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
+                    zIndex: zStyle(zL1?.slotList),
                   }}
-                  aria-label={t("landingCardAria", { name: displayName })}
                   className={cn(
-                    "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                    "bg-[color:var(--oh-paper)]",
+                    "flex flex-col gap-2.5",
+                    "bg-[#F5EFDF]",
                   )}
                 >
-                  <motion.header
-                    layoutId={landingLayoutId("oh-identity")}
-                    transition={identityProjectionTransition}
-                    initial={{ opacity: oStyle(oL1?.identity, 1) }}
-                    animate={{ opacity: oStyle(oL1?.identity, 1) }}
-                    exit={{ opacity: 0 }}
-                    style={{ zIndex: zStyle(zL1?.identity) }}
-                    className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
-                  >
-                    <motion.div
-                      layoutId={landingLayoutId("oh-identity-row")}
-                      layout
-                      transition={identityProjectionTransition}
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 1 }}
-                      style={{
-                        visibility: stripLandingLayoutId ? "hidden" : undefined,
+                  {hasOpenSlots ? (
+                    <motion.ul
+                      layoutId={landingLayoutId("oh-slot-stack")}
+                      transition={{
+                        type: "spring",
+                        ...(drawerOpen ? openSpring : closeSpring),
                       }}
-                      className="flex items-center gap-3"
+                      style={{ boxShadow: "none" }}
+                      className="flex flex-col gap-2.5 p-[15px]"
                     >
-                      <motion.span
-                        layoutId={landingLayoutId("oh-identity-avatar")}
-                        layout="position"
-                        transition={identityProjectionTransition}
-                        initial={{ opacity: 1 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 1 }}
-                        style={HANDLE_AVATAR_PROJECTION_STYLE}
-                        className="relative inline-flex size-[55px] shrink-0"
-                      >
-                        <Avatar className="size-[55px]">
-                          <AvatarImage
-                            src={user.image ?? undefined}
-                            alt={displayName}
-                          />
-                          <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                            {initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
-                        />
-                      </motion.span>
-                      <motion.h1
-                        layoutId={landingLayoutId("oh-identity-title")}
-                        layout="position"
-                        transition={identityProjectionTransition}
-                        initial={{ opacity: 1 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 1 }}
-                        className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
-                      >
-                        {displayName}
-                      </motion.h1>
-                    </motion.div>
-                    <motion.p
-                      layout="position"
-                      transition={identityProjectionTransition}
-                      className="oh-description text-center"
-                    >
-                      {t("defaultBio")}
-                    </motion.p>
-                  </motion.header>
-
-                  <motion.div
-                    layoutId={landingLayoutId("oh-slot-list")}
-                    transition={{
-                      type: "spring",
-                      ...(drawerOpen ? openSpring : closeSpring),
-                    }}
-                    initial={{
-                      ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                      opacity: oStyle(oL1?.slotList, 1),
-                    }}
-                    animate={{
-                      ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                      opacity: oStyle(oL1?.slotList, 1),
-                    }}
-                    exit={{
-                      ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                      opacity: 0,
-                    }}
-                    style={{
-                      ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                      boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
-                      zIndex: zStyle(zL1?.slotList),
-                    }}
-                    className={cn(
-                      "flex flex-col gap-2.5",
-                      "bg-[#F5EFDF]",
-                    )}
-                  >
-                    {hasOpenSlots ? (
-                      <motion.ul
-                        layoutId={landingLayoutId("oh-slot-stack")}
-                        transition={{
-                          type: "spring",
-                          ...(drawerOpen ? openSpring : closeSpring),
-                        }}
-                        style={{ boxShadow: "none" }}
-                        className="flex flex-col gap-2.5 p-[15px]"
-                      >
-                        {SLOT_OPTIONS.map((opt, i) => {
-                          const slotRadiusStyle = cornerRadiusStyle(
-                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
-                          );
-                          return (
+                      {SLOT_OPTIONS.map((opt, i) => {
+                        const slotRadiusStyle = cornerRadiusStyle(
+                          HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
+                        );
+                        return (
                           <li key={opt.label}>
                             <SlotRow
                               layoutId={landingLayoutId(`oh-slot-${i}`)}
@@ -473,21 +472,20 @@ export default function HostProfile({
                               onClick={() => setDrawerOpen(true)}
                             />
                           </li>
-                          );
-                        })}
-                      </motion.ul>
-                    ) : (
-                      <p className="oh-description py-6 text-center">
-                        {!hasSlots
-                          ? t("emptyClosedDescription", { name: displayName })
-                          : t("emptyBookedDescription", { name: displayName })}
-                      </p>
-                    )}
-                  </motion.div>
-                </motion.article>
-              ) : null}
-            </AnimatePresence>
-          </div>
+                        );
+                      })}
+                    </motion.ul>
+                  ) : (
+                    <p className="oh-description py-6 text-center">
+                      {!hasSlots
+                        ? t("emptyClosedDescription", { name: displayName })
+                        : t("emptyBookedDescription", { name: displayName })}
+                    </p>
+                  )}
+                </motion.div>
+              </motion.article>
+            ) : null}
+          </AnimatePresence>
 
           <span className="sr-only" aria-hidden>
             {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
