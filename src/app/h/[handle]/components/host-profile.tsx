@@ -166,6 +166,12 @@ export default function HostProfile({
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // B.PT229 — track which slot duration the visitor clicked on the
+  // landing card. Modal renders this in its chrome row (between
+  // chevron and X) as the meeting-duration context label.
+  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
+    string | undefined
+  >(undefined);
   // B.PT175 + B.PT177 — the strip only fires when ALL three hold:
   // (a) we're past the initial mount (motion has had a chance to
   //     measure landing's layoutIds at least once),
@@ -699,7 +705,10 @@ export default function HostProfile({
                               title="intro"
                               description="quick chat, voice only"
                               durationLabel={opt.label}
-                              onClick={() => setDrawerOpen(true)}
+                              onClick={() => {
+                                setSelectedDurationLabel(opt.label);
+                                setDrawerOpen(true);
+                              }}
                             />
                           </li>
                         );
@@ -743,6 +752,7 @@ export default function HostProfile({
                 onSelectDate={handleSelectDate}
                 selectedSlot={selectedSlot}
                 rescheduleFromUid={rescheduleFromUid}
+                durationLabel={selectedDurationLabel}
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });

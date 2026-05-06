@@ -100,6 +100,11 @@ type Props = {
    *  header looks like at its post-morph destination. Mirrors what
    *  B.PT172 did for slot rows. */
   identityContent?: ReactNode;
+  /** B.PT229 — duration label of the slot the visitor clicked on
+   *  the landing card (e.g. "15 min"). Rendered centered in the
+   *  chrome row between the back-chevron and close-X as the
+   *  meeting-context header. */
+  durationLabel?: string;
 };
 
 export function HandleModal({
@@ -114,6 +119,7 @@ export function HandleModal({
   rescheduleFromUid,
   months = 3,
   identityContent,
+  durationLabel,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -389,7 +395,13 @@ export function HandleModal({
                 deeper to the form view, matching iOS / Material
                 top-bar conventions. Lucide `ChevronLeft` per their
                 React docs (lucide.dev) — props: `size`, `strokeWidth`. */}
-            <div className="relative z-30 flex shrink-0 items-center justify-between">
+            // B.PT229 — chrome row uses 3-col grid so the duration
+            // label sits TRUE-centered between chevron and X
+            // regardless of label width or button widths. justify-
+            // self positions each child within its column. Plain
+            // flex `justify-between` would push the label off-
+            // center if its width differed from chevron/X widths.
+            <div className="relative z-30 grid h-7 shrink-0 grid-cols-3 items-center">
               <button
                 type="button"
                 // B.PT227 — always active. In form view → setView
@@ -407,7 +419,7 @@ export function HandleModal({
                     ? t("backToPickerAria")
                     : t("closeDrawerAria")
                 }
-                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <ChevronLeftIcon
                   className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
@@ -415,11 +427,24 @@ export function HandleModal({
                   aria-hidden
                 />
               </button>
+              {/* B.PT229 — meeting-duration context label, centered
+                  in the chrome row. Sized to fit within the row's
+                  28px height (`text-sm leading-none`). `truncate`
+                  guards against overflow if a localized label runs
+                  long. Only renders when a duration was selected
+                  (modal opened from a chip click). */}
+              {durationLabel ? (
+                <span className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]">
+                  {durationLabel}
+                </span>
+              ) : (
+                <span className="justify-self-center" aria-hidden />
+              )}
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
                 aria-label={t("closeDrawerAria")}
-                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <XIcon
                   className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
