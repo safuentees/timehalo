@@ -706,7 +706,11 @@ export default function HostProfile({
                               description="quick chat, voice only"
                               durationLabel={opt.label}
                               onClick={() => {
-                                setSelectedDurationLabel(opt.label);
+                                // B.PT231 — chrome row uses the
+                                // expanded `fullLabel` ("15
+                                // minutes"); chip itself keeps
+                                // compact `label` ("15 min").
+                                setSelectedDurationLabel(opt.fullLabel);
                                 setDrawerOpen(true);
                               }}
                             />

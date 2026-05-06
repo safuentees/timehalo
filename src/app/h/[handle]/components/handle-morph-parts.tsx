@@ -63,11 +63,17 @@ export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
 // B.PT172 — exported so `<HandleModal>` can render the same labels
 // inside phantom slot rects when `keepLandingMounted` debug is on
 // (lets the user see Layer 1 content at its post-morph position).
+// B.PT231 — `fullLabel` added: chip uses the compact `label`
+// ("15 min" / "1 hr") that fits the small chip frame; the modal's
+// chrome-row meeting-duration title uses `fullLabel` ("15 minutes"
+// / "1 hour") which reads as a sentence-case header. Two fields
+// instead of one regex transform keeps the data explicit and
+// localizable later.
 export const SLOT_OPTIONS = [
-  { label: "15 min" },
-  { label: "25 min" },
-  { label: "30 min" },
-  { label: "1 hr" },
+  { label: "15 min", fullLabel: "15 minutes" },
+  { label: "25 min", fullLabel: "25 minutes" },
+  { label: "30 min", fullLabel: "30 minutes" },
+  { label: "1 hr", fullLabel: "1 hour" },
 ] as const;
 
 type SlotRowMotionProps = {
