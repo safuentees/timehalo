@@ -218,7 +218,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
           visualDuration: {
             value: 0,
             min: 0,
-            max: 3,
+            max: 15,
             step: 0.05,
             label: "duration (s)",
             hint:

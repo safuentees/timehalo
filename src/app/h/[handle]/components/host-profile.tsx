@@ -285,7 +285,7 @@ export default function HostProfile({
                   }}
                   className={cn(
                     "flex flex-col gap-2.5 p-[15px]",
-                    "bg-[#F5EFDF]",
+                    "bg-amber-300/70",
                   )}
                 >
                   {hasOpenSlots ? (

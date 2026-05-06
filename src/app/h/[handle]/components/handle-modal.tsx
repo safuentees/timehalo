@@ -174,7 +174,7 @@ export function HandleModal({
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
-              className="bg-[#F5EFDF]"
+              className="bg-amber-300/70"
             >
               {phantomLabels ? (
                 <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
