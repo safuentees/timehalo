@@ -80,6 +80,23 @@ export function HandleModal({
     .toUpperCase();
   const [view, setView] = useState<"picker" | "form">("picker");
 
+  const chromeRowText = (() => {
+    if (!durationLabel) return undefined;
+    if (view === "form" && selectedSlot) {
+      const start = new Date(selectedSlot.start);
+      const datePart = format.dateTime(start, {
+        month: "long",
+        day: "numeric",
+      });
+      const timePart = format.dateTime(start, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      return `${durationLabel} on ${datePart} at ${timePart}`;
+    }
+    return durationLabel;
+  })();
+
   const { values: debug, panelShardRef } = useModalDebug();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
@@ -198,13 +215,22 @@ export function HandleModal({
                   aria-hidden
                 />
               </button>
-              {durationLabel ? (
-                <span className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]">
-                  {durationLabel}
-                </span>
-              ) : (
-                <span className="justify-self-center" aria-hidden />
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                {chromeRowText ? (
+                  <motion.span
+                    key={chromeRowText}
+                    initial={{ y: 8, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -8, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                    className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+                  >
+                    {chromeRowText}
+                  </motion.span>
+                ) : (
+                  <span className="justify-self-center" aria-hidden />
+                )}
+              </AnimatePresence>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
