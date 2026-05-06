@@ -215,10 +215,7 @@ export function HandleModal({
                 }}
                 style={{
                   position: "absolute",
-                  top: 15,
-                  left: 15,
-                  width: 690,
-                  height: 1128,
+                  inset: 0,
                   boxShadow: "none",
                 }}
               >
