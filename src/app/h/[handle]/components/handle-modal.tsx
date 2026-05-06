@@ -195,23 +195,12 @@ export function HandleModal({
       {/* Backdrop — fades in/out with the modal. Outside the
           motion.article so it doesn't participate in the layoutId
           morph. Click is handled by FocusOn's onClickOutside above.
-          B.PT159: dropped `backdrop-blur-sm` — backdrop-filter is
-          significantly more expensive in Firefox than in Chrome
-          (Firefox falls back to a CPU path on most platforms),
-          which compounded with the simultaneous layout-shared
-          morph below to make the whole transition feel choppy.
-          Solid 40% ink on dark contrasts enough for the dialog
-          chrome to read; if a future polish pass brings blur back,
-          gate it behind `prefers-reduced-motion: no-preference`
-          and re-enable AFTER the morph settles via `onLayoutAnimationComplete`. */}
-      <motion.div
-        aria-hidden
-        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      />
+          B.PT194 — backdrop scrim REMOVED per user request. The
+          paper-on-page contrast is sufficient without dimming the
+          page beneath; the modal's inner shadow + cream-vs-paper
+          contrast already define its edge. Removing the scrim also
+          makes the inspect-mode dual-layer view cleaner (landing
+          card behind isn't obscured by a 40% ink overlay). */}
 
       {/* Modal card — shares `layoutId` with the landing card so motion
           auto-morphs between 385×387 (landing) and the modal's measured
@@ -460,7 +449,33 @@ export function HandleModal({
                           left: 0,
                           width: 690,
                           height: 282,
+                          // B.PT194 — Apple HIG concentric-corner
+                          // formula: inner radius = outer radius -
+                          // margin. Slot-list outer cornerRadius =
+                          // 20, Frame 18 inner padding = 15, so
+                          // inner radius = 20 − 15 = 5. Apply only
+                          // to the FIRST chip's TOP corners and the
+                          // LAST chip's BOTTOM corners; middle chips
+                          // stay sharp so the row dividers read as
+                          // a clean segmented stack. The chip's CSS
+                          // base radius is 14 from SlotRow's frame
+                          // style; setting `borderRadius: 0` here
+                          // overrides it to sharp, then per-corner
+                          // properties override the corners we want
+                          // rounded.
                           borderRadius: 0,
+                          ...(i === 0
+                            ? {
+                                borderTopLeftRadius: 5,
+                                borderTopRightRadius: 5,
+                              }
+                            : {}),
+                          ...(i === 3
+                            ? {
+                                borderBottomLeftRadius: 5,
+                                borderBottomRightRadius: 5,
+                              }
+                            : {}),
                           boxShadow: "none",
                           outline: phantomOutline
                             ? "1px dashed currentColor"
