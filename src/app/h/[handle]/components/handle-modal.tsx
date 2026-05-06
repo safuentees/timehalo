@@ -139,6 +139,28 @@ export function HandleModal({
   // transitions[1] — stiffer + more damped than the open spring.
   const [view, setView] = useState<"picker" | "form">("picker");
 
+  // B.PT232 — chrome-row text. Picker view shows duration only.
+  // Form view (after slot pick) expands to "<duration> on <date>
+  // at <start>" — natural language, no "from X to Y" since the
+  // duration already implies the end time. Falsy when neither
+  // duration nor slot is set (modal opened without a chip click).
+  const chromeRowText = (() => {
+    if (!durationLabel) return undefined;
+    if (view === "form" && selectedSlot) {
+      const start = new Date(selectedSlot.start);
+      const datePart = format.dateTime(start, {
+        month: "long",
+        day: "numeric",
+      });
+      const timePart = format.dateTime(start, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      return `${durationLabel} on ${datePart} at ${timePart}`;
+    }
+    return durationLabel;
+  })();
+
   // B.PT164 / B.PT165 — debug overrides come from the route-level
   // overlay mounted in `/h/[handle]/layout.tsx` via React Context.
   // `values` is null in production / when `?debug=1` is absent — fall
@@ -427,19 +449,36 @@ export function HandleModal({
                   aria-hidden
                 />
               </button>
-              {/* B.PT229 — meeting-duration context label, centered
-                  in the chrome row. Sized to fit within the row's
-                  28px height (`text-sm leading-none`). `truncate`
-                  guards against overflow if a localized label runs
-                  long. Only renders when a duration was selected
-                  (modal opened from a chip click). */}
-              {durationLabel ? (
-                <span className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]">
-                  {durationLabel}
-                </span>
-              ) : (
-                <span className="justify-self-center" aria-hidden />
-              )}
+              {/* B.PT229 / B.PT232 — meeting-context label, centered
+                  in the chrome row. Picker view = duration only
+                  ("15 minutes"). Form view (after slot pick) =
+                  "<duration> on <date> at <start>" (e.g. "15 minutes
+                  on May 6 at 10:30 AM"). Drop "from X to Y" — the
+                  duration prefix already implies the end time, so
+                  including both reads as redundant. Animation:
+                  AnimatePresence + mode="wait" with `key` derived
+                  from the text content so a content change triggers
+                  exit + enter. Old text slides up + fades out, new
+                  text slides up from below + fades in. Pattern per
+                  motion docs (motion.dev/docs/react-animate-presence
+                  Slideshow + key-change examples) — what Linear,
+                  Vercel, Cal.com all use for context-label swaps. */}
+              <AnimatePresence mode="wait" initial={false}>
+                {chromeRowText ? (
+                  <motion.span
+                    key={chromeRowText}
+                    initial={{ y: 8, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -8, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                    className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+                  >
+                    {chromeRowText}
+                  </motion.span>
+                ) : (
+                  <span className="justify-self-center" aria-hidden />
+                )}
+              </AnimatePresence>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
