@@ -480,7 +480,7 @@ export function SlotRow({
       <motion.span
         layoutId={durationLayoutId}
         layout="position"
-        layoutAnchor={{ x: 1, y: 0 }}
+        layoutAnchor={{ x: 0, y: 0 }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
