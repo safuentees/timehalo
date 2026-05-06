@@ -195,6 +195,7 @@ export function HandleModal({
               style={{
                 position: "absolute",
                 inset: 15,
+                padding: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -215,7 +216,9 @@ export function HandleModal({
                 }}
                 style={{
                   position: "absolute",
-                  inset: 15,
+                  inset: 0,
+                  display: "flex",
+                  flexDirection: "column",
                   boxShadow: "none",
                 }}
               >
@@ -228,7 +231,14 @@ export function HandleModal({
                     i === 3 ? 5 : 0,
                   );
                   return opt ? (
-                    <div key={i}>
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1,
+                        minHeight: 0,
+                        position: "relative",
+                      }}
+                    >
                       <SlotRow
                         inert
                         figmaLayer={`modal-slot-${i}`}
@@ -266,10 +276,7 @@ export function HandleModal({
                         }}
                         style={{
                           position: "absolute",
-                          top: i * 274.5,
-                          left: 0,
-                          width: 660,
-                          height: 274.5,
+                          inset: 0,
                           ...slotRadiusStyle,
                           boxShadow: "none",
                           outline: phantomOutline
