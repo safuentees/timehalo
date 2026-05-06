@@ -370,6 +370,21 @@ export function HandleModal({
                 of Frame 18 = 690). */}
             <motion.div
               layoutId="oh-slot-list"
+              // B.PT198 — `layoutCrossfade={false}` on the slot-list
+              // shared-layout pair. Without this, motion runs the
+              // auto opacity crossfade (mixValues line ~9123) on
+              // phantom slot-list since its layoutId pair doesn't
+              // inherit the modal article's crossfade=false. The
+              // tracer caught the symptom: phantom slot-list's
+              // opacity ramps 0 → 1 over progress (visible fade-in
+              // since B.PT195 made the cream slot-list visible in
+              // production). With layoutCrossfade=false here motion
+              // calls prevLead.hide() on landing slot-list (already
+              // visibility:hidden via the modal article's hide so
+              // no visual change there) and shouldCrossfadeOpacity
+              // returns false → mixValues skips the opacity tween →
+              // phantom renders at latestValues.opacity = 1.
+              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}

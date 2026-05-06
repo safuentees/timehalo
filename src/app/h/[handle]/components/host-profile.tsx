@@ -517,6 +517,17 @@ export default function HostProfile({
                   alongside its child slot rows. */}
                 <motion.div
                   layoutId={landingLayoutId("oh-slot-list")}
+                  // B.PT198 — mirror of handle-modal.tsx slot-list:
+                  // disable the auto opacity crossfade so phantom
+                  // slot-list doesn't fade in 0→1 on open. With this
+                  // on BOTH sides of the pair, motion's promote()
+                  // calls prevLead.hide() on whichever side becomes
+                  // follow, and shouldCrossfadeOpacity returns false
+                  // → no opacity tween. The tracer
+                  // (handoff/trace-page-fade.js) caught the slot-list
+                  // 0→1 ramp and confirmed it as the only animating
+                  // opacity in the open animation.
+                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
