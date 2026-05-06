@@ -46,17 +46,28 @@ type Props = {
 
 export function OhVisitorShell({ children, header, footer, className }: Props) {
   return (
-    <div
-      className={[
-        "flex min-h-dvh flex-col bg-oh-bg text-oh-content",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-      <main className="flex-1">{children}</main>
-      {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+    // B.PT215 — Two-layer shell: sisal `--oh-frame` painted at the
+    // viewport (highest visitor-only position in the DOM, sits just
+    // inside the route layout's `oh-root`), then a 15px inset to a
+    // paper panel that holds the actual content. Mirrors the modal's
+    // 15px paper-around-cream inset (B.PT203 / B.PT211) so the
+    // landing → modal morph reads as one consistent two-layer chrome
+    // rather than landing-on-paper → modal-on-paper-inside-paper.
+    // Outer rounded corners match the landing card's
+    // `HANDLE_CARD_RADIUS = 25` for visual continuity.
+    <div className="flex min-h-dvh flex-col bg-[color:var(--oh-frame)] p-[15px]">
+      <div
+        className={[
+          "flex flex-1 flex-col rounded-[25px] bg-oh-bg text-oh-content",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
+        <main className="flex-1">{children}</main>
+        {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+      </div>
     </div>
   );
 }
