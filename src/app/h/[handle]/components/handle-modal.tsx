@@ -174,6 +174,31 @@ export function HandleModal({
                 </span>
               ) : null}
             </motion.div>
+          </div>
+
+          <div className="absolute inset-[15px] z-10 flex min-h-0 flex-col">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label={t("closeDrawerAria")}
+              className="oh-focus-ring absolute right-[14px] top-[14px] z-30 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+            <div className="relative z-20 shrink-0 bg-[color:var(--oh-paper)]">
+              <div className="oh-modal-close-bar" aria-hidden />
+              <div className="oh-drawer-head">
+                <h2 id="handle-modal-title" className="oh-drawer-title">
+                  {view === "form"
+                    ? rescheduleFromUid
+                      ? t("rescheduleFormTitle")
+                      : t("bookingFormTitle")
+                    : t("drawerTitle")}
+                </h2>
+                <p className="sr-only">{t("drawerDescription")}</p>
+              </div>
+            </div>
+
             <motion.div
               layoutId="oh-slot-list"
               transition={{
@@ -182,31 +207,33 @@ export function HandleModal({
               }}
               initial={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               animate={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               exit={{
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
-                opacity: oStyle(oL2?.slotList, 0),
+                opacity: 1,
               }}
               style={{
-                position: "absolute",
-                inset: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
-                outline: phantomOutline ? "1px dashed currentColor" : undefined,
+                outline: phantomOutline
+                  ? "1px dashed currentColor"
+                  : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
-              className="bg-[#F5EFDF]"
+              className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
             >
               {phantomLabels ? (
-                <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
+                <span className="pointer-events-none absolute left-1 top-1 z-30 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
                   slot list
                 </span>
               ) : null}
+
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
               <motion.div
                 layoutId="oh-slot-stack"
                 transition={{
@@ -220,7 +247,7 @@ export function HandleModal({
                   flexDirection: "column",
                   boxShadow: "none",
                 }}
-                className="p-[15px] "
+                className="p-[15px]"
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
@@ -300,120 +327,102 @@ export function HandleModal({
                   ) : null;
                 })}
               </motion.div>
-            </motion.div>
-          </div>
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              aria-label={t("closeDrawerAria")}
-              className="oh-focus-ring absolute right-[14px] top-[14px] z-10 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
-            >
-              <XIcon className="size-4" aria-hidden />
-            </button>
-            <div className="oh-modal-close-bar" aria-hidden />
-            <div className="oh-drawer-head">
-              <h2 id="handle-modal-title" className="oh-drawer-title">
-                {view === "form"
-                  ? rescheduleFromUid
-                    ? t("rescheduleFormTitle")
-                    : t("bookingFormTitle")
-                  : t("drawerTitle")}
-              </h2>
-              <p className="sr-only">{t("drawerDescription")}</p>
             </div>
 
-            {view === "picker" ? (
-              <div className="oh-drawer-monthbar">
-                <span className="oh-drawer-monthbar-label">
-                  {monthBarLabel}
-                </span>
-                <MonthDrawer
-                  slots={slots}
-                  selectedDate={selectedDate}
-                  onSelectDate={handleSelectDate}
-                  months={months}
-                >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[#F5EFDF]">
+              {view === "picker" ? (
+                <div className="oh-drawer-monthbar">
+                  <span className="oh-drawer-monthbar-label">
+                    {monthBarLabel}
+                  </span>
+                  <MonthDrawer
+                    slots={slots}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    months={months}
+                  >
+                    <button
+                      type="button"
+                      className="oh-view-toggle"
+                      aria-label={t("openMonthViewAria")}
+                    >
+                      <CalendarIcon />
+                    </button>
+                  </MonthDrawer>
+                </div>
+              ) : (
+                <div className="oh-drawer-monthbar">
                   <button
                     type="button"
-                    className="oh-view-toggle"
-                    aria-label={t("openMonthViewAria")}
+                    onClick={() => setView("picker")}
+                    aria-label={t("backToPickerAria")}
+                    className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
                   >
-                    <CalendarIcon />
+                    <ArrowLeftIcon className="size-4" />
+                    {t("backToPicker")}
                   </button>
-                </MonthDrawer>
-              </div>
-            ) : (
-              <div className="oh-drawer-monthbar">
-                <button
-                  type="button"
-                  onClick={() => setView("picker")}
-                  aria-label={t("backToPickerAria")}
-                  className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
-                >
-                  <ArrowLeftIcon className="size-4" />
-                  {t("backToPicker")}
-                </button>
-                <span className="oh-drawer-monthbar-label truncate opacity-65">
-                  {selectedSlot
-                    ? format
-                        .dateTime(new Date(selectedSlot.start), {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
-                        .toUpperCase()
-                    : ""}
-                </span>
-              </div>
-            )}
+                  <span className="oh-drawer-monthbar-label truncate opacity-65">
+                    {selectedSlot
+                      ? format
+                          .dateTime(new Date(selectedSlot.start), {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })
+                          .toUpperCase()
+                      : ""}
+                  </span>
+                </div>
+              )}
 
-            <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
-              <AnimatePresence mode="wait" initial={false}>
-                {view === "picker" ? (
-                  <motion.div
-                    key="picker"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 1 }}
-                    transition={{ type: "spring", ...confirmSpring }}
-                  >
-                    <DayStrip
-                      slots={slots}
-                      selectedDate={selectedDate}
-                      onSelectDate={handleSelectDate}
-                    />
-                    {selectedDate ? (
-                      <DaySlots
-                        date={selectedDate}
-                        slots={dayOfSlots}
-                        onPick={handlePickSlot}
+              <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+                <AnimatePresence mode="wait" initial={false}>
+                  {view === "picker" ? (
+                    <motion.div
+                      key="picker"
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      transition={{ type: "spring", ...confirmSpring }}
+                    >
+                      <DayStrip
+                        slots={slots}
+                        selectedDate={selectedDate}
+                        onSelectDate={handleSelectDate}
                       />
-                    ) : (
-                      <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="form"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 1 }}
-                    transition={{ type: "spring", ...confirmSpring }}
-                  >
-                    {selectedSlot ? (
-                      <BookingForm
-                        handle={handle}
-                        slotStart={selectedSlot.start}
-                        rescheduleFromUid={rescheduleFromUid}
-                      />
-                    ) : null}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {selectedDate ? (
+                        <DaySlots
+                          date={selectedDate}
+                          slots={dayOfSlots}
+                          onPick={handlePickSlot}
+                        />
+                      ) : (
+                        <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="form"
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      transition={{ type: "spring", ...confirmSpring }}
+                    >
+                      {selectedSlot ? (
+                        <BookingForm
+                          handle={handle}
+                          slotStart={selectedSlot.start}
+                          rescheduleFromUid={rescheduleFromUid}
+                        />
+                      ) : null}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
+            </motion.div>
           </div>
         </HandleMorphCard>
       </motion.div>
