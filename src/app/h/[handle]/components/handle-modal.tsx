@@ -194,7 +194,7 @@ export function HandleModal({
               }}
               style={{
                 position: "absolute",
-                inset: 0,
+                inset: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -266,10 +266,10 @@ export function HandleModal({
                         }}
                         style={{
                           position: "absolute",
-                          top: i * 282,
+                          top: i * 274.5,
                           left: 0,
-                          width: 690,
-                          height: 282,
+                          width: 660,
+                          height: 274.5,
                           ...slotRadiusStyle,
                           boxShadow: "none",
                           outline: phantomOutline
