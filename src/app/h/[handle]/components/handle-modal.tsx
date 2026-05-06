@@ -18,7 +18,14 @@ import {
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
-import { SLOT_OPTIONS, SlotRow } from "./host-profile";
+import {
+  HANDLE_CARD_RADIUS_STYLE,
+  HANDLE_SLOT_LIST_RADIUS_STYLE,
+  HANDLE_SLOT_ROW_RADIUS_STYLE,
+  SLOT_OPTIONS,
+  SlotRow,
+  cornerRadiusStyle,
+} from "./host-profile";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -115,12 +122,21 @@ export function HandleModal({
         <motion.article
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-          initial={{ opacity: oStyle(oL2?.layer, 1) }}
-          animate={{ opacity: oStyle(oL2?.layer, 1) }}
-          exit={{ opacity: oStyle(oL2?.layer, 1) }}
+          initial={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
+          animate={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
+          exit={{
+            ...HANDLE_CARD_RADIUS_STYLE,
+            opacity: oStyle(oL2?.layer, 1),
+          }}
           style={{
             position: "relative",
-            borderRadius: 25,
+            ...HANDLE_CARD_RADIUS_STYLE,
             boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
@@ -133,7 +149,10 @@ export function HandleModal({
           >
             <motion.div
               layoutId="oh-identity"
-              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
+              transition={{
+                type: "spring",
+                ...(open ? openSpring : closeSpring),
+              }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
@@ -157,17 +176,29 @@ export function HandleModal({
             </motion.div>
             <motion.div
               layoutId="oh-slot-list"
-              transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
-              initial={{ opacity: oStyle(oL2?.slotList, 0) }}
-              animate={{ opacity: oStyle(oL2?.slotList, 0) }}
-              exit={{ opacity: oStyle(oL2?.slotList, 0) }}
+              transition={{
+                type: "spring",
+                ...(open ? openSpring : closeSpring),
+              }}
+              initial={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
+              animate={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
+              exit={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: oStyle(oL2?.slotList, 0),
+              }}
               style={{
                 position: "absolute",
                 top: -0.5,
                 left: 0.5,
                 width: 720,
                 height: 1158,
-                borderRadius: 20,
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
@@ -191,11 +222,17 @@ export function HandleModal({
                   left: 15,
                   width: 690,
                   height: 1128,
-                  boxShadow: "0 0 10px rgba(0,0,0,0.25)",
+                  boxShadow: "none",
                 }}
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
+                  const slotRadiusStyle = cornerRadiusStyle(
+                    i === 0 ? 5 : 0,
+                    i === 0 ? 5 : 0,
+                    i === 3 ? 5 : 0,
+                    i === 3 ? 5 : 0,
+                  );
                   return opt ? (
                     <div key={i}>
                       <SlotRow
@@ -207,31 +244,28 @@ export function HandleModal({
                           ...(open ? openSpring : closeSpring),
                         }}
                         initial={{
+                          ...HANDLE_SLOT_ROW_RADIUS_STYLE,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
                         }}
                         animate={{
+                          ...slotRadiusStyle,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
                         }}
                         exit={{
+                          ...HANDLE_SLOT_ROW_RADIUS_STYLE,
                           opacity: oStyle(
                             oL2
-                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
-                                  i
-                                ]
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
                               : undefined,
                             1,
                           ),
@@ -242,28 +276,14 @@ export function HandleModal({
                           left: 0,
                           width: 690,
                           height: 282,
-                          borderRadius: 0,
-                          ...(i === 0
-                            ? {
-                                borderTopLeftRadius: 5,
-                                borderTopRightRadius: 5,
-                              }
-                            : {}),
-                          ...(i === 3
-                            ? {
-                                borderBottomLeftRadius: 5,
-                                borderBottomRightRadius: 5,
-                              }
-                            : {}),
+                          ...slotRadiusStyle,
                           boxShadow: "none",
                           outline: phantomOutline
                             ? "1px dashed currentColor"
                             : undefined,
                           zIndex: zStyle(
                             zL2
-                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][
-                                  i
-                                ]
+                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
                               : undefined,
                           ),
                           pointerEvents: "none",
