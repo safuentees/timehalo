@@ -151,7 +151,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
   const ctrls = useControls(
     {
       mode: {
-        value: "production",
+        value: "inspect",
         options: ["production", "inspect", "outline"] as const,
         label: "mode",
         hint:
