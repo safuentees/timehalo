@@ -10,7 +10,6 @@ import {
   ChevronLeftIcon,
   XIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   BookingForm,
   DayStrip,
@@ -186,19 +185,18 @@ export function HandleModal({
             <div className="relative z-30 flex shrink-0 items-center justify-between">
               <button
                 type="button"
-                onClick={() => view === "form" && setView("picker")}
-                aria-label={t("backToPickerAria")}
-                aria-disabled={view === "picker"}
-                disabled={view === "picker"}
-                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent] disabled:cursor-default"
+                onClick={() =>
+                  view === "form" ? setView("picker") : onOpenChange(false)
+                }
+                aria-label={
+                  view === "form"
+                    ? t("backToPickerAria")
+                    : t("closeDrawerAria")
+                }
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <ChevronLeftIcon
-                  className={cn(
-                    "size-5 transition-[opacity,transform] duration-150 ease-oh",
-                    view === "picker"
-                      ? "opacity-[0.3]"
-                      : "opacity-[0.7] group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100",
-                  )}
+                  className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -355,7 +353,7 @@ export function HandleModal({
                 </motion.div>
               </div>
 
-              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[#F5EFDF]">
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm ">
                 <div className="relative z-10 shrink-0 px-5 pb-[clamp(14px,2vw,18px)] pt-[clamp(30px,4vw,40px)] sm:px-6">
                   <h2
                     id="handle-modal-title"
