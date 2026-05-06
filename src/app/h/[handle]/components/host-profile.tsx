@@ -438,7 +438,7 @@ export default function HostProfile({
                               description="quick chat, voice only"
                               durationLabel={opt.label}
                               onClick={() => {
-                                setSelectedDurationLabel(opt.label);
+                                setSelectedDurationLabel(opt.fullLabel);
                                 setDrawerOpen(true);
                               }}
                             />

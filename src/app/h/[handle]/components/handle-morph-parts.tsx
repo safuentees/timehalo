@@ -46,10 +46,10 @@ export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
 );
 
 export const SLOT_OPTIONS = [
-  { label: "15 min" },
-  { label: "25 min" },
-  { label: "30 min" },
-  { label: "1 hr" },
+  { label: "15 min", fullLabel: "15 minutes" },
+  { label: "25 min", fullLabel: "25 minutes" },
+  { label: "30 min", fullLabel: "30 minutes" },
+  { label: "1 hr", fullLabel: "1 hour" },
 ] as const;
 
 type SlotRowMotionProps = {
