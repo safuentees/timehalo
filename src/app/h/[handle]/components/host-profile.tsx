@@ -767,6 +767,17 @@ export function SlotRow({
     <motion.span
       layoutId={frame9LayoutId}
       layout
+      // B.PT193 — pass the same `transition` prop the outer chip uses,
+      // so Frame 9's layout animation respects the Spring tuning
+      // duration override (visualDuration). Without this, motion
+      // falls through to `defaultLayoutTransition = { duration: 0.45,
+      // ease: [0.4, 0, 0.1, 1] }` and the inner morph runs at a
+      // fixed 0.45s curve regardless of the user's duration setting
+      // — which is why scaling Spring tuning duration to 1.5s or 3s
+      // didn't slow down the size animation; it stayed at 0.45s
+      // ease, looking like a "snap" relative to the slowed-down
+      // outer chip animation.
+      transition={transition}
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 1 }}
@@ -791,17 +802,13 @@ export function SlotRow({
       <motion.span
         layoutId={textLayoutId}
         layout="position"
-        // B.PT190 — `layoutAnchor` is the documented motion-dom prop
-        // (`MotionNodeOptions.layoutAnchor`) that picks the reference
-        // point on the parent for child position. Default
-        // `{ x: 0, y: 0 }` (top-left) suits the title text since
-        // Frame 9 keeps it left-aligned via `justify-between`. With
-        // the default, motion's relative-position math for this
-        // span anchors against parent's left edge — the text's
-        // intended CSS-flex behavior (left-anchored) is preserved
-        // through the morph. Per docstring: "useful for centered
-        // layouts (e.g., flexbox) to prevent drift during parent
-        // layout animations."
+        // B.PT193 — same transition as Frame 9 / outer chip so the
+        // text's position animation respects the duration override.
+        transition={transition}
+        // B.PT190 — left-anchored (default {x:0, y:0}). Text is at
+        // Frame 9's left edge via flex; this anchor produces a
+        // monotonic leftward translation during the morph that the
+        // user observed as smooth. Kept as-is.
         layoutAnchor={{ x: 0, y: 0 }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
@@ -827,37 +834,34 @@ export function SlotRow({
       <motion.span
         layoutId={durationLayoutId}
         layout="position"
-        // B.PT191 — keep `layoutAnchor={{ x: 0, y: 0 }}` (default
-        // top-left), matching the text span. The earlier B.PT190
-        // tried `{ x: 1, y: 0 }` (top-right) but that BACKFIRED:
-        // motion's `calcRelativeAxisPosition` (motion.dev.js) does
-        // `target.min = layout.min - anchorPoint` where anchorPoint
-        // = parent.x.max with anchor=1. Since duration is right-
-        // aligned in BOTH source (landing chip) and dest (modal
-        // phantom) — its right edge always ~= Frame 9's right edge
-        // — relative-from-right ≈ 0 in BOTH contexts → motion sees
-        // no delta → no per-child animation runs → duration "snaps"
-        // to its CSS-natural (modal) position from frame 0.
-        // With the default `{ x: 0, y: 0 }`, motion calculates
-        // relative-from-LEFT, which DOES differ: duration's left-
-        // from-Frame-9-left is much smaller in landing (chip 303
-        // wide) than in modal (chip 668 wide). Motion animates the
-        // delta — duration's screen position smoothly translates
-        // from the landing-right-edge to the modal-right-edge as
-        // the chip morphs. Same mechanism that makes the text span
-        // translate smoothly. The right-edge "anchor" effect is
-        // achieved by interpolating the position delta, not by
-        // motion's relative-anchor calculation.
-        layoutAnchor={{ x: 0, y: 0 }}
+        // B.PT193 — pass transition so size/position animations
+        // respect the Spring tuning duration override.
+        transition={transition}
+        // B.PT193 — `layoutAnchor={false}` DISABLES relative
+        // projection on this element. Per motion-dom d.ts:957:
+        // *"`false` disables relative projection entirely."* The
+        // tracer revealed duration's screen X dipped non-
+        // monotonically during open: 801 → 778 → 768 → ... → 864.
+        // Duration first moved LEFT (toward chip center) before
+        // reversing RIGHT to track the expanding right edge. That's
+        // motion running its OWN per-element layout animation that
+        // interpolates duration's relative-to-frame9-LEFT position
+        // from landing-context-243 to modal-context-608. Combined
+        // with frame9's own FLIP transform, the compound math
+        // produces the visible "snap" jolt. Disabling relative
+        // projection makes duration follow frame9's transform
+        // directly via CSS inheritance (no per-element layout
+        // animation), so duration stays at frame9's right edge
+        // throughout the morph — matches Figma's auto-layout
+        // fill-container behavior the user described. Text keeps
+        // its `{x:0, y:0}` anchor because its motion is
+        // monotonically leftward and works correctly.
+        layoutAnchor={false}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
         // DEBUG-B.PT192 — bg pink to track the duration span's
-        // actual rendered position during the morph. If duration
-        // appears at the modal-right-edge from frame 0 of the
-        // animation, motion isn't running its position
-        // interpolation; if it slides smoothly with frame 9's
-        // right edge, the motion fix is doing its job.
+        // actual rendered position during the morph.
         // The duration group rides the right edge as Frame 9 widens.
         className="flex shrink-0 items-baseline font-sans tabular-nums bg-pink-300/60 outline outline-1 outline-pink-700"
       >
