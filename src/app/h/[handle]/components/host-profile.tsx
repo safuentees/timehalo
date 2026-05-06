@@ -788,6 +788,18 @@ export function SlotRow({
       <motion.span
         layoutId={textLayoutId}
         layout="position"
+        // B.PT190 — `layoutAnchor` is the documented motion-dom prop
+        // (`MotionNodeOptions.layoutAnchor`) that picks the reference
+        // point on the parent for child position. Default
+        // `{ x: 0, y: 0 }` (top-left) suits the title text since
+        // Frame 9 keeps it left-aligned via `justify-between`. With
+        // the default, motion's relative-position math for this
+        // span anchors against parent's left edge — the text's
+        // intended CSS-flex behavior (left-anchored) is preserved
+        // through the morph. Per docstring: "useful for centered
+        // layouts (e.g., flexbox) to prevent drift during parent
+        // layout animations."
+        layoutAnchor={{ x: 0, y: 0 }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
@@ -810,6 +822,19 @@ export function SlotRow({
       <motion.span
         layoutId={durationLayoutId}
         layout="position"
+        // B.PT190 — `{ x: 1, y: 0 }` anchors the duration to the
+        // RIGHT-top of Frame 9 (parent). User reported the duration
+        // "snaps" instead of staying right-anchored during the morph
+        // because motion's default `{ x: 0, y: 0 }` anchor calculates
+        // duration's position relative to Frame 9's LEFT edge — as
+        // Frame 9 widens 303 → 668, the duration's offset-from-left
+        // jumps. With `{ x: 1, y: 0 }`, motion calculates relative to
+        // Frame 9's RIGHT edge — duration stays anchored to the right
+        // throughout the morph, matching the CSS `justify-between`
+        // intent. Mirrors how Figma Smart Animate's auto-layout fill-
+        // container with auto gap pushes both ends to opposite sides
+        // as the container grows.
+        layoutAnchor={{ x: 1, y: 0 }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
