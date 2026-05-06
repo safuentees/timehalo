@@ -196,10 +196,10 @@ export function HandleModal({
                   className={cn(
                     "size-5 transition-[opacity,transform] duration-150 ease-oh",
                     view === "picker"
-                      ? "opacity-[0.25]"
-                      : "opacity-[0.55] group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100",
+                      ? "opacity-[0.3]"
+                      : "opacity-[0.7] group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100",
                   )}
-                  strokeWidth={1.75}
+                  strokeWidth={2.25}
                   aria-hidden
                 />
               </button>
@@ -210,8 +210,8 @@ export function HandleModal({
                 className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
                 <XIcon
-                  className="size-5 opacity-[0.55] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
-                  strokeWidth={1.75}
+                  className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-hover:scale-105 group-hover:opacity-100 group-active:scale-95 group-active:opacity-100"
+                  strokeWidth={2.25}
                   aria-hidden
                 />
               </button>
