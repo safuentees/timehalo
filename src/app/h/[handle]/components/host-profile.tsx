@@ -775,7 +775,10 @@ export function SlotRow({
       // projection lets Motion counter-scale inherited slot stretch.
       // Opacity is pinned so shared-layout close does not crossfade
       // cloned text layers before the chip finishes shrinking.
-      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
+      // DEBUG-B.PT192 — bg lime so Frame 9's flex bounds are
+      // visible during the morph. Remove after the duration-snap
+      // bug is resolved.
+      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3 bg-lime-300/40 outline outline-1 outline-lime-600"
     >
       {/* B.PT161 — left text block. Per Figma, both lines are
           textAlignHorizontal=CENTER (despite being left of the
@@ -803,8 +806,10 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
+        // DEBUG-B.PT192 — bg cyan to track the text span's actual
+        // rendered position during the morph.
         // Text should move with the projected row, not scale with it.
-        className="flex min-w-0 flex-col items-center leading-tight"
+        className="flex min-w-0 flex-col items-center leading-tight bg-cyan-300/50 outline outline-1 outline-cyan-700"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
@@ -847,8 +852,14 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
+        // DEBUG-B.PT192 — bg pink to track the duration span's
+        // actual rendered position during the morph. If duration
+        // appears at the modal-right-edge from frame 0 of the
+        // animation, motion isn't running its position
+        // interpolation; if it slides smoothly with frame 9's
+        // right edge, the motion fix is doing its job.
         // The duration group rides the right edge as Frame 9 widens.
-        className="flex shrink-0 items-baseline font-sans tabular-nums"
+        className="flex shrink-0 items-baseline font-sans tabular-nums bg-pink-300/60 outline outline-1 outline-pink-700"
       >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
           {num}
