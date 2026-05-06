@@ -395,12 +395,12 @@ export function HandleModal({
                 deeper to the form view, matching iOS / Material
                 top-bar conventions. Lucide `ChevronLeft` per their
                 React docs (lucide.dev) — props: `size`, `strokeWidth`. */}
-            // B.PT229 — chrome row uses 3-col grid so the duration
-            // label sits TRUE-centered between chevron and X
-            // regardless of label width or button widths. justify-
-            // self positions each child within its column. Plain
-            // flex `justify-between` would push the label off-
-            // center if its width differed from chevron/X widths.
+            {/* B.PT229 — chrome row uses 3-col grid so the duration
+                label sits TRUE-centered between chevron and X
+                regardless of label width or button widths. `justify-
+                self` positions each child within its column. Plain
+                flex `justify-between` would push the label off-
+                center if its width differed from chevron/X widths. */}
             <div className="relative z-30 grid h-7 shrink-0 grid-cols-3 items-center">
               <button
                 type="button"
