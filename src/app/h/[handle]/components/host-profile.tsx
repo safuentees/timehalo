@@ -400,14 +400,8 @@ export default function HostProfile({
                         className="flex flex-col gap-2.5 p-[15px]"
                       >
                         {SLOT_OPTIONS.map((opt, i) => {
-                          const concentric =
-                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
-                          const natural = HANDLE_SLOT_ROW_RADIUS;
                           const slotRadiusStyle = cornerRadiusStyle(
-                            i === 0 ? concentric : natural,
-                            i === 0 ? concentric : natural,
-                            i === 3 ? concentric : natural,
-                            i === 3 ? concentric : natural,
+                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
                           );
                           return (
                           <li key={opt.label}>

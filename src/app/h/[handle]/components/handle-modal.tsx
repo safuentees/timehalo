@@ -225,12 +225,8 @@ export function HandleModal({
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
-                  const concentricRadius = HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
                   const slotRadiusStyle = cornerRadiusStyle(
-                    i === 0 ? concentricRadius : 0,
-                    i === 0 ? concentricRadius : 0,
-                    i === 3 ? concentricRadius : 0,
-                    i === 3 ? concentricRadius : 0,
+                    HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
                   );
                   return opt ? (
                     <div
