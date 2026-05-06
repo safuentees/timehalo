@@ -74,10 +74,7 @@ export default function HostProfile({
   const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
   const openToday = availableSlots.some((s) => isToday(new Date(s.start), now));
-  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(
-    availableSlots,
-    now,
-  );
+  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
@@ -115,7 +112,7 @@ export default function HostProfile({
       const apply = () =>
         flushSync(() => {
           setSelectedDate(
-            dateStr ? parseDateKey(dateStr) ?? undefined : undefined,
+            dateStr ? (parseDateKey(dateStr) ?? undefined) : undefined,
           );
           setSelectedSlot(
             slotIso ? slots.find((s) => s.start === slotIso) : undefined,
@@ -203,38 +200,206 @@ export default function HostProfile({
       ) : null}
 
       <LayoutGroup>
-      <div className="flex w-full justify-center px-4 py-10 sm:py-14">
-        <AnimatePresence mode="popLayout">
-          {!drawerOpen || keepLandingMounted ? (
-            <motion.article
-              key="landing-card"
-              layoutId={landingLayoutId("handle-card")}
-              layoutCrossfade={false}
-              transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-              initial={{ opacity: oStyle(oL1?.layer, 1) }}
-              animate={{ opacity: oStyle(oL1?.layer, 1) }}
-              exit={{ opacity: oStyle(oL1?.layer, 1) }}
-              style={{
-                borderRadius: 25,
-                boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
-                position: zL1?.layer ? "relative" : undefined,
-                zIndex: zStyle(zL1?.layer),
-              }}
-              aria-label={t("landingCardAria", { name: displayName })}
-              className={cn(
-                "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                "bg-[color:var(--oh-paper)]",
-              )}
-            >
-              <motion.header
-                layoutId={landingLayoutId("oh-identity")}
-                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                initial={{ opacity: oStyle(oL1?.identity, 1) }}
-                animate={{ opacity: oStyle(oL1?.identity, 1) }}
-                exit={{ opacity: 0 }}
-                style={{ zIndex: zStyle(zL1?.identity) }}
-                className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
+        <div className="flex w-full justify-center px-4 py-10 sm:py-14">
+          <AnimatePresence mode="popLayout">
+            {!drawerOpen || keepLandingMounted ? (
+              <motion.article
+                key="landing-card"
+                layoutId={landingLayoutId("handle-card")}
+                layoutCrossfade={false}
+                transition={{
+                  type: "spring",
+                  ...(drawerOpen ? openSpring : closeSpring),
+                }}
+                initial={{ opacity: oStyle(oL1?.layer, 1) }}
+                animate={{ opacity: oStyle(oL1?.layer, 1) }}
+                exit={{ opacity: oStyle(oL1?.layer, 1) }}
+                style={{
+                  borderRadius: 25,
+                  boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
+                  position: zL1?.layer ? "relative" : undefined,
+                  zIndex: zStyle(zL1?.layer),
+                }}
+                aria-label={t("landingCardAria", { name: displayName })}
+                className={cn(
+                  "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+                  "bg-[color:var(--oh-paper)]",
+                )}
               >
+                <motion.header
+                  layoutId={landingLayoutId("oh-identity")}
+                  transition={{
+                    type: "spring",
+                    ...(drawerOpen ? openSpring : closeSpring),
+                  }}
+                  initial={{ opacity: oStyle(oL1?.identity, 1) }}
+                  animate={{ opacity: oStyle(oL1?.identity, 1) }}
+                  exit={{ opacity: 0 }}
+                  style={{ zIndex: zStyle(zL1?.identity) }}
+                  className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "relative inline-flex size-[55px] shrink-0",
+                        "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                      )}
+                    >
+                      <Avatar className="size-[55px]">
+                        <AvatarImage
+                          src={user.image ?? undefined}
+                          alt={displayName}
+                        />
+                        <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                      />
+                    </span>
+                    <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
+                      {displayName}
+                    </h1>
+                  </div>
+                  <p className="oh-description text-center">
+                    {t("defaultBio")}
+                  </p>
+                </motion.header>
+
+                <motion.div
+                  layoutId={landingLayoutId("oh-slot-list")}
+                  transition={{
+                    type: "spring",
+                    ...(drawerOpen ? openSpring : closeSpring),
+                  }}
+                  initial={{ opacity: oStyle(oL1?.slotList, 1) }}
+                  animate={{ opacity: oStyle(oL1?.slotList, 1) }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    borderRadius: 20,
+                    boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
+                    zIndex: zStyle(zL1?.slotList),
+                  }}
+                  className={cn(
+                    "flex flex-col gap-2.5 p-[15px]",
+                    "bg-[#F5EFDF]",
+                  )}
+                >
+                  {hasOpenSlots ? (
+                    <motion.ul
+                      layoutId={landingLayoutId("oh-slot-stack")}
+                      transition={{
+                        type: "spring",
+                        ...(drawerOpen ? openSpring : closeSpring),
+                      }}
+                      style={{ boxShadow: "none" }}
+                      className="flex flex-col gap-2.5"
+                    >
+                      {SLOT_OPTIONS.map((opt, i) => (
+                        <li key={opt.label}>
+                          <SlotRow
+                            layoutId={landingLayoutId(`oh-slot-${i}`)}
+                            transition={{
+                              type: "spring",
+                              ...(drawerOpen ? openSpring : closeSpring),
+                            }}
+                            initial={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            animate={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            exit={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            style={{
+                              position: zL1 ? "relative" : undefined,
+                              zIndex: zStyle(
+                                zL1
+                                  ? [
+                                      zL1.slot0,
+                                      zL1.slot1,
+                                      zL1.slot2,
+                                      zL1.slot3,
+                                    ][i]
+                                  : undefined,
+                              ),
+                            }}
+                            figmaLayer={`landing-slot-${i}`}
+                            title="intro"
+                            description="quick chat, voice only"
+                            durationLabel={opt.label}
+                            onClick={() => setDrawerOpen(true)}
+                          />
+                        </li>
+                      ))}
+                    </motion.ul>
+                  ) : (
+                    <p className="oh-description py-6 text-center">
+                      {!hasSlots
+                        ? t("emptyClosedDescription", { name: displayName })
+                        : t("emptyBookedDescription", { name: displayName })}
+                    </p>
+                  )}
+                </motion.div>
+              </motion.article>
+            ) : null}
+          </AnimatePresence>
+        </div>
+
+        <span className="sr-only" aria-hidden>
+          {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
+        </span>
+
+        <AnimatePresence mode="popLayout">
+          {hasOpenSlots && drawerOpen ? (
+            <HandleModal
+              key="handle-modal"
+              handle={handle}
+              slots={slots}
+              open
+              onOpenChange={setDrawerOpen}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+              selectedSlot={selectedSlot}
+              rescheduleFromUid={rescheduleFromUid}
+              onPickSlot={(s) => {
+                setSelectedSlot(s);
+                updateQueryParam("slot", s.start, { pushEntry: true });
+              }}
+              identityContent={
                 <div className="flex items-center gap-3">
                   <span
                     className={cn(
@@ -243,7 +408,10 @@ export default function HostProfile({
                     )}
                   >
                     <Avatar className="size-[55px]">
-                      <AvatarImage src={user.image ?? undefined} alt={displayName} />
+                      <AvatarImage
+                        src={user.image ?? undefined}
+                        alt={displayName}
+                      />
                       <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
                         {initials}
                       </AvatarFallback>
@@ -257,144 +425,10 @@ export default function HostProfile({
                     {displayName}
                   </h1>
                 </div>
-                <p className="oh-description text-center">{t("defaultBio")}</p>
-              </motion.header>
-
-              <motion.div
-                layoutId={landingLayoutId("oh-slot-list")}
-                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                initial={{ opacity: oStyle(oL1?.slotList, 1) }}
-                animate={{ opacity: oStyle(oL1?.slotList, 1) }}
-                exit={{ opacity: 0 }}
-                style={{
-                  borderRadius: 20,
-                  boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
-                  zIndex: zStyle(zL1?.slotList),
-                }}
-                className={cn(
-                  "flex flex-col gap-2.5 p-[15px]",
-                  "bg-[#F5EFDF]",
-                )}
-              >
-                {hasOpenSlots ? (
-                  <motion.ul
-                    layoutId={landingLayoutId("oh-slot-stack")}
-                    transition={{
-                      type: "spring",
-                      ...(drawerOpen ? openSpring : closeSpring),
-                    }}
-                    style={{ boxShadow: "none" }}
-                    className="flex flex-col gap-2.5"
-                  >
-                    {SLOT_OPTIONS.map((opt, i) => (
-                      <li key={opt.label}>
-                        <SlotRow
-                          layoutId={landingLayoutId(`oh-slot-${i}`)}
-                          transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                          initial={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          animate={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          exit={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          style={{
-                            position: zL1 ? "relative" : undefined,
-                            zIndex: zStyle(
-                              zL1
-                                ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
-                                : undefined,
-                            ),
-                          }}
-                          figmaLayer={`landing-slot-${i}`}
-                          title="intro"
-                          description="quick chat, voice only"
-                          durationLabel={opt.label}
-                          onClick={() => setDrawerOpen(true)}
-                        />
-                      </li>
-                    ))}
-                  </motion.ul>
-                ) : (
-                  <p className="oh-description py-6 text-center">
-                    {!hasSlots
-                      ? t("emptyClosedDescription", { name: displayName })
-                      : t("emptyBookedDescription", { name: displayName })}
-                  </p>
-                )}
-              </motion.div>
-            </motion.article>
+              }
+            />
           ) : null}
         </AnimatePresence>
-      </div>
-
-      <span className="sr-only" aria-hidden>
-        {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
-      </span>
-
-      <AnimatePresence mode="popLayout">
-        {hasOpenSlots && drawerOpen ? (
-          <HandleModal
-            key="handle-modal"
-            handle={handle}
-            slots={slots}
-            open
-            onOpenChange={setDrawerOpen}
-            selectedDate={selectedDate}
-            onSelectDate={handleSelectDate}
-            selectedSlot={selectedSlot}
-            rescheduleFromUid={rescheduleFromUid}
-            onPickSlot={(s) => {
-              setSelectedSlot(s);
-              updateQueryParam("slot", s.start, { pushEntry: true });
-            }}
-            identityContent={
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "relative inline-flex size-[55px] shrink-0",
-                    "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
-                  )}
-                >
-                  <Avatar className="size-[55px]">
-                    <AvatarImage
-                      src={user.image ?? undefined}
-                      alt={displayName}
-                    />
-                    <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
-                  />
-                </span>
-                <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
-                  {displayName}
-                </h1>
-              </div>
-            }
-          />
-        ) : null}
-      </AnimatePresence>
       </LayoutGroup>
     </OhVisitorShell>
   );
@@ -460,7 +494,7 @@ export function SlotRow({
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 1 }}
-      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3 bg-lime-300/40 outline outline-1 outline-lime-600"
+      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
       <motion.span
         layoutId={textLayoutId}
@@ -470,7 +504,7 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="flex min-w-0 flex-col items-center leading-tight bg-cyan-300/50 outline outline-1 outline-cyan-700"
+        className="flex min-w-0 flex-col items-center leading-tight"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
@@ -487,7 +521,7 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="flex shrink-0 items-baseline font-sans tabular-nums bg-pink-300/60 outline outline-1 outline-pink-700"
+        className="flex shrink-0 items-baseline font-sans tabular-nums"
       >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
           {num}
