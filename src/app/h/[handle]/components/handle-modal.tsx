@@ -228,6 +228,14 @@ export function HandleModal({
       >
         <motion.article
           layoutId="handle-card"
+          // B.PT189 — see long-form comment in host-profile.tsx;
+          // mirrored here so the modal article's projection options
+          // also have crossfade disabled. With both shared elements
+          // setting layoutCrossfade={false}, motion hides the
+          // previous lead on every promote (open AND close) so the
+          // morph always reads as a single-element transition with
+          // the inactive side fully hidden via visibility:hidden.
+          layoutCrossfade={false}
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           // B.PT159: hint the compositor that we'll be transforming
           // this element. Motion sets `transform` itself but `will-
