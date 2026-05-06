@@ -822,19 +822,28 @@ export function SlotRow({
       <motion.span
         layoutId={durationLayoutId}
         layout="position"
-        // B.PT190 — `{ x: 1, y: 0 }` anchors the duration to the
-        // RIGHT-top of Frame 9 (parent). User reported the duration
-        // "snaps" instead of staying right-anchored during the morph
-        // because motion's default `{ x: 0, y: 0 }` anchor calculates
-        // duration's position relative to Frame 9's LEFT edge — as
-        // Frame 9 widens 303 → 668, the duration's offset-from-left
-        // jumps. With `{ x: 1, y: 0 }`, motion calculates relative to
-        // Frame 9's RIGHT edge — duration stays anchored to the right
-        // throughout the morph, matching the CSS `justify-between`
-        // intent. Mirrors how Figma Smart Animate's auto-layout fill-
-        // container with auto gap pushes both ends to opposite sides
-        // as the container grows.
-        layoutAnchor={{ x: 1, y: 0 }}
+        // B.PT191 — keep `layoutAnchor={{ x: 0, y: 0 }}` (default
+        // top-left), matching the text span. The earlier B.PT190
+        // tried `{ x: 1, y: 0 }` (top-right) but that BACKFIRED:
+        // motion's `calcRelativeAxisPosition` (motion.dev.js) does
+        // `target.min = layout.min - anchorPoint` where anchorPoint
+        // = parent.x.max with anchor=1. Since duration is right-
+        // aligned in BOTH source (landing chip) and dest (modal
+        // phantom) — its right edge always ~= Frame 9's right edge
+        // — relative-from-right ≈ 0 in BOTH contexts → motion sees
+        // no delta → no per-child animation runs → duration "snaps"
+        // to its CSS-natural (modal) position from frame 0.
+        // With the default `{ x: 0, y: 0 }`, motion calculates
+        // relative-from-LEFT, which DOES differ: duration's left-
+        // from-Frame-9-left is much smaller in landing (chip 303
+        // wide) than in modal (chip 668 wide). Motion animates the
+        // delta — duration's screen position smoothly translates
+        // from the landing-right-edge to the modal-right-edge as
+        // the chip morphs. Same mechanism that makes the text span
+        // translate smoothly. The right-edge "anchor" effect is
+        // achieved by interpolating the position delta, not by
+        // motion's relative-anchor calculation.
+        layoutAnchor={{ x: 0, y: 0 }}
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
