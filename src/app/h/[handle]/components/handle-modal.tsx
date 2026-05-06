@@ -347,11 +347,11 @@ export function HandleModal({
                 pointerEvents: "none",
               }}
             >
-              {/* Identity content is supplied with its own child
-                  `layout` / `layout="position"` nodes from
-                  host-profile.tsx. Motion's scale correction then
-                  keeps the avatar/title paint from stretching while
-                  this shared identity frame changes size. */}
+              {/* Identity content is supplied with its own
+                  `oh-identity-*` child layout IDs from
+                  host-profile.tsx. The stripped Layer 1 row is hidden
+                  after measurement, and the Layer 2 row/title/avatar
+                  remain projected as one promoted clone. */}
               {identityContent ? identityContent : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
