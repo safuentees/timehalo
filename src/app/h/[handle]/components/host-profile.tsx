@@ -448,15 +448,26 @@ export function SlotRow({
     boxShadow: "0 0 4px rgba(0,0,0,0.25)",
     ...style,
   };
+  const frame9LayoutId = layoutId ? `${layoutId}-frame-9` : undefined;
+  const textLayoutId = layoutId ? `${layoutId}-frame-17` : undefined;
+  const durationLayoutId = layoutId ? `${layoutId}-frame-12` : undefined;
   const content = (
     <motion.span
+      layoutId={frame9LayoutId}
       layout
       layoutAnchor={{ x: 0, y: 0 }}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 1 }}
       className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
       <motion.span
+        layoutId={textLayoutId}
         layout="position"
         layoutAnchor={{ x: 0, y: 0 }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 1 }}
         className="flex min-w-0 flex-col items-center leading-tight"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
@@ -467,8 +478,12 @@ export function SlotRow({
         </span>
       </motion.span>
       <motion.span
+        layoutId={durationLayoutId}
         layout="position"
         layoutAnchor={{ x: 1, y: 0 }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 1 }}
         className="flex shrink-0 items-baseline font-sans tabular-nums"
       >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
