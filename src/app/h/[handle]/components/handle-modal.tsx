@@ -104,14 +104,6 @@ export function HandleModal({
       returnFocus
       shards={panelShardRef ? [panelShardRef] : undefined}
     >
-      <motion.div
-        aria-hidden
-        className="fixed inset-0 z-40 bg-[color:var(--oh-ink)]/40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      />
 
       <motion.div
         layoutRoot
@@ -252,6 +244,18 @@ export function HandleModal({
                           width: 690,
                           height: 282,
                           borderRadius: 0,
+                          ...(i === 0
+                            ? {
+                                borderTopLeftRadius: 5,
+                                borderTopRightRadius: 5,
+                              }
+                            : {}),
+                          ...(i === 3
+                            ? {
+                                borderBottomLeftRadius: 5,
+                                borderBottomRightRadius: 5,
+                              }
+                            : {}),
                           boxShadow: "none",
                           outline: phantomOutline
                             ? "1px dashed currentColor"
