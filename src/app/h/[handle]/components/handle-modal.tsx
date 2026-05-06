@@ -26,7 +26,8 @@ import {
   SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
-} from "./host-profile";
+} from "./handle-morph-parts";
+import { HandleMorphCard } from "./handle-morph-card";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -120,7 +121,7 @@ export function HandleModal({
         aria-labelledby="handle-modal-title"
         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
       >
-        <motion.article
+        <HandleMorphCard
           layoutId="handle-card"
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           initial={{
@@ -137,12 +138,10 @@ export function HandleModal({
           }}
           style={{
             position: "relative",
-            ...HANDLE_CARD_RADIUS_STYLE,
-            boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
-          className="flex min-h-[clamp(500px,70dvh,900px)] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
+          className="min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden"
         >
           <div
             aria-hidden
@@ -221,7 +220,7 @@ export function HandleModal({
                   flexDirection: "column",
                   boxShadow: "none",
                 }}
-                className="p-[15px]"
+                className="p-[15px] "
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
@@ -416,7 +415,7 @@ export function HandleModal({
               </AnimatePresence>
             </div>
           </div>
-        </motion.article>
+        </HandleMorphCard>
       </motion.div>
     </FocusOn>
   );
