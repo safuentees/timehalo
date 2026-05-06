@@ -12,12 +12,7 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  SwitchLayoutGroupContext,
-  motion,
-} from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -207,9 +202,6 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <SwitchLayoutGroupContext.Provider
-        value={{ shouldPreserveFollowOpacity: () => true }}
-      >
       <LayoutGroup>
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
         <AnimatePresence mode="popLayout">
@@ -217,6 +209,7 @@ export default function HostProfile({
             <motion.article
               key="landing-card"
               layoutId={landingLayoutId("handle-card")}
+              layoutCrossfade={false}
               transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL1?.layer, 1) }}
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
@@ -403,7 +396,6 @@ export default function HostProfile({
         ) : null}
       </AnimatePresence>
       </LayoutGroup>
-      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }

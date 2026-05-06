@@ -122,6 +122,7 @@ export function HandleModal({
       >
         <motion.article
           layoutId="handle-card"
+          layoutCrossfade={false}
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           initial={{ opacity: oStyle(oL2?.layer, 1) }}
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
