@@ -71,7 +71,7 @@ export function cornerRadiusStyle(
 }
 
 export const HANDLE_CARD_RADIUS = 25;
-export const HANDLE_SLOT_LIST_RADIUS = 20;
+export const HANDLE_SLOT_LIST_RADIUS = 25;
 export const HANDLE_SLOT_ROW_RADIUS = 14;
 export const HANDLE_SLOT_LIST_INNER_PADDING = 15;
 export const HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS = Math.max(
@@ -399,7 +399,17 @@ export default function HostProfile({
                         style={{ boxShadow: "none" }}
                         className="flex flex-col gap-2.5 p-[15px]"
                       >
-                        {SLOT_OPTIONS.map((opt, i) => (
+                        {SLOT_OPTIONS.map((opt, i) => {
+                          const concentric =
+                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
+                          const natural = HANDLE_SLOT_ROW_RADIUS;
+                          const slotRadiusStyle = cornerRadiusStyle(
+                            i === 0 ? concentric : natural,
+                            i === 0 ? concentric : natural,
+                            i === 3 ? concentric : natural,
+                            i === 3 ? concentric : natural,
+                          );
+                          return (
                           <li key={opt.label}>
                             <SlotRow
                               layoutId={landingLayoutId(`oh-slot-${i}`)}
@@ -408,7 +418,7 @@ export default function HostProfile({
                                 ...(drawerOpen ? openSpring : closeSpring),
                               }}
                               initial={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -422,7 +432,7 @@ export default function HostProfile({
                                 ),
                               }}
                               animate={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -436,7 +446,7 @@ export default function HostProfile({
                                 ),
                               }}
                               exit={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -469,7 +479,8 @@ export default function HostProfile({
                               onClick={() => setDrawerOpen(true)}
                             />
                           </li>
-                        ))}
+                          );
+                        })}
                       </motion.ul>
                     ) : (
                       <p className="oh-description py-6 text-center">
