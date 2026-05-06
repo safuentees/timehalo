@@ -115,14 +115,22 @@ function SlotChip({
   });
 
   if (isTakenSlot(slot)) {
+    // B.PT234 — taken slots use a real <button disabled> instead of
+    // a non-interactive <div>. Native HTML `disabled` + ARIA both
+    // communicate "not selectable" to assistive tech and keyboard
+    // users, and CSS can target `:disabled` for state styling. The
+    // visible "TAKEN" badge stays as the human-readable cue.
     return (
-      <div
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
         className="oh-slot-chip oh-slot-chip--taken"
         aria-label={t("slotTakenAria", { time: timeLabel })}
       >
         <span>{timeLabel}</span>
         <span className="oh-slot-chip-badge">{t("slotTakenBadge")}</span>
-      </div>
+      </button>
     );
   }
 
