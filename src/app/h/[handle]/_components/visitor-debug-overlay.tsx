@@ -203,7 +203,12 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
   const ctrls = useControls(
     {
       mode: {
-        value: "production",
+        // B.PT185 — default flipped from "production" to "inspect" so
+        // a fresh `?debug=1` load drops directly into the dual-layer
+        // inspection workflow (which is the whole point of the panel
+        // existing at all). Switch back to "production" via the
+        // dropdown to verify the live morph plays as expected.
+        value: "inspect",
         options: ["production", "inspect", "outline"] as const,
         label: "mode",
         hint:
