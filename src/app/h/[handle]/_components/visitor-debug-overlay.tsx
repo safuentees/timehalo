@@ -307,7 +307,12 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
           visualDuration: {
             value: 0,
             min: 0,
-            max: 3,
+            // B.PT199 — max raised from 3 → 15 seconds for deeper
+            // slow-mo analysis. Useful for inspecting long-window
+            // animations frame by frame (e.g. tracer captures over
+            // multi-second runs). Step kept at 0.05 for sub-100ms
+            // precision.
+            max: 15,
             step: 0.05,
             label: "duration (s)",
             hint:

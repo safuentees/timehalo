@@ -545,7 +545,10 @@ export default function HostProfile({
                     // inner shadow defines the edge. Removed the
                     // `border border-oh-line` that B.PT155 added.
                     "flex flex-col gap-2.5 p-[15px]",
-                    "bg-[#F5EFDF]",
+                    // DEBUG-B.PT199 — bg swapped from cream
+                    // `#F5EFDF` to amber. Revert to bg-[#F5EFDF]
+                    // before shipping production.
+                    "bg-amber-300/70",
                   )}
                 >
                   {hasOpenSlots ? (
