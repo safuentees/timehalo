@@ -4,12 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  ChevronLeftIcon,
-  XIcon,
-} from "lucide-react";
+import { CalendarIcon, ChevronLeftIcon, XIcon } from "lucide-react";
 import {
   BookingForm,
   DayStrip,
@@ -646,16 +641,12 @@ export function HandleModal({
                     </MonthDrawer>
                   </div>
                 ) : (
+                  // B.PT228 — Back-to-picker button removed from the
+                  // form-view monthbar (chrome-row chevron handles
+                  // back-navigation now per B.PT225/227). Selected
+                  // slot label remains as the form's contextual
+                  // header.
                   <div className="oh-drawer-monthbar">
-                    <button
-                      type="button"
-                      onClick={() => setView("picker")}
-                      aria-label={t("backToPickerAria")}
-                      className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
-                    >
-                      <ArrowLeftIcon className="size-4" />
-                      {t("backToPicker")}
-                    </button>
                     <span className="oh-drawer-monthbar-label truncate opacity-65">
                       {selectedSlot
                         ? format
