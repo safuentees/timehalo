@@ -12,15 +12,25 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
       <div
         className={[
-          "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
+          "relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
           className,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {header ? <OhVisitorHeader>{header}</OhVisitorHeader> : null}
-        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
-        {footer ? <OhVisitorFooter>{footer}</OhVisitorFooter> : null}
+        {header ? (
+          <div className="absolute inset-x-0 top-0 z-10">
+            <OhVisitorHeader>{header}</OhVisitorHeader>
+          </div>
+        ) : null}
+        <main className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          {children}
+        </main>
+        {footer ? (
+          <div className="absolute inset-x-0 bottom-0 z-10">
+            <OhVisitorFooter>{footer}</OhVisitorFooter>
+          </div>
+        ) : null}
       </div>
     </div>
   );
