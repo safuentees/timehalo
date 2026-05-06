@@ -417,23 +417,7 @@ export function HandleModal({
                       </button>
                     </MonthDrawer>
                   </div>
-                ) : (
-                  <div className="oh-drawer-monthbar">
-                    <span className="oh-drawer-monthbar-label truncate opacity-65">
-                      {selectedSlot
-                        ? format
-                            .dateTime(new Date(selectedSlot.start), {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })
-                            .toUpperCase()
-                        : ""}
-                    </span>
-                  </div>
-                )}
+                ) : null}
 
                 <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
                   <AnimatePresence mode="wait" initial={false}>
