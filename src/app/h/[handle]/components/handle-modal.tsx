@@ -130,7 +130,7 @@ export function HandleModal({
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-20"
+            className="pointer-events-none absolute inset-0 z-0"
           >
             <motion.div
               layoutId="oh-identity"
@@ -285,7 +285,7 @@ export function HandleModal({
               </motion.div>
             </motion.div>
           </div>
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[color:var(--oh-paper)]">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
             <button
               type="button"
               onClick={() => onOpenChange(false)}

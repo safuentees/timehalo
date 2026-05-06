@@ -122,7 +122,7 @@ const LAYER1_PROD_O: OBlock = {
 const LAYER2_PROD_O: OBlock = {
   layer: 1, // modal article — has real content, visible
   identity: 0,
-  slotList: 0,
+  slotList: 1,
   slot0: 0,
   slot1: 0,
   slot2: 0,
