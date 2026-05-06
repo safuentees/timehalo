@@ -189,6 +189,31 @@
     return f.slice(startIdx, endIdx);
   };
 
+  // Re-query phantom subtree at runtime — the phantom only exists
+  // when modal is open, so on the OPEN trace we have to find it
+  // each frame until it mounts.
+  function findLandingChip() {
+    const article = visitor.querySelector(
+      "main > div:nth-child(2) article, main article"
+    );
+    return (
+      article?.querySelector("ul li:first-child > button") ??
+      article?.querySelector("ul li:first-child > div") ??
+      null
+    );
+  }
+  function findPhantomChip() {
+    const phantomRoot = visitor.querySelector(
+      ".fixed.inset-0.z-50 article > div.pointer-events-none.absolute.inset-0.z-20"
+    );
+    if (!phantomRoot) return null;
+    const slotList = phantomRoot.querySelector("div.bg-\\[\\#F5EFDF\\]");
+    return (
+      slotList?.firstElementChild?.firstElementChild?.firstElementChild ??
+      null
+    );
+  }
+
   // Auto-trigger: hooks into the click event on chip / close button
   // to start/stop the trace AT the right moment. Records 1500 ms
   // around the click (250 ms before for context, 1250 ms after).
@@ -208,10 +233,19 @@
       function autoTick(ts) {
         if (start === null) start = ts;
         const t = Math.round(ts - start);
-        const lc = snap(landingChipEl);
-        const lf9 = snap(landingFrame9);
-        const pc = snap(phantomChipEl);
-        const pf9 = snap(phantomFrame9);
+        // Re-query each frame so we catch the phantom when it mounts.
+        const liveLandingChip = findLandingChip();
+        const liveLandingFrame9 = liveLandingChip?.querySelector(
+          "span.flex.items-center.justify-between"
+        );
+        const livePhantomChip = findPhantomChip();
+        const livePhantomFrame9 = livePhantomChip?.querySelector(
+          "span.flex.items-center.justify-between"
+        );
+        const lc = snap(liveLandingChip);
+        const lf9 = snap(liveLandingFrame9);
+        const pc = snap(livePhantomChip);
+        const pf9 = snap(livePhantomFrame9);
         frames.push({
           t,
           lc_w: lc?.w,
