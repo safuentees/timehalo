@@ -114,7 +114,6 @@ export function HandleModal({
       >
         <motion.article
           layoutId="handle-card"
-          layoutCrossfade={false}
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           initial={{ opacity: oStyle(oL2?.layer, 1) }}
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
@@ -134,7 +133,6 @@ export function HandleModal({
           >
             <motion.div
               layoutId="oh-identity"
-              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
@@ -159,7 +157,6 @@ export function HandleModal({
             </motion.div>
             <motion.div
               layoutId="oh-slot-list"
-              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}
@@ -175,7 +172,7 @@ export function HandleModal({
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
-              className="bg-amber-300/70"
+              className="bg-[#F5EFDF]"
             >
               {phantomLabels ? (
                 <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">

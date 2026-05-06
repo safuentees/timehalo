@@ -12,7 +12,12 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  SwitchLayoutGroupContext,
+} from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -35,6 +40,10 @@ const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
+
+const PRESERVE_SHARED_FOLLOW_OPACITY = {
+  shouldPreserveFollowOpacity: () => true,
+};
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -199,14 +208,16 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <LayoutGroup>
+      <SwitchLayoutGroupContext.Provider
+        value={PRESERVE_SHARED_FOLLOW_OPACITY}
+      >
+        <LayoutGroup>
         <div className="flex w-full justify-center px-4 py-10 sm:py-14">
           <AnimatePresence mode="popLayout">
             {!drawerOpen || keepLandingMounted ? (
               <motion.article
                 key="landing-card"
                 layoutId={landingLayoutId("handle-card")}
-                layoutCrossfade={false}
                 transition={{
                   type: "spring",
                   ...(drawerOpen ? openSpring : closeSpring),
@@ -228,7 +239,6 @@ export default function HostProfile({
               >
                 <motion.header
                   layoutId={landingLayoutId("oh-identity")}
-                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -271,7 +281,6 @@ export default function HostProfile({
 
                 <motion.div
                   layoutId={landingLayoutId("oh-slot-list")}
-                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -286,7 +295,7 @@ export default function HostProfile({
                   }}
                   className={cn(
                     "flex flex-col gap-2.5 p-[15px]",
-                    "bg-amber-300/70",
+                    "bg-[#F5EFDF]",
                   )}
                 >
                   {hasOpenSlots ? (
@@ -431,7 +440,8 @@ export default function HostProfile({
             />
           ) : null}
         </AnimatePresence>
-      </LayoutGroup>
+        </LayoutGroup>
+      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }
@@ -543,7 +553,6 @@ export function SlotRow({
         aria-hidden="true"
         data-oh-figma-layer={figmaLayer}
         layoutId={layoutId}
-        layoutCrossfade={false}
         transition={transition}
         initial={initial}
         animate={animate}
@@ -562,7 +571,6 @@ export function SlotRow({
       onClick={onClick}
       data-oh-figma-layer={figmaLayer}
       layoutId={layoutId}
-      layoutCrossfade={false}
       transition={transition}
       initial={initial}
       animate={animate}
