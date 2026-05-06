@@ -449,6 +449,9 @@ export default function HostProfile({
                   one continuous transition, much smoother than a pure fade. */}
                 <motion.header
                   layoutId={landingLayoutId("oh-identity")}
+                  // B.PT200 — mirror of handle-modal.tsx oh-identity:
+                  // disable motion's auto opacity crossfade.
+                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
@@ -931,6 +934,13 @@ export function SlotRow({
         aria-hidden="true"
         data-oh-figma-layer={figmaLayer}
         layoutId={layoutId}
+        // B.PT200 — disable motion's auto opacity crossfade on the
+        // shared-layout pair (`oh-slot-N`) so the chip doesn't fade
+        // 0→1 on open / 1→0 on close. Both inert (modal phantom)
+        // and non-inert (landing button) variants need the prop
+        // since they BOTH carry the layoutId; either one missing
+        // means motion's crossfade kicks in for that side.
+        layoutCrossfade={false}
         transition={transition}
         initial={initial}
         animate={animate}
@@ -949,6 +959,8 @@ export function SlotRow({
       onClick={onClick}
       data-oh-figma-layer={figmaLayer}
       layoutId={layoutId}
+      // B.PT200 — see comment on inert variant above.
+      layoutCrossfade={false}
       transition={transition}
       initial={initial}
       animate={animate}

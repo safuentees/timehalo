@@ -321,6 +321,13 @@ export function HandleModal({
                 interior. */}
             <motion.div
               layoutId="oh-identity"
+              // B.PT200 — same fix as B.PT198 / B.PT189: this
+              // shared-layout pair (`oh-identity`) had its own
+              // crossfade running, fading the title from 0→1 on
+              // open. layoutCrossfade={false} suppresses motion's
+              // mixValues opacity tween so the title renders at
+              // its explicit `animate.opacity` throughout.
+              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.identity, 0) }}
               animate={{ opacity: oStyle(oL2?.identity, 0) }}
