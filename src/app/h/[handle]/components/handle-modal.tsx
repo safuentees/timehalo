@@ -600,7 +600,18 @@ export function HandleModal({
                 {view === "picker" ? (
                   <motion.div
                     key="picker"
-                    initial={{ opacity: 0 }}
+                    // B.PT196 — `initial: opacity 1` (was 0) so the
+                    // picker does NOT fade in on first modal mount.
+                    // The fade-in was visible after B.PT195 removed
+                    // the calendar wrapper's paper bg — picker now
+                    // fades over cream (visible) instead of paper
+                    // (invisible). The AnimatePresence's
+                    // `initial={false}` was supposed to suppress
+                    // first-mount fade but didn't do so consistently.
+                    // The picker → form swap still reads cleanly:
+                    // old exits via `exit: opacity 0` under
+                    // `mode="wait"`, new appears at opacity 1.
+                    initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ type: "spring", ...confirmSpring }}
@@ -623,7 +634,18 @@ export function HandleModal({
                 ) : (
                   <motion.div
                     key="form"
-                    initial={{ opacity: 0 }}
+                    // B.PT196 — `initial: opacity 1` (was 0) so the
+                    // picker does NOT fade in on first modal mount.
+                    // The fade-in was visible after B.PT195 removed
+                    // the calendar wrapper's paper bg — picker now
+                    // fades over cream (visible) instead of paper
+                    // (invisible). The AnimatePresence's
+                    // `initial={false}` was supposed to suppress
+                    // first-mount fade but didn't do so consistently.
+                    // The picker → form swap still reads cleanly:
+                    // old exits via `exit: opacity 0` under
+                    // `mode="wait"`, new appears at opacity 1.
+                    initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ type: "spring", ...confirmSpring }}
