@@ -372,7 +372,7 @@ export default function HostProfile({
                       zIndex: zStyle(zL1?.slotList),
                     }}
                     className={cn(
-                      "flex flex-col gap-2.5 p-[15px]",
+                      "flex flex-col gap-2.5",
                       "bg-[#F5EFDF]",
                     )}
                   >
