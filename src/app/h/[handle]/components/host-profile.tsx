@@ -666,27 +666,17 @@ export default function HostProfile({
                         className="flex flex-col gap-2.5 p-[15px]"
                       >
                         {SLOT_OPTIONS.map((opt, i) => {
-                          // B.PT212 — same Apple-HIG concentric logic
-                          // as modal phantoms: first chip's TOP
-                          // corners + last chip's BOTTOM corners
-                          // match the cream rect's curve via
-                          // `outer - margin`. Other corners keep the
-                          // chip's natural radius (HANDLE_SLOT_ROW_
-                          // RADIUS = 14) since landing chips have
-                          // a gap-2.5 between them and read as
-                          // individual rounded pills, unlike modal's
-                          // edge-to-edge stack where non-concentric
-                          // corners go sharp (0). The Apple-HIG
-                          // formula is identical; the non-concentric
-                          // baseline differs by mount context.
-                          const concentric =
-                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
-                          const natural = HANDLE_SLOT_ROW_RADIUS;
+                          // B.PT213 — uniform concentric radius on
+                          // all 4 corners of every chip (was per-
+                          // index in B.PT212 — top corners of first +
+                          // bottom corners of last). User: "make all
+                          // corners the same concentric value … all
+                          // chips all sides." Reads as a consistent
+                          // family of rounded pills sharing one
+                          // radius vocabulary derived from the cream
+                          // rect via Apple HIG `outer - margin`.
                           const slotRadiusStyle = cornerRadiusStyle(
-                            i === 0 ? concentric : natural,
-                            i === 0 ? concentric : natural,
-                            i === 3 ? concentric : natural,
-                            i === 3 ? concentric : natural,
+                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
                           );
                           return (
                           <li key={opt.label}>

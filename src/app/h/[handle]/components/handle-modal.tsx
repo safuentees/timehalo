@@ -448,22 +448,18 @@ export function HandleModal({
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
-                  // B.PT211 — first/last chip's outer corners use the
-                  // Apple HIG concentric-corner formula: `inner =
-                  // outer - margin` (developer.apple.com/design/human-
-                  // interface-guidelines/live-activities). Derived
-                  // from HANDLE_SLOT_LIST_RADIUS (20) -
-                  // HANDLE_SLOT_LIST_INNER_PADDING (15) = 5. Was
-                  // hardcoded `5`; now updates automatically if
-                  // either constant changes. Middle chips stay sharp
-                  // (0) so the segmented row dividers read as a clean
-                  // stack — see B.PT194 for that decision.
-                  const concentricRadius = HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
+                  // B.PT213 — uniform concentric radius on all 4
+                  // corners of every chip (was per-index in B.PT211
+                  // — top of first + bottom of last → concentric,
+                  // others → 0 sharp dividers). User asked to apply
+                  // the same vocabulary to landing AND modal: "make
+                  // all corners the same concentric value." Modal
+                  // chips are still stacked edge-to-edge, but now
+                  // each chip carries its own rounded outline (10px)
+                  // — adjacent chips touch with visible curves
+                  // rather than sharp dividers.
                   const slotRadiusStyle = cornerRadiusStyle(
-                    i === 0 ? concentricRadius : 0,
-                    i === 0 ? concentricRadius : 0,
-                    i === 3 ? concentricRadius : 0,
-                    i === 3 ? concentricRadius : 0,
+                    HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
                   );
                   return opt ? (
                     <div
