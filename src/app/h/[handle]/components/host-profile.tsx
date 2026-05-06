@@ -292,13 +292,24 @@ export default function HostProfile({
                     className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
                   >
                     <motion.div
+                      layoutId={landingLayoutId("oh-identity-row")}
                       layout
                       transition={identityProjectionTransition}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
+                      style={{
+                        visibility: stripLandingLayoutId ? "hidden" : undefined,
+                      }}
                       className="flex items-center gap-3"
                     >
                       <motion.span
+                        layoutId={landingLayoutId("oh-identity-avatar")}
                         layout="position"
                         transition={identityProjectionTransition}
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 1 }}
                         style={HANDLE_AVATAR_PROJECTION_STYLE}
                         className="relative inline-flex size-[55px] shrink-0"
                       >
@@ -317,8 +328,12 @@ export default function HostProfile({
                         />
                       </motion.span>
                       <motion.h1
+                        layoutId={landingLayoutId("oh-identity-title")}
                         layout="position"
                         transition={identityProjectionTransition}
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 1 }}
                         className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
                       >
                         {displayName}
@@ -478,13 +493,21 @@ export default function HostProfile({
                 }}
                 identityContent={
                   <motion.div
+                    layoutId="oh-identity-row"
                     layout
                     transition={identityProjectionTransition}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 1 }}
                     className="flex items-center gap-3"
                   >
                     <motion.span
+                      layoutId="oh-identity-avatar"
                       layout="position"
                       transition={identityProjectionTransition}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
                       style={HANDLE_AVATAR_PROJECTION_STYLE}
                       className="relative inline-flex size-[55px] shrink-0"
                     >
@@ -503,8 +526,12 @@ export default function HostProfile({
                       />
                     </motion.span>
                     <motion.h1
+                      layoutId="oh-identity-title"
                       layout="position"
                       transition={identityProjectionTransition}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 1 }}
                       className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
                     >
                       {displayName}
