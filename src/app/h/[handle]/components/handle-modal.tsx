@@ -217,6 +217,7 @@ export function HandleModal({
                 style={{
                   position: "absolute",
                   inset: 0,
+                  padding: 15,
                   display: "flex",
                   flexDirection: "column",
                   boxShadow: "none",

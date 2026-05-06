@@ -384,7 +384,7 @@ export default function HostProfile({
                           ...(drawerOpen ? openSpring : closeSpring),
                         }}
                         style={{ boxShadow: "none" }}
-                        className="flex flex-col gap-2.5"
+                        className="flex flex-col gap-2.5 p-[15px]"
                       >
                         {SLOT_OPTIONS.map((opt, i) => (
                           <li key={opt.label}>
