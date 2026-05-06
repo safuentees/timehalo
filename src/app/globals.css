@@ -220,6 +220,11 @@
   scrollbar-gutter: auto;
 }
 
+:where(html, body):has(.oh-visitor-shell) {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
 .oh-app-shell {
   --oh-dashboard-bar-height: 28px;
   --oh-dashboard-bar-block: calc(var(--oh-dashboard-bar-height) + 12px);
