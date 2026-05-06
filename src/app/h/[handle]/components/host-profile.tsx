@@ -990,14 +990,17 @@ export function SlotRow({
       // bug is resolved.
       className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
-      {/* B.PT161 — left text block. Per Figma, both lines are
-          textAlignHorizontal=CENTER (despite being left of the
-          right-time block). Title "intro" is Space Grotesk Bold 16px
-          / line-height 19.2; description "quick chat..." is Regular
-          12px / line-height 15. NEITHER has opacity reduction —
-          previous `opacity-65` on description was wrong (the FRAME
-          parent doesn't have opacity reduction either, only the
-          tagline frame does). */}
+      {/* B.PT161 — left text block. B.PT214 — User: "the text that
+          is inside 'intro' it's centered it should be justified to
+          beginning." Switched cross-axis from `items-center` to
+          `items-start` so title + description left-align inside the
+          flex column. Figma's `textAlignHorizontal=CENTER` from the
+          original spec was already a deliberate departure (the text
+          frame is LEFT of the time block visually); the redesigned
+          chip reads as a label + value pair, where the label belongs
+          at the start of the row. Title is Space Grotesk Bold 16px /
+          line-height 19.2; description "quick chat..." is Regular
+          12px / line-height 15. */}
       <motion.span
         layoutId={textLayoutId}
         layout="position"
@@ -1015,7 +1018,7 @@ export function SlotRow({
         // DEBUG-B.PT192 — bg cyan to track the text span's actual
         // rendered position during the morph.
         // Text should move with the projected row, not scale with it.
-        className="flex min-w-0 flex-col items-center leading-tight"
+        className="flex min-w-0 flex-col items-start leading-tight"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
