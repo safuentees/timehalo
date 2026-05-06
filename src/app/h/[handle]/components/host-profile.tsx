@@ -12,7 +12,12 @@ import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  SwitchLayoutGroupContext,
+  motion,
+} from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -366,6 +371,27 @@ export default function HostProfile({
           global motion tree but the AnimatePresence boundaries don't
           share their lifecycle signals — leading to a stale cache
           after a production-mode modal cycle. */}
+      {/* B.PT188 — `<SwitchLayoutGroupContext.Provider>` with
+          `shouldPreserveFollowOpacity: () => true` is the
+          framer-motion-internal escape that suppresses the auto
+          fade-out on the FOLLOW element of a shared-layout
+          transition. Per motion source `promote()` line 8035: when a
+          new lead promotes (e.g. landing on close once its layoutId
+          is restored and registered as latest member), the previous
+          lead's projection node gets `preserveOpacity = true`. The
+          render selector at line 9416 then returns
+          `latestValues.opacity` (our explicit `animate.opacity = 1`)
+          instead of `valuesToRender.opacityExit` (motion's
+          auto-fade-out 1→0 over progress 0.5-0.95) — the exact
+          source of the close-direction "text fades out at 0.7
+          progress" glitch. The context type is exported from
+          `framer-motion` (re-exported through `motion/react`); docs
+          mark it "Internal, exported only for usage in Framer," but
+          this is the documented mechanism for this very situation
+          and is stable in framer-motion 12.x. */}
+      <SwitchLayoutGroupContext.Provider
+        value={{ shouldPreserveFollowOpacity: () => true }}
+      >
       <LayoutGroup>
       <div className="flex w-full justify-center px-4 py-10 sm:py-14">
         <AnimatePresence mode="popLayout">
@@ -651,6 +677,7 @@ export default function HostProfile({
         ) : null}
       </AnimatePresence>
       </LayoutGroup>
+      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }
