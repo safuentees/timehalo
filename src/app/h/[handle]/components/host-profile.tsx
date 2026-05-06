@@ -636,7 +636,7 @@ export function SlotRow({
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="flex min-w-0 flex-col items-center leading-tight"
+        className="flex min-w-0 flex-col items-start leading-tight"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
