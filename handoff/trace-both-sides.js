@@ -242,22 +242,52 @@
         const livePhantomFrame9 = livePhantomChip?.querySelector(
           "span.flex.items-center.justify-between"
         );
+        // Inner spans (text + duration) inside Frame 9. They are
+        // direct motion.span children of Frame 9.
+        const liveLandingText = liveLandingFrame9?.children?.[0] ?? null;
+        const liveLandingDuration =
+          liveLandingFrame9?.children?.[liveLandingFrame9.children.length - 1] ??
+          null;
+        const livePhantomText = livePhantomFrame9?.children?.[0] ?? null;
+        const livePhantomDuration =
+          livePhantomFrame9?.children?.[
+            livePhantomFrame9.children.length - 1
+          ] ?? null;
         const lc = snap(liveLandingChip);
         const lf9 = snap(liveLandingFrame9);
+        const lt = snap(liveLandingText);
+        const ld = snap(liveLandingDuration);
         const pc = snap(livePhantomChip);
         const pf9 = snap(livePhantomFrame9);
+        const pt = snap(livePhantomText);
+        const pd = snap(livePhantomDuration);
         frames.push({
           t,
           lc_w: lc?.w,
-          lc_x: lc?.x,
           lc_vis: lc?.vis,
           lf9_w: lf9?.w,
           lf9_xform: lf9?.xform,
+          // Landing inner spans
+          lt_x: lt?.x,
+          lt_w: lt?.w,
+          lt_xform: lt?.xform,
+          ld_x: ld?.x,
+          ld_right: ld?.right,
+          ld_w: ld?.w,
+          ld_xform: ld?.xform,
+          // Phantom side
           pc_w: pc?.w,
-          pc_x: pc?.x,
           pc_vis: pc?.vis,
           pf9_w: pf9?.w,
           pf9_xform: pf9?.xform,
+          // Phantom inner spans — THE KEY DATA
+          pt_x: pt?.x,
+          pt_w: pt?.w,
+          pt_xform: pt?.xform,
+          pd_x: pd?.x,
+          pd_right: pd?.right,
+          pd_w: pd?.w,
+          pd_xform: pd?.xform,
         });
         if (ts - start < 1500) requestAnimationFrame(autoTick);
         else {
