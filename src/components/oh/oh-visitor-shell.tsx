@@ -71,7 +71,20 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     // the scrollbar gutter the global `html { scrollbar-gutter:
     // stable }` rule otherwise reserves on the right edge of the
     // viewport. Visible as a thin sliver of html bg without this.
-    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px]">
+    // B.PT219 — pin `--oh-paper` + `--oh-ink` to LIGHT mode values
+    // regardless of the html `.dark` class. The visitor surface is
+    // a public landing/booking flow that should always read as the
+    // brand's Athens-White / Sisal palette; in dark mode the system
+    // tokens flip to near-black paper + cream ink, which renders
+    // `bg-oh-bg-muted` as a dark muted color. Setting these two
+    // base tokens here makes the entire derived token system
+    // (`--oh-frame`, `--oh-content-muted`, `--oh-line-default`,
+    // `--oh-tint`, etc.) recompute via cascade for this subtree —
+    // see Tailwind docs `[--var:value]` arbitrary properties +
+    // CSS custom properties resolving at use-site. Doesn't touch
+    // the global next-themes ThemeProvider; dashboard + auth still
+    // honor system preference.
+    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]">
       {/* B.PT218 — Inner panel switches from flex column to
           `relative` so children can absolute-position. Per Tailwind
           docs (tailwindcss.com/docs/position): "absolute … neighboring
