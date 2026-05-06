@@ -158,6 +158,7 @@ export function HandleModal({
             </motion.div>
             <motion.div
               layoutId="oh-slot-list"
+              layoutCrossfade={false}
               transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
               initial={{ opacity: oStyle(oL2?.slotList, 0) }}
               animate={{ opacity: oStyle(oL2?.slotList, 0) }}

@@ -270,6 +270,7 @@ export default function HostProfile({
 
                 <motion.div
                   layoutId={landingLayoutId("oh-slot-list")}
+                  layoutCrossfade={false}
                   transition={{
                     type: "spring",
                     ...(drawerOpen ? openSpring : closeSpring),
