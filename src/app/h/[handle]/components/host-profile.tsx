@@ -95,7 +95,7 @@ export function cornerRadiusStyle(
 // HANDLE_SLOT_LIST_RADIUS - HANDLE_SLOT_LIST_INNER_PADDING = 5,
 // keeping the chip's outer curve concentric with the cream rect.
 export const HANDLE_CARD_RADIUS = 25;
-export const HANDLE_SLOT_LIST_RADIUS = 20;
+export const HANDLE_SLOT_LIST_RADIUS = 25;
 export const HANDLE_SLOT_ROW_RADIUS = 14;
 export const HANDLE_SLOT_LIST_INNER_PADDING = 15;
 export const HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS = Math.max(
@@ -665,7 +665,30 @@ export default function HostProfile({
                         // only size/position transfer, not styles.
                         className="flex flex-col gap-2.5 p-[15px]"
                       >
-                        {SLOT_OPTIONS.map((opt, i) => (
+                        {SLOT_OPTIONS.map((opt, i) => {
+                          // B.PT212 — same Apple-HIG concentric logic
+                          // as modal phantoms: first chip's TOP
+                          // corners + last chip's BOTTOM corners
+                          // match the cream rect's curve via
+                          // `outer - margin`. Other corners keep the
+                          // chip's natural radius (HANDLE_SLOT_ROW_
+                          // RADIUS = 14) since landing chips have
+                          // a gap-2.5 between them and read as
+                          // individual rounded pills, unlike modal's
+                          // edge-to-edge stack where non-concentric
+                          // corners go sharp (0). The Apple-HIG
+                          // formula is identical; the non-concentric
+                          // baseline differs by mount context.
+                          const concentric =
+                            HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
+                          const natural = HANDLE_SLOT_ROW_RADIUS;
+                          const slotRadiusStyle = cornerRadiusStyle(
+                            i === 0 ? concentric : natural,
+                            i === 0 ? concentric : natural,
+                            i === 3 ? concentric : natural,
+                            i === 3 ? concentric : natural,
+                          );
+                          return (
                           <li key={opt.label}>
                             {/* Figma's matched layer is the painted `slot`
                             frame itself, not a transparent wrapper
@@ -679,7 +702,7 @@ export default function HostProfile({
                                 ...(drawerOpen ? openSpring : closeSpring),
                               }}
                               initial={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -693,7 +716,7 @@ export default function HostProfile({
                                 ),
                               }}
                               animate={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -707,7 +730,7 @@ export default function HostProfile({
                                 ),
                               }}
                               exit={{
-                                ...HANDLE_SLOT_ROW_RADIUS_STYLE,
+                                ...slotRadiusStyle,
                                 opacity: oStyle(
                                   oL1
                                     ? [
@@ -740,7 +763,8 @@ export default function HostProfile({
                               onClick={() => setDrawerOpen(true)}
                             />
                           </li>
-                        ))}
+                          );
+                        })}
                       </motion.ul>
                     ) : (
                       <p className="oh-description py-6 text-center">
