@@ -613,7 +613,11 @@ export default function HostProfile({
                       // B.PT161 — Figma Frame 2 has NO stroke; only the
                       // inner shadow defines the edge. Removed the
                       // `border border-oh-line` that B.PT155 added.
-                      "flex flex-col gap-2.5 p-[15px]",
+                      // B.PT210 — `p-[15px]` removed (now lives only
+                      // on motion.ul / oh-slot-stack so it mirrors
+                      // cleanly to modal's slot-stack motion.div).
+                      // Single source of truth for the cream gutter.
+                      "flex flex-col gap-2.5",
                       "bg-[#F5EFDF]",
                     )}
                   >

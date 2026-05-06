@@ -389,20 +389,16 @@ export function HandleModal({
                 opacity: oStyle(oL2?.slotList, 0),
               }}
               style={{
-                // B.PT207 — concentric nesting via INTERNAL padding,
-                // not slot-stack inset. Slot-list `inset: 15` of
-                // modal article (paper visible around cream) +
-                // `padding: 15` (cream visible around chip stack).
-                // Slot-stack below at `inset: 0` fills slot-list's
-                // PADDING BOX (CSS containing-block rule for abs-pos
-                // children) — so chip container literally fills its
-                // parent's content area, with the cream gutter coming
-                // from slot-list's own padding rather than offsetting
-                // slot-stack. Architecturally responsive: change
-                // padding to 0 → chips edge-to-edge automatically.
+                // B.PT210 — `padding: 15` REMOVED from slot-list
+                // (was added in B.PT207). The cream gutter now lives
+                // only on slot-stack (mirrors landing motion.ul's
+                // `p-[15px]`). Single source of truth for the inner
+                // padding — no more compounding with slot-list's own
+                // padding (was producing 30px total instead of 15px).
+                // Slot-list keeps `inset: 15` of modal article so
+                // paper is visible 15px around the cream rect.
                 position: "absolute",
                 inset: 15,
-                padding: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
