@@ -625,7 +625,18 @@ export default function HostProfile({
                           ...(drawerOpen ? openSpring : closeSpring),
                         }}
                         style={{ boxShadow: "none" }}
-                        className="flex flex-col gap-2.5"
+                        // B.PT209 — `p-[15px]` mirrored on the modal's
+                        // matching `oh-slot-stack` motion.div in
+                        // handle-modal.tsx. Shared `layoutId` only
+                        // animates bbox between two elements; CSS
+                        // (className, style) is INDEPENDENT per side.
+                        // To make padding apply in BOTH layers, set
+                        // it on both motion elements that share the
+                        // id. Per Motion docs (motion.dev/docs/react-
+                        // layout-animations): layoutId animates "from
+                        // the previous element's size and position" —
+                        // only size/position transfer, not styles.
+                        className="flex flex-col gap-2.5 p-[15px]"
                       >
                         {SLOT_OPTIONS.map((opt, i) => (
                           <li key={opt.label}>

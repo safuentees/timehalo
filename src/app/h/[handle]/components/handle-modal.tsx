@@ -422,16 +422,22 @@ export function HandleModal({
                   ...(open ? openSpring : closeSpring),
                 }}
                 style={{
-                  // B.PT207 — slot-stack fills slot-list's PADDING
-                  // BOX via `inset: 0` (CSS abs-pos containing-block
-                  // rule). Slot-list owns the 15px cream gutter via
-                  // its own `padding: 15`; slot-stack just fills the
-                  // remaining content area. Becomes a flex column so
-                  // the 4 chip wrappers below split height equally
-                  // via `flex: 1` (responsive — no hardcoded chip
-                  // dims tied to a specific parent size).
+                  // B.PT209 — `padding: 15` mirrors landing's
+                  // motion.ul `p-[15px]`. Shared `layoutId` only
+                  // animates bbox; CSS doesn't transfer between
+                  // landing and modal sides. Without this padding,
+                  // landing's slot-stack rendered with cream gutter
+                  // around chips but at modal target the gutter
+                  // disappeared (only modal's slot-stack styles
+                  // applied past the morph). Mirrored here so both
+                  // sides have matching internal padding.
+                  // B.PT207 holdover — slot-stack fills slot-list's
+                  // padding box via `inset: 0`. Becomes a flex column
+                  // so the 4 chip wrappers split height equally via
+                  // `flex: 1`.
                   position: "absolute",
                   inset: 0,
+                  padding: 15,
                   display: "flex",
                   flexDirection: "column",
                   // Figma's Frame 18 has no fill/radius, only a drop shadow.
