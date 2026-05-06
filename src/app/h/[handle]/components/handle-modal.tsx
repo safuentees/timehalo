@@ -389,16 +389,18 @@ export function HandleModal({
                 opacity: oStyle(oL2?.slotList, 0),
               }}
               style={{
-                // B.PT205 — slot-list cream rect fills the FULL modal
-                // article (Figma Frame 2 = 720×1158). The 15px gutter
-                // lives on slot-stack below (`inset: 15`) so chips
-                // sit inside the cream rect with cream visible around
-                // them — matches landing's `p-[15px]` cream-frame
-                // aesthetic. Calendar content at z-10 still keeps its
-                // full inner area (only the phantom's children are
-                // pushed inward, not the modal article).
+                // B.PT206 — concentric three-level nesting (paper →
+                // cream → chips), each step 15px inward. Slot-list
+                // cream rect at `inset: 15` of modal article so paper
+                // visible 15px around cream (NOT Figma-faithful — the
+                // Figma spec has slot-list filling Frame 2 = 720×1158
+                // edge-to-edge — but matches landing's nested-card
+                // illusion the user is going for in the open state).
+                // Slot-stack below adds another `inset: 15` so cream
+                // visible around chip stack. Calendar at z-10 still
+                // untouched (only the phantom layer's nesting changed).
                 position: "absolute",
-                inset: 0,
+                inset: 15,
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -481,11 +483,16 @@ export function HandleModal({
                           ),
                         }}
                         style={{
+                          // B.PT206 — chip dims rescaled to fit
+                          // slot-stack's new 660×1098 inner area
+                          // (slot-list 690×1128 minus 15px on each
+                          // side). 4 chips at 1098/4 = 274.5px tall,
+                          // 660 wide, fill pixel-exact.
                           position: "absolute",
-                          top: i * 282,
+                          top: i * 274.5,
                           left: 0,
-                          width: 690,
-                          height: 282,
+                          width: 660,
+                          height: 274.5,
                           // B.PT194 — Apple HIG concentric-corner
                           // formula: inner radius = outer radius -
                           // margin. Slot-list outer cornerRadius =
