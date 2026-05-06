@@ -585,6 +585,7 @@
     "triggerFullAria": "{date} a las {time}, editar",
     "drawerTitle": "Programa tu reunión",
     "drawerDescription": "Elige un día y una hora para tu reunión.",
+    "closeDrawerAria": "Cerrar programador",
     "openMonthViewAria": "Abrir vista de mes",
     "backToPicker": "Atrás",
     "backToPickerAria": "Volver al selector de fecha",

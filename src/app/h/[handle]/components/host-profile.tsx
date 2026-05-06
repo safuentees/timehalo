@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+} from "react";
 import { flushSync } from "react-dom";
 import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
@@ -159,6 +164,7 @@ export default function HostProfile({
 
   return (
     <OhVisitorShell
+      className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]"
       header={
         <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
@@ -208,14 +214,15 @@ export default function HostProfile({
               animate={{ opacity: oStyle(oL1?.layer, 1) }}
               exit={{ opacity: oStyle(oL1?.layer, 1) }}
               style={{
+                borderRadius: 25,
+                boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
                 position: zL1?.layer ? "relative" : undefined,
                 zIndex: zStyle(zL1?.layer),
               }}
               aria-label={t("landingCardAria", { name: displayName })}
               className={cn(
                 "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                "rounded-[25px] bg-[color:var(--oh-paper)]",
-                "shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]",
+                "bg-[color:var(--oh-paper)]",
               )}
             >
               <motion.header
@@ -223,9 +230,9 @@ export default function HostProfile({
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 initial={{ opacity: oStyle(oL1?.identity, 1) }}
                 animate={{ opacity: oStyle(oL1?.identity, 1) }}
-                exit={{ opacity: oStyle(oL1?.identity, 1) }}
+                exit={{ opacity: 0 }}
                 style={{ zIndex: zStyle(zL1?.identity) }}
-                className="flex flex-col gap-3"
+                className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
               >
                 <div className="flex items-center gap-3">
                   <span
@@ -257,19 +264,30 @@ export default function HostProfile({
                 transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                 initial={{ opacity: oStyle(oL1?.slotList, 1) }}
                 animate={{ opacity: oStyle(oL1?.slotList, 1) }}
-                exit={{ opacity: oStyle(oL1?.slotList, 1) }}
-                style={{ zIndex: zStyle(zL1?.slotList) }}
+                exit={{ opacity: 0 }}
+                style={{
+                  borderRadius: 20,
+                  boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
+                  zIndex: zStyle(zL1?.slotList),
+                }}
                 className={cn(
-                  "flex flex-col gap-2.5 rounded-[20px] p-[15px]",
+                  "flex flex-col gap-2.5 p-[15px]",
                   "bg-[#F5EFDF]",
-                  "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
                 )}
               >
                 {hasOpenSlots ? (
-                  <ul className="flex flex-col gap-2.5">
+                  <motion.ul
+                    layoutId={landingLayoutId("oh-slot-stack")}
+                    transition={{
+                      type: "spring",
+                      ...(drawerOpen ? openSpring : closeSpring),
+                    }}
+                    style={{ boxShadow: "none" }}
+                    className="flex flex-col gap-2.5"
+                  >
                     {SLOT_OPTIONS.map((opt, i) => (
                       <li key={opt.label}>
-                        <motion.div
+                        <SlotRow
                           layoutId={landingLayoutId(`oh-slot-${i}`)}
                           transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
                           initial={{
@@ -297,23 +315,22 @@ export default function HostProfile({
                             ),
                           }}
                           style={{
+                            position: zL1 ? "relative" : undefined,
                             zIndex: zStyle(
                               zL1
                                 ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
                                 : undefined,
                             ),
                           }}
-                        >
-                            <SlotRow
-                              title="intro"
-                              description="quick chat, voice only"
-                              durationLabel={opt.label}
-                              onClick={() => setDrawerOpen(true)}
-                            />
-                        </motion.div>
+                          figmaLayer={`landing-slot-${i}`}
+                          title="intro"
+                          description="quick chat, voice only"
+                          durationLabel={opt.label}
+                          onClick={() => setDrawerOpen(true)}
+                        />
                       </li>
                     ))}
-                  </ul>
+                  </motion.ul>
                 ) : (
                   <p className="oh-description py-6 text-center">
                     {!hasSlots
@@ -328,7 +345,7 @@ export default function HostProfile({
       </div>
 
       <span className="sr-only" aria-hidden>
-        {visitorTz} · {daysWithOpenSlotsThisWeek} · {nextSlot?.start ?? ""}
+        {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
       </span>
 
       <AnimatePresence mode="popLayout">
@@ -389,40 +406,71 @@ export const SLOT_OPTIONS = [
   { label: "1 hr" },
 ] as const;
 
+type SlotRowMotionProps = {
+  layoutId?: string;
+  transition?: ComponentProps<typeof motion.div>["transition"];
+  initial?: ComponentProps<typeof motion.div>["initial"];
+  animate?: ComponentProps<typeof motion.div>["animate"];
+  exit?: ComponentProps<typeof motion.div>["exit"];
+  style?: ComponentProps<typeof motion.div>["style"];
+};
+
 export function SlotRow({
   title,
   description,
   durationLabel,
   onClick,
+  inert = false,
+  figmaLayer,
+  layoutId,
+  transition,
+  initial,
+  animate,
+  exit,
+  style,
 }: {
   title: string;
   description: string;
   durationLabel: string;
   onClick: () => void;
-}) {
+  inert?: boolean;
+  figmaLayer?: string;
+} & SlotRowMotionProps) {
   const match = /^(\d+)\s*(.+)$/.exec(durationLabel);
   const num = match?.[1] ?? durationLabel;
   const unit = match?.[2] ?? "";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "oh-focus-ring group/slot flex h-[50px] w-full items-center justify-between gap-3",
-        "rounded-[14px] bg-[color:var(--oh-paper)] px-[11px] text-left",
-        "shadow-[0_0_4px_rgba(0,0,0,0.25)]",
-        "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
-      )}
+  const frameClassName = cn(
+    "oh-focus-ring group/slot relative block h-[50px] w-full overflow-hidden bg-[color:var(--oh-paper)] text-left",
+    "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
+  );
+  const frameStyle = {
+    borderRadius: 14,
+    boxShadow: "0 0 4px rgba(0,0,0,0.25)",
+    ...style,
+  };
+  const content = (
+    <motion.span
+      layout
+      layoutAnchor={{ x: 0, y: 0 }}
+      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
-      <div className="flex min-w-0 flex-col items-center leading-tight">
+      <motion.span
+        layout="position"
+        layoutAnchor={{ x: 0, y: 0 }}
+        className="flex min-w-0 flex-col items-center leading-tight"
+      >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
         </span>
         <span className="truncate font-sans text-[12px] font-normal leading-[15px]">
           {description}
         </span>
-      </div>
-      <div className="flex items-baseline shrink-0 font-sans tabular-nums">
+      </motion.span>
+      <motion.span
+        layout="position"
+        layoutAnchor={{ x: 1, y: 0 }}
+        className="flex shrink-0 items-baseline font-sans tabular-nums"
+      >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
           {num}
         </span>
@@ -431,8 +479,43 @@ export function SlotRow({
             {unit}
           </span>
         ) : null}
-      </div>
-    </button>
+      </motion.span>
+    </motion.span>
+  );
+
+  if (inert) {
+    return (
+      <motion.div
+        aria-hidden="true"
+        data-oh-figma-layer={figmaLayer}
+        layoutId={layoutId}
+        transition={transition}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        style={frameStyle}
+        className={frameClassName}
+      >
+        {content}
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      data-oh-figma-layer={figmaLayer}
+      layoutId={layoutId}
+      transition={transition}
+      initial={initial}
+      animate={animate}
+      exit={exit}
+      style={frameStyle}
+      className={frameClassName}
+    >
+      {content}
+    </motion.button>
   );
 }
 

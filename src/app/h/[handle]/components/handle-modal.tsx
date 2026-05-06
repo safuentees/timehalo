@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { ArrowLeftIcon, CalendarIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, XIcon } from "lucide-react";
 import {
   BookingForm,
   DayStrip,
@@ -77,8 +77,6 @@ export function HandleModal({
   const phantomLabels = debug?.showPhantomLabels ?? false;
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
-  const showLandingAtDest = debug?.keepLandingMounted ?? false;
-
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
     setView("form");
@@ -115,7 +113,8 @@ export function HandleModal({
         transition={{ duration: 0.2, ease: "easeOut" }}
       />
 
-      <div
+      <motion.div
+        layoutRoot
         role="dialog"
         aria-modal="true"
         aria-labelledby="handle-modal-title"
@@ -128,14 +127,17 @@ export function HandleModal({
           animate={{ opacity: oStyle(oL2?.layer, 1) }}
           exit={{ opacity: oStyle(oL2?.layer, 1) }}
           style={{
+            position: "relative",
+            borderRadius: 25,
+            boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
-          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col gap-3 overflow-hidden rounded-[25px] bg-[color:var(--oh-paper)] p-[15px] shadow-[inset_0_0_15px_rgba(0,0,0,0.25)]"
+          className="flex h-full max-h-[1158px] w-full max-w-[720px] flex-col overflow-hidden bg-[color:var(--oh-paper)]"
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute -inset-[15px]"
+            className="pointer-events-none absolute inset-0 z-20"
           >
             <motion.div
               layoutId="oh-identity"
@@ -145,8 +147,8 @@ export function HandleModal({
               exit={{ opacity: oStyle(oL2?.identity, 0) }}
               style={{
                 position: "absolute",
-                top: 22,
-                left: 192,
+                top: 21.5,
+                left: 192.5,
                 width: 336,
                 height: 87,
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
@@ -154,7 +156,7 @@ export function HandleModal({
                 pointerEvents: "none",
               }}
             >
-              {showLandingAtDest && identityContent ? identityContent : null}
+              {identityContent ? identityContent : null}
               {phantomLabels ? (
                 <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
                   identity
@@ -169,185 +171,230 @@ export function HandleModal({
               exit={{ opacity: oStyle(oL2?.slotList, 0) }}
               style={{
                 position: "absolute",
-                inset: 0,
+                top: -0.5,
+                left: 0.5,
+                width: 720,
+                height: 1158,
+                borderRadius: 20,
+                boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
                 outline: phantomOutline ? "1px dashed currentColor" : undefined,
                 zIndex: zStyle(zL2?.slotList),
               }}
+              className="bg-[#F5EFDF]"
             >
               {phantomLabels ? (
                 <span className="pointer-events-none absolute left-1 top-1 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
                   slot list
                 </span>
               ) : null}
-              {Array.from({ length: 4 }).map((_, i) => {
-                const opt = SLOT_OPTIONS[i];
-                return (
-                  <motion.div
-                    key={i}
-                    layoutId={`oh-slot-${i}`}
-                    transition={{
-                      type: "spring",
-                      ...(open ? openSpring : closeSpring),
-                    }}
-                    initial={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    animate={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    exit={{
-                      opacity: oStyle(
-                        oL2
-                          ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][i]
-                          : undefined,
-                        0,
-                      ),
-                    }}
-                    style={{
-                      position: "absolute",
-                      top: 15 + i * 282,
-                      left: 15,
-                      width: 690,
-                      height: 282,
-                      outline: phantomOutline
-                        ? "1px dashed currentColor"
-                        : undefined,
-                      zIndex: zStyle(
-                        zL2
-                          ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][i]
-                          : undefined,
-                      ),
-                      pointerEvents: "none",
-                    }}
-                  >
-                    {showLandingAtDest && opt ? (
+              <motion.div
+                layoutId="oh-slot-stack"
+                transition={{
+                  type: "spring",
+                  ...(open ? openSpring : closeSpring),
+                }}
+                style={{
+                  position: "absolute",
+                  top: 15,
+                  left: 15,
+                  width: 690,
+                  height: 1128,
+                  boxShadow: "0 0 10px rgba(0,0,0,0.25)",
+                }}
+              >
+                {Array.from({ length: 4 }).map((_, i) => {
+                  const opt = SLOT_OPTIONS[i];
+                  return opt ? (
+                    <div key={i}>
                       <SlotRow
+                        inert
+                        figmaLayer={`modal-slot-${i}`}
+                        layoutId={`oh-slot-${i}`}
+                        transition={{
+                          type: "spring",
+                          ...(open ? openSpring : closeSpring),
+                        }}
+                        initial={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        animate={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        exit={{
+                          opacity: oStyle(
+                            oL2
+                              ? [oL2.slot0, oL2.slot1, oL2.slot2, oL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                            1,
+                          ),
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: i * 282,
+                          left: 0,
+                          width: 690,
+                          height: 282,
+                          borderRadius: 0,
+                          boxShadow: "none",
+                          outline: phantomOutline
+                            ? "1px dashed currentColor"
+                            : undefined,
+                          zIndex: zStyle(
+                            zL2
+                              ? [zL2.slot0, zL2.slot1, zL2.slot2, zL2.slot3][
+                                  i
+                                ]
+                              : undefined,
+                          ),
+                          pointerEvents: "none",
+                        }}
                         title="intro"
                         description="quick chat, voice only"
                         durationLabel={opt.label}
                         onClick={() => {}}
                       />
-                    ) : null}
-                    {phantomLabels ? (
-                      <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
-                        slot {i}
-                      </span>
-                    ) : null}
-                  </motion.div>
-                );
-              })}
+                      {phantomLabels ? (
+                        <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-cyan-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
+                          slot {i}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null;
+                })}
+              </motion.div>
             </motion.div>
           </div>
-          <h2 id="handle-modal-title" className="sr-only">
-            {view === "form"
-              ? rescheduleFromUid
-                ? t("rescheduleFormTitle")
-                : t("bookingFormTitle")
-              : t("drawerTitle")}
-          </h2>
-          <p className="sr-only">{t("drawerDescription")}</p>
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm bg-[color:var(--oh-paper)]">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label={t("closeDrawerAria")}
+              className="oh-focus-ring absolute right-[14px] top-[14px] z-10 inline-flex size-7 items-center justify-center rounded-[2px] bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-ink)] hover:text-[color:var(--oh-paper)]"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+            <div className="oh-modal-close-bar" aria-hidden />
+            <div className="oh-drawer-head">
+              <h2 id="handle-modal-title" className="oh-drawer-title">
+                {view === "form"
+                  ? rescheduleFromUid
+                    ? t("rescheduleFormTitle")
+                    : t("bookingFormTitle")
+                  : t("drawerTitle")}
+              </h2>
+              <p className="sr-only">{t("drawerDescription")}</p>
+            </div>
 
-          {view === "picker" ? (
-            <div className="oh-drawer-monthbar">
-              <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
-              <MonthDrawer
-                slots={slots}
-                selectedDate={selectedDate}
-                onSelectDate={handleSelectDate}
-                months={months}
-              >
+            {view === "picker" ? (
+              <div className="oh-drawer-monthbar">
+                <span className="oh-drawer-monthbar-label">
+                  {monthBarLabel}
+                </span>
+                <MonthDrawer
+                  slots={slots}
+                  selectedDate={selectedDate}
+                  onSelectDate={handleSelectDate}
+                  months={months}
+                >
+                  <button
+                    type="button"
+                    className="oh-view-toggle"
+                    aria-label={t("openMonthViewAria")}
+                  >
+                    <CalendarIcon />
+                  </button>
+                </MonthDrawer>
+              </div>
+            ) : (
+              <div className="oh-drawer-monthbar">
                 <button
                   type="button"
-                  className="oh-view-toggle"
-                  aria-label={t("openMonthViewAria")}
+                  onClick={() => setView("picker")}
+                  aria-label={t("backToPickerAria")}
+                  className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
                 >
-                  <CalendarIcon />
+                  <ArrowLeftIcon className="size-4" />
+                  {t("backToPicker")}
                 </button>
-              </MonthDrawer>
-            </div>
-          ) : (
-            <div className="oh-drawer-monthbar">
-              <button
-                type="button"
-                onClick={() => setView("picker")}
-                aria-label={t("backToPickerAria")}
-                className="oh-view-toggle inline-flex items-center gap-1 text-[12px] font-[family-name:var(--oh-mono)] uppercase tracking-[1px]"
-              >
-                <ArrowLeftIcon className="size-4" />
-                {t("backToPicker")}
-              </button>
-              <span className="oh-drawer-monthbar-label opacity-65 truncate">
-                {selectedSlot
-                  ? format
-                      .dateTime(new Date(selectedSlot.start), {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })
-                      .toUpperCase()
-                  : ""}
-              </span>
-            </div>
-          )}
+                <span className="oh-drawer-monthbar-label truncate opacity-65">
+                  {selectedSlot
+                    ? format
+                        .dateTime(new Date(selectedSlot.start), {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                        .toUpperCase()
+                    : ""}
+                </span>
+              </div>
+            )}
 
-          <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait" initial={false}>
-              {view === "picker" ? (
-                <motion.div
-                  key="picker"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...confirmSpring }}
-                >
-                  <DayStrip
-                    slots={slots}
-                    selectedDate={selectedDate}
-                    onSelectDate={handleSelectDate}
-                  />
-                  {selectedDate ? (
-                    <DaySlots
-                      date={selectedDate}
-                      slots={dayOfSlots}
-                      onPick={handlePickSlot}
+            <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
+              <AnimatePresence mode="wait" initial={false}>
+                {view === "picker" ? (
+                  <motion.div
+                    key="picker"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", ...confirmSpring }}
+                  >
+                    <DayStrip
+                      slots={slots}
+                      selectedDate={selectedDate}
+                      onSelectDate={handleSelectDate}
                     />
-                  ) : (
-                    <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", ...confirmSpring }}
-                >
-                  {selectedSlot ? (
-                    <BookingForm
-                      handle={handle}
-                      slotStart={selectedSlot.start}
-                      rescheduleFromUid={rescheduleFromUid}
-                    />
-                  ) : null}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    {selectedDate ? (
+                      <DaySlots
+                        date={selectedDate}
+                        slots={dayOfSlots}
+                        onPick={handlePickSlot}
+                      />
+                    ) : (
+                      <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", ...confirmSpring }}
+                  >
+                    {selectedSlot ? (
+                      <BookingForm
+                        handle={handle}
+                        slotStart={selectedSlot.start}
+                        rescheduleFromUid={rescheduleFromUid}
+                      />
+                    ) : null}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.article>
-      </div>
+      </motion.div>
     </FocusOn>
   );
 }
