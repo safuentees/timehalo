@@ -588,8 +588,9 @@ export function SlotRow({
   const num = match?.[1] ?? durationLabel;
   const unit = match?.[2] ?? "";
   const frameClassName = cn(
-    "oh-focus-ring group/slot relative block h-[50px] w-full overflow-hidden bg-[color:var(--oh-paper)] text-left",
+    "oh-focus-ring group/slot relative block w-full overflow-hidden bg-[color:var(--oh-paper)] text-left",
     "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
+    inert ? "h-full" : "h-[50px]",
   );
   const frameStyle = {
     ...HANDLE_SLOT_ROW_RADIUS_STYLE,
