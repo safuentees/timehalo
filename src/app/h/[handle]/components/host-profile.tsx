@@ -139,10 +139,7 @@ export default function HostProfile({
   const nextSlot = availableSlots[0];
   const visitorTz = useVisitorTz();
   const openToday = availableSlots.some((s) => isToday(new Date(s.start), now));
-  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(
-    availableSlots,
-    now,
-  );
+  const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   // B.PT175 + B.PT177 — the strip only fires when ALL three hold:
@@ -212,7 +209,7 @@ export default function HostProfile({
       const apply = () =>
         flushSync(() => {
           setSelectedDate(
-            dateStr ? parseDateKey(dateStr) ?? undefined : undefined,
+            dateStr ? (parseDateKey(dateStr) ?? undefined) : undefined,
           );
           setSelectedSlot(
             slotIso ? slots.find((s) => s.start === slotIso) : undefined,
@@ -367,122 +364,131 @@ export default function HostProfile({
           share their lifecycle signals — leading to a stale cache
           after a production-mode modal cycle. */}
       <LayoutGroup>
-      <div className="flex w-full justify-center px-4 py-10 sm:py-14">
-        <AnimatePresence mode="popLayout">
-          {!drawerOpen || keepLandingMounted ? (
-            <motion.article
-              key="landing-card"
-              layoutId={landingLayoutId("handle-card")}
-              // B.PT189 — `layoutCrossfade={false}` is the documented
-              // motion-dom prop (`MotionNodeOptions.layoutCrossfade`):
-              // "By default, shared layout elements will crossfade.
-              // By setting this to `false`, this element will take
-              // its default opacity throughout the animation." With
-              // it false, motion calls `prevLead.hide()` on promote
-              // (motion source line 8045) — sets `visibility: hidden`
-              // on the previous lead instead of running the auto
-              // opacity crossfade (mixValues line 9123 with
-              // easeCrossfadeIn 0→1 over 0-0.5 + easeCrossfadeOut
-              // 1→0 over 0.5-0.95). The auto crossfade was the root
-              // cause of the close-direction "text fades out at 0.5
-              // progress, fades back in at 0.7-0.8" glitch the user
-              // reported. Hiding the previous lead via visibility
-              // cascades to all descendants — phantom subtree is
-              // entirely invisible during landing's lead phase, so
-              // the morph reads as a single element transitioning.
-              layoutCrossfade={false}
-              transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-              // B.PT169 — motion's layoutId crossfade auto-animates
-              // opacity FROM the source's value TO the destination's
-              // value during the morph. With the destination phantom
-              // at opacity 0 (production default), the source landing
-              // element fades to 0 even when we set
-              // `style.opacity: 1`. Adding explicit `animate` +
-              // `exit` makes motion treat the slider value as the
-              // interpolation TARGET, overriding the auto-crossfade.
-              // User can now set Layer 1 opacity = 1 and the landing
-              // stays visible through the entire morph.
-              // B.PT181 — initial matches animate so motion doesn't
-              // fade-in on (re)mount. Without this, when the modal
-              // closes and the landing remounts, motion treats the
-              // remount as an entrance and tweens opacity from 0 →
-              // animate target — visible as a "clone fades in" beside
-              // the still-exiting modal phantom. Same applies on
-              // initial mount. With initial = animate, the element
-              // starts at its target opacity immediately, the
-              // layoutId FLIP transforms its rect without any
-              // accompanying opacity tween, and the morph reads as a
-              // single element transitioning between rects.
-              initial={{ opacity: oStyle(oL1?.layer, 1) }}
-              animate={{ opacity: oStyle(oL1?.layer, 1) }}
-              exit={{ opacity: oStyle(oL1?.layer, 1) }}
-              // B.PT174 — CSS zIndex only applies to positioned
-              // elements; the landing motion.article is normally
-              // static. When the debug overlay sets a non-zero
-              // zL1.layer (via the "landing on top" stack order),
-              // pair it with `position: relative` so the zIndex
-              // competes against the modal's fixed z-50 wrapper in
-              // the document root stacking context.
-              style={{
-                borderRadius: 25,
-                boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
-                position: zL1?.layer ? "relative" : undefined,
-                zIndex: zStyle(zL1?.layer),
-              }}
-              aria-label={t("landingCardAria", { name: displayName })}
-              className={cn(
-                "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
-                // B.PT161 — Figma spec has NO stroke on Frame 1; the
-                // inner shadow + cream-vs-Sisal contrast carry the
-                // edge. Removed `border border-oh-line` from B.PT155.
-                // Radius + inner shadow are inline motion styles so
-                // the shared-layout projection has the same source
-                // and destination paint values and cannot leave a
-                // stale inline radius after close.
-                "bg-[color:var(--oh-paper)]",
-              )}
-            >
-              {/* Identity header — Frame 15 (336×87). `layoutId="oh-identity"`
+        <div className="flex w-full justify-center px-4 py-10 sm:py-14">
+          <AnimatePresence mode="popLayout">
+            {!drawerOpen || keepLandingMounted ? (
+              <motion.article
+                key="landing-card"
+                layoutId={landingLayoutId("handle-card")}
+                // B.PT189 — `layoutCrossfade={false}` is the documented
+                // motion-dom prop (`MotionNodeOptions.layoutCrossfade`):
+                // "By default, shared layout elements will crossfade.
+                // By setting this to `false`, this element will take
+                // its default opacity throughout the animation." With
+                // it false, motion calls `prevLead.hide()` on promote
+                // (motion source line 8045) — sets `visibility: hidden`
+                // on the previous lead instead of running the auto
+                // opacity crossfade (mixValues line 9123 with
+                // easeCrossfadeIn 0→1 over 0-0.5 + easeCrossfadeOut
+                // 1→0 over 0.5-0.95). The auto crossfade was the root
+                // cause of the close-direction "text fades out at 0.5
+                // progress, fades back in at 0.7-0.8" glitch the user
+                // reported. Hiding the previous lead via visibility
+                // cascades to all descendants — phantom subtree is
+                // entirely invisible during landing's lead phase, so
+                // the morph reads as a single element transitioning.
+                layoutCrossfade={false}
+                transition={{
+                  type: "spring",
+                  ...(drawerOpen ? openSpring : closeSpring),
+                }}
+                // B.PT169 — motion's layoutId crossfade auto-animates
+                // opacity FROM the source's value TO the destination's
+                // value during the morph. With the destination phantom
+                // at opacity 0 (production default), the source landing
+                // element fades to 0 even when we set
+                // `style.opacity: 1`. Adding explicit `animate` +
+                // `exit` makes motion treat the slider value as the
+                // interpolation TARGET, overriding the auto-crossfade.
+                // User can now set Layer 1 opacity = 1 and the landing
+                // stays visible through the entire morph.
+                // B.PT181 — initial matches animate so motion doesn't
+                // fade-in on (re)mount. Without this, when the modal
+                // closes and the landing remounts, motion treats the
+                // remount as an entrance and tweens opacity from 0 →
+                // animate target — visible as a "clone fades in" beside
+                // the still-exiting modal phantom. Same applies on
+                // initial mount. With initial = animate, the element
+                // starts at its target opacity immediately, the
+                // layoutId FLIP transforms its rect without any
+                // accompanying opacity tween, and the morph reads as a
+                // single element transitioning between rects.
+                initial={{ opacity: oStyle(oL1?.layer, 1) }}
+                animate={{ opacity: oStyle(oL1?.layer, 1) }}
+                exit={{ opacity: oStyle(oL1?.layer, 1) }}
+                // B.PT174 — CSS zIndex only applies to positioned
+                // elements; the landing motion.article is normally
+                // static. When the debug overlay sets a non-zero
+                // zL1.layer (via the "landing on top" stack order),
+                // pair it with `position: relative` so the zIndex
+                // competes against the modal's fixed z-50 wrapper in
+                // the document root stacking context.
+                style={{
+                  borderRadius: 25,
+                  boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
+                  position: zL1?.layer ? "relative" : undefined,
+                  zIndex: zStyle(zL1?.layer),
+                }}
+                aria-label={t("landingCardAria", { name: displayName })}
+                className={cn(
+                  "flex w-full max-w-[385px] flex-col gap-[10px] p-[15px]",
+                  // B.PT161 — Figma spec has NO stroke on Frame 1; the
+                  // inner shadow + cream-vs-Sisal contrast carry the
+                  // edge. Removed `border border-oh-line` from B.PT155.
+                  // Radius + inner shadow are inline motion styles so
+                  // the shared-layout projection has the same source
+                  // and destination paint values and cannot leave a
+                  // stale inline radius after close.
+                  "bg-[color:var(--oh-paper)]",
+                )}
+              >
+                {/* Identity header — Frame 15 (336×87). `layoutId="oh-identity"`
                   pairs with the phantom inside `<HandleModal>` at the modal's
                   target position (192,22), opacity 0 — the user's Smart Animate
                   trick: matched destinations let motion morph + crossfade in
                   one continuous transition, much smoother than a pure fade. */}
-              <motion.header
-                layoutId={landingLayoutId("oh-identity")}
-                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                initial={{ opacity: oStyle(oL1?.identity, 1) }}
-                animate={{ opacity: oStyle(oL1?.identity, 1) }}
-                exit={{ opacity: 0 }}
-                style={{ zIndex: zStyle(zL1?.identity) }}
-                className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "relative inline-flex size-[55px] shrink-0",
-                      // DROP_SHADOW on span.relative (avatar wrapper)
-                      // from spec: offset (0,4), radius 4.
-                      "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
-                    )}
-                  >
-                    <Avatar className="size-[55px]">
-                      <AvatarImage src={user.image ?? undefined} alt={displayName} />
-                      <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* ::after — 1px ring overlay matching Figma. Lives on
+                <motion.header
+                  layoutId={landingLayoutId("oh-identity")}
+                  transition={{
+                    type: "spring",
+                    ...(drawerOpen ? openSpring : closeSpring),
+                  }}
+                  initial={{ opacity: oStyle(oL1?.identity, 1) }}
+                  animate={{ opacity: oStyle(oL1?.identity, 1) }}
+                  exit={{ opacity: 0 }}
+                  style={{ zIndex: zStyle(zL1?.identity) }}
+                  className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "relative inline-flex size-[55px] shrink-0",
+                        // DROP_SHADOW on span.relative (avatar wrapper)
+                        // from spec: offset (0,4), radius 4.
+                        "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                      )}
+                    >
+                      <Avatar className="size-[55px]">
+                        <AvatarImage
+                          src={user.image ?? undefined}
+                          alt={displayName}
+                        />
+                        <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      {/* ::after — 1px ring overlay matching Figma. Lives on
                         top of the image so the ring stays crisp when the
                         avatar image fills the circle. */}
-                    {/* B.PT161 — ring color matches spec stroke
+                      {/* B.PT161 — ring color matches spec stroke
                         `#E5E5E5` exactly (was `--oh-line` rgba alpha
                         which composited differently against paper). */}
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
-                    />
-                  </span>
-                  {/* B.PT161 — spec is Space Grotesk **Bold** (700) at
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                      />
+                    </span>
+                    {/* B.PT161 — spec is Space Grotesk **Bold** (700) at
                       51.7px / line-height 54.6px / letter-spacing
                       -1.3px. Was `font-black` (900); too heavy. The
                       clamp keeps the type fluid for narrow viewports
@@ -490,16 +496,18 @@ export default function HostProfile({
                       `tracking-[-1.3px]` is the explicit letter-
                       spacing value rather than the loose
                       `tracking-tight`. */}
-                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
-                    {displayName}
-                  </h1>
-                </div>
-                {/* B.PT161 — tagline is text-align CENTER per spec
+                    <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
+                      {displayName}
+                    </h1>
+                  </div>
+                  {/* B.PT161 — tagline is text-align CENTER per spec
                     (textAlignHorizontal: CENTER). Was left-default. */}
-                <p className="oh-description text-center">{t("defaultBio")}</p>
-              </motion.header>
+                  <p className="oh-description text-center">
+                    {t("defaultBio")}
+                  </p>
+                </motion.header>
 
-              {/* Slot-list inner card — Frame 2 (355×260). Cream bg
+                {/* Slot-list inner card — Frame 2 (355×260). Cream bg
                   (#F5EFDF in Figma) is between paper (#EEE7D5) and white;
                   no existing token, so explicit hex per the 1-to-1
                   directive. INNER_SHADOW radius=4 from spec. The card
@@ -507,167 +515,193 @@ export default function HostProfile({
                   phantom slot-list wrapper (positioned at (0,0) full-modal
                   size, opacity 0) so motion morphs the cream container
                   alongside its child slot rows. */}
-              <motion.div
-                layoutId={landingLayoutId("oh-slot-list")}
-                transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                initial={{ opacity: oStyle(oL1?.slotList, 1) }}
-                animate={{ opacity: oStyle(oL1?.slotList, 1) }}
-                exit={{ opacity: 0 }}
-                style={{
-                  borderRadius: 20,
-                  boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
-                  zIndex: zStyle(zL1?.slotList),
-                }}
-                className={cn(
-                  // B.PT161 — Figma Frame 2 has NO stroke; only the
-                  // inner shadow defines the edge. Removed the
-                  // `border border-oh-line` that B.PT155 added.
-                  "flex flex-col gap-2.5 p-[15px]",
-                  "bg-[#F5EFDF]",
-                )}
-              >
-                {hasOpenSlots ? (
-                  <motion.ul
-                    layoutId={landingLayoutId("oh-slot-stack")}
-                    transition={{
-                      type: "spring",
-                      ...(drawerOpen ? openSpring : closeSpring),
-                    }}
-                    style={{ boxShadow: "none" }}
-                    className="flex flex-col gap-2.5"
-                  >
-                    {SLOT_OPTIONS.map((opt, i) => (
-                      <li key={opt.label}>
-                        {/* Figma's matched layer is the painted `slot`
+                <motion.div
+                  layoutId={landingLayoutId("oh-slot-list")}
+                  transition={{
+                    type: "spring",
+                    ...(drawerOpen ? openSpring : closeSpring),
+                  }}
+                  initial={{ opacity: oStyle(oL1?.slotList, 1) }}
+                  animate={{ opacity: oStyle(oL1?.slotList, 1) }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    borderRadius: 20,
+                    boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
+                    zIndex: zStyle(zL1?.slotList),
+                  }}
+                  className={cn(
+                    // B.PT161 — Figma Frame 2 has NO stroke; only the
+                    // inner shadow defines the edge. Removed the
+                    // `border border-oh-line` that B.PT155 added.
+                    "flex flex-col gap-2.5 p-[15px]",
+                    "bg-[#F5EFDF]",
+                  )}
+                >
+                  {hasOpenSlots ? (
+                    <motion.ul
+                      layoutId={landingLayoutId("oh-slot-stack")}
+                      transition={{
+                        type: "spring",
+                        ...(drawerOpen ? openSpring : closeSpring),
+                      }}
+                      style={{ boxShadow: "none" }}
+                      className="flex flex-col gap-2.5"
+                    >
+                      {SLOT_OPTIONS.map((opt, i) => (
+                        <li key={opt.label}>
+                          {/* Figma's matched layer is the painted `slot`
                             frame itself, not a transparent wrapper
                             around a button. Put layoutId on SlotRow so
                             size/radius/shadow interpolate on the same
                             element that paints the chip. */}
-                        <SlotRow
-                          layoutId={landingLayoutId(`oh-slot-${i}`)}
-                          transition={{ type: "spring", ...(drawerOpen ? openSpring : closeSpring) }}
-                          initial={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          animate={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          exit={{
-                            opacity: oStyle(
-                              oL1
-                                ? [oL1.slot0, oL1.slot1, oL1.slot2, oL1.slot3][i]
-                                : undefined,
-                              1,
-                            ),
-                          }}
-                          style={{
-                            position: zL1 ? "relative" : undefined,
-                            zIndex: zStyle(
-                              zL1
-                                ? [zL1.slot0, zL1.slot1, zL1.slot2, zL1.slot3][i]
-                                : undefined,
-                            ),
-                          }}
-                          figmaLayer={`landing-slot-${i}`}
-                          title="intro"
-                          description="quick chat, voice only"
-                          durationLabel={opt.label}
-                          onClick={() => setDrawerOpen(true)}
-                        />
-                      </li>
-                    ))}
-                  </motion.ul>
-                ) : (
-                  <p className="oh-description py-6 text-center">
-                    {!hasSlots
-                      ? t("emptyClosedDescription", { name: displayName })
-                      : t("emptyBookedDescription", { name: displayName })}
-                  </p>
-                )}
-              </motion.div>
-            </motion.article>
-          ) : null}
-        </AnimatePresence>
-      </div>
+                          <SlotRow
+                            layoutId={landingLayoutId(`oh-slot-${i}`)}
+                            transition={{
+                              type: "spring",
+                              ...(drawerOpen ? openSpring : closeSpring),
+                            }}
+                            initial={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            animate={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            exit={{
+                              opacity: oStyle(
+                                oL1
+                                  ? [
+                                      oL1.slot0,
+                                      oL1.slot1,
+                                      oL1.slot2,
+                                      oL1.slot3,
+                                    ][i]
+                                  : undefined,
+                                1,
+                              ),
+                            }}
+                            style={{
+                              position: zL1 ? "relative" : undefined,
+                              zIndex: zStyle(
+                                zL1
+                                  ? [
+                                      zL1.slot0,
+                                      zL1.slot1,
+                                      zL1.slot2,
+                                      zL1.slot3,
+                                    ][i]
+                                  : undefined,
+                              ),
+                            }}
+                            figmaLayer={`landing-slot-${i}`}
+                            title="intro"
+                            description="quick chat, voice only"
+                            durationLabel={opt.label}
+                            onClick={() => setDrawerOpen(true)}
+                          />
+                        </li>
+                      ))}
+                    </motion.ul>
+                  ) : (
+                    <p className="oh-description py-6 text-center">
+                      {!hasSlots
+                        ? t("emptyClosedDescription", { name: displayName })
+                        : t("emptyBookedDescription", { name: displayName })}
+                    </p>
+                  )}
+                </motion.div>
+              </motion.article>
+            ) : null}
+          </AnimatePresence>
+        </div>
 
-      {/* Visitor TZ probe + days-with-slots are computed but not surfaced
+        {/* Visitor TZ probe + days-with-slots are computed but not surfaced
           in the new landing layout. They're consumed inside the modal +
           BookingDrawer indirectly via the same store; keep the
           computations alive so the popstate handler + URL sync work. */}
-      <span className="sr-only" aria-hidden>
-        {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
-      </span>
+        <span className="sr-only" aria-hidden>
+          {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
+        </span>
 
-      {/* B.PT156 — bespoke morphing modal replaces `<AvailabilityDrawer>`
+        {/* B.PT156 — bespoke morphing modal replaces `<AvailabilityDrawer>`
           on this page. `AnimatePresence` keeps the unmounting modal
           alive long enough to morph back into the landing card.
           `popLayout` mode is required on the parent (above) so the
           shared-`layoutId` element transition works across mount/unmount
           boundaries without intermediate jumps. */}
-      <AnimatePresence mode="popLayout">
-        {hasOpenSlots && drawerOpen ? (
-          <HandleModal
-            key="handle-modal"
-            handle={handle}
-            slots={slots}
-            open
-            onOpenChange={setDrawerOpen}
-            selectedDate={selectedDate}
-            onSelectDate={handleSelectDate}
-            selectedSlot={selectedSlot}
-            rescheduleFromUid={rescheduleFromUid}
-            onPickSlot={(s) => {
-              setSelectedSlot(s);
-              updateQueryParam("slot", s.start, { pushEntry: true });
-            }}
-            // B.PT175 — content rendered inside the modal's
-            // `oh-identity` phantom rect (336×87 at 192,22 inside
-            // the modal's frame) when keepLandingMounted is on.
-            // Mirrors what B.PT172 did for slot rows (phantom rects
-            // had no content → user couldn't see chips at
-            // destination → SlotRow rendered inside). The identity
-            // phantom was skipped in B.PT172 because the user
-            // hadn't asked for it yet; surfaced now.
-            identityContent={
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "relative inline-flex size-[55px] shrink-0",
-                    "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
-                  )}
-                >
-                  <Avatar className="size-[55px]">
-                    <AvatarImage
-                      src={user.image ?? undefined}
-                      alt={displayName}
-                    />
-                    <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+        <AnimatePresence mode="popLayout">
+          {hasOpenSlots && drawerOpen ? (
+            <HandleModal
+              key="handle-modal"
+              handle={handle}
+              slots={slots}
+              open
+              onOpenChange={setDrawerOpen}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+              selectedSlot={selectedSlot}
+              rescheduleFromUid={rescheduleFromUid}
+              onPickSlot={(s) => {
+                setSelectedSlot(s);
+                updateQueryParam("slot", s.start, { pushEntry: true });
+              }}
+              // B.PT175 — content rendered inside the modal's
+              // `oh-identity` phantom rect (336×87 at 192,22 inside
+              // the modal's frame) when keepLandingMounted is on.
+              // Mirrors what B.PT172 did for slot rows (phantom rects
+              // had no content → user couldn't see chips at
+              // destination → SlotRow rendered inside). The identity
+              // phantom was skipped in B.PT172 because the user
+              // hadn't asked for it yet; surfaced now.
+              identityContent={
+                <div className="flex items-center gap-3">
                   <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
-                  />
-                </span>
-                <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
-                  {displayName}
-                </h1>
-              </div>
-            }
-          />
-        ) : null}
-      </AnimatePresence>
+                    className={cn(
+                      "relative inline-flex size-[55px] shrink-0",
+                      "shadow-[0_4px_4px_rgba(0,0,0,0.25)] rounded-full",
+                    )}
+                  >
+                    <Avatar className="size-[55px]">
+                      <AvatarImage
+                        src={user.image ?? undefined}
+                        alt={displayName}
+                      />
+                      <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                    />
+                  </span>
+                  <h1 className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]">
+                    {displayName}
+                  </h1>
+                </div>
+              }
+            />
+          ) : null}
+        </AnimatePresence>
       </LayoutGroup>
     </OhVisitorShell>
   );
@@ -789,7 +823,7 @@ export function SlotRow({
       // DEBUG-B.PT192 — bg lime so Frame 9's flex bounds are
       // visible during the morph. Remove after the duration-snap
       // bug is resolved.
-      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3 bg-lime-300/40 outline outline-1 outline-lime-600"
+      className="absolute left-[11px] right-[11px] top-0 flex h-[50px] items-center justify-between gap-3"
     >
       {/* B.PT161 — left text block. Per Figma, both lines are
           textAlignHorizontal=CENTER (despite being left of the
@@ -816,7 +850,7 @@ export function SlotRow({
         // DEBUG-B.PT192 — bg cyan to track the text span's actual
         // rendered position during the morph.
         // Text should move with the projected row, not scale with it.
-        className="flex min-w-0 flex-col items-center leading-tight bg-cyan-300/50 outline outline-1 outline-cyan-700"
+        className="flex min-w-0 flex-col items-center leading-tight"
       >
         <span className="truncate font-sans text-[16px] font-bold leading-[19.2px]">
           {title}
@@ -863,7 +897,7 @@ export function SlotRow({
         // DEBUG-B.PT192 — bg pink to track the duration span's
         // actual rendered position during the morph.
         // The duration group rides the right edge as Frame 9 widens.
-        className="flex shrink-0 items-baseline font-sans tabular-nums bg-pink-300/60 outline outline-1 outline-pink-700"
+        className="flex shrink-0 items-baseline font-sans tabular-nums"
       >
         <span className="text-[27.6px] font-bold leading-[29.14px] tracking-[-0.69px]">
           {num}
