@@ -871,8 +871,14 @@ export function SlotRow({
   const frameClassName = cn(
     // The outer element is Figma's painted `slot` frame. Its direct
     // child below maps to Frame 9: x=11, y=0, h=50, width fills.
-    "oh-focus-ring group/slot relative block h-[50px] w-full overflow-hidden bg-[color:var(--oh-paper)] text-left",
+    "oh-focus-ring group/slot relative block w-full overflow-hidden bg-[color:var(--oh-paper)] text-left",
     "transition-colors duration-150 ease-oh hover:bg-[color:var(--oh-tint)]",
+    // B.PT208 — height split: Layer 1 (interactive, `inert: false`)
+    // is a fixed 50px landing pill. Layer 2 (`inert: true` modal
+    // phantom) fills its flex-1 wrapper via `h-full` so the chip
+    // expands to the chip-area height the modal allocates. Same
+    // chip component, different sizing role per mount context.
+    inert ? "h-full" : "h-[50px]",
   );
   const frameStyle = {
     ...HANDLE_SLOT_ROW_RADIUS_STYLE,
