@@ -84,9 +84,32 @@ export function cornerRadiusStyle(
   };
 }
 
-export const HANDLE_CARD_RADIUS_STYLE = cornerRadiusStyle(25);
-export const HANDLE_SLOT_LIST_RADIUS_STYLE = cornerRadiusStyle(20);
-export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(14);
+// B.PT211 — raw radius numbers exported alongside the styles so
+// nested elements can derive concentric corner radii via Apple
+// HIG's formula: `inner = outer - margin`. See
+// developer.apple.com/design/human-interface-guidelines/live-activities
+// — "match its corner radius to the outer corner radius … by
+// subtracting the margin." HANDLE_SLOT_LIST_INNER_PADDING is the
+// margin between slot-list (cream) and the chip stack, so the
+// first/last chip's outer corners get
+// HANDLE_SLOT_LIST_RADIUS - HANDLE_SLOT_LIST_INNER_PADDING = 5,
+// keeping the chip's outer curve concentric with the cream rect.
+export const HANDLE_CARD_RADIUS = 25;
+export const HANDLE_SLOT_LIST_RADIUS = 20;
+export const HANDLE_SLOT_ROW_RADIUS = 14;
+export const HANDLE_SLOT_LIST_INNER_PADDING = 15;
+export const HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS = Math.max(
+  0,
+  HANDLE_SLOT_LIST_RADIUS - HANDLE_SLOT_LIST_INNER_PADDING,
+);
+
+export const HANDLE_CARD_RADIUS_STYLE = cornerRadiusStyle(HANDLE_CARD_RADIUS);
+export const HANDLE_SLOT_LIST_RADIUS_STYLE = cornerRadiusStyle(
+  HANDLE_SLOT_LIST_RADIUS,
+);
+export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
+  HANDLE_SLOT_ROW_RADIUS,
+);
 
 const HANDLE_AVATAR_PROJECTION_STYLE = {
   borderRadius: 9999,

@@ -20,6 +20,7 @@ import {
 } from "../_components/visitor-debug-overlay";
 import {
   HANDLE_CARD_RADIUS_STYLE,
+  HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
   HANDLE_SLOT_ROW_RADIUS_STYLE,
   SLOT_OPTIONS,
@@ -418,22 +419,18 @@ export function HandleModal({
                   ...(open ? openSpring : closeSpring),
                 }}
                 style={{
-                  // B.PT209 — `padding: 15` mirrors landing's
-                  // motion.ul `p-[15px]`. Shared `layoutId` only
-                  // animates bbox; CSS doesn't transfer between
-                  // landing and modal sides. Without this padding,
-                  // landing's slot-stack rendered with cream gutter
-                  // around chips but at modal target the gutter
-                  // disappeared (only modal's slot-stack styles
-                  // applied past the morph). Mirrored here so both
-                  // sides have matching internal padding.
+                  // B.PT209 — padding mirrors landing's motion.ul
+                  // `p-[15px]`. Shared `layoutId` only animates bbox;
+                  // CSS doesn't transfer between landing and modal
+                  // sides — both elements need matching styles for
+                  // the gutter to look identical at landing AND modal
+                  // target.
                   // B.PT207 holdover — slot-stack fills slot-list's
                   // padding box via `inset: 0`. Becomes a flex column
                   // so the 4 chip wrappers split height equally via
                   // `flex: 1`.
                   position: "absolute",
                   inset: 0,
-                  padding: 15,
                   display: "flex",
                   flexDirection: "column",
                   // Figma's Frame 18 has no fill/radius, only a drop shadow.
@@ -442,14 +439,31 @@ export function HandleModal({
                   // intended rounded shell.
                   boxShadow: "none",
                 }}
+                // B.PT211 — `padding: 15` moved from inline style to
+                // Tailwind `p-[15px]` className for consistency with
+                // landing's motion.ul which already uses the same
+                // class. Same CSS at runtime, single styling
+                // vocabulary across the morph.
+                className="p-[15px]"
               >
                 {Array.from({ length: 4 }).map((_, i) => {
                   const opt = SLOT_OPTIONS[i];
+                  // B.PT211 — first/last chip's outer corners use the
+                  // Apple HIG concentric-corner formula: `inner =
+                  // outer - margin` (developer.apple.com/design/human-
+                  // interface-guidelines/live-activities). Derived
+                  // from HANDLE_SLOT_LIST_RADIUS (20) -
+                  // HANDLE_SLOT_LIST_INNER_PADDING (15) = 5. Was
+                  // hardcoded `5`; now updates automatically if
+                  // either constant changes. Middle chips stay sharp
+                  // (0) so the segmented row dividers read as a clean
+                  // stack — see B.PT194 for that decision.
+                  const concentricRadius = HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS;
                   const slotRadiusStyle = cornerRadiusStyle(
-                    i === 0 ? 5 : 0,
-                    i === 0 ? 5 : 0,
-                    i === 3 ? 5 : 0,
-                    i === 3 ? 5 : 0,
+                    i === 0 ? concentricRadius : 0,
+                    i === 0 ? concentricRadius : 0,
+                    i === 3 ? concentricRadius : 0,
+                    i === 3 ? concentricRadius : 0,
                   );
                   return opt ? (
                     <div
