@@ -177,7 +177,94 @@
     );
   };
 
+  // Convenience: capture the FRAMES around when motion's animation
+  // fires. Keep state across multiple open/close cycles via
+  // window.__lastTriggerAt (updated by the animation triggers).
+  window.__windowAround = (atMs, before = 50, after = 200) => {
+    const f = frames;
+    const idx = f.findIndex((row) => row.t >= atMs);
+    if (idx < 0) return [];
+    const startIdx = Math.max(0, idx - before);
+    const endIdx = Math.min(f.length, idx + after);
+    return f.slice(startIdx, endIdx);
+  };
+
+  // Auto-trigger: hooks into the click event on chip / close button
+  // to start/stop the trace AT the right moment. Records 1500 ms
+  // around the click (250 ms before for context, 1250 ms after).
+  window.__autoTraceClick = (selector) => {
+    const el = document.querySelector(selector);
+    if (!el) {
+      console.warn("[auto-trace] element not found:", selector);
+      return;
+    }
+    const handler = () => {
+      console.log(
+        `[auto-trace] click on ${selector} — starting trace from t=0...`
+      );
+      start = null;
+      frames.length = 0;
+      const startTime = performance.now();
+      function autoTick(ts) {
+        if (start === null) start = ts;
+        const t = Math.round(ts - start);
+        const lc = snap(landingChipEl);
+        const lf9 = snap(landingFrame9);
+        const pc = snap(phantomChipEl);
+        const pf9 = snap(phantomFrame9);
+        frames.push({
+          t,
+          lc_w: lc?.w,
+          lc_x: lc?.x,
+          lc_vis: lc?.vis,
+          lf9_w: lf9?.w,
+          lf9_xform: lf9?.xform,
+          pc_w: pc?.w,
+          pc_x: pc?.x,
+          pc_vis: pc?.vis,
+          pf9_w: pf9?.w,
+          pf9_xform: pf9?.xform,
+        });
+        if (ts - start < 1500) requestAnimationFrame(autoTick);
+        else {
+          window.__bothTrace = {
+            frames,
+            first: (n = 30) => frames.slice(0, n),
+            last: (n = 30) => frames.slice(-n),
+            sample: (every = 5) =>
+              frames.filter((_, i) => i % every === 0),
+            landingStartsAt() {
+              const init = frames[0]?.lc_w;
+              for (let i = 1; i < frames.length; i++) {
+                if (frames[i].lc_w !== init) return frames[i].t;
+              }
+              return null;
+            },
+            phantomStartsAt() {
+              const init = frames[0]?.pc_w;
+              for (let i = 1; i < frames.length; i++) {
+                if (frames[i].pc_w !== init) return frames[i].t;
+              }
+              return null;
+            },
+          };
+          console.log(
+            `[auto-trace] done. ${frames.length} frames in 1.5 s. ` +
+              `Landing changed at: ${window.__bothTrace.landingStartsAt()}ms, ` +
+              `Phantom changed at: ${window.__bothTrace.phantomStartsAt()}ms.`
+          );
+        }
+      }
+      requestAnimationFrame(autoTick);
+    };
+    el.addEventListener("click", handler, { once: true });
+    console.log(
+      `[auto-trace] armed on ${selector} — click it to start the trace.`
+    );
+  };
+
   console.log(
-    "[both-trace] ready. Call `__startBothTrace()` then click chip (open) or close X."
+    "[both-trace] ready. Call `__startBothTrace()` then click chip (open) or close X.\n" +
+      "  Or for precise timing: __autoTraceClick(selector) arms a one-shot click handler that starts the trace AT click time."
   );
 })();
