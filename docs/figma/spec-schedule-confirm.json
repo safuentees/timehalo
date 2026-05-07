@@ -1,0 +1,6319 @@
+{
+  "meta": {
+    "feature": "schedule-confirm",
+    "nodeId": "132:78",
+    "capturedAt": "2026-05-07T05:37:30.126Z",
+    "nodeCount": 23
+  },
+  "nodeChanges": [
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 78
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 0,
+          "localID": 1
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "Frame 2",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 250
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 807,
+        "m10": 0,
+        "m11": 1,
+        "m12": 811
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [],
+      "fillGeometry": [],
+      "stackMode": "VERTICAL",
+      "stackSpacing": 20,
+      "stackHorizontalPadding": 0,
+      "stackVerticalPadding": 0,
+      "stackPaddingRight": 0,
+      "stackPaddingBottom": 0,
+      "frameMaskDisabled": true,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778132028,
+        "createdAt": 1778131975
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "change-stack-layout-size",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "before-commit",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "change-stack-layout-size",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "update-edit-info",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              331
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 51
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 78
+        },
+        "position": "%"
+      },
+      "type": "FRAME",
+      "name": "name-input",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "531061b37b5d55cc8e53d4330d7f0438400c1832",
+          "version": "12:162"
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 33
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c11d533e84c63b0364f581f2d0fecb2f2de134d6",
+                  "version": "12:74"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "type": "INNER_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "radius": 3.5,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 48,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "horizontalConstraint": "MIN",
+      "stackMode": "HORIZONTAL",
+      "stackSpacing": -2.842170943040401e-14,
+      "stackHorizontalPadding": 0.5,
+      "stackVerticalPadding": 0.5,
+      "stackPrimarySizing": "FIXED",
+      "stackPrimaryAlignItems": "SPACE_EVENLY",
+      "stackChildPrimaryGrow": 0,
+      "stackPaddingRight": 0.5,
+      "stackPaddingBottom": 0.5,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"role\":\"group\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "stackCounterSizing": "FIXED",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131975,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "set-node-name",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 52
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 51
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div.flex",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "531061b37b5d55cc8e53d4330d7f0438400c1832",
+          "version": "12:162"
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 63,
+        "y": 32
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0.5
+      },
+      "strokeWeight": 0,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c11d533e84c63b0364f581f2d0fecb2f2de134d6",
+                  "version": "12:74"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 49,
+          "styleID": 0
+        }
+      ],
+      "bordersTakeSpace": true,
+      "borderRightWeight": 1.5,
+      "borderStrokeWeightsIndependent": true,
+      "stackMode": "HORIZONTAL",
+      "stackHorizontalPadding": 12,
+      "stackPrimarySizing": "FIXED",
+      "stackPrimaryAlignItems": "CENTER",
+      "stackCounterAlignItems": "CENTER",
+      "stackPaddingRight": 12,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"role\":\"group\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "verticalConstraint": "STRETCH",
+      "frameMaskDisabled": true,
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "b1fabdd3e5fb0340eabdfaf222b75c3d9a1e219b",
+                    "version": "280:111"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "b1fabdd3e5fb0340eabdfaf222b75c3d9a1e219b",
+                    "version": "280:111"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              298,
+              294,
+              299,
+              38,
+              115,
+              5,
+              8,
+              445,
+              3,
+              204,
+              12,
+              11,
+              236,
+              231,
+              105,
+              209,
+              233,
+              230,
+              229,
+              29,
+              31,
+              26,
+              332,
+              4,
+              307,
+              37,
+              6,
+              2
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "update-edit-info",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              331
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 53
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 52
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "span.flex",
+      "visible": true,
+      "opacity": 0.550000011920929,
+      "size": {
+        "x": 31,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 16,
+        "m10": 0,
+        "m11": 1,
+        "m12": 8
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "horizontalConstraint": "CENTER",
+      "stackMode": "HORIZONTAL",
+      "stackCounterAlignItems": "CENTER",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"span\"}",
+          "key": "f2w-data"
+        }
+      ],
+      "verticalConstraint": "CENTER",
+      "frameMaskDisabled": true,
+      "stackCounterSizing": "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "8a18da89d6f43870836c82dbd95f00b64b2f0f07",
+                    "version": "12:3"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "8a18da89d6f43870836c82dbd95f00b64b2f0f07",
+                    "version": "12:3"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              28,
+              115,
+              5,
+              8,
+              445,
+              3,
+              204,
+              12,
+              11,
+              231,
+              221,
+              105,
+              29,
+              31,
+              26,
+              4,
+              307,
+              37,
+              6,
+              2
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "update-edit-info",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              331
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 54
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 53
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Name",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "029c0eb061030ec889720f6f5cd72241a6d11d8b",
+          "version": "12:16"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "422fab69a7248c91689bb18588d4ffd8f7f01532",
+          "version": "358:568"
+        }
+      },
+      "fontSize": 11,
+      "textAlignVertical": "CENTER",
+      "textCase": "UPPER",
+      "lineHeight": {
+        "value": 15.710000038146973,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "ExtraBold",
+        "postscript": "JetBrainsMono-ExtraBold"
+      },
+      "textData": {
+        "characters": "Name",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 31,
+          "y": 16
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 11.8149995803833
+            },
+            "width": 30.8828125,
+            "lineY": -4.3869019350495364e-7,
+            "lineHeight": 15.710000038146973,
+            "lineAscent": 11,
+            "firstCharacter": 0,
+            "endCharacter": 4
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 50,
+            "position": {
+              "x": 0,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 0,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 3,
+            "position": {
+              "x": 8.095703125,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 1,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 14,
+            "position": {
+              "x": 16.19140625,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 2,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 51,
+            "position": {
+              "x": 24.287109375,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 3,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "JetBrains Mono",
+              "style": "ExtraBold",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.3200000524520874,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 800
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          8.095703125,
+          16.19140625,
+          24.287109375
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 1.5,
+        "units": "PIXELS"
+      },
+      "fontVersion": "",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 31,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c2d33336ccbe70f84e257429ba5e9421bb487172",
+                  "version": "12:12"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"platformFont\":{\"familyName\":\"JetBrains Mono\",\"postScriptName\":\"JetBrainsMonoRoman-ExtraBold\"},\"fontSize\":11,\"fontFamily\":[\"JetBrains Mono\",\"JetBrains Mono Fallback\",\"ui-monospace\",\"monospace\"],\"fontWeight\":800,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":32.41,\"height\":16,\"x\":0,\"y\":0}",
+          "key": "h2d-$textData"
+        }
+      ],
+      "autoRename": true,
+      "verticalConstraint": "CENTER",
+      "textAutoResize": "WIDTH_AND_HEIGHT",
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              14,
+              359,
+              391,
+              38,
+              41,
+              202,
+              21,
+              127,
+              128,
+              260,
+              165,
+              27,
+              40,
+              5,
+              8,
+              3,
+              204,
+              12,
+              11,
+              29,
+              31,
+              26,
+              332,
+              334,
+              33,
+              46,
+              279,
+              34,
+              42,
+              412,
+              396,
+              203,
+              4,
+              37,
+              6,
+              2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 55
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 51
+        },
+        "position": "\""
+      },
+      "type": "FRAME",
+      "name": "input#visitorName",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 318.5,
+        "y": 32
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 63.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0.5
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "radius": 4,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 52,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackHorizontalPadding": 6,
+      "stackVerticalPadding": 7,
+      "stackPrimarySizing": "FIXED",
+      "stackChildPrimaryGrow": 1,
+      "stackPaddingRight": 12,
+      "stackPaddingBottom": 7,
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"input\",\"attr\":{\"id\":\"visitorName\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 56
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 55
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div#placeholder",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 300.5,
+        "y": 18
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 6,
+        "m10": 0,
+        "m11": 1,
+        "m12": 7
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 53,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"id\":\"placeholder\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 57
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 56
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Alex",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "6a3db5282b1cf7569a83784db32e324779752a60",
+          "version": "12:230"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "ea8d284a16c330cafd9efe735f97315fd9552bc9",
+          "version": "358:584"
+        }
+      },
+      "fontSize": 14,
+      "textAlignVertical": "CENTER",
+      "lineHeight": {
+        "value": 100,
+        "units": "PERCENT"
+      },
+      "fontName": {
+        "family": "Space Grotesk",
+        "style": "Regular",
+        "postscript": "SpaceGrotesk-Regular"
+      },
+      "textData": {
+        "characters": "Alex",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 300.5,
+          "y": 18
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 13.843999862670898
+            },
+            "width": 28.369140625,
+            "lineY": -1.3732909565078444e-7,
+            "lineHeight": 18,
+            "lineAscent": 13,
+            "firstCharacter": 0,
+            "endCharacter": 4
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 27,
+            "position": {
+              "x": 0,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 0,
+            "advance": 0.6300000548362732,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 8.818359375,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 1,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 45,
+            "position": {
+              "x": 12.25,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 2,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 54,
+            "position": {
+              "x": 20.0703125,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 3,
+            "advance": 0.593000054359436,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "Space Grotesk",
+              "style": "Regular",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.2760000228881836,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 400
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          8.818359375,
+          12.25,
+          20.0703125
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 0,
+        "units": "PERCENT"
+      },
+      "fontVersion": "1",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 300.5,
+        "y": 18
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921569883823395,
+            "g": 0.03921569883823395,
+            "b": 0.03921569883823395,
+            "a": 1
+          },
+          "opacity": 0.3499999940395355,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "9670c4cb95b25128fa89a895d461081ad54e8b93",
+                  "version": "12:226"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"platformFont\":{\"familyName\":\"Space Grotesk Light\",\"postScriptName\":\"SpaceGrotesk-Light_Regular\"},\"fontSize\":14,\"fontFamily\":[\"Space Grotesk\",\"Space Grotesk Fallback\"],\"fontWeight\":400,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":28.39,\"height\":18,\"x\":0,\"y\":0}",
+          "key": "h2d-$textData"
+        }
+      ],
+      "autoRename": true,
+      "textTracking": 0,
+      "textAutoResize": "HEIGHT",
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              359,
+              11
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 58
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 78
+        },
+        "position": "&"
+      },
+      "type": "FRAME",
+      "name": "email-input",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 33
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 53
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL"
+        }
+      ],
+      "effects": [
+        {
+          "type": "INNER_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "radius": 3.5,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 48,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "stackMode": "HORIZONTAL",
+      "stackHorizontalPadding": 0.5,
+      "stackVerticalPadding": 0.5,
+      "stackPrimarySizing": "FIXED",
+      "stackChildPrimaryGrow": 0,
+      "stackPaddingRight": 0.5,
+      "stackPaddingBottom": 0.5,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"role\":\"group\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "stackCounterSizing": "FIXED",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131975,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "set-node-name",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 59
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 58
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div.flex",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "531061b37b5d55cc8e53d4330d7f0438400c1832",
+          "version": "12:162"
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 63,
+        "y": 32
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0.5
+      },
+      "strokeWeight": 0,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c11d533e84c63b0364f581f2d0fecb2f2de134d6",
+                  "version": "12:74"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 49,
+          "styleID": 0
+        }
+      ],
+      "bordersTakeSpace": true,
+      "borderRightWeight": 1.5,
+      "borderStrokeWeightsIndependent": true,
+      "stackMode": "HORIZONTAL",
+      "stackHorizontalPadding": 12,
+      "stackPrimaryAlignItems": "CENTER",
+      "stackCounterAlignItems": "CENTER",
+      "stackPaddingRight": 12,
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"role\":\"group\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "b1fabdd3e5fb0340eabdfaf222b75c3d9a1e219b",
+                    "version": "280:111"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "b1fabdd3e5fb0340eabdfaf222b75c3d9a1e219b",
+                    "version": "280:111"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              298,
+              294,
+              299,
+              38,
+              115,
+              5,
+              8,
+              445,
+              3,
+              204,
+              12,
+              11,
+              231,
+              105,
+              209,
+              233,
+              230,
+              29,
+              31,
+              26,
+              332,
+              4,
+              307,
+              6,
+              2
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "update-edit-info",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              331
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 60
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 59
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "span.flex",
+      "visible": true,
+      "opacity": 0.550000011920929,
+      "size": {
+        "x": 39,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 12,
+        "m10": 0,
+        "m11": 1,
+        "m12": 8
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "horizontalConstraint": "CENTER",
+      "stackMode": "HORIZONTAL",
+      "stackCounterAlignItems": "CENTER",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"span\"}",
+          "key": "f2w-data"
+        }
+      ],
+      "verticalConstraint": "CENTER",
+      "frameMaskDisabled": true,
+      "stackCounterSizing": "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE",
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "8a18da89d6f43870836c82dbd95f00b64b2f0f07",
+                    "version": "12:3"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "8a18da89d6f43870836c82dbd95f00b64b2f0f07",
+                    "version": "12:3"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "OPACITY"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              28,
+              115,
+              5,
+              8,
+              445,
+              3,
+              204,
+              12,
+              11,
+              231,
+              221,
+              105,
+              29,
+              31,
+              26,
+              4,
+              307,
+              37,
+              6,
+              2
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "update-edit-info",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              331
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 61
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 60
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Email",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "029c0eb061030ec889720f6f5cd72241a6d11d8b",
+          "version": "12:16"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "422fab69a7248c91689bb18588d4ffd8f7f01532",
+          "version": "358:568"
+        }
+      },
+      "fontSize": 11,
+      "textAlignVertical": "CENTER",
+      "textCase": "UPPER",
+      "lineHeight": {
+        "value": 15.710000038146973,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "ExtraBold",
+        "postscript": "JetBrainsMono-ExtraBold"
+      },
+      "textData": {
+        "characters": "Email",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 39,
+          "y": 16
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 11.8149995803833
+            },
+            "width": 38.978515625,
+            "lineY": -4.3869019350495364e-7,
+            "lineHeight": 15.710000038146973,
+            "lineAscent": 11,
+            "firstCharacter": 0,
+            "endCharacter": 5
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 51,
+            "position": {
+              "x": 0,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 0,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 14,
+            "position": {
+              "x": 8.095703125,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 1,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 3,
+            "position": {
+              "x": 16.19140625,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 2,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 55,
+            "position": {
+              "x": 24.287109375,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 3,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 56,
+            "position": {
+              "x": 32.3828125,
+              "y": 11.8149995803833
+            },
+            "fontSize": 11,
+            "firstCharacter": 4,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "JetBrains Mono",
+              "style": "ExtraBold",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.3200000524520874,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 800
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          8.095703125,
+          16.19140625,
+          24.287109375,
+          32.3828125
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 1.5,
+        "units": "PIXELS"
+      },
+      "fontVersion": "",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 39,
+        "y": 16
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c2d33336ccbe70f84e257429ba5e9421bb487172",
+                  "version": "12:12"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"platformFont\":{\"familyName\":\"JetBrains Mono\",\"postScriptName\":\"JetBrainsMonoRoman-ExtraBold\"},\"fontSize\":11,\"fontFamily\":[\"JetBrains Mono\",\"JetBrains Mono Fallback\",\"ui-monospace\",\"monospace\"],\"fontWeight\":800,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":40.5,\"height\":16,\"x\":0,\"y\":0}",
+          "key": "h2d-$textData"
+        }
+      ],
+      "autoRename": true,
+      "verticalConstraint": "CENTER",
+      "textAutoResize": "WIDTH_AND_HEIGHT",
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              14,
+              359,
+              391,
+              38,
+              41,
+              202,
+              21,
+              127,
+              128,
+              260,
+              165,
+              27,
+              40,
+              5,
+              8,
+              3,
+              204,
+              12,
+              11,
+              29,
+              31,
+              26,
+              332,
+              334,
+              33,
+              46,
+              279,
+              34,
+              42,
+              412,
+              396,
+              203,
+              4,
+              37,
+              6,
+              2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 62
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 58
+        },
+        "position": "!O"
+      },
+      "type": "FRAME",
+      "name": "input#visitorEmail",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 318.5,
+        "y": 32
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 63.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0.5
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "radius": 4,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 52,
+          "styleID": 0
+        }
+      ],
+      "stackMode": "VERTICAL",
+      "stackHorizontalPadding": 6,
+      "stackVerticalPadding": 7,
+      "stackPrimarySizing": "FIXED",
+      "stackChildPrimaryGrow": 1,
+      "stackPaddingRight": 12,
+      "stackPaddingBottom": 7,
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"input\",\"attr\":{\"id\":\"visitorEmail\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 63
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 62
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div#placeholder",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 300.5,
+        "y": 18
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 6,
+        "m10": 0,
+        "m11": 1,
+        "m12": 7
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 53,
+          "styleID": 0
+        }
+      ],
+      "stackMode": "VERTICAL",
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"id\":\"placeholder\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 64
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 63
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "alex@example.com",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "6a3db5282b1cf7569a83784db32e324779752a60",
+          "version": "12:230"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "ea8d284a16c330cafd9efe735f97315fd9552bc9",
+          "version": "358:584"
+        }
+      },
+      "fontSize": 14,
+      "textAlignVertical": "CENTER",
+      "lineHeight": {
+        "value": 100,
+        "units": "PERCENT"
+      },
+      "fontName": {
+        "family": "Space Grotesk",
+        "style": "Regular",
+        "postscript": "SpaceGrotesk-Regular"
+      },
+      "textData": {
+        "characters": "alex@example.com",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 300.5,
+          "y": 18
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 13.843999862670898
+            },
+            "width": 131.16796875,
+            "lineY": -1.3732909565078444e-7,
+            "lineHeight": 18,
+            "lineAscent": 13,
+            "firstCharacter": 0,
+            "endCharacter": 16
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 35,
+            "position": {
+              "x": 0,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 0,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 8.052734375,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 1,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 45,
+            "position": {
+              "x": 11.484375,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 2,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 54,
+            "position": {
+              "x": 19.3046875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 3,
+            "advance": 0.593000054359436,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 57,
+            "position": {
+              "x": 27.603515625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 4,
+            "advance": 1.0260000228881836,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 45,
+            "position": {
+              "x": 41.97265625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 5,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 54,
+            "position": {
+              "x": 49.79296875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 6,
+            "advance": 0.593000054359436,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 35,
+            "position": {
+              "x": 57.927734375,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 7,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 58,
+            "position": {
+              "x": 65.98046875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 8,
+            "advance": 0.8600000143051147,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 59,
+            "position": {
+              "x": 78.025390625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 9,
+            "advance": 0.6440000534057617,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 87.03515625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 10,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 45,
+            "position": {
+              "x": 90.466796875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 11,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 60,
+            "position": {
+              "x": 98.65625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 12,
+            "advance": 0.25300002098083496,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 61,
+            "position": {
+              "x": 102.1015625,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 13,
+            "advance": 0.5980000495910645,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 38,
+            "position": {
+              "x": 110.46875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 14,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 58,
+            "position": {
+              "x": 119.123046875,
+              "y": 13.843999862670898
+            },
+            "fontSize": 14,
+            "firstCharacter": 15,
+            "advance": 0.8600000143051147,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "Space Grotesk",
+              "style": "Regular",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.2760000228881836,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 400
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          8.052734375,
+          11.484375,
+          19.3046875,
+          27.603515625,
+          41.97265625,
+          49.79296875,
+          57.927734375,
+          65.98046875,
+          78.025390625,
+          87.03515625,
+          90.466796875,
+          98.65625,
+          102.1015625,
+          110.46875,
+          119.123046875
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 0,
+        "units": "PERCENT"
+      },
+      "fontVersion": "1",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 300.5,
+        "y": 18
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921569883823395,
+            "g": 0.03921569883823395,
+            "b": 0.03921569883823395,
+            "a": 1
+          },
+          "opacity": 0.3499999940395355,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "9670c4cb95b25128fa89a895d461081ad54e8b93",
+                  "version": "12:226"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"platformFont\":{\"familyName\":\"Space Grotesk Light\",\"postScriptName\":\"SpaceGrotesk-Light_Regular\"},\"fontSize\":14,\"fontFamily\":[\"Space Grotesk\",\"Space Grotesk Fallback\"],\"fontWeight\":400,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":131.14999999999998,\"height\":18,\"x\":0,\"y\":0}",
+          "key": "h2d-$textData"
+        }
+      ],
+      "autoRename": true,
+      "textTracking": 0,
+      "textAutoResize": "HEIGHT",
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              359,
+              11
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 65
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 78
+        },
+        "position": "'"
+      },
+      "type": "FRAME",
+      "name": "text-field",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 88
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 106
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "horizontalConstraint": "MIN",
+      "stackMode": "VERTICAL",
+      "stackSpacing": 8,
+      "stackPrimarySizing": "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE",
+      "stackChildPrimaryGrow": 0,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"role\":\"group\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "e6f07d13206d67408c6f060ab60b34324bc11d51",
+                    "version": "12:28"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STACK_SPACING"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "e6f07d13206d67408c6f060ab60b34324bc11d51",
+                    "version": "12:28"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "STACK_SPACING"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778132028,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "set-node-name",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 70
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 65
+        },
+        "position": "\""
+      },
+      "type": "INSTANCE",
+      "name": "Component 4",
+      "symbolData": {
+        "symbolID": {
+          "sessionID": 132,
+          "localID": 43
+        },
+        "symbolOverrides": [
+          {
+            "styleIdForFill": {
+              "guid": {
+                "sessionID": 4294967295,
+                "localID": 4294967295
+              }
+            },
+            "styleIdForStrokeFill": {
+              "guid": {
+                "sessionID": 4294967295,
+                "localID": 4294967295
+              }
+            },
+            "guidPath": {
+              "guids": [
+                {
+                  "sessionID": 358,
+                  "localID": 19000
+                }
+              ]
+            },
+            "size": {
+              "x": 382.5,
+              "y": 88
+            },
+            "fillPaints": [
+              {
+                "type": "SOLID",
+                "color": {
+                  "r": 0.9333333373069763,
+                  "g": 0.9058823585510254,
+                  "b": 0.8352941274642944,
+                  "a": 1
+                },
+                "opacity": 1,
+                "visible": true,
+                "blendMode": "NORMAL"
+              }
+            ],
+            "strokePaints": [],
+            "effects": [
+              {
+                "type": "DROP_SHADOW",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "radius": 15,
+                "visible": true,
+                "blendMode": "NORMAL",
+                "spread": 0,
+                "showShadowBehindNode": false,
+                "color": {
+                  "r": 0,
+                  "g": 0,
+                  "b": 0,
+                  "a": 0.25
+                }
+              }
+            ],
+            "borderStrokeWeightsIndependent": false,
+            "stackPrimarySizing": "RESIZE_TO_FIT_WITH_IMPLICIT_SIZE",
+            "prototypeInteractions": [
+              {
+                "id": {
+                  "sessionID": 767,
+                  "localID": 1380
+                },
+                "event": {
+                  "interactionType": "ON_HOVER"
+                },
+                "actions": [
+                  {
+                    "transitionNodeID": {
+                      "sessionID": 132,
+                      "localID": 40
+                    },
+                    "transitionType": "INSTANT_TRANSITION",
+                    "connectionType": "INTERNAL_NODE",
+                    "navigationType": "SWAP_STATE"
+                  }
+                ],
+                "isDeleted": true,
+                "stateManagementVersion": 1
+              },
+              {
+                "id": {
+                  "sessionID": 358,
+                  "localID": 19108
+                },
+                "isDeleted": true,
+                "stateManagementVersion": 1
+              },
+              {
+                "id": {
+                  "sessionID": 767,
+                  "localID": 1953
+                },
+                "event": {
+                  "interactionType": "ON_HOVER"
+                },
+                "actions": [
+                  {
+                    "transitionNodeID": {
+                      "sessionID": 132,
+                      "localID": 40
+                    },
+                    "transitionType": "INSTANT_TRANSITION",
+                    "connectionType": "INTERNAL_NODE",
+                    "navigationType": "SWAP_STATE"
+                  }
+                ],
+                "isDeleted": true,
+                "stateManagementVersion": 1
+              },
+              {
+                "id": {
+                  "sessionID": 767,
+                  "localID": 2287
+                },
+                "event": {
+                  "interactionType": "ON_HOVER"
+                },
+                "actions": [
+                  {
+                    "transitionNodeID": {
+                      "sessionID": 132,
+                      "localID": 40
+                    },
+                    "transitionType": "INSTANT_TRANSITION",
+                    "connectionType": "INTERNAL_NODE",
+                    "navigationType": "SWAP_STATE"
+                  }
+                ],
+                "isDeleted": true,
+                "stateManagementVersion": 1
+              },
+              {
+                "id": {
+                  "sessionID": 767,
+                  "localID": 2324
+                },
+                "event": {
+                  "interactionType": "ON_HOVER"
+                },
+                "actions": [
+                  {
+                    "transitionNodeID": {
+                      "sessionID": 132,
+                      "localID": 40
+                    },
+                    "transitionType": "INSTANT_TRANSITION",
+                    "connectionType": "INTERNAL_NODE",
+                    "navigationType": "SWAP_STATE"
+                  }
+                ],
+                "isDeleted": true,
+                "stateManagementVersion": 1
+              },
+              {
+                "id": {
+                  "sessionID": 132,
+                  "localID": 75
+                },
+                "event": {
+                  "interactionType": "ON_HOVER"
+                },
+                "actions": [
+                  {
+                    "transitionNodeID": {
+                      "sessionID": 132,
+                      "localID": 40
+                    },
+                    "transitionType": "INSTANT_TRANSITION",
+                    "connectionType": "INTERNAL_NODE",
+                    "navigationType": "SWAP_STATE"
+                  }
+                ],
+                "isDeleted": false,
+                "stateManagementVersion": 1
+              }
+            ]
+          },
+          {
+            "guidPath": {
+              "guids": [
+                {
+                  "sessionID": 358,
+                  "localID": 19002
+                }
+              ]
+            },
+            "pluginData": [
+              {
+                "pluginID": "",
+                "value": "{\"platformFont\":{\"familyName\":\"Space Grotesk Light\",\"postScriptName\":\"SpaceGrotesk-Light_Regular\"},\"fontSize\":14,\"fontFamily\":[\"Space Grotesk\",\"Space Grotesk Fallback\"],\"fontWeight\":400,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":234.41,\"height\":21,\"x\":0,\"y\":-0.5}",
+                "key": "h2d-$textData"
+              }
+            ]
+          }
+        ],
+        "uniformScaleFactor": 1
+      },
+      "derivedSymbolData": [
+        {
+          "guidPath": {
+            "guids": [
+              {
+                "sessionID": 358,
+                "localID": 19000
+              }
+            ]
+          },
+          "size": {
+            "x": 382.5,
+            "y": 88
+          },
+          "minSize": {
+            "value": {
+              "x": 0,
+              "y": 88
+            }
+          }
+        },
+        {
+          "guidPath": {
+            "guids": [
+              {
+                "sessionID": 358,
+                "localID": 19001
+              }
+            ]
+          },
+          "size": {
+            "x": 357.5,
+            "y": 21
+          },
+          "transform": {
+            "m00": 1,
+            "m01": 0,
+            "m02": 12.5,
+            "m10": 0,
+            "m11": 1,
+            "m12": 10.5
+          }
+        },
+        {
+          "guidPath": {
+            "guids": [
+              {
+                "sessionID": 358,
+                "localID": 19002
+              }
+            ]
+          },
+          "derivedTextData": {
+            "layoutSize": {
+              "x": 357.5,
+              "y": 21
+            },
+            "baselines": [
+              {
+                "position": {
+                  "x": 0,
+                  "y": 14.993999481201172
+                },
+                "width": 234.41796875,
+                "lineY": -1.3732909565078444e-7,
+                "lineHeight": 20.299999237060547,
+                "lineAscent": 13,
+                "firstCharacter": 0,
+                "endCharacter": 34
+              }
+            ],
+            "glyphs": [
+              {
+                "commandsBlob": 33,
+                "position": {
+                  "x": 0,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 0,
+                "advance": 0.8750000596046448,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 34,
+                "position": {
+                  "x": 12.25,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 1,
+                "advance": 0.6130000352859497,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 35,
+                "position": {
+                  "x": 20.8359375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 2,
+                "advance": 0.5750000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 36,
+                "position": {
+                  "x": 28.4375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 3,
+                "advance": 0.46000000834465027,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 34.876953125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 4,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 37,
+                "position": {
+                  "x": 38.47265625,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 5,
+                "advance": 0.8010000586509705,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 38,
+                "position": {
+                  "x": 49.546875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 6,
+                "advance": 0.6180000305175781,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 39,
+                "position": {
+                  "x": 58.201171875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 7,
+                "advance": 0.612000048160553,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 40,
+                "position": {
+                  "x": 66.7734375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 8,
+                "advance": 0.24500000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 41,
+                "position": {
+                  "x": 70.205078125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 9,
+                "advance": 0.6440000534057617,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 79.21484375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 10,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 42,
+                "position": {
+                  "x": 82.810546875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 11,
+                "advance": 0.612000048160553,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 38,
+                "position": {
+                  "x": 91.3828125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 12,
+                "advance": 0.6180000305175781,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 39,
+                "position": {
+                  "x": 100.037109375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 13,
+                "advance": 0.612000048160553,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 108.609375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 14,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 40,
+                "position": {
+                  "x": 112.205078125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 15,
+                "advance": 0.24500000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 43,
+                "position": {
+                  "x": 115.63671875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 16,
+                "advance": 0.24500000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 44,
+                "position": {
+                  "x": 119.068359375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 17,
+                "advance": 0.5380000472068787,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 45,
+                "position": {
+                  "x": 126.232421875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 18,
+                "advance": 0.5920000076293945,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 134.517578125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 19,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 36,
+                "position": {
+                  "x": 138.11328125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 20,
+                "advance": 0.46000000834465027,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 38,
+                "position": {
+                  "x": 144.306640625,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 21,
+                "advance": 0.6180000305175781,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 152.9609375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 22,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 36,
+                "position": {
+                  "x": 156.556640625,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 23,
+                "advance": 0.46000000834465027,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 35,
+                "position": {
+                  "x": 162.955078125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 24,
+                "advance": 0.5750000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 40,
+                "position": {
+                  "x": 171.0078125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 25,
+                "advance": 0.24500000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 44,
+                "position": {
+                  "x": 174.439453125,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 26,
+                "advance": 0.5380000472068787,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 13,
+                "position": {
+                  "x": 181.97265625,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 27,
+                "advance": 0.25699999928474426,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 35,
+                "position": {
+                  "x": 185.568359375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 28,
+                "advance": 0.5750000476837158,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 46,
+                "position": {
+                  "x": 193.62109375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 29,
+                "advance": 0.6440000534057617,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 38,
+                "position": {
+                  "x": 202.630859375,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 30,
+                "advance": 0.6180000305175781,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 39,
+                "position": {
+                  "x": 211.28515625,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 31,
+                "advance": 0.612000048160553,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 36,
+                "position": {
+                  "x": 219.857421875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 32,
+                "advance": 0.46000000834465027,
+                "rotation": 0
+              },
+              {
+                "commandsBlob": 47,
+                "position": {
+                  "x": 226.296875,
+                  "y": 14.993999481201172
+                },
+                "fontSize": 14,
+                "firstCharacter": 33,
+                "advance": 0.5800000429153442,
+                "rotation": 0
+              }
+            ],
+            "fontMetaData": [
+              {
+                "key": {
+                  "family": "Space Grotesk",
+                  "style": "Regular",
+                  "postscript": ""
+                },
+                "fontLineHeight": 1.2760000228881836,
+                "fontDigest": "<binary 20 bytes>",
+                "fontStyle": "NORMAL",
+                "fontWeight": 400
+              }
+            ],
+            "truncationStartIndex": -1,
+            "truncatedHeight": -1,
+            "logicalIndexToCharacterOffsetMap": [
+              0,
+              12.25,
+              20.8359375,
+              28.4375,
+              34.876953125,
+              38.47265625,
+              49.546875,
+              58.201171875,
+              66.7734375,
+              70.205078125,
+              79.21484375,
+              82.810546875,
+              91.3828125,
+              100.037109375,
+              108.609375,
+              112.205078125,
+              115.63671875,
+              119.068359375,
+              126.232421875,
+              134.517578125,
+              138.11328125,
+              144.306640625,
+              152.9609375,
+              156.556640625,
+              162.955078125,
+              171.0078125,
+              174.439453125,
+              181.97265625,
+              185.568359375,
+              193.62109375,
+              202.630859375,
+              211.28515625,
+              219.857421875,
+              226.296875
+            ],
+            "derivedLines": [
+              {
+                "directionality": "LTR"
+              }
+            ]
+          },
+          "size": {
+            "x": 357.5,
+            "y": 21
+          }
+        }
+      ],
+      "componentPropAssignments": [
+        {
+          "defID": {
+            "sessionID": 358,
+            "localID": 30
+          },
+          "value": {
+            "textValue": {
+              "characters": "What would you like to talk about?",
+              "lines": [
+                {
+                  "lineType": "PLAIN",
+                  "styleId": 0,
+                  "indentationLevel": 0,
+                  "sourceDirectionality": "AUTO",
+                  "listStartOffset": 0,
+                  "isFirstLineOfList": false
+                }
+              ]
+            }
+          },
+          "varValue": {
+            "value": {
+              "textDataValue": {
+                "characters": "What would you like to talk about?",
+                "lines": [
+                  {
+                    "lineType": "PLAIN",
+                    "styleId": 0,
+                    "indentationLevel": 0,
+                    "sourceDirectionality": "AUTO",
+                    "listStartOffset": 0,
+                    "isFirstLineOfList": false
+                  }
+                ]
+              }
+            },
+            "dataType": "TEXT_DATA",
+            "resolvedDataType": "TEXT_DATA"
+          }
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 88
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL"
+        }
+      ],
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "radius": 15,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 62,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackHorizontalPadding": 12.5,
+      "stackVerticalPadding": 10.5,
+      "stackPaddingRight": 12.5,
+      "stackPaddingBottom": 55.20000076293945,
+      "stackChildAlignSelf": "STRETCH",
+      "minSize": {
+        "value": {
+          "x": 0,
+          "y": 88
+        }
+      },
+      "prototypeInteractions": [
+        {
+          "id": {
+            "sessionID": 132,
+            "localID": 50
+          },
+          "event": {
+            "interactionType": "ON_HOVER"
+          },
+          "actions": [
+            {
+              "transitionNodeID": {
+                "sessionID": 132,
+                "localID": 40
+              },
+              "transitionType": "INSTANT_TRANSITION",
+              "connectionType": "INTERNAL_NODE",
+              "navigationType": "SWAP_STATE"
+            }
+          ],
+          "isDeleted": false,
+          "stateManagementVersion": 1
+        },
+        {
+          "id": {
+            "sessionID": 132,
+            "localID": 75
+          },
+          "event": {
+            "interactionType": "ON_HOVER"
+          },
+          "actions": [
+            {
+              "transitionNodeID": {
+                "sessionID": 132,
+                "localID": 40
+              },
+              "transitionType": "INSTANT_TRANSITION",
+              "connectionType": "INTERNAL_NODE",
+              "navigationType": "SWAP_STATE"
+            }
+          ],
+          "isDeleted": false,
+          "stateManagementVersion": 1
+        }
+      ],
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"textarea\",\"attr\":{\"id\":\"question\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "scrollDirection": "BOTH",
+      "derivedSymbolDataLayoutVersion": 1,
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ed0cbba7cd87eb07b059cac43756b2ef284dae0",
+                    "version": "358:459"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ed0cbba7cd87eb07b059cac43756b2ef284dae0",
+                    "version": "358:459"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "delete-selection/keyboard-shortcut",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "before-commit",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 71
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 78
+        },
+        "position": "("
+      },
+      "type": "FRAME",
+      "name": "confirm-button",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 36
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 214
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "radius": 15,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "spread": 0,
+          "showShadowBehindNode": false,
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.25
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 63,
+          "styleID": 0
+        }
+      ],
+      "horizontalConstraint": "MIN",
+      "stackMode": "VERTICAL",
+      "stackPrimarySizing": "FIXED",
+      "stackPrimaryAlignItems": "CENTER",
+      "stackCounterAlignItems": "CENTER",
+      "stackChildPrimaryGrow": 0,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"button\"}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131975,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "set-node-name",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 72
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 71
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "button.oh-focus-ring",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "029c0eb061030ec889720f6f5cd72241a6d11d8b",
+          "version": "12:16"
+        }
+      },
+      "styleIdForStrokeFill": {
+        "assetRef": {
+          "key": "029c0eb061030ec889720f6f5cd72241a6d11d8b",
+          "version": "12:16"
+        }
+      },
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 382.5,
+        "y": 36
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "cornerRadius": 10,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c2d33336ccbe70f84e257429ba5e9421bb487172",
+                  "version": "12:12"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c2d33336ccbe70f84e257429ba5e9421bb487172",
+                  "version": "12:12"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 64,
+          "styleID": 0
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 65,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 10,
+      "rectangleTopRightCornerRadius": 10,
+      "rectangleBottomLeftCornerRadius": 10,
+      "rectangleBottomRightCornerRadius": 10,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "HORIZONTAL",
+      "stackHorizontalPadding": 22.5,
+      "stackVerticalPadding": 16.5,
+      "stackPrimarySizing": "FIXED",
+      "stackPrimaryAlignItems": "CENTER",
+      "stackCounterAlignItems": "CENTER",
+      "stackPaddingRight": 22.5,
+      "stackPaddingBottom": 16.5,
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"button\"}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          }
+        ]
+      },
+      "editInfo": {
+        "userId": "1496381476715700825",
+        "lastEditedAt": 1778131913,
+        "createdAt": 1778131913
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              11
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51,
+              52
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 73
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 72
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Confirm booking →",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "531061b37b5d55cc8e53d4330d7f0438400c1832",
+          "version": "12:162"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "39a0e396948718d38a32767dc75d7b5fab8edab7",
+          "version": "324:368"
+        }
+      },
+      "fontSize": 13,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "textCase": "UPPER",
+      "lineHeight": {
+        "value": 18.56999969482422,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "JetBrains Mono",
+        "style": "ExtraBold",
+        "postscript": "JetBrainsMono-ExtraBold"
+      },
+      "textData": {
+        "characters": "Confirm booking →",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 165,
+          "y": 19
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0.2431640625,
+              "y": 13.96500015258789
+            },
+            "width": 164.513671875,
+            "lineY": 3.0517577442878974e-7,
+            "lineHeight": 18.56999969482422,
+            "lineAscent": 13,
+            "firstCharacter": 0,
+            "endCharacter": 17
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 66,
+            "position": {
+              "x": 0.2431640625,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 0,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 67,
+            "position": {
+              "x": 10.0380859375,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 1,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 50,
+            "position": {
+              "x": 19.8330078125,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 2,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 68,
+            "position": {
+              "x": 29.6279296875,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 3,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 55,
+            "position": {
+              "x": 39.4228515625,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 4,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 69,
+            "position": {
+              "x": 49.2177734375,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 5,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 14,
+            "position": {
+              "x": 59.0126953125,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 6,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 68.8076171875,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 7,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 70,
+            "position": {
+              "x": 78.6025390625,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 8,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 67,
+            "position": {
+              "x": 88.3974609375,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 9,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 67,
+            "position": {
+              "x": 98.1923828125,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 10,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 71,
+            "position": {
+              "x": 107.9873046875,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 11,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 55,
+            "position": {
+              "x": 117.7822265625,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 12,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 50,
+            "position": {
+              "x": 127.5771484375,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 13,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 5,
+            "position": {
+              "x": 137.3720703125,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 14,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 147.1669921875,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 15,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 72,
+            "position": {
+              "x": 156.9619140625,
+              "y": 13.96500015258789
+            },
+            "fontSize": 13,
+            "firstCharacter": 16,
+            "advance": 0.6000000238418579,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "JetBrains Mono",
+              "style": "ExtraBold",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.3200000524520874,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 800
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          9.794921875,
+          19.58984375,
+          29.384765625,
+          39.1796875,
+          48.974609375,
+          58.76953125,
+          68.564453125,
+          78.359375,
+          88.154296875,
+          97.94921875,
+          107.744140625,
+          117.5390625,
+          127.333984375,
+          137.12890625,
+          146.923828125,
+          156.71875
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 2,
+        "units": "PIXELS"
+      },
+      "fontVersion": "",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 165,
+        "y": 19
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 108.75,
+        "m10": 0,
+        "m11": 1,
+        "m12": 8.5
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c11d533e84c63b0364f581f2d0fecb2f2de134d6",
+                  "version": "12:74"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "horizontalConstraint": "CENTER",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"platformFont\":{\"familyName\":\"JetBrains Mono\",\"postScriptName\":\"JetBrainsMonoRoman-ExtraBold\"},\"fontSize\":13,\"fontFamily\":[\"JetBrains Mono\",\"JetBrains Mono Fallback\"],\"fontWeight\":800,\"fontStretch\":100,\"fontStyle\":\"normal\",\"width\":176.3,\"height\":19,\"x\":245.8499999999999,\"y\":8.460000000000036}",
+          "key": "h2d-$textData"
+        }
+      ],
+      "autoRename": true,
+      "verticalConstraint": "CENTER",
+      "textAutoResize": "WIDTH_AND_HEIGHT",
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "SYSTEM",
+                    "label": "enforce-groups-and-stacks-layout",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 43
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 33
+        },
+        "position": "$"
+      },
+      "type": "SYMBOL",
+      "name": "variant=2,:hover=false",
+      "userFacingVersion": "358:4788",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "531061b37b5d55cc8e53d4330d7f0438400c1832",
+          "version": "12:162"
+        }
+      },
+      "styleIdForStrokeFill": {
+        "assetRef": {
+          "key": "029c0eb061030ec889720f6f5cd72241a6d11d8b",
+          "version": "12:16"
+        }
+      },
+      "isSymbolPublishable": false,
+      "sharedSymbolVersion": "358:4788",
+      "sourceLibraryKey": "lk-8959941474dea8305442e9853e27295e124c83aebcd745124e37b26108d129abb681ef5b7372e0b20495aac657a8b7bdafb86038aa24d356b9706368282832b8",
+      "publishID": {
+        "sessionID": 358,
+        "localID": 19000
+      },
+      "componentKey": "318b807ad0146df951e5f4139d80a12498c24d3a",
+      "componentPropDefs": [
+        {
+          "id": {
+            "sessionID": 358,
+            "localID": 30
+          },
+          "parentPropDefId": {
+            "sessionID": 358,
+            "localID": 26
+          }
+        }
+      ],
+      "variantPropSpecs": [
+        {
+          "propDefId": {
+            "sessionID": 4198790432,
+            "localID": 3632771186
+          },
+          "value": "false"
+        },
+        {
+          "propDefId": {
+            "sessionID": 3026323992,
+            "localID": 2719227150
+          },
+          "value": "2"
+        }
+      ],
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 668,
+        "y": 88.69999694824219
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 30,
+        "m10": 0,
+        "m11": 1,
+        "m12": 148.6999969482422
+      },
+      "cornerRadius": 2,
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.9333333373069763,
+            "g": 0.9058823585510254,
+            "b": 0.8352941274642944,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c11d533e84c63b0364f581f2d0fecb2f2de134d6",
+                  "version": "12:74"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "strokePaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03921568766236305,
+            "g": 0.03921568766236305,
+            "b": 0.03921568766236305,
+            "a": 1
+          },
+          "opacity": 1,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "c2d33336ccbe70f84e257429ba5e9421bb487172",
+                  "version": "12:12"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "fillGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 31,
+          "styleID": 0
+        }
+      ],
+      "strokeGeometry": [
+        {
+          "windingRule": "NONZERO",
+          "commandsBlob": 32,
+          "styleID": 0
+        }
+      ],
+      "rectangleTopLeftCornerRadius": 2,
+      "rectangleTopRightCornerRadius": 2,
+      "rectangleBottomLeftCornerRadius": 2,
+      "rectangleBottomRightCornerRadius": 2,
+      "bordersTakeSpace": true,
+      "borderTopWeight": 1,
+      "borderBottomWeight": 1,
+      "borderLeftWeight": 1,
+      "borderRightWeight": 1,
+      "borderStrokeWeightsIndependent": true,
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackHorizontalPadding": 12.5,
+      "stackVerticalPadding": 10.5,
+      "stackPaddingRight": 12.5,
+      "stackPaddingBottom": 55.20000076293945,
+      "minSize": {
+        "value": {
+          "x": 0,
+          "y": 88
+        }
+      },
+      "prototypeInteractions": [
+        {
+          "id": {
+            "sessionID": 132,
+            "localID": 50
+          },
+          "event": {
+            "interactionType": "ON_HOVER"
+          },
+          "actions": [
+            {
+              "transitionNodeID": {
+                "sessionID": 132,
+                "localID": 40
+              },
+              "transitionType": "INSTANT_TRANSITION",
+              "connectionType": "INTERNAL_NODE",
+              "navigationType": "SWAP_STATE"
+            }
+          ],
+          "isDeleted": false,
+          "stateManagementVersion": 1
+        }
+      ],
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"textarea\",\"attr\":{\"id\":\"question\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": false,
+      "scrollDirection": "BOTH",
+      "overrideKey": {
+        "sessionID": 358,
+        "localID": 19000
+      },
+      "variableConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ed0cbba7cd87eb07b059cac43756b2ef284dae0",
+                    "version": "358:459"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_TOP_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_BOTTOM_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_LEFT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ae7cfbda7a586d5d19acea37f4c6d49c2a2b580",
+                    "version": "12:22"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "BORDER_RIGHT_WEIGHT"
+          },
+          {
+            "variableData": {
+              "value": {
+                "alias": {
+                  "assetRef": {
+                    "key": "4ed0cbba7cd87eb07b059cac43756b2ef284dae0",
+                    "version": "358:459"
+                  }
+                }
+              },
+              "dataType": "ALIAS",
+              "resolvedDataType": "FLOAT"
+            },
+            "variableField": "MIN_HEIGHT"
+          }
+        ]
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              296,
+              297,
+              298,
+              294,
+              299,
+              295,
+              216,
+              266,
+              20,
+              38,
+              28,
+              115,
+              123,
+              325,
+              5,
+              8,
+              159,
+              213,
+              445,
+              3,
+              204,
+              226,
+              215,
+              147,
+              148,
+              145,
+              146,
+              12,
+              126,
+              11,
+              395,
+              105,
+              234,
+              209,
+              233,
+              210,
+              29,
+              31,
+              39,
+              26,
+              332,
+              333,
+              4,
+              399,
+              307,
+              483,
+              6,
+              2
+            ]
+          },
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              },
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "SYSTEM",
+                    "label": "synthesize-geometry-cache-updater",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              51,
+              52
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 44
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 43
+        },
+        "position": "!"
+      },
+      "type": "FRAME",
+      "name": "div#placeholder",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 641,
+        "y": 21
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 13.5,
+        "m10": 0,
+        "m11": 1,
+        "m12": 11.5
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "INSIDE",
+      "strokeJoin": "MITER",
+      "horizontalConstraint": "STRETCH",
+      "stackMode": "VERTICAL",
+      "stackChildAlignSelf": "STRETCH",
+      "pluginData": [
+        {
+          "pluginID": "",
+          "value": "{\"tag\":\"div\",\"attr\":{\"id\":\"placeholder\"}}",
+          "key": "f2w-data"
+        }
+      ],
+      "frameMaskDisabled": true,
+      "overrideKey": {
+        "sessionID": 358,
+        "localID": 19001
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              28,
+              115,
+              5,
+              8,
+              213,
+              3,
+              204,
+              12,
+              11,
+              236,
+              105,
+              29,
+              31,
+              26,
+              4,
+              6,
+              2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "guid": {
+        "sessionID": 132,
+        "localID": 45
+      },
+      "phase": "CREATED",
+      "parentIndex": {
+        "guid": {
+          "sessionID": 132,
+          "localID": 44
+        },
+        "position": "!"
+      },
+      "type": "TEXT",
+      "name": "Text",
+      "styleIdForFill": {
+        "assetRef": {
+          "key": "b912e823f3007022402d44c41b5c413f7287a01b",
+          "version": "358:503"
+        }
+      },
+      "styleIdForText": {
+        "assetRef": {
+          "key": "e6cb4ab8b934081bce58a9ba24cf3f6c508e12dc",
+          "version": "358:489"
+        }
+      },
+      "componentPropRefs": [
+        {
+          "defID": {
+            "sessionID": 358,
+            "localID": 30
+          },
+          "componentPropNodeField": "TEXT_DATA"
+        }
+      ],
+      "fontSize": 14,
+      "textAlignVertical": "CENTER",
+      "lineHeight": {
+        "value": 20.299999237060547,
+        "units": "PIXELS"
+      },
+      "fontName": {
+        "family": "Space Grotesk",
+        "style": "Regular",
+        "postscript": "SpaceGrotesk-Regular"
+      },
+      "textData": {
+        "characters": "What would you like to talk about?",
+        "lines": [
+          {
+            "lineType": "PLAIN",
+            "styleId": 0,
+            "indentationLevel": 0,
+            "sourceDirectionality": "AUTO",
+            "listStartOffset": 0,
+            "isFirstLineOfList": false
+          }
+        ]
+      },
+      "derivedTextData": {
+        "layoutSize": {
+          "x": 641,
+          "y": 21
+        },
+        "baselines": [
+          {
+            "position": {
+              "x": 0,
+              "y": 14.993999481201172
+            },
+            "width": 234.41796875,
+            "lineY": -1.3732909565078444e-7,
+            "lineHeight": 20.299999237060547,
+            "lineAscent": 13,
+            "firstCharacter": 0,
+            "endCharacter": 34
+          }
+        ],
+        "glyphs": [
+          {
+            "commandsBlob": 33,
+            "position": {
+              "x": 0,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 0,
+            "advance": 0.8750000596046448,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 34,
+            "position": {
+              "x": 12.25,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 1,
+            "advance": 0.6130000352859497,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 35,
+            "position": {
+              "x": 20.8359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 2,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 36,
+            "position": {
+              "x": 28.4375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 3,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 34.876953125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 4,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 37,
+            "position": {
+              "x": 38.47265625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 5,
+            "advance": 0.8010000586509705,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 38,
+            "position": {
+              "x": 49.546875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 6,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 39,
+            "position": {
+              "x": 58.201171875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 7,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 66.7734375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 8,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 41,
+            "position": {
+              "x": 70.205078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 9,
+            "advance": 0.6440000534057617,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 79.21484375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 10,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 42,
+            "position": {
+              "x": 82.810546875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 11,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 38,
+            "position": {
+              "x": 91.3828125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 12,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 39,
+            "position": {
+              "x": 100.037109375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 13,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 108.609375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 14,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 112.205078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 15,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 43,
+            "position": {
+              "x": 115.63671875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 16,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 44,
+            "position": {
+              "x": 119.068359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 17,
+            "advance": 0.5380000472068787,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 45,
+            "position": {
+              "x": 126.232421875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 18,
+            "advance": 0.5920000076293945,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 134.517578125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 19,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 36,
+            "position": {
+              "x": 138.11328125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 20,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 38,
+            "position": {
+              "x": 144.306640625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 21,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 152.9609375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 22,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 36,
+            "position": {
+              "x": 156.556640625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 23,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 35,
+            "position": {
+              "x": 162.955078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 24,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 40,
+            "position": {
+              "x": 171.0078125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 25,
+            "advance": 0.24500000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 44,
+            "position": {
+              "x": 174.439453125,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 26,
+            "advance": 0.5380000472068787,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 13,
+            "position": {
+              "x": 181.97265625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 27,
+            "advance": 0.25699999928474426,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 35,
+            "position": {
+              "x": 185.568359375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 28,
+            "advance": 0.5750000476837158,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 46,
+            "position": {
+              "x": 193.62109375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 29,
+            "advance": 0.6440000534057617,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 38,
+            "position": {
+              "x": 202.630859375,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 30,
+            "advance": 0.6180000305175781,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 39,
+            "position": {
+              "x": 211.28515625,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 31,
+            "advance": 0.612000048160553,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 36,
+            "position": {
+              "x": 219.857421875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 32,
+            "advance": 0.46000000834465027,
+            "rotation": 0
+          },
+          {
+            "commandsBlob": 47,
+            "position": {
+              "x": 226.296875,
+              "y": 14.993999481201172
+            },
+            "fontSize": 14,
+            "firstCharacter": 33,
+            "advance": 0.5800000429153442,
+            "rotation": 0
+          }
+        ],
+        "fontMetaData": [
+          {
+            "key": {
+              "family": "Space Grotesk",
+              "style": "Regular",
+              "postscript": ""
+            },
+            "fontLineHeight": 1.2760000228881836,
+            "fontDigest": "<binary 20 bytes>",
+            "fontStyle": "NORMAL",
+            "fontWeight": 400
+          }
+        ],
+        "truncationStartIndex": -1,
+        "truncatedHeight": -1,
+        "logicalIndexToCharacterOffsetMap": [
+          0,
+          12.25,
+          20.8359375,
+          28.4375,
+          34.876953125,
+          38.47265625,
+          49.546875,
+          58.201171875,
+          66.7734375,
+          70.205078125,
+          79.21484375,
+          82.810546875,
+          91.3828125,
+          100.037109375,
+          108.609375,
+          112.205078125,
+          115.63671875,
+          119.068359375,
+          126.232421875,
+          134.517578125,
+          138.11328125,
+          144.306640625,
+          152.9609375,
+          156.556640625,
+          162.955078125,
+          171.0078125,
+          174.439453125,
+          181.97265625,
+          185.568359375,
+          193.62109375,
+          202.630859375,
+          211.28515625,
+          219.857421875,
+          226.296875
+        ],
+        "derivedLines": [
+          {
+            "directionality": "LTR"
+          }
+        ]
+      },
+      "fontVariantCommonLigatures": true,
+      "fontVariantContextualLigatures": true,
+      "letterSpacing": {
+        "value": 0,
+        "units": "PERCENT"
+      },
+      "fontVersion": "1",
+      "textUserLayoutVersion": 5,
+      "textExplicitLayoutVersion": 1,
+      "fontVariations": [],
+      "textBidiVersion": 1,
+      "emojiImageSet": "APPLE",
+      "visible": true,
+      "opacity": 1,
+      "size": {
+        "x": 641,
+        "y": 21
+      },
+      "transform": {
+        "m00": 1,
+        "m01": 0,
+        "m02": 0,
+        "m10": 0,
+        "m11": 1,
+        "m12": 0
+      },
+      "strokeWeight": 1,
+      "strokeAlign": "OUTSIDE",
+      "strokeJoin": "MITER",
+      "fillPaints": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0.03922722861170769,
+            "g": 0.03921089321374893,
+            "b": 0.03920938819646835,
+            "a": 1
+          },
+          "opacity": 0.5,
+          "visible": true,
+          "blendMode": "NORMAL",
+          "colorVar": {
+            "value": {
+              "alias": {
+                "assetRef": {
+                  "key": "cb74321257f73ce4e3e47895de83428fc9a52c98",
+                  "version": "358:499"
+                }
+              }
+            },
+            "dataType": "ALIAS",
+            "resolvedDataType": "COLOR"
+          }
+        }
+      ],
+      "textDecorationSkipInk": true,
+      "stackChildAlignSelf": "STRETCH",
+      "autoRename": false,
+      "textTracking": 0,
+      "textAutoResize": "HEIGHT",
+      "overrideKey": {
+        "sessionID": 358,
+        "localID": 19002
+      },
+      "parameterConsumptionMap": {
+        "entries": [
+          {
+            "variableData": {
+              "value": {
+                "propRefValue": {
+                  "defId": {
+                    "sessionID": 358,
+                    "localID": 30
+                  }
+                }
+              },
+              "dataType": "PROP_REF",
+              "resolvedDataType": "TEXT_DATA"
+            },
+            "variableField": "TEXT_DATA"
+          }
+        ]
+      },
+      "editScopeInfo": {
+        "snapshots": [
+          {
+            "frames": [
+              {
+                "stack": [
+                  {
+                    "type": "USER",
+                    "label": "paste",
+                    "editorType": "DESIGN"
+                  },
+                  {
+                    "type": "USER",
+                    "label": "layout-edit-mode-async-paste-scenegraph",
+                    "editorType": "DESIGN"
+                  }
+                ]
+              }
+            ],
+            "nodeChangeFieldNumbers": [
+              14,
+              267,
+              359,
+              391,
+              38,
+              41,
+              202,
+              21,
+              127,
+              128,
+              260,
+              165,
+              27,
+              40,
+              5,
+              8,
+              213,
+              445,
+              3,
+              12,
+              11,
+              236,
+              29,
+              31,
+              26,
+              332,
+              334,
+              33,
+              46,
+              279,
+              42,
+              412,
+              396,
+              203,
+              4,
+              6,
+              2
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
