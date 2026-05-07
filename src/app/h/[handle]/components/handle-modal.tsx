@@ -229,7 +229,7 @@ export function HandleModal({
     return (
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 [&_*]:pointer-events-none"
         style={{ opacity: isVisible ? 1 : 0 }}
       >
         <motion.div
@@ -244,6 +244,7 @@ export function HandleModal({
             display: "flex",
             flexDirection: "column",
             boxShadow: "none",
+            pointerEvents: "none",
           }}
           className="p-[15px]"
         >
@@ -502,7 +503,7 @@ export function HandleModal({
 
   function renderMonthBody() {
     return (
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="pointer-events-auto relative z-30 min-h-0 flex-1 overflow-hidden">
         <MonthCalendar
           slots={slots}
           selectedDate={selectedDate}
