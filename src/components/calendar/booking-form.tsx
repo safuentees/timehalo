@@ -106,23 +106,36 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
         className="oh-booking-form flex flex-col gap-5"
       >
         <FieldGroup className="flex flex-col gap-5">
-          <BookingTextField
-            name="visitorName"
-            label={t("fieldName")}
-            placeholder={t("fieldNamePlaceholder")}
-            autoComplete="name"
-            autoCapitalize="words"
-          />
-          <BookingTextField
-            name="visitorEmail"
-            label={t("fieldEmail")}
-            placeholder={t("fieldEmailPlaceholder")}
-            type="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-          />
+          {/* B.PT251 — name + email share ONE container. The container
+              carries the DROP_SHADOW (Figma input drop-shadow promoted
+              from per-input to the joined card); rows inside are bare,
+              separated by a hairline divider. Reads as one card with
+              two fields rather than two stacked cards. */}
+          <div
+            className={cn(
+              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
+              "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
+              "divide-y divide-[color:var(--oh-line-default)]",
+            )}
+          >
+            <BookingTextField
+              name="visitorName"
+              label={t("fieldName")}
+              placeholder={t("fieldNamePlaceholder")}
+              autoComplete="name"
+              autoCapitalize="words"
+            />
+            <BookingTextField
+              name="visitorEmail"
+              label={t("fieldEmail")}
+              placeholder={t("fieldEmailPlaceholder")}
+              type="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          </div>
           <BookingTextareaField
             name="question"
             label={t("fieldQuestion")}
@@ -186,28 +199,24 @@ function BookingTextField({
       name={name}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          {/* ROW: paper bg + INNER_SHADOW (Figma `INNER_SHADOW r=3.5`
-              ≈ 4px). Hairline padding (0.5px) carries the spec. */}
-          <div
-            className={cn(
-              "flex h-[33px] items-stretch overflow-hidden",
-              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
-              "p-[0.5px]",
-              "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
-            )}
-          >
-            {/* LABEL (left, ~63×32, mono 11 ExtraBold ink). NOT
-                uppercase / no tracking — `Name` and `Email` are
-                proper-case in the Figma spec, so we don't reach for
-                `oh-legend` (which adds 2.5px tracking + uppercase). */}
+          {/* B.PT251 — bare row primitive. Container chrome (paper bg
+              + drop-shadow + hairline divider) lives on the parent
+              that hosts both rows together. Rows just lay out
+              label-LEFT / input-RIGHT inside the shared card. */}
+          <div className="flex h-[33px] items-stretch">
+            {/* LABEL — `oh-legend` (mono 11 ExtraBold + 2.5px tracking
+                + uppercase) with `opacity-100` to match the Figma
+                spec's 1.0 opacity. The mono-caps + tracking treatment
+                reads as a deliberate metadata label rather than the
+                squished-proper-case the previous styling produced.
+                Per oh-ui.md: compose `oh-legend opacity-100` rather
+                than re-inlining the eight-class string. */}
             <label
               htmlFor={field.name}
-              className="flex w-[63px] shrink-0 items-center pl-[6px] font-mono text-[11px] font-extrabold text-[color:var(--oh-ink)]"
+              className="oh-legend flex w-[63px] shrink-0 items-center pl-[6px] opacity-100"
             >
               {label}
             </label>
-            {/* INPUT (right, drop-shadow halo on the input element
-                itself; Figma `DROP_SHADOW r=4 offset=(0,4)`). */}
             <input
               {...field}
               {...inputProps}
@@ -219,7 +228,6 @@ function BookingTextField({
                 "min-w-0 flex-1 bg-transparent px-[6px] py-[7px]",
                 "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
                 "outline-none",
-                "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
               )}
             />
           </div>
@@ -267,12 +275,14 @@ function BookingTextareaField({
             aria-invalid={fieldState.invalid}
             className={cn(
               "w-full resize-none",
-              "rounded-(--oh-r-xs) border border-[color:var(--oh-ink)]",
+              "rounded-(--oh-r-xs)",
               "bg-[color:var(--oh-paper)]",
               "px-[12.5px] py-[10.5px]",
               "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
               "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
               "outline-none",
+              // B.PT251 — border removed per user; halo shadow alone
+              // defines the textarea's edge.
               "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
             )}
           />
