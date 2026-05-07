@@ -408,10 +408,14 @@ export function HandleModal({
                     >
                       <button
                         type="button"
-                        className="oh-view-toggle"
+                        className="oh-view-toggle oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
                         aria-label={t("openMonthViewAria")}
                       >
-                        <CalendarIcon />
+                        <CalendarIcon
+                          className="size-5 opacity-[0.7]"
+                          strokeWidth={2.25}
+                          aria-hidden
+                        />
                       </button>
                     </MonthDrawer>
                   </div>
