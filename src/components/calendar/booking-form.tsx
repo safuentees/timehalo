@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { trpc } from "@/trpc/hooks";
@@ -21,25 +21,40 @@ import { cn } from "@/lib/utils";
 type Props = {
   handle: string;
   slotStart: string; // ISO
+  onBooked?: () => void;
   rescheduleFromUid?: string;
 };
 
-export function BookingForm({ handle, slotStart, rescheduleFromUid }: Props) {
+export function BookingForm({
+  handle,
+  slotStart,
+  rescheduleFromUid,
+  onBooked,
+}: Props) {
   if (rescheduleFromUid) {
     return (
       <RescheduleConfirm
         handle={handle}
         slotStart={slotStart}
         oldPublicUid={rescheduleFromUid}
+        onBooked={onBooked}
       />
     );
   }
-  return <CreateForm handle={handle} slotStart={slotStart} />;
+  return <CreateForm handle={handle} slotStart={slotStart} onBooked={onBooked} />;
 }
 
-function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }) {
+function CreateForm({
+  handle,
+  slotStart,
+  onBooked,
+}: {
+  handle: string;
+  slotStart: string;
+  onBooked?: () => void;
+}) {
   const t = useTranslations("BookingCalendar");
-  const router = useRouter();
+  const router = useTransitionRouter();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { visitorName: "", visitorEmail: "", question: "" },
@@ -51,6 +66,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
   const book = useBookingCreate({
     onSuccess: (booking) => {
       form.reset();
+      onBooked?.();
       router.push(`/h/${handle}/booked/${booking.publicUid}`);
     },
   });
@@ -248,17 +264,20 @@ function RescheduleConfirm({
   handle,
   slotStart,
   oldPublicUid,
+  onBooked,
 }: {
   handle: string;
   slotStart: string;
   oldPublicUid: string;
+  onBooked?: () => void;
 }) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
-  const router = useRouter();
+  const router = useTransitionRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
+      onBooked?.();
       router.push(`/h/${handle}/booked/${result.publicUid}`);
     },
   });

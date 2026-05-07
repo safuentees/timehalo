@@ -9,17 +9,13 @@ import {
   type ComponentProps,
 } from "react";
 import { flushSync } from "react-dom";
+import { usePathname } from "next/navigation";
 import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  motion,
-  SwitchLayoutGroupContext,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -52,10 +48,6 @@ const CLOSE_SPRING =
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
 
-const PRESERVE_SHARED_FOLLOW_OPACITY = {
-  shouldPreserveFollowOpacity: () => true,
-};
-
 const HANDLE_AVATAR_PROJECTION_STYLE = {
   borderRadius: 9999,
   boxShadow: "0 4px 4px rgba(0,0,0,0.25)",
@@ -77,6 +69,7 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
+  const pathname = usePathname();
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
@@ -102,6 +95,8 @@ export default function HostProfile({
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpenRaw] = useState(false);
+  const [receiptTransitionPending, setReceiptTransitionPending] =
+    useState(false);
   const exitInFlightRef = useRef(false);
   const pendingOpenRef = useRef(false);
   const setDrawerOpen = (next: boolean) => {
@@ -115,7 +110,13 @@ export default function HostProfile({
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
   >(undefined);
-  const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
+  const receiptRouteActive = pathname.includes(`/h/${handle}/booked/`);
+  const receiptOverlayActive = receiptRouteActive || receiptTransitionPending;
+  useEffect(() => {
+    if (!receiptRouteActive) setReceiptTransitionPending(false);
+  }, [receiptRouteActive]);
+  const stripLandingLayoutId =
+    mounted && ((keepLandingMounted && drawerOpen) || receiptOverlayActive);
   const landingLayoutId = (id: string) =>
     stripLandingLayoutId ? undefined : id;
   const identityProjectionTransition = {
@@ -250,8 +251,6 @@ export default function HostProfile({
         </div>
       ) : null}
 
-      <SwitchLayoutGroupContext.Provider value={PRESERVE_SHARED_FOLLOW_OPACITY}>
-        <LayoutGroup>
           <AnimatePresence mode="popLayout">
             {!drawerOpen || keepLandingMounted ? (
               <HandleMorphCard
@@ -492,7 +491,7 @@ export default function HostProfile({
               }
             }}
           >
-            {hasOpenSlots && drawerOpen ? (
+            {hasOpenSlots && drawerOpen && !receiptOverlayActive ? (
               <HandleModal
                 key="handle-modal"
                 handle={handle}
@@ -507,6 +506,10 @@ export default function HostProfile({
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });
+                }}
+                onBookingComplete={() => {
+                  setReceiptTransitionPending(true);
+                  setDrawerOpen(false);
                 }}
                 identityContent={
                   <motion.div
@@ -558,8 +561,6 @@ export default function HostProfile({
               />
             ) : null}
           </AnimatePresence>
-        </LayoutGroup>
-      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }

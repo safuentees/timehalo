@@ -52,6 +52,7 @@ type Props = {
   onPickSlot: (slot: Slot) => void;
   selectedSlot: Slot | undefined;
   rescheduleFromUid?: string;
+  onBookingComplete?: () => void;
   months?: number;
   identityContent?: ReactNode;
   durationLabel?: string;
@@ -67,6 +68,7 @@ export function HandleModal({
   onPickSlot,
   selectedSlot,
   rescheduleFromUid,
+  onBookingComplete,
   months = 3,
   identityContent,
   durationLabel,
@@ -523,6 +525,7 @@ export function HandleModal({
             handle={handle}
             slotStart={selectedSlot.start}
             rescheduleFromUid={rescheduleFromUid}
+            onBooked={onBookingComplete}
           />
         ) : null}
       </div>
