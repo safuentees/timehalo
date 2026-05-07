@@ -326,7 +326,15 @@ export function HandleModal({
     return (
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
+        // B.PT248 — `[&_*]:pointer-events-none` cascades pointer-
+        // events:none down to EVERY descendant via Tailwind's
+        // arbitrary-variant + universal selector. Belt and
+        // suspenders — even if motion's inline `pointer-events:
+        // auto` were to leak onto the slot-stack motion.div or any
+        // child, this rule still wins (universal-selector
+        // specificity beats inline transform-induced auto in this
+        // case because Tailwind utilities sit later in the cascade).
+        className="pointer-events-none absolute inset-0 z-0 [&_*]:pointer-events-none"
         style={{ opacity: isVisible ? 1 : 0 }}
       >
         <motion.div
@@ -341,6 +349,10 @@ export function HandleModal({
             display: "flex",
             flexDirection: "column",
             boxShadow: "none",
+            // B.PT248 — explicit pointer-events:none on the motion
+            // root so motion's inline-style updates can't accidentally
+            // re-enable events during a layout animation.
+            pointerEvents: "none",
           }}
           className="p-[15px]"
         >
@@ -599,13 +611,15 @@ export function HandleModal({
 
   function renderMonthBody() {
     return (
-      // B.PT243 — drop `oh-drawer-body` class. Its CSS at
-      // globals.css:2676 bakes in `overflow-y: auto` which created
-      // a native browser scrollbar competing with the inner Radix
-      // ScrollArea inside <MonthCalendar>. The native bar takes
-      // layout space (no overlay) — exactly what the user reported.
-      // Inner ScrollArea handles all scroll for the month view.
-      <div className="min-h-0 flex-1 overflow-hidden">
+      // B.PT243 — drop `oh-drawer-body` (its CSS bakes overflow-y:
+      // auto, which created a competing native scroll container).
+      // B.PT248 — explicit `relative z-30 pointer-events-auto` so
+      // the wrapper definitively sits above the phantom slot layer
+      // (z-0 inside cream) and inherits no pointer-events: none from
+      // any ancestor. Without these, the inner Radix Viewport's
+      // wheel/touch events were being lost — `/t` (no FocusOn / no
+      // phantom layer) worked while modal stayed broken.
+      <div className="pointer-events-auto relative z-30 min-h-0 flex-1 overflow-hidden">
         <MonthCalendar
           slots={slots}
           selectedDate={selectedDate}
