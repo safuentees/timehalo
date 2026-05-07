@@ -101,7 +101,17 @@ export default function HostProfile({
   const openToday = availableSlots.some((s) => isToday(new Date(s.start), now));
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpenRaw] = useState(false);
+  const exitInFlightRef = useRef(false);
+  const pendingOpenRef = useRef(false);
+  const setDrawerOpen = (next: boolean) => {
+    if (exitInFlightRef.current && next) {
+      pendingOpenRef.current = true;
+      return;
+    }
+    if (drawerOpen && !next) exitInFlightRef.current = true;
+    setDrawerOpenRaw(next);
+  };
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
   >(undefined);
@@ -472,7 +482,16 @@ export default function HostProfile({
             {visitorTz} {daysWithOpenSlotsThisWeek} {nextSlot?.start ?? ""}
           </span>
 
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence
+            mode="popLayout"
+            onExitComplete={() => {
+              exitInFlightRef.current = false;
+              if (pendingOpenRef.current) {
+                pendingOpenRef.current = false;
+                setDrawerOpenRaw(true);
+              }
+            }}
+          >
             {hasOpenSlots && drawerOpen ? (
               <HandleModal
                 key="handle-modal"
