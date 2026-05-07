@@ -693,21 +693,24 @@ export function HandleModal({
                       onSelectDate={handleSelectDate}
                       months={months}
                     >
-                      {/* B.PT236 — Calendar trigger uses the same
-                          chrome-icon vocabulary as the top-bar
-                          chevron + X (B.PT225/226): no bg, size-5
+                      {/* B.PT236 / B.PT237 — Calendar trigger uses
+                          the chrome-icon vocabulary from the chevron
+                          + X (B.PT225/226): no bg, no border, size-5
                           glyph, strokeWidth 2.25, opacity 0.7. No
-                          hover/active transitions for now per user
-                          request. Existing `oh-view-toggle` class
-                          retained for any structural rules but the
-                          inline classes win for the visual treatment. */}
+                          hover/active transitions per user request.
+                          B.PT237 — `oh-view-toggle` class DROPPED:
+                          its CSS at globals.css:2699 was painting
+                          a 1.5px ink border + paper bg + forcing
+                          36px container + 16px svg, which overrode
+                          our chrome-icon look. Inline Tailwind only
+                          now. */}
                       <button
                         type="button"
-                        className="oh-view-toggle oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                        className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
                         aria-label={t("openMonthViewAria")}
                       >
                         <CalendarIcon
-                          className="size-5 opacity-[0.7]"
+                          className="size-5 opacity-[0.7] bg-amber-800"
                           strokeWidth={2.25}
                           aria-hidden
                         />
