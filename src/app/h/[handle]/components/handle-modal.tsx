@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon, ChevronLeftIcon, XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   BookingForm,
   DayStrip,
@@ -165,7 +166,12 @@ export function HandleModal({
             willChange: "transform",
             zIndex: zStyle(zL2?.layer),
           }}
-          className="min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden"
+          className={cn(
+            "max-w-[720px] overflow-hidden bg-amber-50",
+            view === "month"
+              ? "h-full max-h-[1158px]"
+              : "min-h-[clamp(500px,70dvh,900px)]",
+          )}
         >
           <div
             aria-hidden
