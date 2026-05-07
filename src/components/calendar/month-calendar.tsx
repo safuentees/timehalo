@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { computeDensityMap, type Slot } from "@/lib/availability";
 import { MonthStack } from "./month-stack";
 
@@ -39,17 +40,16 @@ export function MonthCalendar({
           </span>
         ))}
       </div>
-      <div
-        className="oh-drawer-body min-h-0 flex-1 overflow-y-auto"
-        data-view="month"
-      >
-        <MonthStack
-          months={months}
-          densityMap={densityMap}
-          selectedDate={selectedDate}
-          onSelectDate={onSelectDate}
-        />
-      </div>
+      <ScrollArea className="min-h-0 flex-1" data-view="month">
+        <div className="px-5 pb-8 pt-2">
+          <MonthStack
+            months={months}
+            densityMap={densityMap}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+          />
+        </div>
+      </ScrollArea>
     </div>
   );
 }
