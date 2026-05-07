@@ -195,7 +195,8 @@ export function HandleModal({
     return (
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 flex justify-center"
+        style={{ paddingTop: 21.5 }}
       >
         <motion.div
           layoutId="oh-identity"
@@ -207,10 +208,11 @@ export function HandleModal({
           animate={{ opacity: identityOpacity }}
           exit={{ opacity: identityOpacity }}
           style={{
-            position: "absolute",
-            top: 21.5,
-            left: "calc(50% - 168px)",
-            width: 336,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            maxWidth: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
             zIndex: zStyle(zL2?.identity),
