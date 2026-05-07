@@ -599,7 +599,13 @@ export function HandleModal({
 
   function renderMonthBody() {
     return (
-      <div className="oh-drawer-body min-h-0 flex-1 overflow-hidden">
+      // B.PT243 — drop `oh-drawer-body` class. Its CSS at
+      // globals.css:2676 bakes in `overflow-y: auto` which created
+      // a native browser scrollbar competing with the inner Radix
+      // ScrollArea inside <MonthCalendar>. The native bar takes
+      // layout space (no overlay) — exactly what the user reported.
+      // Inner ScrollArea handles all scroll for the month view.
+      <div className="min-h-0 flex-1 overflow-hidden">
         <MonthCalendar
           slots={slots}
           selectedDate={selectedDate}
