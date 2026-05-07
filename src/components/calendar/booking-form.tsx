@@ -106,36 +106,23 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
         className="oh-booking-form flex flex-col gap-5"
       >
         <FieldGroup className="flex flex-col gap-5">
-          {/* B.PT251 — name + email share ONE container. The container
-              carries the DROP_SHADOW (Figma input drop-shadow promoted
-              from per-input to the joined card); rows inside are bare,
-              separated by a hairline divider. Reads as one card with
-              two fields rather than two stacked cards. */}
-          <div
-            className={cn(
-              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
-              "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
-              "divide-y divide-[color:var(--oh-line-default)]",
-            )}
-          >
-            <BookingTextField
-              name="visitorName"
-              label={t("fieldName")}
-              placeholder={t("fieldNamePlaceholder")}
-              autoComplete="name"
-              autoCapitalize="words"
-            />
-            <BookingTextField
-              name="visitorEmail"
-              label={t("fieldEmail")}
-              placeholder={t("fieldEmailPlaceholder")}
-              type="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-            />
-          </div>
+          <BookingTextField
+            name="visitorName"
+            label={t("fieldName")}
+            placeholder={t("fieldNamePlaceholder")}
+            autoComplete="name"
+            autoCapitalize="words"
+          />
+          <BookingTextField
+            name="visitorEmail"
+            label={t("fieldEmail")}
+            placeholder={t("fieldEmailPlaceholder")}
+            type="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
           <BookingTextareaField
             name="question"
             label={t("fieldQuestion")}
@@ -199,18 +186,23 @@ function BookingTextField({
       name={name}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          {/* B.PT251 — bare row primitive. Container chrome (paper bg
-              + drop-shadow + hairline divider) lives on the parent
-              that hosts both rows together. Rows just lay out
-              label-LEFT / input-RIGHT inside the shared card. */}
-          <div className="flex h-[33px] items-stretch">
-            {/* LABEL — `oh-legend` (mono 11 ExtraBold + 2.5px tracking
-                + uppercase) with `opacity-100` to match the Figma
-                spec's 1.0 opacity. The mono-caps + tracking treatment
-                reads as a deliberate metadata label rather than the
-                squished-proper-case the previous styling produced.
-                Per oh-ui.md: compose `oh-legend opacity-100` rather
-                than re-inlining the eight-class string. */}
+          {/* B.PT252 — back to per-row container with its own
+              drop-shadow (joined-card wrapper from B.PT251 reverted
+              per user). Each row IS the card; CreateForm's gap-5
+              between rows separates them. Layout inside: label
+              LEFT / input RIGHT, both bare. */}
+          <div
+            className={cn(
+              "flex h-[33px] items-stretch",
+              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
+              "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
+            )}
+          >
+            {/* LABEL — `oh-legend` (mono 11 ExtraBold + 2.5px
+                tracking + uppercase) with `opacity-100` to match the
+                Figma spec's 1.0 opacity. Per oh-ui.md: compose
+                `oh-legend opacity-100` rather than re-inlining the
+                eight-class string. */}
             <label
               htmlFor={field.name}
               className="oh-legend flex w-[63px] shrink-0 items-center pl-[6px] opacity-100"
