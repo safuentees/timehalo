@@ -90,11 +90,6 @@ const ModalDebugContext = createContext<ModalDebugContextValue>({
   panelShardRef: null,
 });
 
-const DISABLED_DEBUG_CONTEXT: ModalDebugContextValue = {
-  values: null,
-  panelShardRef: null,
-};
-
 export function useModalDebug() {
   return useContext(ModalDebugContext);
 }
@@ -122,11 +117,29 @@ const LAYER1_PROD_O: OBlock = {
 const LAYER2_PROD_O: OBlock = {
   layer: 1, // modal article — has real content, visible
   identity: 0,
-  slotList: 1,
+  slotList: 0,
   slot0: 0,
   slot1: 0,
   slot2: 0,
   slot3: 0,
+};
+
+const PRODUCTION_ANIMATION_VALUES: ModalDebugValues = {
+  showPhantomOutline: false,
+  showPhantomLabels: false,
+  keepLandingMounted: true,
+  openSpring: SPEC_OPEN,
+  closeSpring: SPEC_CLOSE,
+  confirmSpring: SPEC_CONFIRM,
+  zLayer1: NO_Z,
+  zLayer2: NO_Z,
+  oLayer1: LAYER1_PROD_O,
+  oLayer2: LAYER2_PROD_O,
+};
+
+const DISABLED_DEBUG_CONTEXT: ModalDebugContextValue = {
+  values: PRODUCTION_ANIMATION_VALUES,
+  panelShardRef: null,
 };
 
 export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
@@ -158,7 +171,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
           "production = real animation; inspect = frozen post-morph view (chip content rendered at destination rects, landing kept mounted); outline = dashed outline around phantom rects so you can see where motion is targeting.",
       },
       identityOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,
@@ -168,7 +181,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
         render: (get) => get("mode") === "inspect",
       },
       slotListOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,
@@ -178,7 +191,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
         render: (get) => get("mode") === "inspect",
       },
       slotsOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,

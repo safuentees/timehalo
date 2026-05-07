@@ -189,6 +189,9 @@ export function HandleModal({
   }
 
   function renderIdentityPhantom() {
+    const identityOpacity = oStyle(oL2?.identity, 0);
+    const showIdentityContent = identityOpacity > 0;
+
     return (
       <div
         aria-hidden
@@ -200,9 +203,9 @@ export function HandleModal({
             type: "spring",
             ...(open ? openSpring : closeSpring),
           }}
-          initial={{ opacity: oStyle(oL2?.identity, 0) }}
-          animate={{ opacity: oStyle(oL2?.identity, 0) }}
-          exit={{ opacity: oStyle(oL2?.identity, 0) }}
+          initial={{ opacity: identityOpacity }}
+          animate={{ opacity: identityOpacity }}
+          exit={{ opacity: identityOpacity }}
           style={{
             position: "absolute",
             top: 21.5,
@@ -214,7 +217,7 @@ export function HandleModal({
             pointerEvents: "none",
           }}
         >
-          {identityContent ? identityContent : null}
+          {showIdentityContent && identityContent ? identityContent : null}
           {phantomLabels ? (
             <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
               identity
