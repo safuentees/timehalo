@@ -166,6 +166,13 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
 type BookingTextFieldName = Exclude<keyof BookingFormValues, "question">;
 type BookingTextareaFieldName = Extract<keyof BookingFormValues, "question">;
 
+const BOOKING_FIELD_SURFACE_CLASS = cn(
+  "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
+  "shadow-[inset_0_0_4px_rgba(0,0,0,0.15)]",
+  "transition-[background-color,box-shadow] duration-150 ease-oh",
+  "hover:bg-[var(--oh-input-bg-hover)]",
+);
+
 function BookingTextField({
   name,
   label,
@@ -186,16 +193,16 @@ function BookingTextField({
       name={name}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          {/* B.PT252 — back to per-row container with its own
-              drop-shadow (joined-card wrapper from B.PT251 reverted
-              per user). Each row IS the card; CreateForm's gap-5
-              between rows separates them. Layout inside: label
-              LEFT / input RIGHT, both bare. */}
+          {/* Match the route's day cells/time chips: each row is a
+              borderless paper field with soft inset depth. The active
+              state switches to the global input focus token so focus
+              remains visible without adding another rest treatment. */}
           <div
             className={cn(
               "flex h-[33px] items-stretch",
-              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
-              "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
+              BOOKING_FIELD_SURFACE_CLASS,
+              "focus-within:bg-[var(--oh-input-bg-focus)]",
+              "focus-within:[box-shadow:var(--oh-focus-shadow-input)]",
             )}
           >
             {/* LABEL — `oh-legend` (mono 11 ExtraBold + 2.5px
@@ -251,10 +258,9 @@ function BookingTextareaField({
       name={name}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          {/* Component 4 in Figma: paper bg, 1px ink stroke,
-              cornerRadius 2, DROP_SHADOW r=15 halo. Label is sr-only
-              — placeholder doubles as the visible cue, matching the
-              spec's structural intent. */}
+          {/* Same visual shell as name/email; the placeholder remains
+              the visible cue while the sr-only label preserves the
+              form name for assistive technology. */}
           <label className="sr-only" htmlFor={field.name}>
             {label}
           </label>
@@ -267,15 +273,13 @@ function BookingTextareaField({
             aria-invalid={fieldState.invalid}
             className={cn(
               "w-full resize-none",
-              "rounded-(--oh-r-xs)",
-              "bg-[color:var(--oh-paper)]",
+              BOOKING_FIELD_SURFACE_CLASS,
               "px-[12.5px] py-[10.5px]",
               "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
               "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
               "outline-none",
-              // B.PT251 — border removed per user; halo shadow alone
-              // defines the textarea's edge.
-              "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
+              "focus:bg-[var(--oh-input-bg-focus)]",
+              "focus:[box-shadow:var(--oh-focus-shadow-input)]",
             )}
           />
           <FieldError
