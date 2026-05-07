@@ -123,6 +123,13 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
 type BookingTextFieldName = Exclude<keyof BookingFormValues, "question">;
 type BookingTextareaFieldName = Extract<keyof BookingFormValues, "question">;
 
+const BOOKING_FIELD_SURFACE_CLASS = cn(
+  "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
+  "shadow-[inset_0_0_4px_rgba(0,0,0,0.15)]",
+  "transition-[background-color,box-shadow] duration-150 ease-oh",
+  "hover:bg-[var(--oh-input-bg-hover)]",
+);
+
 function BookingTextField({
   name,
   label,
@@ -146,8 +153,9 @@ function BookingTextField({
           <div
             className={cn(
               "flex h-[33px] items-stretch",
-              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
-              "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
+              BOOKING_FIELD_SURFACE_CLASS,
+              "focus-within:bg-[var(--oh-input-bg-focus)]",
+              "focus-within:[box-shadow:var(--oh-focus-shadow-input)]",
             )}
           >
             <label
@@ -210,13 +218,13 @@ function BookingTextareaField({
             aria-invalid={fieldState.invalid}
             className={cn(
               "w-full resize-none",
-              "rounded-(--oh-r-xs)",
-              "bg-[color:var(--oh-paper)]",
+              BOOKING_FIELD_SURFACE_CLASS,
               "px-[12.5px] py-[10.5px]",
               "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
               "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
               "outline-none",
-              "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
+              "focus:bg-[var(--oh-input-bg-focus)]",
+              "focus:[box-shadow:var(--oh-focus-shadow-input)]",
             )}
           />
           <FieldError
