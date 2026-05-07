@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type CSSProperties,
@@ -162,6 +163,15 @@ export default function HostProfile({
     return () => window.removeEventListener("popstate", handlePop);
   }, [slots]);
 
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (drawerOpen && !wasOpenRef.current) {
+      setSelectedSlot(undefined);
+      updateQueryParam("slot", null, { pushEntry: false });
+    }
+    wasOpenRef.current = drawerOpen;
+  }, [drawerOpen]);
+
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
@@ -268,7 +278,10 @@ export default function HostProfile({
                   initial={{ opacity: oStyle(oL1?.identity, 1) }}
                   animate={{ opacity: oStyle(oL1?.identity, 1) }}
                   exit={{ opacity: 0 }}
-                  style={{ zIndex: zStyle(zL1?.identity) }}
+                  style={{
+                    visibility: stripLandingLayoutId ? "hidden" : undefined,
+                    zIndex: zStyle(zL1?.identity),
+                  }}
                   className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
                 >
                   <motion.div
@@ -278,9 +291,6 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    style={{
-                      visibility: stripLandingLayoutId ? "hidden" : undefined,
-                    }}
                     className="flex items-center gap-3"
                   >
                     <motion.span
