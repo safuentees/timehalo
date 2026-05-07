@@ -521,6 +521,7 @@ export function HandleModal({
       onEscapeKey={() => onOpenChange(false)}
       onClickOutside={() => onOpenChange(false)}
       returnFocus
+      noIsolation
       shards={panelShardRef ? [panelShardRef] : undefined}
     >
 
