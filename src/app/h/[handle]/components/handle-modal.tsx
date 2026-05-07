@@ -502,7 +502,7 @@ export function HandleModal({
 
   function renderMonthBody() {
     return (
-      <div className="oh-drawer-body min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <MonthCalendar
           slots={slots}
           selectedDate={selectedDate}
