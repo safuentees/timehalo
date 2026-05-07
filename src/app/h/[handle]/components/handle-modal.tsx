@@ -285,54 +285,50 @@ export function HandleModal({
     const identityOpacity = oStyle(oL2?.identity, 0);
     const showIdentityContent = identityOpacity > 0;
 
+    // B.PT259 — drop the wrapper motion.div with `layoutId="oh-
+    // identity"`. Mirrors how slot chips are rendered (single
+    // `layoutId="oh-slot-${i}"` per chip — no nested layoutId
+    // pair) which the user identified as "always works and is
+    // smooth". Why nesting two layoutIds was wrong:
+    //
+    // 1. Two animated layers. The outer `oh-identity` had no
+    //    matching source in landing — it animated nothing useful
+    //    but still ran motion's layout-projection bookkeeping
+    //    every frame, fighting for control of the same `transform`
+    //    property the inner `oh-identity-row` was already using.
+    // 2. Race on close→reopen. AnimatePresence runs the outer's
+    //    EXIT then mounts a fresh outer; if the user opens the
+    //    next modal before exit completes, the new outer's
+    //    `getBoundingClientRect()` reads stale layout state from
+    //    the in-flight exit. Inner `oh-identity-row` then
+    //    resolves its source rect against the wrong parent — the
+    //    "title slides in from the right" the user reported on
+    //    fast book→confirm→close cycles.
+    //
+    // Fix: positioning is owned by a plain `<div>` (no motion,
+    // no layoutId, no inline transform). Flex parent centers
+    // horizontally + paddingTop owns the vertical offset. The
+    // ONLY animated element is the inner `<motion.div
+    // layoutId="oh-identity-row">` passed in via `identityContent`
+    // — same pattern as slot chips. Motion measures the inner
+    // rect against this stable parent; no nested layout-projection
+    // races possible.
+    //
+    // `display: flex; justifyContent: center` on the inner anchor
+    // wraps `identityContent` in a centering container so the
+    // natural-width avatar+name row sits dead-center on every
+    // viewport. `maxWidth: 336` caps the centering region on
+    // 720-wide cards (Figma's identity-row width); on narrower
+    // form-card viewports it shrinks to card width without
+    // overflow.
     return (
       <div
         aria-hidden
-        // B.PT258 — flex-centering parent with top padding owns the
-        // phantom's anchor instead of the motion.div's inline style.
-        // Three pre-B.PT258 attempts (B.PT256 / B.PT257) used absolute
-        // positioning + manual `left` offsets on the motion.div, but
-        // motion overwrites the `transform` property on every layout-
-        // animation frame (motion.dev "Layout animations not working
-        // with mode='popLayout'" — same caveat applies to
-        // `layoutId`-driven shared layout) and the FIXED width 336
-        // overflowed on viewports where the card is narrower than
-        // 336+padding (form-card on a 320×… phone collapses to 288).
-        // The clipped phantom + left-aligned inner content shifted
-        // the destination rect off-center, and the layoutId tween
-        // appeared to "come from the right" because the source rect
-        // (landing's identity-row, centered in a 720+ wide page) was
-        // far right of the off-center destination on small screens.
-        // Flex parent + responsive max-width on the motion.div
-        // resolves on every breakpoint without manual breakpoints.
         className="pointer-events-none absolute inset-0 z-0 flex justify-center"
         style={{ paddingTop: 21.5 }}
       >
-        <motion.div
-          layoutId="oh-identity"
-          transition={{
-            type: "spring",
-            ...(open ? openSpring : closeSpring),
-          }}
-          initial={{ opacity: identityOpacity }}
-          animate={{ opacity: identityOpacity }}
-          exit={{ opacity: identityOpacity }}
+        <div
           style={{
-            // No `position: absolute` — flex parent owns positioning.
-            // `width: 100%` + `maxWidth: 336` means the rect fills
-            // the card on narrow viewports (≤ 336px usable width)
-            // and caps at 336 on the 720-wide detail/month cards.
-            // `display: flex; justifyContent: center` centers the
-            // inner identity-row (`oh-identity-row`, a natural-
-            // width flex row of avatar + name) HORIZONTALLY inside
-            // the phantom rect — without this, the row left-aligns
-            // and the layoutId destination's CENTER sits inside-
-            // left of the phantom's center, surviving even after
-            // B.PT256/B.PT257 outer-centering attempts. With both
-            // outer (parent flex) + inner (this flex) centering,
-            // motion measures genuinely-centered destination rects
-            // for `oh-identity` AND `oh-identity-row` on every
-            // breakpoint.
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -340,6 +336,7 @@ export function HandleModal({
             maxWidth: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
+            opacity: identityOpacity,
             zIndex: zStyle(zL2?.identity),
             pointerEvents: "none",
           }}
@@ -350,7 +347,7 @@ export function HandleModal({
               identity
             </span>
           ) : null}
-        </motion.div>
+        </div>
       </div>
     );
   }
