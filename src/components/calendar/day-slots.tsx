@@ -9,12 +9,13 @@ type Props = {
   date: Date;
   slots: Slot[];
   onPick: (slot: Slot) => void;
+  selectedSlot?: Slot;
 };
 
 type BandId = "morning" | "afternoon" | "evening";
 type Band = { id: BandId; slots: Slot[] };
 
-export function DaySlots({ date, slots, onPick }: Props) {
+export function DaySlots({ date, slots, onPick, selectedSlot }: Props) {
   const t = useTranslations("BookingCalendar");
   const bands = useMemo(() => bucketByTimeOfDay(slots), [slots]);
   const openCount = slots.filter(isOpenSlot).length;
@@ -44,6 +45,7 @@ export function DaySlots({ date, slots, onPick }: Props) {
                   band={band}
                   label={bandLabels[band.id]}
                   onPick={onPick}
+                  selectedSlot={selectedSlot}
                 />
               ) : null,
             )}
@@ -58,10 +60,12 @@ function TimeBand({
   band,
   label,
   onPick,
+  selectedSlot,
 }: {
   band: Band;
   label: string;
   onPick: (slot: Slot) => void;
+  selectedSlot?: Slot;
 }) {
   const [emblaRef] = useEmblaCarousel({
     align: "start",
@@ -77,7 +81,11 @@ function TimeBand({
         <div className="oh-time-band-chips-track">
           {band.slots.map((s) => (
             <div key={s.start} className="oh-time-band-chip-slide">
-              <SlotChip slot={s} onPick={onPick} />
+              <SlotChip
+                slot={s}
+                onPick={onPick}
+                isSelected={selectedSlot?.start === s.start}
+              />
             </div>
           ))}
         </div>
@@ -89,9 +97,11 @@ function TimeBand({
 function SlotChip({
   slot,
   onPick,
+  isSelected = false,
 }: {
   slot: Slot;
   onPick: (slot: Slot) => void;
+  isSelected?: boolean;
 }) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -122,6 +132,7 @@ function SlotChip({
       className="oh-slot-chip"
       onClick={() => onPick(slot)}
       aria-label={t("slotBookAria", { time: timeLabel })}
+      aria-pressed={isSelected}
     >
       {timeLabel}
     </button>
