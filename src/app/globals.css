@@ -2830,6 +2830,12 @@
 }
 
 /* DayButton — our custom component */
+/* B.PT244 — day cells share the chip vocabulary from B.PT235:
+   borderless paper bg, inner shadow for depth, opacity 0.32 for
+   disabled/past/closed/full, ink-invert for selected. Hover on
+   available days previews the selected look. Single visual
+   vocabulary across day-strip chips, time chips, and calendar day
+   cells — derived from the Apple-HIG concentric pattern. */
 .oh-day-button {
   all: unset;
   box-sizing: border-box;
@@ -2841,16 +2847,17 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border: 1.5px solid transparent;
   background: var(--oh-paper);
   color: var(--oh-ink);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
+  border-radius: var(--oh-r-xs);
   cursor: pointer;
   font-family: var(--oh-mono);
   font-variant-numeric: tabular-nums;
   transition:
     background var(--oh-t-fast),
     color var(--oh-t-fast),
-    border-color var(--oh-t-fast);
+    opacity var(--oh-t-fast);
   /* Container-query context — day numbers scale with cell width, same
      pattern as `.oh-day-strip-slide`. ~50px cell → 14px digit on mobile,
      ~95px cell → 24px digit on desktop. */
@@ -2867,23 +2874,24 @@
   font-weight: 700;
   line-height: 1;
 }
+/* B.PT244 — past / closed / full all read as "not selectable" with
+   opacity 0.32 (matches chip disabled). Strikethrough dropped per
+   B.PT235's noise-reduction principle — opacity alone communicates
+   the state at chip / cell scale. */
 .oh-day-num--past {
-  opacity: 0.3;
+  opacity: 0.32;
 }
 .oh-day-num--closed {
-  opacity: 0.35;
-  text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
+  opacity: 0.32;
 }
 .oh-day-num--full {
-  opacity: 0.72;
+  opacity: 0.32;
 }
-/* Modifiers — available days invert on hover; today has a 2px inset border. */
+/* Modifiers — available days invert on hover (preview of selected);
+   today gets a subtle inner-shadow ring instead of a 2px border so
+   the chrome stays borderless. */
 .oh-day-available {
   cursor: pointer;
-}
-.oh-day-available .oh-day-button {
-  border-color: var(--oh-ink);
 }
 .oh-day-available .oh-day-button:hover,
 .oh-day-available .oh-day-button:focus-visible {
@@ -2892,8 +2900,11 @@
   outline: none;
 }
 .oh-day-today .oh-day-button {
-  border-color: var(--oh-ink);
-  border-width: 2px;
+  /* Today marker — 2px inset ring composed onto the base inner shadow,
+     using box-shadow stacking so we keep the borderless treatment. */
+  box-shadow:
+    inset 0 0 0 2px var(--oh-ink),
+    inset 0 0 4px rgba(0, 0, 0, 0.15);
 }
 .oh-day-selected .oh-day-button,
 .oh-day-button[data-selected-single="true"] {
@@ -2901,19 +2912,22 @@
   color: var(--oh-paper) !important;
 }
 .oh-day-booked .oh-day-button {
-  border-style: dashed;
-  cursor: pointer;
-  background: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
+  /* Fully booked — disabled vocabulary (opacity 0.32). Dashed border
+     + color-mix bg dropped per B.PT235. */
+  opacity: 0.32;
+  cursor: not-allowed;
 }
 .oh-day-booked .oh-day-button:hover,
 .oh-day-booked .oh-day-button:focus-visible {
-  background: color-mix(in srgb, var(--oh-paper) 82%, var(--oh-ink) 18%);
+  /* Lock idle look on hover for booked — disabled chips don't
+     preview the ink-invert. */
+  background: var(--oh-paper);
   color: var(--oh-ink);
   outline: none;
 }
 .oh-day-closed .oh-day-button {
   cursor: default;
-  background: transparent;
+  opacity: 0.32;
 }
 .oh-day-disabled {
   opacity: 0.5;
