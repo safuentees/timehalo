@@ -2,10 +2,10 @@
 
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { trpc } from "@/trpc/hooks";
@@ -66,7 +66,7 @@ function CreateForm({
   onBooked?: () => void;
 }) {
   const t = useTranslations("BookingCalendar");
-  const router = useTransitionRouter();
+  const router = useRouter();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { visitorName: "", visitorEmail: "", question: "" },
@@ -333,7 +333,7 @@ function RescheduleConfirm({
 }) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
-  const router = useTransitionRouter();
+  const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {

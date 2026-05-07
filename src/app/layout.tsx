@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import { ViewTransitions } from "next-view-transitions";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { ViewTransitionsShell } from "./view-transitions-shell";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -48,11 +48,10 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    // ViewTransitions wraps every <Link> push/replace from
-    // `next-view-transitions` in `document.startViewTransition()`.
-    // The Apple-style scale-fade keyframes live in globals.css under
-    // `::view-transition-old/new(root)`. Reduced-motion is gated there.
-    <ViewTransitions>
+    // ViewTransitionsShell keeps the native View Transitions API on the
+    // dashboard chrome, but opts the public visitor booking surfaces out so
+    // Motion can own their shared-layout modal morphs without a root snapshot.
+    <ViewTransitionsShell>
       <html
         lang={locale}
         suppressHydrationWarning
@@ -72,6 +71,6 @@ export default async function RootLayout({
           </NextIntlClientProvider>
         </body>
       </html>
-    </ViewTransitions>
+    </ViewTransitionsShell>
   );
 }
