@@ -168,7 +168,36 @@ export default function HostProfile({
   const openToday = availableSlots.some((s) => isToday(new Date(s.start), now));
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpenRaw] = useState(false);
+  // B.PT261 — gate `setDrawerOpen` against in-flight modal-card
+  // exit animations. Motion 12's shared-`layoutId` projection
+  // registry (see motion #3424 — "Shared layout animation uses
+  // stale snapshot when clicking items rapidly") accumulates a
+  // stale rect during fast open→close→open cycles; the next open
+  // pulls that stale rect as its source and either visually
+  // glitches (B.PT260's "translates X then snaps back") or
+  // crashes inside the projection forEach with `undefined is not
+  // an object (evaluating 'projectionDelta.x')`. Canonical
+  // workaround per motion's own community responses to #3424:
+  // suppress retriggers while the previous animation cycle is in
+  // flight. Cleared in the modal's outer-AnimatePresence
+  // `onExitComplete` (passed below) so the next open is always
+  // fired against a stable, fully-settled projection registry.
+  const exitInFlightRef = useRef(false);
+  const pendingOpenRef = useRef(false);
+  const setDrawerOpen = (next: boolean) => {
+    if (exitInFlightRef.current && next) {
+      // Mid-exit re-open: queue the intent. onExitComplete (below)
+      // sees the queued flag, fires the open AFTER the projection
+      // registry has settled. Avoids the projection-delta crash
+      // AND preserves the user's intent — they don't have to
+      // click again.
+      pendingOpenRef.current = true;
+      return;
+    }
+    if (drawerOpen && !next) exitInFlightRef.current = true;
+    setDrawerOpenRaw(next);
+  };
   // B.PT229 — track which slot duration the visitor clicked on the
   // landing card. Modal renders this in its chrome row (between
   // chevron and X) as the meeting-duration context label.
@@ -765,7 +794,20 @@ export default function HostProfile({
           `popLayout` mode is required on the parent (above) so the
           shared-`layoutId` element transition works across mount/unmount
           boundaries without intermediate jumps. */}
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence
+            mode="popLayout"
+            onExitComplete={() => {
+              // B.PT261 — modal exit fully settled. Clear the
+              // gate AND fire any queued open intent so the user
+              // who clicked open mid-exit doesn't have to click
+              // again.
+              exitInFlightRef.current = false;
+              if (pendingOpenRef.current) {
+                pendingOpenRef.current = false;
+                setDrawerOpenRaw(true);
+              }
+            }}
+          >
             {hasOpenSlots && drawerOpen ? (
               <HandleModal
                 key="handle-modal"
