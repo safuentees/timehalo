@@ -2690,6 +2690,11 @@
   padding: 12px 20px 10px;
 }
 .oh-drawer-monthbar-label {
+  /* B.PT238 — `align-self: flex-end` overrides the parent's
+     `align-items: center` for THIS label only. Month label sits
+     on the bottom edge of the monthbar (typographic baseline rest).
+     Calendar icon trigger stays centered (parent default). */
+  align-self: flex-end;
   font-family: var(--oh-mono);
   font-size: 13px;
   font-weight: 800;
