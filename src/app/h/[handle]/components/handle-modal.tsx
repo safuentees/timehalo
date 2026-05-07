@@ -288,7 +288,25 @@ export function HandleModal({
     return (
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
+        // B.PT258 — flex-centering parent with top padding owns the
+        // phantom's anchor instead of the motion.div's inline style.
+        // Three pre-B.PT258 attempts (B.PT256 / B.PT257) used absolute
+        // positioning + manual `left` offsets on the motion.div, but
+        // motion overwrites the `transform` property on every layout-
+        // animation frame (motion.dev "Layout animations not working
+        // with mode='popLayout'" — same caveat applies to
+        // `layoutId`-driven shared layout) and the FIXED width 336
+        // overflowed on viewports where the card is narrower than
+        // 336+padding (form-card on a 320×… phone collapses to 288).
+        // The clipped phantom + left-aligned inner content shifted
+        // the destination rect off-center, and the layoutId tween
+        // appeared to "come from the right" because the source rect
+        // (landing's identity-row, centered in a 720+ wide page) was
+        // far right of the off-center destination on small screens.
+        // Flex parent + responsive max-width on the motion.div
+        // resolves on every breakpoint without manual breakpoints.
+        className="pointer-events-none absolute inset-0 z-0 flex justify-center"
+        style={{ paddingTop: 21.5 }}
       >
         <motion.div
           layoutId="oh-identity"
@@ -300,25 +318,26 @@ export function HandleModal({
           animate={{ opacity: identityOpacity }}
           exit={{ opacity: identityOpacity }}
           style={{
-            position: "absolute",
-            // B.PT257 — center horizontally without colliding with
-            // motion's own layoutId transform. B.PT256 first tried
-            // `left: 50%, transform: translateX(-50%)`, but motion
-            // uses the `transform` property to drive the shared-
-            // layoutId tween (it's the same property React 19's
-            // motion 12 mutates on every animation frame). User-
-            // supplied transform got overwritten as soon as the
-            // first frame landed, leaving the phantom anchored at
-            // `left: 50%` (its left edge at the centerline, not its
-            // center). `calc(50% - 168px)` (168 = 336/2) achieves
-            // the same horizontal center on the LEFT property
-            // alone — no transform involvement, motion animates
-            // transform freely. Width stays 336 (Figma identity-
-            // row width); top stays 21.5 (Figma identity-row
-            // vertical offset).
-            top: 21.5,
-            left: "calc(50% - 168px)",
-            width: 336,
+            // No `position: absolute` — flex parent owns positioning.
+            // `width: 100%` + `maxWidth: 336` means the rect fills
+            // the card on narrow viewports (≤ 336px usable width)
+            // and caps at 336 on the 720-wide detail/month cards.
+            // `display: flex; justifyContent: center` centers the
+            // inner identity-row (`oh-identity-row`, a natural-
+            // width flex row of avatar + name) HORIZONTALLY inside
+            // the phantom rect — without this, the row left-aligns
+            // and the layoutId destination's CENTER sits inside-
+            // left of the phantom's center, surviving even after
+            // B.PT256/B.PT257 outer-centering attempts. With both
+            // outer (parent flex) + inner (this flex) centering,
+            // motion measures genuinely-centered destination rects
+            // for `oh-identity` AND `oh-identity-row` on every
+            // breakpoint.
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            maxWidth: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
             zIndex: zStyle(zL2?.identity),
