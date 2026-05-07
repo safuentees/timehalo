@@ -65,9 +65,9 @@ function CreateForm({
 
   const book = useBookingCreate({
     onSuccess: (booking) => {
-      form.reset();
-      onBooked?.();
       router.push(`/h/${handle}/booked/${booking.publicUid}`);
+      onBooked?.();
+      form.reset();
     },
   });
 
@@ -277,8 +277,8 @@ function RescheduleConfirm({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
-      onBooked?.();
       router.push(`/h/${handle}/booked/${result.publicUid}`);
+      onBooked?.();
     },
   });
 
