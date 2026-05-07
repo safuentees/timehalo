@@ -116,7 +116,7 @@ export function zStyle(v: number | undefined): number | undefined {
 }
 
 /** Map a Leva opacity slider (0..1) to a style.opacity value, falling
- *  back to the production default when the debug context is null. */
+ *  back to the call-site default when a specific override is absent. */
 export function oStyle(v: number | undefined, fallback: number): number {
   return v ?? fallback;
 }
@@ -135,14 +135,9 @@ const ModalDebugContext = createContext<ModalDebugContextValue>({
   panelShardRef: null,
 });
 
-const DISABLED_DEBUG_CONTEXT: ModalDebugContextValue = {
-  values: null,
-  panelShardRef: null,
-};
-
-/** Read debug overrides from the page-level overlay. Returns `null`
- *  values in production / when `?debug=1` is absent — consumers fall
- *  back to spec defaults. */
+/** Read the resolved modal animation config. In non-debug runtime this
+ *  returns the final production target; in dev `?debug=1`, Leva can
+ *  override that target for inspection. */
 export function useModalDebug() {
   return useContext(ModalDebugContext);
 }
@@ -170,20 +165,34 @@ const LAYER1_PROD_O: OBlock = {
 const LAYER2_PROD_O: OBlock = {
   layer: 1, // modal article — has real content, visible
   identity: 0,
-  // B.PT195 — slot-list visible in production (was 0). The phantom
-  // slot-list is the cream container with `inset 0 0 4px rgba(0,0,
-  // 0,0.25)` inner shadow that morphs from landing's cream card.
-  // Keeping it visible in production preserves the closed-state's
-  // nested-card aesthetic in the open state — paper modal article
-  // (outer) + cream slot-list (inner) with concentric inner shadows.
-  // Slot-list expands during the morph the same way the chip
-  // morphs expand. Slot phantoms inside (slot0..3) stay at 0 so
-  // we don't see the chip rectangles in production.
-  slotList: 1,
+  // Final production target uses the same mechanics as inspect mode
+  // (landing kept mounted; modal phantoms available for measurement)
+  // but all Layer 2 phantom visuals are hidden. The real modal content
+  // renders above them, so users get the tuned morph without seeing
+  // duplicate identity/slot-list/slot rows.
+  slotList: 0,
   slot0: 0,
   slot1: 0,
   slot2: 0,
   slot3: 0,
+};
+
+const PRODUCTION_ANIMATION_VALUES: ModalDebugValues = {
+  showPhantomOutline: false,
+  showPhantomLabels: false,
+  keepLandingMounted: true,
+  openSpring: SPEC_OPEN,
+  closeSpring: SPEC_CLOSE,
+  confirmSpring: SPEC_CONFIRM,
+  zLayer1: NO_Z,
+  zLayer2: NO_Z,
+  oLayer1: LAYER1_PROD_O,
+  oLayer2: LAYER2_PROD_O,
+};
+
+const DISABLED_DEBUG_CONTEXT: ModalDebugContextValue = {
+  values: PRODUCTION_ANIMATION_VALUES,
+  panelShardRef: null,
 };
 
 export function VisitorDebugOverlay({ children }: { children: ReactNode }) {
@@ -233,7 +242,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
       // user (and future-debugger) see WHICH phantom is hidden and
       // by what.
       identityOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,
@@ -243,7 +252,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
         render: (get) => get("mode") === "inspect",
       },
       slotListOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,
@@ -253,7 +262,7 @@ function EnabledVisitorDebugOverlay({ children }: { children: ReactNode }) {
         render: (get) => get("mode") === "inspect",
       },
       slotsOpacity: {
-        value: 1,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.05,

@@ -165,10 +165,11 @@ export function HandleModal({
     return durationLabel;
   })();
 
-  // B.PT164 / B.PT165 — debug overrides come from the route-level
-  // overlay mounted in `/h/[handle]/layout.tsx` via React Context.
-  // `values` is null in production / when `?debug=1` is absent — fall
-  // back to spec defaults. `panelShardRef` (B.PT165) gets passed to
+  // B.PT164 / B.PT165 — resolved animation config comes from the
+  // route-level provider mounted in `/h/[handle]/layout.tsx`.
+  // Non-debug runtime receives the final inspect-mode production
+  // target; dev `?debug=1` can override it. `panelShardRef` (B.PT165)
+  // gets passed to
   // <FocusOn shards> so interactions on the Leva panel don't fire
   // the modal's onClickOutside / focus-trap escape.
   const { values: debug, panelShardRef } = useModalDebug();
@@ -180,11 +181,10 @@ export function HandleModal({
   // visual identification during inspection.
   const phantomLabels = debug?.showPhantomLabels ?? false;
   // B.PT167 / B.PT168 — Layer 2 z-index + opacity overrides for the
-  // modal article + each phantom destination. Defaults: zIndex
-  // undefined (no inline z), opacity 1 for the modal article + 0 for
-  // phantoms (production behavior). The retired `phantomOpacity`
-  // field still sets `oLayer2.identity` for back-compat (a unified
-  // "show all phantoms" toggle is now the per-element sliders).
+  // modal article + each phantom destination. Final runtime target:
+  // zIndex undefined (no inline z), opacity 1 for the modal article,
+  // and opacity 0 for identity / slot-list / slot phantoms. Dev
+  // inspect sliders can raise individual phantoms when diagnosing.
   const zL2 = debug?.zLayer2;
   const oL2 = debug?.oLayer2;
   const detailTitleId = "handle-modal-title";
@@ -282,6 +282,9 @@ export function HandleModal({
   }
 
   function renderIdentityPhantom() {
+    const identityOpacity = oStyle(oL2?.identity, 0);
+    const showIdentityContent = identityOpacity > 0;
+
     return (
       <div
         aria-hidden
@@ -293,9 +296,9 @@ export function HandleModal({
             type: "spring",
             ...(open ? openSpring : closeSpring),
           }}
-          initial={{ opacity: oStyle(oL2?.identity, 0) }}
-          animate={{ opacity: oStyle(oL2?.identity, 0) }}
-          exit={{ opacity: oStyle(oL2?.identity, 0) }}
+          initial={{ opacity: identityOpacity }}
+          animate={{ opacity: identityOpacity }}
+          exit={{ opacity: identityOpacity }}
           style={{
             position: "absolute",
             top: 21.5,
@@ -307,7 +310,7 @@ export function HandleModal({
             pointerEvents: "none",
           }}
         >
-          {identityContent ? identityContent : null}
+          {showIdentityContent && identityContent ? identityContent : null}
           {phantomLabels ? (
             <span className="pointer-events-none absolute right-1 top-1 rounded-sm bg-amber-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-black">
               identity
