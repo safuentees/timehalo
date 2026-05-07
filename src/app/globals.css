@@ -2166,6 +2166,7 @@
   padding: 12px 20px 10px;
 }
 .oh-drawer-monthbar-label {
+  align-self: flex-end;
   font-family: var(--oh-mono);
   font-size: 13px;
   font-weight: 800;
