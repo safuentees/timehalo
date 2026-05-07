@@ -693,12 +693,24 @@ export function HandleModal({
                       onSelectDate={handleSelectDate}
                       months={months}
                     >
+                      {/* B.PT236 — Calendar trigger uses the same
+                          chrome-icon vocabulary as the top-bar
+                          chevron + X (B.PT225/226): no bg, size-5
+                          glyph, strokeWidth 2.25, opacity 0.7. No
+                          hover/active transitions for now per user
+                          request. Existing `oh-view-toggle` class
+                          retained for any structural rules but the
+                          inline classes win for the visual treatment. */}
                       <button
                         type="button"
-                        className="oh-view-toggle"
+                        className="oh-view-toggle oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
                         aria-label={t("openMonthViewAria")}
                       >
-                        <CalendarIcon />
+                        <CalendarIcon
+                          className="size-5 opacity-[0.7]"
+                          strokeWidth={2.25}
+                          aria-hidden
+                        />
                       </button>
                     </MonthDrawer>
                   </div>
