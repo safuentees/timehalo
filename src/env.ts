@@ -17,6 +17,16 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().min(1),
+    /**
+     * Turso libsql auth token. Required when DATABASE_URL is a remote
+     * libsql URL (`libsql://<db>-<org>.turso.io`); ignored when the
+     * URL is a local file (`file:...`). The libsql HTTP transport is
+     * what serves as the connection pool / edge replica layer for
+     * production — there's no separate pgbouncer/Accelerate to
+     * configure. Generated via Turso CLI: `turso db tokens create
+     * <db-name>`.
+     */
+    TURSO_AUTH_TOKEN: z.string().optional(),
     AUTH_SECRET: z.string().min(1),
     AUTH_GITHUB_ID: z.string().optional(),
     AUTH_GITHUB_SECRET: z.string().optional(),
