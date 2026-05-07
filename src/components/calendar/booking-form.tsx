@@ -1,18 +1,13 @@
 "use client";
 
+import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
 import { useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import {
-  OhInputGroup,
-  OhInputGroupAddon,
-  OhInputGroupInput,
-  OhInputGroupText,
-} from "@/components/oh/oh-input-group";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldSet } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { trpc } from "@/trpc/hooks";
 import { useBookingCreate } from "@/lib/mutations/use-booking-create";
 import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
@@ -21,6 +16,7 @@ import {
   bookingFormSchema,
   type BookingFormValues,
 } from "@/lib/booking-schema";
+import { cn } from "@/lib/utils";
 
 type Props = {
   handle: string;
@@ -93,116 +89,200 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
     });
   }
 
+  // B.PT246 — port `docs/figma/recipe-schedule-confirm.md`. Three
+  // structural changes on top of the visual port:
+  //   1. Drop per-field `<FieldSet>` wrappers (FieldSet is a multi-
+  //      field grouping primitive, inverted use here).
+  //   2. Drop `<OhInputGroup>` for name/email — the Figma row layout
+  //      is its own primitive (label LEFT / input RIGHT, paper bg
+  //      + INNER_SHADOW r=4 + tiny hairline padding) inlined into a
+  //      typed `<BookingTextField>` helper below.
+  //   3. Submit error moves ABOVE the button (semantically belongs
+  //      with the form, not under it).
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="oh-booking-form">
-        <FieldGroup>
-          <FieldSet>
-            <FieldGroup>
-              <Controller<BookingFormValues>
-                name="visitorName"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <OhInputGroup>
-                      <OhInputGroupInput
-                        {...field}
-                        id={field.name}
-                        placeholder={t("fieldNamePlaceholder")}
-                        autoComplete="name"
-                        autoCapitalize="words"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <OhInputGroupAddon align="inline-start">
-                        <OhInputGroupText>{t("fieldName")}</OhInputGroupText>
-                      </OhInputGroupAddon>
-                    </OhInputGroup>
-                    <FieldError
-                      errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="oh-field-error"
-                    />
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </FieldSet>
-          <FieldSet>
-            <FieldGroup>
-              <Controller<BookingFormValues>
-                name="visitorEmail"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <OhInputGroup>
-                      <OhInputGroupInput
-                        {...field}
-                        id={field.name}
-                        type="email"
-                        placeholder={t("fieldEmailPlaceholder")}
-                        autoComplete="email"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <OhInputGroupAddon align="inline-start">
-                        <OhInputGroupText>{t("fieldEmail")}</OhInputGroupText>
-                      </OhInputGroupAddon>
-                    </OhInputGroup>
-                    <FieldError
-                      errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="oh-field-error"
-                    />
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </FieldSet>
-          <FieldSet>
-            <FieldGroup>
-              <Controller<BookingFormValues>
-                name="question"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <label className="oh-field-label" htmlFor={field.name}>
-                      {t("fieldQuestion")}{" "}
-                      <span className="oh-field-label-opt">
-                        {t("fieldQuestionOptional")}
-                      </span>
-                    </label>
-                    <textarea
-                      {...field}
-                      id={field.name}
-                      rows={3}
-                      maxLength={500}
-                      placeholder={t("fieldQuestionPlaceholder")}
-                      aria-invalid={fieldState.invalid}
-                      className="oh-textarea"
-                    />
-                    <FieldError
-                      errors={fieldState.error ? [fieldState.error] : undefined}
-                      className="oh-field-error"
-                    />
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </FieldSet>
-          <Button
-            type="submit"
-            variant="oh"
-            size="oh"
-            disabled={book.isPending}
-            className="oh-book-submit"
-          >
-            {book.isPending ? t("submitBookPending") : t("submitBook")}
-          </Button>
-          {book.error ? (
-            <p className="oh-field-error" role="alert">
-              {book.error.message}
-            </p>
-          ) : null}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="oh-booking-form flex flex-col gap-5"
+      >
+        <FieldGroup className="flex flex-col gap-5">
+          <BookingTextField
+            name="visitorName"
+            label={t("fieldName")}
+            placeholder={t("fieldNamePlaceholder")}
+            autoComplete="name"
+            autoCapitalize="words"
+          />
+          <BookingTextField
+            name="visitorEmail"
+            label={t("fieldEmail")}
+            placeholder={t("fieldEmailPlaceholder")}
+            type="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <BookingTextareaField
+            name="question"
+            label={t("fieldQuestion")}
+            placeholder={t("fieldQuestionPlaceholder")}
+            rows={3}
+            maxLength={500}
+          />
         </FieldGroup>
+
+        {book.error ? (
+          <p className="oh-field-error" role="alert">
+            {book.error.message}
+          </p>
+        ) : null}
+
+        <Button
+          type="submit"
+          variant="oh"
+          size="oh"
+          disabled={book.isPending}
+          // Figma confirm-button: cornerRadius 10 (pill-ish CTA, NOT
+          // the project's --oh-r-xs 2px), DROP_SHADOW r=15 halo, mono
+          // 13 ExtraBold paper-on-ink (paper-on-ink baked into the
+          // `oh` button variant). Direct `rounded-[10px]` arbitrary —
+          // not promoted to a token until the pattern shows up
+          // elsewhere.
+          className="oh-book-submit h-9 rounded-[10px] font-mono text-[13px] font-extrabold shadow-[0_0_15px_rgba(0,0,0,0.25)]"
+        >
+          {book.isPending ? t("submitBookPending") : t("submitBook")}
+        </Button>
       </form>
     </FormProvider>
+  );
+}
+
+// ── Field helpers (B.PT246) ─────────────────────────────────────────
+// Two narrow components instead of one polymorphic helper — keeps the
+// `name` prop type-narrowed so `question` can't be passed to the text
+// input or vice versa.
+
+type BookingTextFieldName = Exclude<keyof BookingFormValues, "question">;
+type BookingTextareaFieldName = Extract<keyof BookingFormValues, "question">;
+
+function BookingTextField({
+  name,
+  label,
+  placeholder,
+  type = "text",
+  ...inputProps
+}: {
+  name: BookingTextFieldName;
+  label: string;
+  placeholder?: string;
+  type?: HTMLInputTypeAttribute;
+} & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "name" | "type" | "placeholder"
+>) {
+  return (
+    <Controller<BookingFormValues>
+      name={name}
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.invalid}>
+          {/* ROW: paper bg + INNER_SHADOW (Figma `INNER_SHADOW r=3.5`
+              ≈ 4px). Hairline padding (0.5px) carries the spec. */}
+          <div
+            className={cn(
+              "flex h-[33px] items-stretch overflow-hidden",
+              "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
+              "p-[0.5px]",
+              "shadow-[inset_0_0_4px_rgba(0,0,0,0.25)]",
+            )}
+          >
+            {/* LABEL (left, ~63×32, mono 11 ExtraBold ink). NOT
+                uppercase / no tracking — `Name` and `Email` are
+                proper-case in the Figma spec, so we don't reach for
+                `oh-legend` (which adds 2.5px tracking + uppercase). */}
+            <label
+              htmlFor={field.name}
+              className="flex w-[63px] shrink-0 items-center pl-[6px] font-mono text-[11px] font-extrabold text-[color:var(--oh-ink)]"
+            >
+              {label}
+            </label>
+            {/* INPUT (right, drop-shadow halo on the input element
+                itself; Figma `DROP_SHADOW r=4 offset=(0,4)`). */}
+            <input
+              {...field}
+              {...inputProps}
+              id={field.name}
+              type={type}
+              placeholder={placeholder}
+              aria-invalid={fieldState.invalid}
+              className={cn(
+                "min-w-0 flex-1 bg-transparent px-[6px] py-[7px]",
+                "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
+                "outline-none",
+                "shadow-[0_4px_4px_rgba(0,0,0,0.25)]",
+              )}
+            />
+          </div>
+          <FieldError
+            errors={fieldState.error ? [fieldState.error] : undefined}
+            className="oh-field-error"
+          />
+        </Field>
+      )}
+    />
+  );
+}
+
+function BookingTextareaField({
+  name,
+  label,
+  placeholder,
+  rows = 3,
+  maxLength,
+}: {
+  name: BookingTextareaFieldName;
+  label: string;
+  placeholder?: string;
+  rows?: number;
+  maxLength?: number;
+}) {
+  return (
+    <Controller<BookingFormValues>
+      name={name}
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.invalid}>
+          {/* Component 4 in Figma: paper bg, 1px ink stroke,
+              cornerRadius 2, DROP_SHADOW r=15 halo. Label is sr-only
+              — placeholder doubles as the visible cue, matching the
+              spec's structural intent. */}
+          <label className="sr-only" htmlFor={field.name}>
+            {label}
+          </label>
+          <textarea
+            {...field}
+            id={field.name}
+            rows={rows}
+            maxLength={maxLength}
+            placeholder={placeholder}
+            aria-invalid={fieldState.invalid}
+            className={cn(
+              "w-full resize-none",
+              "rounded-(--oh-r-xs) border border-[color:var(--oh-ink)]",
+              "bg-[color:var(--oh-paper)]",
+              "px-[12.5px] py-[10.5px]",
+              "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
+              "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
+              "outline-none",
+              "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
+            )}
+          />
+          <FieldError
+            errors={fieldState.error ? [fieldState.error] : undefined}
+            className="oh-field-error"
+          />
+        </Field>
+      )}
+    />
   );
 }
 
