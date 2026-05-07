@@ -108,7 +108,13 @@ export function HandleModal({
   const oL2 = debug?.oLayer2;
   const detailTitleId = "handle-modal-title";
   const monthTitleId = "handle-modal-title-month";
-  const currentTitleId = view === "month" ? monthTitleId : detailTitleId;
+  const formTitleId = "handle-modal-title-form";
+  const currentTitleId =
+    view === "month"
+      ? monthTitleId
+      : view === "form"
+        ? formTitleId
+        : detailTitleId;
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
     setView("form");
@@ -333,14 +339,18 @@ export function HandleModal({
     titleId,
     className,
     slotPhantomMode,
+    sizing = "fill",
     children,
   }: {
     keyName: string;
     titleId: string;
     className: string;
     slotPhantomMode: "visible" | "measure";
+    sizing?: "fill" | "hug";
     children: ReactNode;
   }) {
+    const fillsAvailableSpace = sizing === "fill";
+
     return (
       <HandleMorphCard
         key={keyName}
@@ -367,7 +377,13 @@ export function HandleModal({
       >
         {renderIdentityPhantom()}
 
-        <div className="absolute inset-[15px] z-10 flex min-h-0 flex-col gap-[15px]">
+        <div
+          className={
+            fillsAvailableSpace
+              ? "absolute inset-[15px] z-10 flex min-h-0 flex-col gap-[15px]"
+              : "relative z-10 flex flex-col gap-[15px] p-[15px]"
+          }
+        >
           {renderChromeRow()}
           <motion.div
             layoutId="oh-slot-list"
@@ -393,7 +409,11 @@ export function HandleModal({
               outline: phantomOutline ? "1px dashed currentColor" : undefined,
               zIndex: zStyle(zL2?.slotList),
             }}
-            className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
+            className={
+              fillsAvailableSpace
+                ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
+                : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF]"
+            }
           >
             {phantomLabels ? (
               <span className="pointer-events-none absolute left-1 top-1 z-30 rounded-sm bg-fuchsia-500/90 px-1.5 py-0.5 font-[family-name:var(--oh-mono)] text-[9px] font-bold uppercase tracking-[1px] text-white">
@@ -401,7 +421,13 @@ export function HandleModal({
               </span>
             ) : null}
             {renderSlotPhantoms({ mode: slotPhantomMode })}
-            <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
+            <div
+              className={
+                fillsAvailableSpace
+                  ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm"
+                  : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-sm"
+              }
+            >
               <div className="relative z-10 shrink-0 px-5 pb-[clamp(14px,2vw,18px)] pt-[clamp(30px,4vw,40px)] sm:px-6">
                 <motion.h2
                   layoutId="oh-modal-title"
@@ -435,75 +461,67 @@ export function HandleModal({
   function renderDetailBody() {
     return (
       <>
-        {view === "strip" ? (
-          <div className="oh-drawer-monthbar">
-            <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
-            <button
-              type="button"
-              onClick={() => setView("month")}
-              className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
-              aria-label={t("openMonthViewAria")}
-            >
-              <CalendarIcon
-                className="size-5 opacity-[0.7]"
-                strokeWidth={2.25}
-                aria-hidden
-              />
-            </button>
-          </div>
-        ) : null}
+        <div className="oh-drawer-monthbar">
+          <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
+          <button
+            type="button"
+            onClick={() => setView("month")}
+            className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+            aria-label={t("openMonthViewAria")}
+          >
+            <CalendarIcon
+              className="size-5 opacity-[0.7]"
+              strokeWidth={2.25}
+              aria-hidden
+            />
+          </button>
+        </div>
         <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait" initial={false}>
-            {view === "strip" ? (
-              <motion.div
-                key="strip"
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 1 }}
-                transition={{ type: "spring", ...confirmSpring }}
-              >
-                <DayStrip
-                  slots={slots}
-                  selectedDate={selectedDate}
-                  onSelectDate={handleSelectDate}
-                />
-                {selectedDate ? (
-                  <DaySlots
-                    date={selectedDate}
-                    slots={dayOfSlots}
-                    onPick={handlePickSlot}
-                    selectedSlot={selectedSlot}
-                  />
-                ) : (
-                  <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
-                )}
-              </motion.div>
+          <motion.div
+            key="strip"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 1 }}
+            transition={{ type: "spring", ...confirmSpring }}
+          >
+            <DayStrip
+              slots={slots}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+            />
+            {selectedDate ? (
+              <DaySlots
+                date={selectedDate}
+                slots={dayOfSlots}
+                onPick={handlePickSlot}
+                selectedSlot={selectedSlot}
+              />
             ) : (
-              <motion.div
-                key="form"
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 1 }}
-                transition={{ type: "spring", ...confirmSpring }}
-              >
-                {selectedSlot ? (
-                  <BookingForm
-                    handle={handle}
-                    slotStart={selectedSlot.start}
-                    rescheduleFromUid={rescheduleFromUid}
-                  />
-                ) : null}
-              </motion.div>
+              <p className="oh-drawer-hint">— {t("tapDateHint")} —</p>
             )}
-          </AnimatePresence>
+          </motion.div>
         </div>
       </>
     );
   }
 
+  function renderFormBody() {
+    return (
+      <div className="pointer-events-auto relative z-30 px-5 pb-8 pt-2 sm:px-6">
+        {selectedSlot ? (
+          <BookingForm
+            handle={handle}
+            slotStart={selectedSlot.start}
+            rescheduleFromUid={rescheduleFromUid}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
   function renderMonthBody() {
     return (
-      <div className="pointer-events-auto relative z-30 min-h-0 flex-1 overflow-hidden">
+      <div className="pointer-events-auto relative z-30 flex min-h-0 flex-1 flex-col overflow-hidden">
         <MonthCalendar
           slots={slots}
           selectedDate={selectedDate}
@@ -542,6 +560,16 @@ export function HandleModal({
                 slotPhantomMode: "measure",
                 children: renderMonthBody(),
               })
+            : view === "form"
+              ? renderCardShell({
+                  keyName: "form-card",
+                  titleId: formTitleId,
+                  className:
+                    "max-h-[calc(100dvh-32px)] max-w-[720px] overflow-hidden sm:max-h-[calc(100dvh-64px)]",
+                  slotPhantomMode: "measure",
+                  sizing: "hug",
+                  children: renderFormBody(),
+                })
             : renderCardShell({
                 keyName: "detail-card",
                 titleId: detailTitleId,

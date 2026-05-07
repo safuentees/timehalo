@@ -97,6 +97,7 @@ The engineering rules in `.claude/rules/oh-ui.md` (radius scale, typography util
 - Hardcode the test user's handle / email / password in a spec — import from `e2e/test-constants.ts`.
 - Skip the seed script's Workspace + OWNER Membership creation. `bookings.create` requires `host.ownedWorkspaces[0]` (B1 invariant); without it the call fails with `"Host has no workspace"`.
 - Enable `fileParallelism: true` in `vitest.config.ts` or raise `workers` above 1 in `playwright.config.ts` — both gate against concrete races (DB wipes / dev-server compilation). The cost (~2s slower runs) buys flake-resistance the project's identity depends on.
+- Mount a Radix `ScrollArea` (or any `flex-1 + min-h-0` scroll-host) inside a parent that is NOT `flex flex-col`. The chain collapses silently — no overflow, no scroll, no error. Wrapper must be both `flex flex-col` AND `min-h-0 flex-1`. Before chasing pointer-events / FocusOn / phantom-layer culprits, walk the height chain from viewport down. Full diagnostic in `.claude/rules/scroll-containers.md` (the B.PT241→B.PT249 trail spent eight rounds chasing the wrong layer; this rule exists so it doesn't recur).
 
 ## Backlog source of truth
 
