@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon, ChevronLeftIcon, XIcon } from "lucide-react";
@@ -79,6 +79,7 @@ export function HandleModal({
     .dateTime(monthBarDate, { month: "long", year: "numeric" })
     .toUpperCase();
   const [view, setView] = useState<"strip" | "month" | "form">("strip");
+  const isPresent = useIsPresent();
 
   const chromeRowText = (() => {
     if (!durationLabel) return undefined;
@@ -218,9 +219,19 @@ export function HandleModal({
     );
   }
 
-  function renderSlotPhantoms() {
+  function renderSlotPhantoms({
+    mode,
+  }: {
+    mode: "visible" | "measure";
+  }) {
+    const isVisible = mode === "visible" || !isPresent;
+
     return (
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{ opacity: isVisible ? 1 : 0 }}
+      >
         <motion.div
           layoutId="oh-slot-stack"
           transition={{
@@ -320,13 +331,13 @@ export function HandleModal({
     keyName,
     titleId,
     className,
-    includeSlotPhantoms,
+    slotPhantomMode,
     children,
   }: {
     keyName: string;
     titleId: string;
     className: string;
-    includeSlotPhantoms: boolean;
+    slotPhantomMode: "visible" | "measure";
     children: ReactNode;
   }) {
     return (
@@ -388,10 +399,19 @@ export function HandleModal({
                 slot list
               </span>
             ) : null}
-            {includeSlotPhantoms ? renderSlotPhantoms() : null}
+            {renderSlotPhantoms({ mode: slotPhantomMode })}
             <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
               <div className="relative z-10 shrink-0 px-5 pb-[clamp(14px,2vw,18px)] pt-[clamp(30px,4vw,40px)] sm:px-6">
-                <h2
+                <motion.h2
+                  layoutId="oh-modal-title"
+                  layout="position"
+                  transition={{
+                    type: "spring",
+                    ...(open ? openSpring : closeSpring),
+                  }}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 1 }}
                   id={titleId}
                   className="m-0 max-w-[min(560px,100%)] font-[family-name:var(--font-grotesk)] text-[clamp(28px,4.4vw,34px)] font-black leading-[0.98] tracking-[-0.045em] text-[color:var(--oh-ink)] [text-wrap:balance]"
                 >
@@ -400,7 +420,7 @@ export function HandleModal({
                       ? t("rescheduleFormTitle")
                       : t("bookingFormTitle")
                     : t("drawerTitle")}
-                </h2>
+                </motion.h2>
                 <p className="sr-only">{t("drawerDescription")}</p>
               </div>
               {children}
@@ -517,7 +537,7 @@ export function HandleModal({
                 keyName: "month-card",
                 titleId: monthTitleId,
                 className: "h-full max-h-[1158px] max-w-[720px] overflow-hidden",
-                includeSlotPhantoms: false,
+                slotPhantomMode: "measure",
                 children: renderMonthBody(),
               })
             : renderCardShell({
@@ -525,7 +545,7 @@ export function HandleModal({
                 titleId: detailTitleId,
                 className:
                   "min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden",
-                includeSlotPhantoms: true,
+                slotPhantomMode: "visible",
                 children: renderDetailBody(),
               })}
         </AnimatePresence>
