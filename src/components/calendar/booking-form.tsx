@@ -83,9 +83,20 @@ function CreateForm({
 
   const book = useBookingCreate({
     onSuccess: (booking) => {
-      form.reset();
-      onBooked?.();
+      // B.PT263 — order matters. Push the route FIRST so the
+      // intercepted `@receipt/(.)booked/[bookingUid]` slot mounts
+      // its `<HandleMorphCard layoutId="handle-card">` in the same
+      // React commit that closes this modal. Motion sees both the
+      // form-card (exiting) and the receipt-card (entering) with
+      // matching `layoutId` → morphs form-rect → receipt-rect.
+      // Previous order (onBooked → push) flipped `drawerOpen=false`
+      // first, the form-card exited toward the landing card's rect
+      // (visible flash to "times and name" landing chrome) before
+      // the receipt-card mounted, then receipt-card snapped to its
+      // own rect with no morph.
       router.push(`/h/${handle}/booked/${booking.publicUid}`);
+      onBooked?.();
+      form.reset();
     },
   });
 
@@ -337,8 +348,11 @@ function RescheduleConfirm({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
-      onBooked?.();
+      // B.PT263 — same push-first ordering as CreateForm onSuccess
+      // so the intercepted receipt slot mounts its layoutId card
+      // in the same commit that closes this modal.
       router.push(`/h/${handle}/booked/${result.publicUid}`);
+      onBooked?.();
     },
   });
 
