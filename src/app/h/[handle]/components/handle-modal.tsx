@@ -198,15 +198,7 @@ export function HandleModal({
         className="pointer-events-none absolute inset-0 z-0 flex justify-center"
         style={{ paddingTop: 21.5 }}
       >
-        <motion.div
-          layoutId="oh-identity"
-          transition={{
-            type: "spring",
-            ...(open ? openSpring : closeSpring),
-          }}
-          initial={{ opacity: identityOpacity }}
-          animate={{ opacity: identityOpacity }}
-          exit={{ opacity: identityOpacity }}
+        <div
           style={{
             display: "flex",
             justifyContent: "center",
@@ -215,6 +207,7 @@ export function HandleModal({
             maxWidth: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
+            opacity: identityOpacity,
             zIndex: zStyle(zL2?.identity),
             pointerEvents: "none",
           }}
@@ -225,7 +218,7 @@ export function HandleModal({
               identity
             </span>
           ) : null}
-        </motion.div>
+        </div>
       </div>
     );
   }
