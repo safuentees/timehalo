@@ -209,7 +209,8 @@ export function HandleModal({
           style={{
             position: "absolute",
             top: 21.5,
-            left: 192.5,
+            left: "50%",
+            transform: "translateX(-50%)",
             width: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
