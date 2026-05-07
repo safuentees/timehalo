@@ -454,10 +454,20 @@ export function HandleModal({
     titleId: string;
     className: string;
     slotPhantomMode: "visible" | "measure";
-    sizing?: "fill" | "hug";
+    sizing?: "fill" | "hug" | "square";
     children: ReactNode;
   }) {
     const fillsAvailableSpace = sizing === "fill";
+    const squaresAvailableSpace = sizing === "square";
+    const stretchesSlotList = fillsAvailableSpace || squaresAvailableSpace;
+    const slotListRadiusStyle = fillsAvailableSpace
+      ? HANDLE_SLOT_LIST_RADIUS_STYLE
+      : cornerRadiusStyle(
+          HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
+          HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
+          HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
+          HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
+        );
 
     return (
       <HandleMorphCard
@@ -489,7 +499,9 @@ export function HandleModal({
           className={
             fillsAvailableSpace
               ? "absolute inset-[15px] z-10 flex min-h-0 flex-col gap-[15px]"
-              : "relative z-10 flex flex-col gap-[15px] p-[15px]"
+              : squaresAvailableSpace
+                ? "relative z-10 flex min-h-0 flex-1 flex-col gap-[15px] p-[15px]"
+                : "relative z-10 flex flex-col gap-[15px] p-[15px]"
           }
         >
           {renderChromeRow()}
@@ -500,25 +512,25 @@ export function HandleModal({
               ...(open ? openSpring : closeSpring),
             }}
             initial={{
-              ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+              ...slotListRadiusStyle,
               opacity: 1,
             }}
             animate={{
-              ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+              ...slotListRadiusStyle,
               opacity: 1,
             }}
             exit={{
-              ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+              ...slotListRadiusStyle,
               opacity: 1,
             }}
             style={{
-              ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+              ...slotListRadiusStyle,
               boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
               outline: phantomOutline ? "1px dashed currentColor" : undefined,
               zIndex: zStyle(zL2?.slotList),
             }}
             className={
-              fillsAvailableSpace
+              stretchesSlotList
                 ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
                 : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF]"
             }
@@ -531,7 +543,7 @@ export function HandleModal({
             {renderSlotPhantoms({ mode: slotPhantomMode })}
             <div
               className={
-                fillsAvailableSpace
+                stretchesSlotList
                   ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm"
                   : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden rounded-sm"
               }
@@ -720,9 +732,9 @@ export function HandleModal({
                   keyName: "form-card",
                   titleId: formTitleId,
                   className:
-                    "max-h-[calc(100dvh-32px)] max-w-[720px] overflow-hidden sm:max-h-[calc(100dvh-64px)]",
+                    "min-h-[min(calc(100dvw-32px),450px)] w-[min(calc(100dvw-32px),450px)] max-w-none overflow-hidden sm:min-h-[min(calc(100dvw-64px),450px)] sm:w-[min(calc(100dvw-64px),450px)]",
                   slotPhantomMode: "measure",
-                  sizing: "hug",
+                  sizing: "square",
                   children: renderFormBody(),
                 })
             : renderCardShell({
