@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon, ChevronLeftIcon, XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   BookingForm,
   DayStrip,
@@ -327,12 +328,20 @@ export function HandleModal({
           // data is sparse. Viewport-clamped instead of arbitrary
           // fixed value: floor 500px (small phones), prefers 70dvh
           // (scales with user's screen), cap 900px (huge monitors
-          // don't get an overwhelming-tall modal). Roughly matches
-          // the "fully populated 3 sections × 8 slots" max state but
-          // expressed as viewport-relative so it adapts. Pattern per
-          // industry standard (Cal.com, Calendly use viewport-
-          // relative heights, not data-computed).
-          className="min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden"
+          // don't get an overwhelming-tall modal).
+          // B.PT241 — month view fills the available viewport height
+          // (modulo the wrapper's `p-4 sm:p-8` padding) so the multi-
+          // month grid has room to scroll comfortably. Other views
+          // keep B.PT222's baseline. `h-full` works because the fixed
+          // parent has explicit height via `inset-0`. Cap at 1158px
+          // matches the Figma frame's natural height — beyond that
+          // we'd grow past the spec'd modal envelope.
+          className={cn(
+            "max-w-[720px] overflow-hidden bg-amber-50",
+            view === "month"
+              ? "h-full max-h-[1158px]"
+              : "min-h-[clamp(500px,70dvh,900px)]",
+          )}
         >
           {/* B.PT159 / B.PT160 — SMART_ANIMATE destinations matching
               the Figma spec. Identity remains an aria-hidden phantom;
