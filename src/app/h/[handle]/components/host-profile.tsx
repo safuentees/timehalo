@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type CSSProperties,
@@ -87,9 +88,9 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
-  // B.PT167 / B.PT168 / B.PT170 — Layer 1 debug overrides from the
-  // route-level debug overlay context. `null` in production /
-  // non-debug → all overrides absent, default behavior preserved.
+  // B.PT167 / B.PT168 / B.PT170 — resolved animation config from the
+  // route-level provider. Non-debug runtime receives the final
+  // inspect-mode production target; dev `?debug=1` can override it.
   const { values: debugValues } = useModalDebug();
   const zL1 = debugValues?.zLayer1;
   const oL1 = debugValues?.oLayer1;
@@ -114,8 +115,10 @@ export default function HostProfile({
   //     phantoms so the destinations aren't empty rects but show
   //     the chip at its 690×282 post-morph rect with full content
   //     (text + duration). See `handle-modal.tsx`.
-  // Default for the toggle is now TRUE — user is in debug mode,
-  // wants the dual-layer / frozen-at-destination view by default.
+  // Final production target keeps this TRUE: the landing card stays
+  // mounted with layoutIds stripped while the modal owns the visible
+  // destination content. Fallback false only applies if this component
+  // is ever rendered outside the provider.
   const keepLandingMounted = debugValues?.keepLandingMounted ?? false;
   // B.PT175 — defer layoutId stripping by one render so motion has
   // a chance to measure the landing's source rects before they're
@@ -261,6 +264,24 @@ export default function HostProfile({
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, [slots]);
+
+  // B.PT254 — reset hour selection every time the modal opens. Without
+  // this, opening → picking an hour → closing → reopening leaves the
+  // previously picked slot highlighted in the picker (and bumps the
+  // user straight to the form view via the modal's internal `selectedSlot
+  // ? form : strip` heuristic). User flow expects a clean picker on
+  // each open. Date stays put — losing the day too would force the
+  // visitor to re-navigate the calendar, which is the unhelpful kind
+  // of reset. URL `?slot=` is wiped in lockstep so the next reopen-via-
+  // refresh path is consistent.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (drawerOpen && !wasOpenRef.current) {
+      setSelectedSlot(undefined);
+      updateQueryParam("slot", null, { pushEntry: false });
+    }
+    wasOpenRef.current = drawerOpen;
+  }, [drawerOpen]);
 
   const displayName = user.name ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
@@ -480,7 +501,10 @@ export default function HostProfile({
                   initial={{ opacity: oStyle(oL1?.identity, 1) }}
                   animate={{ opacity: oStyle(oL1?.identity, 1) }}
                   exit={{ opacity: 0 }}
-                  style={{ zIndex: zStyle(zL1?.identity) }}
+                  style={{
+                    visibility: stripLandingLayoutId ? "hidden" : undefined,
+                    zIndex: zStyle(zL1?.identity),
+                  }}
                   className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
                 >
                   <motion.div
@@ -490,9 +514,6 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    style={{
-                      visibility: stripLandingLayoutId ? "hidden" : undefined,
-                    }}
                     className="flex items-center gap-3"
                   >
                     <motion.span
@@ -767,11 +788,11 @@ export default function HostProfile({
                 // Mirrors what B.PT172 did for slot rows (phantom rects
                 // had no content → user couldn't see chips at
                 // destination → SlotRow rendered inside). The identity
-                // row/title/avatar use their own shared layout IDs,
-                // matching the slot-text fix. In inspect mode the
-                // stripped Layer 1 row is visibility-hidden after
-                // measurement so only the promoted Layer 2 clone is
-                // visible during the handoff.
+                // row/title/avatar use their own shared layout IDs
+                // when the identity phantom is intentionally visible
+                // in debug. Production leaves the phantom opacity at
+                // 0, so HandleModal keeps only the measuring rect and
+                // does not mount these nested projected children.
                 identityContent={
                   <motion.div
                     layoutId="oh-identity-row"
