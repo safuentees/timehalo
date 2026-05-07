@@ -9,17 +9,13 @@ import {
   type ComponentProps,
 } from "react";
 import { flushSync } from "react-dom";
+import { usePathname } from "next/navigation";
 import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  motion,
-  SwitchLayoutGroupContext,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
@@ -63,10 +59,6 @@ const CLOSE_SPRING =
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
 
-const PRESERVE_SHARED_FOLLOW_OPACITY = {
-  shouldPreserveFollowOpacity: () => true,
-};
-
 const HANDLE_AVATAR_PROJECTION_STYLE = {
   borderRadius: 9999,
   boxShadow: "0 4px 4px rgba(0,0,0,0.25)",
@@ -88,6 +80,7 @@ export default function HostProfile({
   renderedAt,
 }: Props) {
   const t = useTranslations("HostProfile");
+  const pathname = usePathname();
   // B.PT167 / B.PT168 / B.PT170 — resolved animation config from the
   // route-level provider. Non-debug runtime receives the final
   // inspect-mode production target; dev `?debug=1` can override it.
@@ -169,6 +162,8 @@ export default function HostProfile({
   const daysWithOpenSlotsThisWeek = countOpenDaysThisWeek(availableSlots, now);
 
   const [drawerOpen, setDrawerOpenRaw] = useState(false);
+  const [receiptTransitionPending, setReceiptTransitionPending] =
+    useState(false);
   // B.PT261 — gate `setDrawerOpen` against in-flight modal-card
   // exit animations. Motion 12's shared-`layoutId` projection
   // registry (see motion #3424 — "Shared layout animation uses
@@ -204,6 +199,11 @@ export default function HostProfile({
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
   >(undefined);
+  const receiptRouteActive = pathname.includes(`/h/${handle}/booked/`);
+  const receiptOverlayActive = receiptRouteActive || receiptTransitionPending;
+  useEffect(() => {
+    if (!receiptRouteActive) setReceiptTransitionPending(false);
+  }, [receiptRouteActive]);
   // B.PT175 + B.PT177 — the strip only fires when ALL three hold:
   // (a) we're past the initial mount (motion has had a chance to
   //     measure landing's layoutIds at least once),
@@ -215,7 +215,8 @@ export default function HostProfile({
   // render where the modal opens means motion's last measurement
   // (taken just before drawerOpen flipped) becomes the FLIP source
   // for the modal phantoms.
-  const stripLandingLayoutId = mounted && keepLandingMounted && drawerOpen;
+  const stripLandingLayoutId =
+    mounted && ((keepLandingMounted && drawerOpen) || receiptOverlayActive);
   const landingLayoutId = (id: string) =>
     stripLandingLayoutId ? undefined : id;
   const identityProjectionTransition = {
@@ -437,25 +438,6 @@ export default function HostProfile({
           `<AnimatePresence>` keeps the unmounting card alive long
           enough for the morph to play; without it, the card would
           pop out instantly. */}
-      {/* B.PT177 — wrap both AnimatePresence containers (landing +
-          modal) in a single LayoutGroup so motion coordinates layout
-          measurements ACROSS the AnimatePresence boundaries. Per
-          motion docs: "Use LayoutGroup to coordinate layout
-          animations between AnimatePresence children and external
-          components when mixing exit and layout animations." Without
-          this wrapper, the per-layoutId rect cache lives in the
-          global motion tree but the AnimatePresence boundaries don't
-          share their lifecycle signals — leading to a stale cache
-          after a production-mode modal cycle. */}
-      {/* Motion's default shared-layout behavior crossfades old/new
-          leads. `layoutCrossfade={false}` removes that fade by hiding
-          the old lead immediately, which creates a one-frame content
-          gap on chip/title morphs. This internal Motion context keeps
-          the follow element opaque while the new lead promotes, so the
-          visible content stays continuous through the Smart Animate
-          handoff. */}
-      <SwitchLayoutGroupContext.Provider value={PRESERVE_SHARED_FOLLOW_OPACITY}>
-        <LayoutGroup>
           <AnimatePresence mode="popLayout">
             {!drawerOpen || keepLandingMounted ? (
               <HandleMorphCard
@@ -808,7 +790,7 @@ export default function HostProfile({
               }
             }}
           >
-            {hasOpenSlots && drawerOpen ? (
+            {hasOpenSlots && drawerOpen && !receiptOverlayActive ? (
               <HandleModal
                 key="handle-modal"
                 handle={handle}
@@ -823,6 +805,10 @@ export default function HostProfile({
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });
+                }}
+                onBookingComplete={() => {
+                  setReceiptTransitionPending(true);
+                  setDrawerOpen(false);
                 }}
                 // B.PT175 — content rendered inside the modal's
                 // `oh-identity` phantom rect (336×87 at 192,22 inside
@@ -885,8 +871,6 @@ export default function HostProfile({
               />
             ) : null}
           </AnimatePresence>
-        </LayoutGroup>
-      </SwitchLayoutGroupContext.Provider>
     </OhVisitorShell>
   );
 }

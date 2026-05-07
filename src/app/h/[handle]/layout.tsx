@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { VisitorDebugOverlay } from "./_components/visitor-debug-overlay";
+import { HostRouteMotionShell } from "./components/host-route-motion-shell";
 
 /**
  * Public host profile shell. As of B.PT59, the visitor surface adopts
@@ -17,10 +18,13 @@ import { VisitorDebugOverlay } from "./_components/visitor-debug-overlay";
  */
 export default async function HostLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+  receipt,
+}: Readonly<{ children: ReactNode; receipt: ReactNode }>) {
   return (
     <div className="oh-root">
-      <VisitorDebugOverlay>{children}</VisitorDebugOverlay>
+      <VisitorDebugOverlay>
+        <HostRouteMotionShell receipt={receipt}>{children}</HostRouteMotionShell>
+      </VisitorDebugOverlay>
     </div>
   );
 }

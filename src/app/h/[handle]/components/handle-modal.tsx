@@ -91,6 +91,7 @@ type Props = {
   onPickSlot: (slot: Slot) => void;
   selectedSlot: Slot | undefined;
   rescheduleFromUid?: string;
+  onBookingComplete?: () => void;
   /** How many calendar months the inner MonthDrawer should render. */
   months?: number;
   /** B.PT175 — content rendered inside the `oh-identity` phantom
@@ -117,6 +118,7 @@ export function HandleModal({
   onPickSlot,
   selectedSlot,
   rescheduleFromUid,
+  onBookingComplete,
   months = 3,
   identityContent,
   durationLabel,
@@ -673,6 +675,7 @@ export function HandleModal({
             handle={handle}
             slotStart={selectedSlot.start}
             rescheduleFromUid={rescheduleFromUid}
+            onBooked={onBookingComplete}
           />
         ) : null}
       </div>

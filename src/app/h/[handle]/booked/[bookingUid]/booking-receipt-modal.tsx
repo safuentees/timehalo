@@ -1,0 +1,125 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { motion } from "motion/react";
+import { FocusOn } from "react-focus-on";
+import { XIcon } from "lucide-react";
+import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import {
+  HANDLE_CARD_RADIUS_STYLE,
+  HANDLE_SLOT_LIST_RADIUS_STYLE,
+} from "../../components/handle-morph-parts";
+import { HandleMorphCard } from "../../components/handle-morph-card";
+import { useModalDebug } from "../../_components/visitor-debug-overlay";
+import {
+  BookingConfirmationContent,
+  type BookingConfirmationBooking,
+} from "./booking-confirmation";
+
+const OPEN_SPRING = animSpec.transitions[0].spring;
+const CLOSE_SPRING =
+  animSpec.transitions.find(
+    (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
+  )?.spring ?? animSpec.transitions[2].spring;
+
+export function BookingReceiptModal({
+  booking,
+}: {
+  booking: BookingConfirmationBooking;
+}) {
+  const router = useRouter();
+  const t = useTranslations("BookingConfirmation");
+  const tCalendar = useTranslations("BookingCalendar");
+  const { values: debug, panelShardRef } = useModalDebug();
+  const openSpring = debug?.openSpring ?? OPEN_SPRING;
+  const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
+  const focusShards = panelShardRef ? [panelShardRef] : [];
+
+  function close() {
+    router.back();
+  }
+
+  return (
+    <FocusOn
+      enabled
+      onEscapeKey={close}
+      onClickOutside={close}
+      returnFocus
+      scrollLock={false}
+      shards={focusShards}
+      className="contents"
+    >
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-[15px]"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("badgeBooked")}
+      >
+        <button
+          type="button"
+          aria-label={tCalendar("closeDrawerAria")}
+          className="absolute inset-0 cursor-default bg-transparent"
+          onClick={close}
+        />
+        <HandleMorphCard
+          key="booking-receipt-modal"
+          layoutId="handle-card"
+          transition={{ type: "spring", ...openSpring }}
+          initial={{ ...HANDLE_CARD_RADIUS_STYLE, opacity: 1 }}
+          animate={{ ...HANDLE_CARD_RADIUS_STYLE, opacity: 1 }}
+          exit={{ ...HANDLE_CARD_RADIUS_STYLE, opacity: 1 }}
+          style={{
+            position: "relative",
+            willChange: "transform",
+          }}
+          className="w-[min(500px,calc(100vw-30px))] p-[15px]"
+        >
+          <div className="relative z-10 flex flex-col gap-[15px]">
+            <div className="relative z-30 grid h-7 shrink-0 grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] items-center gap-2">
+              <span aria-hidden />
+              <motion.span
+                layoutId="oh-modal-title"
+                layout="position"
+                transition={{ type: "spring", ...openSpring }}
+                className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+              >
+                {t("badgeBooked")}
+              </motion.span>
+              <button
+                type="button"
+                onClick={close}
+                aria-label={tCalendar("closeDrawerAria")}
+                className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+              >
+                <XIcon
+                  className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-active:scale-95 group-active:opacity-100"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+              </button>
+            </div>
+            <motion.div
+              layoutId="oh-slot-list"
+              transition={{ type: "spring", ...openSpring }}
+              initial={{ ...HANDLE_SLOT_LIST_RADIUS_STYLE, opacity: 1 }}
+              animate={{ ...HANDLE_SLOT_LIST_RADIUS_STYLE, opacity: 1 }}
+              exit={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                opacity: 1,
+                transition: { type: "spring", ...closeSpring },
+              }}
+              style={{
+                ...HANDLE_SLOT_LIST_RADIUS_STYLE,
+                boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
+              }}
+              className="relative z-10 min-h-0 overflow-hidden bg-[#F5EFDF]"
+            >
+              <BookingConfirmationContent booking={booking} variant="modal" />
+            </motion.div>
+          </div>
+        </HandleMorphCard>
+      </div>
+    </FocusOn>
+  );
+}
