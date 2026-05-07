@@ -9,7 +9,7 @@ import {
   BookingForm,
   DayStrip,
   DaySlots,
-  MonthDrawer,
+  MonthCalendar,
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
@@ -128,16 +128,19 @@ export function HandleModal({
   const monthBarLabel = format
     .dateTime(monthBarDate, { month: "long", year: "numeric" })
     .toUpperCase();
-  // B.PT157 — internal view state. Picker view = day strip + slots;
-  // form view = name/email/question (or reschedule confirm). Was a
-  // nested ResponsiveModal via <BookingDrawer> in B.PT156; replaced
-  // with inline state swap so the picker → form transition is a
-  // CONTENT SWAP inside the same morphing modal element (matches
-  // Figma frame 2 → frame 3 SMART_ANIMATE prototype reaction; both
-  // frames are named "handle-detail" with different ids 324:16654 +
-  // 358:20746). Spring physics for the swap come from anim spec
-  // transitions[1] — stiffer + more damped than the open spring.
-  const [view, setView] = useState<"picker" | "form">("picker");
+  // B.PT157 / B.PT239 — internal view state. Three views:
+  //   strip — day strip + slots (the "picker" mode renamed from B.PT157)
+  //   month — inline MonthCalendar (added B.PT239; was a popup before)
+  //   form  — name/email/question (or reschedule confirm)
+  // Was a nested ResponsiveModal via <BookingDrawer> in B.PT156;
+  // replaced with inline state swap so the picker → form transition
+  // is a CONTENT SWAP inside the same morphing modal element
+  // (matches Figma frame 2 → frame 3 SMART_ANIMATE prototype
+  // reaction; both frames are named "handle-detail" with different
+  // ids 324:16654 + 358:20746). Spring physics for the swap come
+  // from anim spec transitions[1] — stiffer + more damped than the
+  // open spring.
+  const [view, setView] = useState<"strip" | "month" | "form">("strip");
 
   // B.PT232 — chrome-row text. Picker view shows duration only.
   // Form view (after slot pick) expands to "<duration> on <date>
@@ -190,16 +193,24 @@ export function HandleModal({
 
   function handleSelectDate(nextDate: Date | undefined) {
     // If the user changes date while in form view, drop back to
-    // picker so they can re-select a slot in the new date.
+    // strip view so they can re-select a slot in the new date.
     if (
       view === "form" &&
       (!nextDate ||
         (selectedSlot &&
           !isSameCalendarDay(new Date(selectedSlot.start), nextDate)))
     ) {
-      setView("picker");
+      setView("strip");
     }
     onSelectDate(nextDate);
+  }
+
+  // B.PT239 — date picked in inline month view → swap back to strip
+  // view (showing slots for that day). Per user flow: month →
+  // strip-with-selected-day → slots → form.
+  function handleMonthPick(nextDate: Date) {
+    onSelectDate(nextDate);
+    setView("strip");
   }
 
   // Reset to picker on close happens for free — when `open` flips to
@@ -433,11 +444,15 @@ export function HandleModal({
                 // do the same is intuitive that it would work too."
                 // Redundant affordance is fine; chevron always reads
                 // as "go back one step" — at root that's "exit."
+                // B.PT239 — chevron back-step. From any non-strip
+                // view returns to strip. From strip closes the modal.
                 onClick={() =>
-                  view === "form" ? setView("picker") : onOpenChange(false)
+                  view === "strip" ? onOpenChange(false) : setView("strip")
                 }
                 aria-label={
-                  view === "form" ? t("backToPickerAria") : t("closeDrawerAria")
+                  view === "strip"
+                    ? t("closeDrawerAria")
+                    : t("backToPickerAria")
                 }
                 className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
@@ -664,7 +679,7 @@ export function HandleModal({
                 </motion.div>
               </div>
 
-              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm ">
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
                 {/* B.PT225 — Title block restored inside the cream
                     container (reverts B.PT224's outside placement).
                     Reads as part of the booking content rather than
@@ -682,40 +697,30 @@ export function HandleModal({
                   </h2>
                   <p className="sr-only">{t("drawerDescription")}</p>
                 </div>
-                {view === "picker" ? (
+                {view === "strip" ? (
                   <div className="oh-drawer-monthbar">
                     <span className="oh-drawer-monthbar-label">
                       {monthBarLabel}
                     </span>
-                    <MonthDrawer
-                      slots={slots}
-                      selectedDate={selectedDate}
-                      onSelectDate={handleSelectDate}
-                      months={months}
+                    {/* B.PT236 / B.PT237 / B.PT239 — Calendar trigger
+                        sets `view: "month"` directly (was opening a
+                        MonthDrawer Vaul popup; B.PT239 inlines the
+                        calendar inside the cream container instead).
+                        Chrome-icon vocabulary matches chevron + X.
+                        MonthDrawer popup path no longer wired here —
+                        see backlog for the audit/cleanup item. */}
+                    <button
+                      type="button"
+                      onClick={() => setView("month")}
+                      className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                      aria-label={t("openMonthViewAria")}
                     >
-                      {/* B.PT236 / B.PT237 — Calendar trigger uses
-                          the chrome-icon vocabulary from the chevron
-                          + X (B.PT225/226): no bg, no border, size-5
-                          glyph, strokeWidth 2.25, opacity 0.7. No
-                          hover/active transitions per user request.
-                          B.PT237 — `oh-view-toggle` class DROPPED:
-                          its CSS at globals.css:2699 was painting
-                          a 1.5px ink border + paper bg + forcing
-                          36px container + 16px svg, which overrode
-                          our chrome-icon look. Inline Tailwind only
-                          now. */}
-                      <button
-                        type="button"
-                        className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
-                        aria-label={t("openMonthViewAria")}
-                      >
-                        <CalendarIcon
-                          className="size-5 opacity-[0.7] bg-amber-800"
-                          strokeWidth={2.25}
-                          aria-hidden
-                        />
-                      </button>
-                    </MonthDrawer>
+                      <CalendarIcon
+                        className="size-5 opacity-[0.7]"
+                        strokeWidth={2.25}
+                        aria-hidden
+                      />
+                    </button>
                   </div>
                 ) : null}
                 {/* B.PT233 — Form-view monthbar dropped entirely.
@@ -732,9 +737,9 @@ export function HandleModal({
                   modal-open spring so the swap feels snappier. */}
                 <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
                   <AnimatePresence mode="wait" initial={false}>
-                    {view === "picker" ? (
+                    {view === "strip" ? (
                       <motion.div
-                        key="picker"
+                        key="strip"
                         // B.PT196 / B.PT197 — both `initial` and `exit`
                         // pinned to opacity 1 (matching `animate`). The
                         // picker/form motion.divs no longer fade in on
@@ -769,6 +774,25 @@ export function HandleModal({
                             — {t("tapDateHint")} —
                           </p>
                         )}
+                      </motion.div>
+                    ) : view === "month" ? (
+                      <motion.div
+                        key="month"
+                        // B.PT239 — same opacity/spring vocabulary as
+                        // the strip + form branches; AnimatePresence
+                        // mode="wait" handles the swap.
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 1 }}
+                        transition={{ type: "spring", ...confirmSpring }}
+                        className="flex min-h-0 flex-1 flex-col"
+                      >
+                        <MonthCalendar
+                          slots={slots}
+                          selectedDate={selectedDate}
+                          onSelectDate={handleMonthPick}
+                          months={months}
+                        />
                       </motion.div>
                     ) : (
                       <motion.div
