@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
-# commit-msg hook — enforce that any commit referencing a backlog item ID
-# also touches BACKLOG.md in the staged diff. The aim: stop "closes B7"
-# commits from drifting away from BACKLOG.md's status table.
+# commit-msg hook — enforce that any commit referencing an SoT item ID
+# also touches the relevant SoT file (BACKLOG.md or PRODUCTION-READINESS.md)
+# in the staged diff. The aim: stop "closes B7" commits from drifting
+# away from BACKLOG.md's status table, and equally stop "closes A1"
+# commits from drifting away from PRODUCTION-READINESS.md's checklist.
 #
-# ID grammar (matches BACKLOG.md):
-#   - Original-tier:   A1..A15, B1..B5, C1..C6, 10.1.1..10.1.10
-#   - Post-tier (PT):  A.PT1..A.PT9, B.PT1..B.PT13, C.PT1..C.PT9
+# Two SoT files use overlapping ID grammar:
+#   - BACKLOG.md             — A1..A15, B1..B5, C1..C6, 10.1.x, [ABC].PT[N]
+#   - PRODUCTION-READINESS.md — A1..On (Section letter + row number)
 #
-# We match either form. Bypass with the standard `--no-verify` flag if
-# you genuinely need to (e.g. a typo fix to a row already updated in a
-# prior commit).
+# The grammar collides on A1..C9 — the same token can refer to either
+# SoT depending on context. Rather than disambiguate by parsing each
+# file's table of contents, we accept EITHER file in the staged diff
+# as evidence that the commit author has updated the relevant SoT.
+# A commit that names an ID and stages neither file is rejected.
+#
+# Bypass with the standard `--no-verify` flag if you genuinely need to
+# (e.g. a typo fix to a row already updated in a prior commit).
 set -e
 
 COMMIT_MSG_FILE="$1"
@@ -41,9 +48,15 @@ if [ -z "$IDS" ]; then
   exit 0
 fi
 
-# BACKLOG.md must be in the staged diff. We check the index — what
-# this commit will actually carry.
-if git diff --cached --name-only | grep -qx "BACKLOG.md"; then
+# BACKLOG.md or PRODUCTION-READINESS.md must be in the staged diff.
+# We check the index — what this commit will actually carry. Either
+# SoT counts; both grammars collide on A1..C9 so we don't try to
+# disambiguate which one the IDs reference.
+STAGED=$(git diff --cached --name-only)
+if printf '%s\n' "$STAGED" | grep -qx "BACKLOG.md"; then
+  exit 0
+fi
+if printf '%s\n' "$STAGED" | grep -qx "PRODUCTION-READINESS.md"; then
   exit 0
 fi
 
@@ -51,11 +64,12 @@ fi
 # exactly which rows to update.
 {
   echo
-  echo "❌ Commit references backlog item(s):"
+  echo "❌ Commit references SoT item(s):"
   printf '   • %s\n' $IDS
   echo
-  echo "But BACKLOG.md isn't in the staged diff. Update the row(s) above:"
-  echo "   - Flip status to SHIPPED if you're closing the item."
+  echo "But neither BACKLOG.md nor PRODUCTION-READINESS.md is in the"
+  echo "staged diff. Update the row(s) above:"
+  echo "   - Flip status (SHIPPED / [x]) if you're closing the item."
   echo "   - Add a new row + 'Defers: <new-id>' in the body if you're"
   echo "     introducing a deferral."
   echo
