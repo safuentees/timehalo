@@ -266,6 +266,17 @@ export function HandleModal({
       >
         <HandleMorphCard
           layoutId="handle-card"
+          // B.PT242 — `layout` + `layoutDependency={view}` tell motion
+          // to animate (not snap) the size change between `view`
+          // states AND to invalidate the projection cache when
+          // `view` changes. Without these, the conditional className
+          // (B.PT241) swapped `min-h-[clamp(...)]` ↔ `h-full max-h-
+          // [1158px]` mid-morph and motion's projection ran against
+          // a stale rect → `Cannot read properties of undefined
+          // (reading 'x')`. Per motion docs (motion.dev/docs/vue-
+          // motion-component layout + layoutDependency).
+          layout
+          layoutDependency={view}
           transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
           // B.PT159: hint the compositor that we'll be transforming
           // this element. Motion sets `transform` itself but `will-
