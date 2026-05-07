@@ -301,8 +301,17 @@ export function HandleModal({
           exit={{ opacity: identityOpacity }}
           style={{
             position: "absolute",
+            // B.PT256 — center horizontally regardless of card width.
+            // Hardcoded `left: 192.5` was tuned for the 720px-wide
+            // detail / month card and miscentered on the 450px form
+            // card (off by ~67.5px right). Percentage + translate
+            // resolves against the parent's actual width so all three
+            // views receive the same top-centered identity rect.
+            // Width stays 336 (Figma identity-row width); top stays
+            // 21.5 (Figma identity-row vertical offset).
             top: 21.5,
-            left: 192.5,
+            left: "50%",
+            transform: "translateX(-50%)",
             width: 336,
             height: 87,
             outline: phantomOutline ? "1px dashed currentColor" : undefined,
