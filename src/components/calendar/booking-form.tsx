@@ -111,7 +111,7 @@ function CreateForm({ handle, slotStart }: { handle: string; slotStart: string }
           variant="oh"
           size="oh"
           disabled={book.isPending}
-          className="oh-book-submit h-9 rounded-[10px] font-mono text-[13px] font-extrabold shadow-[0_0_15px_rgba(0,0,0,0.25)]"
+          className={BOOKING_SUBMIT_BUTTON_CLASS}
         >
           {book.isPending ? t("submitBookPending") : t("submitBook")}
         </Button>
@@ -128,6 +128,13 @@ const BOOKING_FIELD_SURFACE_CLASS = cn(
   "shadow-[inset_0_0_4px_rgba(0,0,0,0.15)]",
   "transition-[background-color,box-shadow] duration-150 ease-oh",
   "hover:bg-[var(--oh-input-bg-hover)]",
+);
+
+const BOOKING_SUBMIT_BUTTON_CLASS = cn(
+  "oh-book-submit h-9 rounded-[10px] font-mono text-[13px] font-extrabold",
+  "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
+  "hover:!bg-oh-ink hover:!text-oh-paper",
+  "active:translate-y-px active:shadow-[0_2px_8px_rgba(0,0,0,0.35)]",
 );
 
 function BookingTextField({
