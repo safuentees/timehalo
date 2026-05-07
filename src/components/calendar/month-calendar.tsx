@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { computeDensityMap, type Slot } from "@/lib/availability";
 import { MonthStack } from "./month-stack";
 
@@ -23,9 +24,15 @@ type Props = {
  * month grid inline as a sub-view of its picker. MonthDrawer (the
  * popup variant) still exists; both consume `MonthStack` underneath.
  *
- * Internal scroll: caller is responsible for sizing — wrap in a flex
- * column with a known height and the `MonthStack` will scroll within
- * the available area via `overflow-y-auto` on this primitive's body.
+ * B.PT246 — back to Radix `ScrollArea` for the overlay treatment.
+ * Per Radix docs (radix-ui.com/primitives/docs/components/scroll-
+ * area) the canonical structure puts padding on the CONTENT inside
+ * the Viewport, NOT on the Root. The previous attempt put `px-5
+ * pb-8 pt-2 overflow-hidden` on the Root which pushed the Viewport
+ * into a padded area and confused scroll detection. Now the Root
+ * just sizes itself via flex (`min-h-0 flex-1`), the Viewport
+ * fills it edge-to-edge, and an inner padded `<div>` carries the
+ * spacing for the MonthStack content.
  */
 export function MonthCalendar({
   slots,
@@ -54,17 +61,16 @@ export function MonthCalendar({
           </span>
         ))}
       </div>
-      <div
-        className="oh-drawer-body min-h-0 flex-1 overflow-y-auto"
-        data-view="month"
-      >
-        <MonthStack
-          months={months}
-          densityMap={densityMap}
-          selectedDate={selectedDate}
-          onSelectDate={onSelectDate}
-        />
-      </div>
+      <ScrollArea className="min-h-0 flex-1" data-view="month">
+        <div className="px-5 pb-8 pt-2">
+          <MonthStack
+            months={months}
+            densityMap={densityMap}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+          />
+        </div>
+      </ScrollArea>
     </div>
   );
 }
