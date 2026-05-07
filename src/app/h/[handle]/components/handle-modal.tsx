@@ -627,6 +627,21 @@ export function HandleModal({
       // that opened the modal) on close. Standard a11y contract Radix
       // Dialog gave us before; FocusOn restores it.
       returnFocus
+      // B.PT244 — `noIsolation` disables RemoveScroll's outer
+      // document-level wheel/touch capture. RemoveScroll attaches
+      // capture-phase listeners on `document` to prevent body scroll;
+      // those listeners were intercepting wheel events bound for the
+      // inner Radix ScrollArea Viewport in month view (clicks worked
+      // because click is fired on a separate event chain). Per
+      // react-remove-scroll docs the `noIsolation` flag is "React
+      // friendly and unlikely to be a problem" to disable. Body
+      // scroll is already locked by the visitor shell's
+      // `:where(html, body):has(.oh-visitor-shell) { overflow:
+      // hidden }` rule (B.PT217), so RemoveScroll's outer capture
+      // is redundant here — disabling it lets inner scroll
+      // containers (Radix Viewport, oh-day-strip Embla, slot Embla)
+      // handle wheel/touch directly.
+      noIsolation
       // B.PT165 — when the Leva debug panel is mounted (?debug=1 in
       // dev), pass its container ref as a shard so clicks/focus on
       // the panel are treated as "inside" the modal: no
