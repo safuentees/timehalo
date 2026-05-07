@@ -9,7 +9,7 @@ import {
   BookingForm,
   DayStrip,
   DaySlots,
-  MonthDrawer,
+  MonthCalendar,
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
@@ -78,7 +78,7 @@ export function HandleModal({
   const monthBarLabel = format
     .dateTime(monthBarDate, { month: "long", year: "numeric" })
     .toUpperCase();
-  const [view, setView] = useState<"picker" | "form">("picker");
+  const [view, setView] = useState<"strip" | "month" | "form">("strip");
 
   const chromeRowText = (() => {
     if (!durationLabel) return undefined;
@@ -117,9 +117,14 @@ export function HandleModal({
         (selectedSlot &&
           !isSameCalendarDay(new Date(selectedSlot.start), nextDate)))
     ) {
-      setView("picker");
+      setView("strip");
     }
     onSelectDate(nextDate);
+  }
+
+  function handleMonthPick(nextDate: Date) {
+    onSelectDate(nextDate);
+    setView("strip");
   }
 
   if (!open) return null;
@@ -200,10 +205,12 @@ export function HandleModal({
               <button
                 type="button"
                 onClick={() =>
-                  view === "form" ? setView("picker") : onOpenChange(false)
+                  view === "strip" ? onOpenChange(false) : setView("strip")
                 }
                 aria-label={
-                  view === "form" ? t("backToPickerAria") : t("closeDrawerAria")
+                  view === "strip"
+                    ? t("closeDrawerAria")
+                    : t("backToPickerAria")
                 }
                 className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
@@ -381,7 +388,7 @@ export function HandleModal({
                 </motion.div>
               </div>
 
-              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm ">
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-sm">
                 <div className="relative z-10 shrink-0 px-5 pb-[clamp(14px,2vw,18px)] pt-[clamp(30px,4vw,40px)] sm:px-6">
                   <h2
                     id="handle-modal-title"
@@ -395,37 +402,31 @@ export function HandleModal({
                   </h2>
                   <p className="sr-only">{t("drawerDescription")}</p>
                 </div>
-                {view === "picker" ? (
+                {view === "strip" ? (
                   <div className="oh-drawer-monthbar">
                     <span className="oh-drawer-monthbar-label">
                       {monthBarLabel}
                     </span>
-                    <MonthDrawer
-                      slots={slots}
-                      selectedDate={selectedDate}
-                      onSelectDate={handleSelectDate}
-                      months={months}
+                    <button
+                      type="button"
+                      onClick={() => setView("month")}
+                      className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+                      aria-label={t("openMonthViewAria")}
                     >
-                      <button
-                        type="button"
-                        className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
-                        aria-label={t("openMonthViewAria")}
-                      >
-                        <CalendarIcon
-                          className="size-5 opacity-[0.7] bg-amber-800"
-                          strokeWidth={2.25}
-                          aria-hidden
-                        />
-                      </button>
-                    </MonthDrawer>
+                      <CalendarIcon
+                        className="size-5 opacity-[0.7]"
+                        strokeWidth={2.25}
+                        aria-hidden
+                      />
+                    </button>
                   </div>
                 ) : null}
 
                 <div className="oh-drawer-body min-h-0 flex-1 overflow-y-auto">
                   <AnimatePresence mode="wait" initial={false}>
-                    {view === "picker" ? (
+                    {view === "strip" ? (
                       <motion.div
-                        key="picker"
+                        key="strip"
                         initial={{ opacity: 1 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 1 }}
@@ -448,6 +449,22 @@ export function HandleModal({
                             — {t("tapDateHint")} —
                           </p>
                         )}
+                      </motion.div>
+                    ) : view === "month" ? (
+                      <motion.div
+                        key="month"
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 1 }}
+                        transition={{ type: "spring", ...confirmSpring }}
+                        className="flex min-h-0 flex-1 flex-col"
+                      >
+                        <MonthCalendar
+                          slots={slots}
+                          selectedDate={selectedDate}
+                          onSelectDate={handleMonthPick}
+                          months={months}
+                        />
                       </motion.div>
                     ) : (
                       <motion.div
