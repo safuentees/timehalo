@@ -66,19 +66,48 @@ You only do this once per machine. Takes ~5 minutes.
 
 #### 2. Launch Chrome with the remote-debugging port open
 
-Quit Chrome first. Then on macOS:
+Quit Chrome fully first (`osascript -e 'quit app "Google Chrome"'`
++ confirm `pgrep -if "Google Chrome"` returns empty — closing the
+window is NOT enough; the browser process must exit).
+
+Then create a dedicated debug-profile directory once and launch
+with both flags:
 
 ```bash
+mkdir -p "$HOME/.chrome-debug-profile"
+
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-  --remote-debugging-port=9222
+  --remote-debugging-port=9222 \
+  --user-data-dir="$HOME/.chrome-debug-profile" &
 ```
 
-(On Linux: `google-chrome --remote-debugging-port=9222`.
-On Windows: `chrome.exe --remote-debugging-port=9222`.)
+(Linux: `google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-debug-profile"`.
+Windows: `chrome.exe --remote-debugging-port=9222 --user-data-dir=%USERPROFILE%\.chrome-debug-profile`.)
 
-The browser will look identical. The only change is that
-`http://localhost:9222/json` now lists the open tabs and exposes a
-WebSocket per tab + one for the browser itself.
+**Why `--user-data-dir` is required (Chrome ≥136)**: Google
+mitigated a CVE class where a malicious site could attach to the
+default profile via the debug port and exfiltrate cookies / session
+tokens. The mitigation rejects `--remote-debugging-port` unless the
+flag is paired with a non-default `--user-data-dir`. Without it,
+Chrome silently launches without the dev-tools server (you'll see
+`DevTools remote debugging requires a non-default data directory`
+in stderr) and `lsof -nP -i:9222` returns empty.
+
+The dedicated profile is one-time setup: log into Figma once in
+that fresh window, then the profile persists at
+`~/.chrome-debug-profile` for every future capture session. Don't
+delete it — re-runs reuse the cached login.
+
+Verify the port is listening before continuing:
+
+```bash
+lsof -nP -i:9222 | head
+# Expect a line containing "TCP *:9222 (LISTEN)"
+```
+
+The browser otherwise looks identical. `http://localhost:9222/json`
+now lists open tabs and exposes a WebSocket per tab + one for the
+browser itself.
 
 #### 3. Open the Figma file you want to spec
 
