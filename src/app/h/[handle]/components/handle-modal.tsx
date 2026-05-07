@@ -482,6 +482,7 @@ export function HandleModal({
     className,
     slotPhantomMode,
     sizing = "fill",
+    shareLandingLayoutId = false,
     children,
   }: {
     keyName: string;
@@ -489,6 +490,22 @@ export function HandleModal({
     className: string;
     slotPhantomMode: "visible" | "measure";
     sizing?: "fill" | "hug" | "square";
+    /** B.PT260 — when true, the card mounts with `layoutId=
+     *  "handle-card"` matching the landing card so opening the
+     *  modal morphs from 385×387 → modal bounds. Only ONE view
+     *  per modal-open cycle owns this morph (the FIRST view to
+     *  mount, normally `detail`). Other views (form, month)
+     *  default to `false` — they mount/unmount independently
+     *  inside the modal without sharing the layoutId. Reason:
+     *  having form-card + month-card ALSO share `handle-card`
+     *  meant motion smart-animated between detail→form AND
+     *  form→detail rect deltas, AND on rapid close→reopen the
+     *  motion layout-projection registry held a stale rect from
+     *  the in-flight exit, surfacing as a "modal slides in from
+     *  the right then snaps to center" on the next mount.
+     *  Mirrors the chip pattern (single layoutId per content
+     *  element, no nested cross-view sharing). */
+    shareLandingLayoutId?: boolean;
     children: ReactNode;
   }) {
     const fillsAvailableSpace = sizing === "fill";
@@ -506,7 +523,7 @@ export function HandleModal({
     return (
       <HandleMorphCard
         key={keyName}
-        layoutId="handle-card"
+        layoutId={shareLandingLayoutId ? "handle-card" : undefined}
         transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
         initial={{
           ...HANDLE_CARD_RADIUS_STYLE,
@@ -777,6 +794,16 @@ export function HandleModal({
                 className:
                   "min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden",
                 slotPhantomMode: "visible",
+                // B.PT260 — detail-card is the FIRST view to mount on
+                // modal open (view starts at "strip"), so it owns
+                // the landing→modal morph via the shared `handle-
+                // card` layoutId. form + month default to no shared
+                // layoutId so view→view inside the modal does NOT
+                // smart-animate on the same projection registry —
+                // eliminates the rapid-close→reopen race that
+                // surfaced as "modal slides in from the right then
+                // snaps to center" on small screens.
+                shareLandingLayoutId: true,
                 children: renderDetailBody(),
               })}
         </AnimatePresence>
