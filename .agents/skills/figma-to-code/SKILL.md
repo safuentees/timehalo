@@ -71,6 +71,31 @@ Use when:
 
 One-time Chrome + PAT setup (full instructions in
 `docs/figma/README.md#figma--code-extract-a-spec-from-a-live-figma-file`).
+
+**Chrome ≥136 gotcha (silent failure mode you'll otherwise hit)**:
+the launch command MUST include `--user-data-dir` pointing to a
+non-default profile, or Chrome silently drops the debug port.
+Renderer processes still inherit the flag (so `ps aux | grep
+remote-debugging-port` shows hits, looks fine), but `lsof -nP
+-i:9222` returns empty and `curl http://localhost:9222/json/version`
+hangs/empty. The canonical command is:
+
+```bash
+osascript -e 'quit app "Google Chrome"'   # Cmd+Q is not enough
+sleep 2 && pgrep -if "Google Chrome"      # confirm empty
+mkdir -p "$HOME/.chrome-debug-profile"
+
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+  --remote-debugging-port=9222 \
+  --user-data-dir="$HOME/.chrome-debug-profile" &
+
+sleep 3 && lsof -nP -i:9222 | head        # expect TCP *:9222 (LISTEN)
+```
+
+The profile is dedicated + persistent — Figma login survives across
+sessions. Don't delete `~/.chrome-debug-profile`. CVE mitigation
+context + Linux/Windows variants in `docs/figma/README.md`.
+
 After setup:
 
 ```bash
