@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import { ViewTransitions } from "next-view-transitions";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { ViewTransitionsShell } from "./view-transitions-shell";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -43,7 +43,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <ViewTransitions>
+    <ViewTransitionsShell>
       <html
         lang={locale}
         suppressHydrationWarning
@@ -63,6 +63,6 @@ export default async function RootLayout({
           </NextIntlClientProvider>
         </body>
       </html>
-    </ViewTransitions>
+    </ViewTransitionsShell>
   );
 }

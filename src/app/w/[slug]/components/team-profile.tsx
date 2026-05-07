@@ -1,8 +1,8 @@
 "use client";
 
 import type { inferRouterOutputs } from "@trpc/server";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Link } from "next-view-transitions";
 import { ArrowRightIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
