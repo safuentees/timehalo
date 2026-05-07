@@ -338,6 +338,7 @@ export function HandleModal({
     className,
     slotPhantomMode,
     sizing = "fill",
+    shareLandingLayoutId = false,
     children,
   }: {
     keyName: string;
@@ -345,6 +346,7 @@ export function HandleModal({
     className: string;
     slotPhantomMode: "visible" | "measure";
     sizing?: "fill" | "hug" | "square";
+    shareLandingLayoutId?: boolean;
     children: ReactNode;
   }) {
     const fillsAvailableSpace = sizing === "fill";
@@ -362,7 +364,7 @@ export function HandleModal({
     return (
       <HandleMorphCard
         key={keyName}
-        layoutId="handle-card"
+        layoutId={shareLandingLayoutId ? "handle-card" : undefined}
         transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
         initial={{
           ...HANDLE_CARD_RADIUS_STYLE,
@@ -586,6 +588,7 @@ export function HandleModal({
                 className:
                   "min-h-[clamp(500px,70dvh,900px)] max-w-[720px] overflow-hidden",
                 slotPhantomMode: "visible",
+                shareLandingLayoutId: true,
                 children: renderDetailBody(),
               })}
         </AnimatePresence>
