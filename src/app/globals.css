@@ -2938,12 +2938,13 @@
   gap: var(--strip-gap);
 }
 .oh-day-strip-slide {
-  /* 7 slides + 6 gaps fill the padded inner area exactly. Monday's left
-     edge and Sunday's right edge both sit at --strip-edge from the
-     viewport sides. The 8th slide (next Monday) starts in the right
-     padding and is clipped by `overflow: hidden`, producing a peek.
-     `box-sizing: border-box` is critical — otherwise the 1.5px borders
-     (3px per slide × 7) push Sunday past the content edge. */
+  /* B.PT235 — Figma-spec restyle: borderless chips on paper bg.
+     Inner shadow gives the embossed feel from the slot-list parent
+     scaled down for chip size (4px blur instead of 15px — a 15px
+     blur on a ~90px chip would dominate the surface; 4px reads as
+     a subtle depth cue, matching the slot-list's own inner shadow
+     pattern at globals.css:3017-area). State driven by opacity +
+     bg invert, no border-style swaps. */
   box-sizing: border-box;
   flex: 0 0
     calc(
@@ -2952,9 +2953,9 @@
     );
   aspect-ratio: 1;
   min-width: 0;
-  border: 1.5px solid var(--oh-ink);
   background: var(--oh-paper);
   color: var(--oh-ink);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2964,7 +2965,8 @@
   cursor: pointer;
   transition:
     background-color var(--oh-t-fast),
-    color var(--oh-t-fast);
+    color var(--oh-t-fast),
+    opacity var(--oh-t-fast);
   border-radius: var(--oh-r-xs);
   /* Container-query context so the text inside scales with the chip's
      width, not the viewport's. `cqi` = 1% of inline size of this box. */
@@ -2996,17 +2998,19 @@
   opacity: 0.8;
 }
 .oh-day-strip-slide[aria-disabled="true"] {
+  /* B.PT235 — disabled state per spec: opacity 0.32, no
+     decoration. Drop the previous strikethrough — too noisy at
+     chip scale; opacity alone communicates "not selectable." */
   opacity: 0.32;
-  text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
   cursor: not-allowed;
 }
 .oh-day-strip-slide[data-state="full"] {
-  border-style: dashed;
-  background: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
-}
-.oh-day-strip-slide[data-state="full"] .oh-day-strip-weekday {
-  opacity: 0.72;
+  /* B.PT235 — fully-booked days are visually equivalent to
+     disabled per the new spec (no dashed border / no tint mix).
+     The aria-disabled treatment above + onClick-no-op handles
+     interaction. */
+  opacity: 0.32;
+  cursor: not-allowed;
 }
 .oh-day-strip-slide:focus-visible {
   outline: 0;
@@ -3108,12 +3112,18 @@
   padding-right: var(--oh-chip-edge);
 }
 .oh-slot-chip {
+  /* B.PT235 — Figma-spec restyle to match the day-strip chip
+     vocabulary. Borderless on paper bg, inner shadow for depth.
+     Hover swaps to ink-invert (preview of selected state).
+     `aria-pressed="true"` locks the ink-invert as the selected
+     state — same vocabulary as the day-strip. Focus ring via
+     existing `--oh-focus-shadow` token. */
   appearance: none;
   min-height: 48px;
   padding: 10px 14px;
-  border: 1.5px solid var(--oh-ink);
   background: var(--oh-paper);
   color: var(--oh-ink);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3127,26 +3137,35 @@
   cursor: pointer;
   transition:
     background var(--oh-t-fast),
-    color var(--oh-t-fast);
+    color var(--oh-t-fast),
+    opacity var(--oh-t-fast);
   border-radius: var(--oh-r-xs);
 }
 .oh-slot-chip:hover {
   background: var(--oh-ink);
   color: var(--oh-paper);
 }
+.oh-slot-chip[aria-pressed="true"] {
+  background: var(--oh-ink);
+  color: var(--oh-paper);
+}
 .oh-slot-chip:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  box-shadow:
+    inset 0 0 4px rgba(0, 0, 0, 0.15),
+    var(--oh-focus-shadow);
 }
 .oh-slot-chip--taken {
-  border-style: dashed;
-  background: color-mix(in srgb, var(--oh-paper) 90%, var(--oh-ink) 10%);
-  color: color-mix(in srgb, var(--oh-ink) 76%, transparent);
-  cursor: default;
+  /* B.PT235 — taken/disabled per spec: opacity 0.32, no border/
+     bg/color overrides. Inner shadow stays for depth consistency. */
+  opacity: 0.32;
+  cursor: not-allowed;
 }
 .oh-slot-chip--taken:hover {
-  background: color-mix(in srgb, var(--oh-paper) 90%, var(--oh-ink) 10%);
-  color: color-mix(in srgb, var(--oh-ink) 76%, transparent);
+  /* Lock idle look on hover — disabled buttons shouldn't
+     preview the ink-invert. */
+  background: var(--oh-paper);
+  color: var(--oh-ink);
 }
 .oh-slot-chip-badge {
   display: inline-flex;

@@ -437,9 +437,7 @@ export function HandleModal({
                   view === "form" ? setView("picker") : onOpenChange(false)
                 }
                 aria-label={
-                  view === "form"
-                    ? t("backToPickerAria")
-                    : t("closeDrawerAria")
+                  view === "form" ? t("backToPickerAria") : t("closeDrawerAria")
                 }
                 className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
               >
@@ -749,6 +747,7 @@ export function HandleModal({
                             date={selectedDate}
                             slots={dayOfSlots}
                             onPick={handlePickSlot}
+                            selectedSlot={selectedSlot}
                           />
                         ) : (
                           <p className="oh-drawer-hint">
