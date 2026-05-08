@@ -2,10 +2,6 @@
   "buildCommand": "pnpm prisma migrate deploy && pnpm build",
   "crons": [
     {
-      "path": "/api/cron/process-tasks",
-      "schedule": "*/5 * * * *"
-    },
-    {
       "path": "/api/cron/cleanup-bookings",
       "schedule": "0 3 * * *"
     }
