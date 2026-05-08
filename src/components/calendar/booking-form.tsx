@@ -1,7 +1,7 @@
 "use client";
 
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -55,6 +55,7 @@ function CreateForm({
 }) {
   const t = useTranslations("BookingCalendar");
   const router = useRouter();
+  const [isTransitionPending, startTransition] = useTransition();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { visitorName: "", visitorEmail: "", question: "" },
@@ -65,9 +66,10 @@ function CreateForm({
 
   const book = useBookingCreate({
     onSuccess: (booking) => {
-      router.push(`/h/${handle}/booked/${booking.publicUid}`);
-      onBooked?.();
-      form.reset();
+      startTransition(() => {
+        router.push(`/h/${handle}/booked/${booking.publicUid}`);
+        onBooked?.();
+      });
     },
   });
 
@@ -126,10 +128,12 @@ function CreateForm({
           type="submit"
           variant="oh"
           size="oh"
-          disabled={book.isPending}
+          disabled={book.isPending || isTransitionPending}
           className={BOOKING_SUBMIT_BUTTON_CLASS}
         >
-          {book.isPending ? t("submitBookPending") : t("submitBook")}
+          {book.isPending || isTransitionPending
+            ? t("submitBookPending")
+            : t("submitBook")}
         </Button>
       </form>
     </FormProvider>
@@ -274,11 +278,14 @@ function RescheduleConfirm({
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
   const router = useRouter();
+  const [isTransitionPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
-      router.push(`/h/${handle}/booked/${result.publicUid}`);
-      onBooked?.();
+      startTransition(() => {
+        router.push(`/h/${handle}/booked/${result.publicUid}`);
+        onBooked?.();
+      });
     },
   });
 
@@ -312,7 +319,7 @@ function RescheduleConfirm({
         type="button"
         variant="oh"
         size="oh"
-        disabled={reschedule.isPending}
+        disabled={reschedule.isPending || isTransitionPending}
         className="oh-book-submit"
         onClick={() => {
           reschedule.mutate({
@@ -323,7 +330,7 @@ function RescheduleConfirm({
           });
         }}
       >
-        {reschedule.isPending
+        {reschedule.isPending || isTransitionPending
           ? t("submitReschedulePending")
           : t("submitReschedule")}
       </Button>
