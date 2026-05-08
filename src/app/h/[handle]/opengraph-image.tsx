@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const alt = "Host profile on Officehours";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -9,9 +9,9 @@ export const contentType = "image/png";
 export default async function OpengraphImage({
   params,
 }: {
-  params: { handle: string };
+  params: Promise<{ handle: string }>;
 }) {
-  const { handle } = params;
+  const { handle } = await params;
 
   let displayName = `@${handle}`;
   try {
