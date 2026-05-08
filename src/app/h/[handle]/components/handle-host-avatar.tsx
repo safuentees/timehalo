@@ -11,7 +11,7 @@ type HandleHostAvatarBodyProps = {
   src: string | null | undefined;
   alt: string;
   initials: string;
-  size?: number;
+  size?: number | string;
 };
 
 export function HandleHostAvatarBody({
