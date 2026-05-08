@@ -95,25 +95,40 @@ export function BookingReceiptContent({
   }
 
   return (
-    // B.PT267 — `justify-evenly` distributes the top group
-    // (host+meta) and bottom group (button+footer) with EQUAL
-    // gaps at the cream's top edge, between the groups, and at
-    // the bottom edge. Per MDN + Tailwind docs:
+    // B.PT267 / B.PT268 — `justify-evenly` distributes the top
+    // group (host+meta) and bottom group (button+footer) with
+    // EQUAL gaps at the cream's top edge, between the groups,
+    // and at the bottom edge. Per MDN + Tailwind docs:
     //   justify-content: space-evenly
     //   "spacing between each pair of adjacent items, the
     //    main-start edge and the first item, and the main-end
     //    edge and the last item, are all exactly the same."
-    // (versus `justify-between` which pinned the groups to the
-    // edges; the empty space sat only between them — felt
-    // edge-pinned rather than evenly separated.)
     //
-    // `py-` is intentionally omitted: outer vertical padding
-    // would compound on top of justify-evenly's first/last gaps,
-    // making edge space visibly larger than the inter-group gap.
-    // Letting justify-evenly own ALL vertical distribution keeps
-    // every gap mathematically equal. Horizontal padding (px-5
-    // sm:px-6) stays — it's not on the distribution axis.
-    <div className="flex h-full min-h-0 flex-col justify-evenly px-5 sm:px-6">
+    // **B.PT268 — must use `flex-1`, not `h-full`**, for this
+    // div to actually fill the cream container's height. The
+    // cream container is `flex min-h-0 flex-1 flex-col` — its
+    // height is computed via flex layout, not declared
+    // explicitly. CSS percentage heights (`h-full` =
+    // `height: 100%`) don't reliably resolve against a
+    // flex-computed parent height; without an explicit height
+    // ancestor, the % collapses to `auto`/content-size. Result:
+    // this div sized to its content (~236px) and sat at the top
+    // of the 377px cream container, with `justify-evenly`
+    // having no slack to distribute. Swapping to `flex-1`
+    // (== `flex: 1 1 0%`) is the codebase's canonical chain:
+    // it's a flex-layout instruction, not a percentage, so it
+    // grows to fill the parent's main axis regardless of
+    // percentage-resolution rules. Same pattern the form-card,
+    // MonthCalendar wrapper, and oh-slot-list itself use.
+    //
+    // `py-` intentionally omitted: outer vertical padding
+    // would compound on top of justify-evenly's first/last
+    // gaps, making edge space visibly larger than the inter-
+    // group gap. Letting justify-evenly own ALL vertical
+    // distribution keeps every gap mathematically equal.
+    // Horizontal `px-5 sm:px-6` stays — not on the distribution
+    // axis, owns the cream-edge inset for content readability.
+    <div className="flex min-h-0 flex-1 flex-col justify-evenly px-5 sm:px-6">
       {/* Top group — host card + meta strip */}
       <div className="flex flex-col gap-6">
       {/* Host card — replaces the page-variant's CHECK badge as the
