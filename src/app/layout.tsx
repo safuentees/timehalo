@@ -12,12 +12,14 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
