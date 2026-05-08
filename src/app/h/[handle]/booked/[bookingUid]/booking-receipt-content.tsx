@@ -71,7 +71,8 @@ export function BookingReceiptContent({
   }
 
   return (
-    <div className="flex flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8">
+    <div className="flex h-full min-h-0 flex-col justify-between px-5 py-7 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3.5">
         <Avatar className="size-12 rounded-(--oh-r-xs)">
           <AvatarImage
@@ -96,7 +97,7 @@ export function BookingReceiptContent({
         </div>
       </div>
 
-      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-y-2 border-y border-oh-line py-4">
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-y-2">
         <dt className="oh-eyebrow opacity-55">{t("durationLabel")}</dt>
         <dd className="text-right font-[family-name:var(--oh-mono)] text-[13px] font-bold tabular-nums">
           {t("durationMinutes", { minutes: durationMinutes })}
@@ -106,7 +107,9 @@ export function BookingReceiptContent({
           {tzLabel}
         </dd>
       </dl>
+      </div>
 
+      <div className="flex flex-col gap-4">
       <a
         href={`/api/bookings/${booking.publicUid}/calendar`}
         className={cn(
@@ -155,6 +158,7 @@ export function BookingReceiptContent({
           ) : null}
         </div>
         <span className="truncate opacity-40">#{booking.publicUid}</span>
+      </div>
       </div>
     </div>
   );

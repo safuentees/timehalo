@@ -64,7 +64,7 @@ export function BookingReceiptModal({
       className="contents"
     >
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-[15px]"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
         role="dialog"
         aria-modal="true"
         aria-label={t("badgeBooked")}
@@ -86,9 +86,9 @@ export function BookingReceiptModal({
             position: "relative",
             willChange: "transform",
           }}
-          className="w-[min(500px,calc(100vw-30px))] p-[15px]"
+          className="min-h-[min(calc(100dvw-32px),450px)] w-[min(calc(100dvw-32px),450px)] max-w-none overflow-hidden p-[15px] sm:min-h-[min(calc(100dvw-64px),450px)] sm:w-[min(calc(100dvw-64px),450px)]"
         >
-          <div className="relative z-10 flex flex-col gap-[15px]">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-[15px]">
             <div className="relative z-30 grid h-7 shrink-0 grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] items-center gap-2">
               <span aria-hidden />
               <motion.span
@@ -126,7 +126,7 @@ export function BookingReceiptModal({
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
               }}
-              className="relative z-10 min-h-0 overflow-hidden bg-[#F5EFDF]"
+              className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
             >
               <BookingReceiptContent booking={booking} />
             </motion.div>
