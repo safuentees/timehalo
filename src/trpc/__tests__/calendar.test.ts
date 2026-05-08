@@ -5,6 +5,7 @@ import {
   beforeAll,
   beforeEach,
   afterAll,
+  vi,
 } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
@@ -335,6 +336,8 @@ describe("schedule.getUpcomingSlots — busy-time integration", () => {
   let host: { id: string; handle: string };
 
   beforeAll(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-15T14:00:00Z"));
     host = await createTestHost("vitest-calendar-merge");
   });
   beforeEach(async () => {
@@ -343,6 +346,7 @@ describe("schedule.getUpcomingSlots — busy-time integration", () => {
     await prisma.calendarCredential.deleteMany({});
   });
   afterAll(async () => {
+    vi.useRealTimers();
     await tearDownTestHost(host.id);
   });
 
