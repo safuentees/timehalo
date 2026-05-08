@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-export function useCurrentMinute(): Date {
-  const [now, setNow] = useState<Date>(() => new Date());
+export function useCurrentMinute(): Date | null {
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const tick = () => setNow(new Date());
-    const msUntilNextMinute =
-      60_000 - (Date.now() % 60_000);
+    const msUntilNextMinute = 60_000 - (Date.now() % 60_000);
     let intervalId: ReturnType<typeof setInterval> | null = null;
     const timeoutId = setTimeout(() => {
       tick();

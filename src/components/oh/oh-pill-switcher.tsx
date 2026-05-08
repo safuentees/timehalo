@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 type Option<T extends string> = {
   value: T;
-  label: string;
+  label: ReactNode;
 };
 
 type Props<T extends string> = {
@@ -32,7 +32,7 @@ export function OhPillSwitcher<T extends string>({
       <TabsList
         aria-label={ariaLabel}
         className={cn(
-          "h-auto gap-0 rounded-full bg-[color:var(--oh-paper)] p-[3px] text-foreground",
+          "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
           "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
           className,
         )}
@@ -44,7 +44,7 @@ export function OhPillSwitcher<T extends string>({
               key={opt.value}
               value={opt.value}
               className={cn(
-                "relative h-auto flex-none rounded-[10px] border-0 px-4 py-[7px]",
+                "relative h-auto flex-none rounded-(--oh-r-xs) border-0 px-4 py-[7px]",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
@@ -61,7 +61,7 @@ export function OhPillSwitcher<T extends string>({
                 <motion.span
                   layoutId={layoutId}
                   aria-hidden
-                  className="absolute inset-0 rounded-[10px] bg-oh-bg-muted shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                  className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

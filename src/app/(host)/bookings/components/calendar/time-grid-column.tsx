@@ -93,6 +93,7 @@ export function TimeGridColumn({
 
   const currentTimeLineTop = (() => {
     if (!showCurrentTimeLine) return null;
+    if (!now) return null;
     if (!isSameDay(now, date)) return null;
     const minutesFromStart =
       (now.getHours() - startHour) * 60 + now.getMinutes();
