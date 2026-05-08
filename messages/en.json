@@ -186,6 +186,13 @@
       "prioritySupport": "Priority support"
     }
   },
+  "DataExport": {
+    "label": "Your data",
+    "title": "Download a copy",
+    "description": "Exports your profile, weekly hours, bookings, calendar connections, workspaces, and webhooks as a JSON file. Encrypted calendar tokens are excluded.",
+    "button": "Download as JSON",
+    "preparing": "Preparing…"
+  },
   "DangerZone": {
     "label": "Danger zone",
     "deleteAccountTitle": "Delete account",

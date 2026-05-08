@@ -184,6 +184,123 @@ export const users = router({
       return { timezone: input.timezone };
     }),
 
+  exportData: privateProcedure.query(async ({ ctx }) => {
+    const [
+      user,
+      bookings,
+      availabilityRanges,
+      calendarCredentials,
+      ownedWorkspaces,
+      memberships,
+      webhookSubscriptions,
+      userFeatures,
+    ] = await Promise.all([
+      prisma.user.findUniqueOrThrow({
+        where: { id: ctx.user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          handle: true,
+          image: true,
+          timezone: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.booking.findMany({
+        where: { hostId: ctx.user.id },
+        select: {
+          id: true,
+          publicUid: true,
+          slotStart: true,
+          slotEnd: true,
+          visitorEmail: true,
+          visitorName: true,
+          visitorTimezone: true,
+          question: true,
+          referrer: true,
+          rescheduledFromUid: true,
+          deleted: true,
+          deletedAt: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.availabilityRange.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          dayOfWeek: true,
+          startTime: true,
+          endTime: true,
+        },
+      }),
+      prisma.calendarCredential.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          provider: true,
+          externalAccountId: true,
+          externalAccountEmail: true,
+          accessTokenExpiresAt: true,
+          scope: true,
+          createdAt: true,
+        },
+      }),
+      prisma.workspace.findMany({
+        where: { ownerId: ctx.user.id },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          createdAt: true,
+        },
+      }),
+      prisma.membership.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          role: true,
+          workspaceId: true,
+          assignedAt: true,
+        },
+      }),
+      prisma.webhookSubscription.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          publicUid: true,
+          subscriberUrl: true,
+          events: true,
+          active: true,
+          createdAt: true,
+        },
+      }),
+      prisma.userFeatures.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          featureSlug: true,
+          assignedAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      schemaVersion: 1,
+      user,
+      bookings,
+      availabilityRanges,
+      calendarCredentials,
+      ownedWorkspaces,
+      memberships,
+      webhookSubscriptions,
+      userFeatures,
+    };
+  }),
+
   deleteAccount: privateProcedure.mutation(async ({ ctx }) => {
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: ctx.user.id },
