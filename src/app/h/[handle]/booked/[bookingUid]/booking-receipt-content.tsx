@@ -95,13 +95,25 @@ export function BookingReceiptContent({
   }
 
   return (
-    // B.PT266 — `h-full justify-between` distributes the host+meta
-    // group at the top and the action group at the bottom of the
-    // now-square cream container. Same shape as the form-card's
-    // content fill: top section pinned to the cream's top, action
-    // stack pinned to the bottom, and the flex-between space sits
-    // empty between them as visual breathing room.
-    <div className="flex h-full min-h-0 flex-col justify-between px-5 py-7 sm:px-6 sm:py-8">
+    // B.PT267 — `justify-evenly` distributes the top group
+    // (host+meta) and bottom group (button+footer) with EQUAL
+    // gaps at the cream's top edge, between the groups, and at
+    // the bottom edge. Per MDN + Tailwind docs:
+    //   justify-content: space-evenly
+    //   "spacing between each pair of adjacent items, the
+    //    main-start edge and the first item, and the main-end
+    //    edge and the last item, are all exactly the same."
+    // (versus `justify-between` which pinned the groups to the
+    // edges; the empty space sat only between them — felt
+    // edge-pinned rather than evenly separated.)
+    //
+    // `py-` is intentionally omitted: outer vertical padding
+    // would compound on top of justify-evenly's first/last gaps,
+    // making edge space visibly larger than the inter-group gap.
+    // Letting justify-evenly own ALL vertical distribution keeps
+    // every gap mathematically equal. Horizontal padding (px-5
+    // sm:px-6) stays — it's not on the distribution axis.
+    <div className="flex h-full min-h-0 flex-col justify-evenly px-5 sm:px-6">
       {/* Top group — host card + meta strip */}
       <div className="flex flex-col gap-6">
       {/* Host card — replaces the page-variant's CHECK badge as the
