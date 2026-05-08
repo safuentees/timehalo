@@ -22,8 +22,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 //   clickjacking; vercel.live previews don't need to be embeddable)
 //
 // upgrade-insecure-requests forces any http:// reference to https://
-// frame-ancestors 'none' = X-Frame-Options DENY equivalent (D3).
-const cspDirectives = [
+//
+// Two CSP variants because /embed/<handle> + /embed.js (the embed
+// loader script — see B.PT85) are designed to be iframed by third-
+// party sites. The default policy uses frame-ancestors 'none' (D3
+// X-Frame-Options DENY equivalent); the embed-route policy uses
+// frame-ancestors '*' so any parent site can host the iframe.
+const baseCspParts = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
   "style-src 'self' 'unsafe-inline'",
@@ -31,12 +36,13 @@ const cspDirectives = [
   "font-src 'self' data:",
   "connect-src 'self' https://api.stripe.com https://*.sentry.io https://*.ingest.sentry.io https://*.upstash.io",
   "frame-src https://js.stripe.com https://hooks.stripe.com",
-  "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
   "upgrade-insecure-requests",
-].join("; ");
+];
+const cspDefault = [...baseCspParts, "frame-ancestors 'none'"].join("; ");
+const cspEmbed = [...baseCspParts, "frame-ancestors *"].join("; ");
 
 const nextConfig: NextConfig = {
   // Pin the workspace root explicitly so Next 16's Turbopack stops
@@ -47,26 +53,47 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname),
   },
   async headers() {
+    // Shared headers applied across both rule sets.
+    const sharedHeaders = [
+      {
+        // D2 — HSTS. 2-year max-age (63072000s) is the canonical
+        // value most browsers + the preload list expect.
+        // includeSubDomains covers any future api.officehours.app
+        // / cdn.officehours.app etc. preload directive opts in to
+        // the browser-shipped preload list (must submit domain at
+        // hstspreload.org for inclusion).
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+    ];
     return [
       {
-        // Apply to every route. Next.js auto-excludes _next static
-        // assets from header-rewrite where appropriate.
+        // Embed surface — iframe-able by third-party sites.
+        // /embed/<handle> + /embed.js (see B.PT85). NO X-Frame-Options
+        // (would block the iframe entirely); CSP frame-ancestors *
+        // permits any parent. Order matters — Next.js applies the
+        // first matching rule, so the embed rule MUST come before the
+        // catch-all.
+        source: "/(embed.js|embed/.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: cspEmbed },
+          ...sharedHeaders,
+        ],
+      },
+      {
+        // Default policy for every other route.
         source: "/:path*",
         headers: [
+          { key: "Content-Security-Policy", value: cspDefault },
           {
-            key: "Content-Security-Policy",
-            value: cspDirectives,
+            // D3 — legacy clickjacking guard. Modern browsers obey
+            // CSP frame-ancestors 'none'; X-Frame-Options DENY is
+            // belt-and-suspenders for older clients (IE11, Safari
+            // <13).
+            key: "X-Frame-Options",
+            value: "DENY",
           },
-          {
-            // D2 — HSTS. 2-year max-age (63072000s) is the canonical
-            // value most browsers + the preload list expect.
-            // includeSubDomains covers any future api.officehours.app
-            // / cdn.officehours.app etc. preload directive opts in to
-            // the browser-shipped preload list (must submit domain at
-            // hstspreload.org for inclusion).
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...sharedHeaders,
         ],
       },
     ];
