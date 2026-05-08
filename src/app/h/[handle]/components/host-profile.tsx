@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type CSSProperties,
   type ComponentProps,
 } from "react";
 import { flushSync } from "react-dom";
@@ -16,8 +15,11 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { AnimatePresence, motion } from "motion/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
+import {
+  HANDLE_AVATAR_PROJECTION_STYLE,
+  HandleHostAvatarBody,
+} from "./handle-host-avatar";
 import { isOpenSlot, toKey, type Slot } from "@/lib/availability";
 import {
   getQueryParam,
@@ -47,11 +49,6 @@ const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
   )?.spring ?? animSpec.transitions[2].spring;
-
-const HANDLE_AVATAR_PROJECTION_STYLE = {
-  borderRadius: 9999,
-  boxShadow: "0 4px 4px rgba(0,0,0,0.25)",
-} satisfies CSSProperties;
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
@@ -312,18 +309,10 @@ export default function HostProfile({
                       style={HANDLE_AVATAR_PROJECTION_STYLE}
                       className="relative inline-flex size-[55px] shrink-0"
                     >
-                      <Avatar className="size-[55px]">
-                        <AvatarImage
-                          src={user.image ?? undefined}
-                          alt={displayName}
-                        />
-                        <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                      <HandleHostAvatarBody
+                        src={user.image}
+                        alt={displayName}
+                        initials={initials}
                       />
                     </motion.span>
                     <motion.h1
@@ -531,18 +520,10 @@ export default function HostProfile({
                       style={HANDLE_AVATAR_PROJECTION_STYLE}
                       className="relative inline-flex size-[55px] shrink-0"
                     >
-                      <Avatar className="size-[55px]">
-                        <AvatarImage
-                          src={user.image ?? undefined}
-                          alt={displayName}
-                        />
-                        <AvatarFallback className="size-[55px] bg-[color:var(--oh-tint)] font-[family-name:var(--oh-mono)] text-[11px] font-extrabold uppercase tracking-[1px]">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+                      <HandleHostAvatarBody
+                        src={user.image}
+                        alt={displayName}
+                        initials={initials}
                       />
                     </motion.span>
                     <motion.h1

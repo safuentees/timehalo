@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
 import { cn } from "@/lib/utils";
 import type { BookingConfirmationBooking } from "./booking-confirmation";
+import { HandleHostAvatar } from "../../components/handle-host-avatar";
 
 export function BookingReceiptContent({
   booking,
@@ -73,12 +73,12 @@ export function BookingReceiptContent({
     <div className="flex min-h-0 flex-1 flex-col justify-between p-5 sm:p-6">
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-3.5">
-          <Avatar className="size-12">
-            <AvatarImage src={booking.host.image ?? undefined} alt={hostName} />
-            <AvatarFallback className="bg-oh-paper font-[family-name:var(--oh-mono)] text-[12px] font-extrabold text-oh-ink">
-              {toInitials(hostName)}
-            </AvatarFallback>
-          </Avatar>
+          <HandleHostAvatar
+            src={booking.host.image}
+            alt={hostName}
+            initials={toInitials(hostName)}
+            size={48}
+          />
           <div className="min-w-0 flex-1">
             <p className="oh-eyebrow opacity-55">{t("withLabel")}</p>
             <p className="mt-0.5 truncate text-[17px] font-bold leading-tight tracking-tight">
