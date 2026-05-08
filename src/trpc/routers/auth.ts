@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
-import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import {
+  derivePlaceholderHandle,
+  handleSchema,
+  registerInputSchema,
+} from "@/lib/register-schema";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 import { DEFAULT_REMINDER_WORKFLOW } from "@/lib/workflows";
@@ -77,6 +81,30 @@ export const auth = router({
       return { available: existing === null };
     }),
 
+  // Progressive-disclosure login lookup (port of dub.co's
+  // `checkAccountExistsAction` — apps/web/lib/actions/check-account-
+  // exists.ts). Drives the unified email field on /login: stage 1
+  // submits email → procedure reports {accountExists, hasPassword} →
+  // client either reveals password input (account has password set)
+  // or sends a magic link directly (passwordless account / freshly
+  // verified). Account-enumeration trade-off accepted, same as dub —
+  // mitigated by 10/min/IP rate limit + the credentials provider's
+  // existing 5-attempt lockout in src/auth.ts.
+  checkAccountForLogin: publicProcedure
+    .use(createRateLimitMiddleware("auth.checkAccount", 10, "1 m"))
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const email = input.email.trim().toLowerCase();
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { passwordHash: true },
+      });
+      return {
+        accountExists: user !== null,
+        hasPassword: !!user?.passwordHash,
+      };
+    }),
+
   register: publicProcedure
     .use(createRateLimitMiddleware("auth.register", 5, "1 m"))
     .input(registerInputSchema)
@@ -86,13 +114,25 @@ export const auth = router({
           name: "auth.register",
           op: "user.write",
           attributes: {
-            handle: input.handle,
             ipIdentifier: ctx.ipIdentifier,
           },
         },
         async () => {
-          if (RESERVED_HANDLES.has(input.handle)) {
-            throw handleConflict();
+          // B.PT285 — handle dropped from the form (dub.co pattern).
+          // Mint a placeholder handle (`u-<5char>`) here so the
+          // unique non-null `handle` column + downstream workspace +
+          // eventType slug seeding all succeed atomically. The user
+          // claims a real handle at /onboarding/handle via
+          // `auth.claimHandle`. Collision rate is ~1 in 60M per
+          // attempt; we retry up to 5 times before giving up.
+          let placeholderHandle = derivePlaceholderHandle();
+          for (let attempt = 0; attempt < 5; attempt++) {
+            const taken = await prisma.user.findUnique({
+              where: { handle: placeholderHandle },
+              select: { id: true },
+            });
+            if (!taken) break;
+            placeholderHandle = derivePlaceholderHandle();
           }
 
           const existingEmail = await prisma.user.findUnique({
@@ -101,14 +141,6 @@ export const auth = router({
           });
           if (existingEmail) {
             throw emailConflict();
-          }
-
-          const existingHandle = await prisma.user.findUnique({
-            where: { handle: input.handle },
-            select: { id: true },
-          });
-          if (existingHandle) {
-            throw handleConflict();
           }
 
           const passwordHash = await hashPassword(input.password);
@@ -120,16 +152,15 @@ export const auth = router({
             // workspaces.create, in the same transaction so a partial
             // commit never leaves a host without a workspace.
             //
-            // Slug prefers the handle (passes the slug regex via
-            // registerInputSchema). A historical migration row or a
-            // workspaces.create from another user could already hold
-            // it; the per-user `personal-<userId>` fallback unblocks
-            // those edge cases without a P2002 retry loop.
+            // Slug uses the placeholder handle. The user can claim a
+            // real handle later via `auth.claimHandle` which updates
+            // User.handle + Workspace.slug + EventType.slug
+            // atomically.
             return await prisma.$transaction(async (tx) => {
               const user = await tx.user.create({
                 data: {
                   email: input.email,
-                  handle: input.handle,
+                  handle: placeholderHandle,
                   passwordHash,
                   // Seed Mon-Fri 9-5 default ranges so the host's
                   // public page is immediately bookable and the
@@ -150,14 +181,14 @@ export const auth = router({
                 },
               });
               const slugTaken = await tx.workspace.findUnique({
-                where: { slug: input.handle },
+                where: { slug: placeholderHandle },
                 select: { id: true },
               });
               const workspace = await tx.workspace.create({
                 data: {
                   slug: slugTaken
                     ? personalWorkspaceSlugFor(user.id)
-                    : input.handle,
+                    : placeholderHandle,
                   name: "Personal",
                   ownerId: user.id,
                 },
@@ -190,8 +221,8 @@ export const auth = router({
               const eventType = await tx.eventType.create({
                 data: {
                   workspaceId: workspace.id,
-                  slug: input.handle,
-                  name: input.handle,
+                  slug: placeholderHandle,
+                  name: placeholderHandle,
                   durationMins: 15,
                 },
                 select: { id: true },

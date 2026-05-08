@@ -212,10 +212,16 @@
      NOT applied to buttons / menu items / chrome triggers — those
      have their own fill at rest, an inset ink stroke would compete
      with it. They keep --oh-focus-shadow. */
-  --oh-focus-shadow-input:
-    inset 0 0 0 1px var(--oh-ink),
-    var(--oh-focus-halo),
-    var(--oh-focus-ring);
+  /* Press-in focus shadow. The input recesses further (top-edge weighted
+     for "light from above" semantics) instead of growing an outer halo or
+     inset stroke. Pairs with the rest-state inset shadow on .oh-input /
+     .oh-textarea — same depth metaphor, intensified. */
+  --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.32);
+  /* Rest-state inset shadow that gives every input the recessed paper
+     look. Used by .oh-input / .oh-textarea + the visitor booking form's
+     `BOOKING_FIELD_SURFACE_CLASS`. Single source of truth so any tweak
+     to the depth feel propagates app-wide. */
+  --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
@@ -1722,13 +1728,17 @@
   width: 100%;
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-ink);
-  padding: 11px 12px;
+  /* Borderless paper surface + inset depth shadow. Replaced the 1.5px
+     ink border in B.PT284 to align with the visitor booking form's
+     recessed-paper aesthetic. The inset shadow is the visual container;
+     no stroke. */
+  padding: 11px 16px;
   font-family: inherit;
   font-size: 15px;
   line-height: 1.4;
   outline: 0;
   border-radius: var(--oh-r-xs);
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
     background-color var(--oh-t-fast),
     box-shadow var(--oh-t-fast);
@@ -1736,15 +1746,12 @@
 .oh-input::placeholder {
   color: var(--oh-placeholder);
 }
-/* Hover — subtle warm bg lift signals interactivity. No movement,
-   no border-color change (border is already at full ink). Apple HIG
-   "subtle and visible" — tells the user "this is interactive"
-   without competing with the value they're about to type.
-   `:not(:focus)` so the hover treatment doesn't fight the focus
-   treatment when both fire. */
-.oh-input:hover:not(:focus):not(:focus-visible):not([disabled]) {
-  background: var(--oh-input-bg-hover);
-}
+/* Hover state intentionally omitted (B.PT284). With both hover and
+   focus tweening the same bg property over 150ms, mouse-click flowed
+   `paper → hover-bg → focus-bg` as TWO sequential tweens — perceived
+   as a double-press. Single rest→focus tween reads cleaner; the text
+   cursor on hover is sufficient affordance for "this is interactive."
+   Touch devices ignored hover anyway. */
 /* Focus / focus-visible — bg lifts further, plus the input-specific
    focus shadow (inset ink stroke that thickens the visible border
    from 1.5 → 2.5px, plus the universal halo+ring). The `:focus`
@@ -2338,8 +2345,7 @@
 .oh-textarea {
   width: 100%;
   min-height: 88px;
-  padding: 10px 12px;
-  border: 1.5px solid var(--oh-ink);
+  padding: 10px 16px;
   background: var(--oh-paper);
   color: var(--oh-ink);
   font-family: inherit;
@@ -2347,14 +2353,13 @@
   line-height: 1.45;
   resize: vertical;
   border-radius: var(--oh-r-xs);
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
     background-color var(--oh-t-fast),
     box-shadow var(--oh-t-fast);
 }
-/* Mirror oh-input — hover bg lift + focus inset-thickened border. */
-.oh-textarea:hover:not(:focus):not(:focus-visible):not([disabled]) {
-  background: var(--oh-input-bg-hover);
-}
+/* Mirror .oh-input — hover state omitted to avoid the two-stage
+   tween (B.PT284). See .oh-input above for rationale. */
 .oh-textarea:focus,
 .oh-textarea:focus-visible {
   outline: 0;
@@ -2362,7 +2367,70 @@
   box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea[aria-invalid="true"] {
-  border-color: var(--oh-ink);
+  /* Same surface — invalid state is communicated by the FieldError
+     message rendered below the textarea. No border to color now that
+     the surface is borderless. */
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   InputGroup wrappers (B.PT284 — global override)
+   ──────────────────────────────────────────────────────────────────
+   Native `<input class="oh-input">` gets the recessed-paper look from
+   `.oh-input` above. shadcn's `<InputGroup>` is a `<div>` wrapper
+   (used wherever an addon sits next to an input — login password +
+   eye toggle, register password + eye toggle, register handle +
+   "officehours.app/h/" prefix, etc). Without this rule, every
+   InputGroup callsite has to re-implement the paper-bg + inset-
+   shadow look inline → drift, hardcoded brutalist borders, dark mode
+   bugs, focus state mismatches.
+
+   This rule paints EVERY InputGroup in the app as an `.oh-input`
+   equivalent. !important wins against:
+     - shadcn's own defaults (`border border-input`, `h-8`, dark-mode
+       `bg-input/30`)
+     - per-callsite Tailwind utilities like `border-[1.5px]
+       border-[color:var(--oh-ink)]` (legacy brutalist) or
+       `bg-[color:var(--oh-paper)]` (redundant)
+   Inner input is already `bg-transparent` via shadcn's
+   `InputGroupInput` defaults, so the wrapper paint shows through.
+
+   `data-slot="brutalist-input-group"` is set by `OhInputGroup`
+   (`src/components/oh/oh-input-group.tsx`) — its data-slot override
+   bypasses the unmodified shadcn slot, so target both. Future
+   wrappers that explicitly need a different surface can opt out by
+   adding `data-oh-input-skip="true"`. */
+[data-slot="input-group"]:not([data-oh-input-skip="true"]),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]) {
+  height: 43px !important;
+  border: 0 !important;
+  border-radius: var(--oh-r-xs) !important;
+  background: var(--oh-paper) !important;
+  box-shadow: var(--oh-input-shadow-rest) !important;
+  outline: 0 !important;
+  transition:
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
+}
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):focus-within {
+  background: var(--oh-input-bg-focus) !important;
+  box-shadow: var(--oh-focus-shadow-input) !important;
+  outline: 0 !important;
+}
+/* Inner input matches the email field's font + horizontal padding.
+   Vertical centering is automatic (wrapper is `flex items-center`).
+   Right-padding stays controlled by shadcn's
+   `has-[>[data-align=inline-end]]:[&>input]:pr-1.5` rule when an
+   addon is present (the eye button), so we only force the LEFT
+   padding to match `.oh-input`. */
+[data-slot="input-group"]:not([data-oh-input-skip="true"])
+  [data-slot="input-group-control"],
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"])
+  [data-slot="input-group-control"] {
+  padding-left: 16px !important;
+  font-size: 15px !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .oh-book-submit {
   width: 100%;

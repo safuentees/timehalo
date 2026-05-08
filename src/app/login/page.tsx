@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { OhAuthShell } from "@/components/oh/oh-auth-shell";
 import CredentialsForm from "./credentials-form";
-import MagicLinkForm from "./magic-link-form";
 
 type SearchParams = Promise<{ error?: string }>;
 
@@ -70,7 +69,7 @@ export default async function LoginPage({
         <div className="h-px flex-1 bg-oh-line" />
       </div>
 
-      <div className="mt-6 grid gap-3">
+      <div className="mt-6">
         <form
           action={async () => {
             "use server";
@@ -81,7 +80,7 @@ export default async function LoginPage({
             type="submit"
             variant="ohGhost"
             size="oh"
-            className="w-full justify-center gap-2"
+            className="w-full justify-center gap-2 bg-[color:var(--oh-paper)]! text-[color:var(--oh-ink)]! hover:bg-[color:var(--oh-paper)]! hover:text-[color:var(--oh-ink)]!"
           >
             <img
               src="/icons/github.svg"
@@ -91,7 +90,6 @@ export default async function LoginPage({
             {t("continueWithGithub")}
           </Button>
         </form>
-        <MagicLinkForm />
       </div>
 
       <p className="mt-8 text-[13px] opacity-65">

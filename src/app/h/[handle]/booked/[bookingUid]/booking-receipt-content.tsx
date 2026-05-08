@@ -161,7 +161,7 @@ export function BookingReceiptContent({
             handles the "wall touch" boundary — long names
             ellipsis-clip when content reaches the right edge. */}
         <div
-          className="@container flex items-center bg-amber-200"
+          className="@container flex items-center"
           style={{ gap: "clamp(14px, 5.5cqi, 24px)" }}
         >
           {/* B.PT270 / B.PT272 / B.PT273 — shared `<HandleHostAvatar>`
