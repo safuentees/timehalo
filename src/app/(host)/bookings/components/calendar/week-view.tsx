@@ -157,18 +157,27 @@ export function WeekView({
             cell is also sticky-left so the headers align with the
             stickied axis on horizontal scroll. */}
         <div className="sticky top-0 z-30 border-b border-oh-line bg-[color:var(--oh-paper)]">
-          <div className="flex">
+          <div className="flex w-full">
             <div
               className="sticky left-0 z-10 w-14 shrink-0 bg-[color:var(--oh-paper)]"
               aria-hidden
             />
+            {/* Each day cell takes an equal share via `flex-1 basis-0`
+                (the basis-0 is what makes flex-1 distribute equally
+                regardless of intrinsic content width). `min-w-0` lets
+                the cell shrink below its content's natural width on
+                narrow viewports without overflowing. Without basis-0,
+                cells previously sized themselves to the content first
+                ("MON 15" ≈ 30px each) and only divided remaining space
+                — giving the visual "dates clumped together" feel the
+                user reported. */}
             {days.map((d) => {
               const isToday = isSameDay(d, today);
               const { weekday, ordinal } = formatDayHeader(d);
               return (
                 <div
                   key={d.toISOString()}
-                  className="flex flex-1 flex-col items-center gap-1 pb-3 pt-3"
+                  className="flex min-w-0 flex-1 basis-0 flex-col items-center gap-1 pb-3 pt-3"
                 >
                   <span className="oh-eyebrow opacity-100">{weekday}</span>
                   <span

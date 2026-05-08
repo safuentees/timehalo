@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { motion } from "motion/react";
+import { useId, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 // Horizontal day picker for the mobile week-view fallback
@@ -75,15 +76,28 @@ export function DayStrip({
     [monday],
   );
   const today = nowOverride ?? new Date();
+  // Per-instance namespace for motion's `layoutId` so multiple day
+  // strips on the same page (unlikely but defensive) don't try to
+  // morph into each other.
+  const layoutId = useId();
 
   return (
     <div
       role="tablist"
       aria-label="Day picker"
       className={cn(
-        "flex items-stretch gap-1 overflow-x-auto",
+        // B.PT287 — apply the OhPillSwitcher chrome to match the app
+        // vocabulary: muted-paper track + 3px inset + drop shadow
+        // (same `0 3px 12px rgba(0,0,0,0.22)` button shadow). The
+        // strip now reads as one segmented control rather than 7
+        // floating buttons; siblings the Day/Week/Month/List
+        // switcher above with identical chrome.
+        "flex w-full items-stretch gap-0 overflow-x-auto",
+        "rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         // Hide native scrollbar; the buttons themselves communicate
-        // scrollability via overflow.
+        // scrollability via overflow (only engages on viewports
+        // narrower than 7 × 52px + gap, ~370px).
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
@@ -107,46 +121,81 @@ export function DayStrip({
               if (!isCursor) onDateChange(d);
             }}
             className={cn(
-              "oh-focus-ring flex flex-col items-center gap-1.5 shrink-0",
-              "rounded-(--oh-r-sm) px-3 py-2 cursor-pointer min-w-[52px]",
-              "transition-colors duration-150 ease-oh",
-              isCursor
-                ? "bg-[color:var(--oh-tint)]"
-                : "hover:bg-[color:var(--oh-tint)]",
+              // `flex-1 basis-0 min-w-[52px]` distributes equal
+              // share of the row width with a 52px floor (below
+              // 7×52+gap ≈ 370px the parent's `overflow-x-auto`
+              // engages instead of cramming).
+              // `relative` so the absolute-positioned motion pill
+              // beneath sits inside the cell. Padding tightened from
+              // `px-3 py-2` to `px-2 py-1.5` because the cell now
+              // has its own painted pill — extra padding pushed the
+              // pill too tall relative to the strip's height.
+              "group oh-focus-ring relative flex flex-1 basis-0 flex-col items-center gap-1",
+              "rounded-(--oh-r-xs) px-2 py-1.5 cursor-pointer min-w-[52px]",
+              "transition-colors duration-150 ease-oh outline-none",
             )}
           >
+            {/* Active cursor pill — paper-on-muted, slid between
+                cells via motion's `layoutId`. Soft inner shadow
+                (`0 1px 2px rgba(0,0,0,0.06), 0 1px 3px
+                rgba(0,0,0,0.04)`) matches the OhPillSwitcher's
+                active pill so the segmented-control aesthetic is
+                identical across the calendar surface. Per the
+                project's `motion-shared-layout.md`: forward
+                `transition` so the spring honors callsite intent
+                (220ms, no bounce) instead of motion's 0.45s
+                default. */}
+            {isCursor ? (
+              <motion.span
+                layoutId={layoutId}
+                aria-hidden
+                className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                transition={{
+                  type: "spring",
+                  duration: 0.22,
+                  bounce: 0,
+                }}
+              />
+            ) : null}
             <span
               className={cn(
-                "oh-eyebrow",
-                isCursor ? "opacity-100" : "opacity-55",
+                "oh-eyebrow relative z-10 transition-opacity duration-150",
+                isCursor
+                  ? "opacity-100"
+                  : "opacity-55 group-hover:opacity-100",
               )}
             >
               {formatWeekday(d)}
             </span>
-            {/* Date number. Cursor day = inverse-circle (matches
-                DayView's today-circle vocabulary so the user
-                muscle-memories the meaning across views). Today,
-                when not the cursor day, gets a small dot below the
-                number. */}
+            {/* Date number. Cursor day = strong ink-bold inside the
+                paper pill (the pill IS the indicator now — drops the
+                heavy black circle that competed with the cell-level
+                bg-tint). Inactive days = same weight, lower opacity
+                via parent text color. */}
             <span
               aria-current={isToday ? "date" : undefined}
               className={cn(
-                "font-sans text-[18px] font-bold leading-none tracking-tight tabular-nums",
-                isCursor &&
-                  "inline-flex size-7 items-center justify-center rounded-full bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)]",
+                "relative z-10 font-sans text-[18px] leading-none tracking-tight tabular-nums",
+                isCursor
+                  ? "font-bold text-[color:var(--oh-ink)]"
+                  : "font-semibold text-[color:var(--oh-content-muted)]",
               )}
             >
               {d.getDate()}
             </span>
-            {/* Today indicator (when not the cursor) — a small dot
-                below the date number. */}
-            {isToday && !isCursor ? (
+            {/* Today indicator — small green dot below the date
+                number. Always shown when the day IS today, even
+                when it's also the cursor (the dot sits ABOVE the
+                paper pill via z-10). Reserved spacer when not
+                today so cell heights stay constant across the
+                strip — no layout jump as the cursor moves. */}
+            {isToday ? (
               <span
                 aria-hidden
-                className="block size-1 rounded-full bg-[color:var(--oh-status-confirmed)]"
+                className="relative z-10 block size-1 rounded-full bg-[color:var(--oh-status-confirmed)]"
               />
             ) : (
-              <span aria-hidden className="block size-1" />
+              <span aria-hidden className="relative z-10 block size-1" />
             )}
           </button>
         );

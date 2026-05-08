@@ -47,6 +47,7 @@ import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   // List view tab bar uses OhPillSwitcher now; the legacy
   // `BookingsTabBar` (GSAP-underline) below is retained for the
@@ -112,6 +113,18 @@ export function BookingsList({
   cursorDate: Date;
 }) {
   const t = useTranslations("Bookings");
+  // B.PT287 — month grid is desktop-only. On <md viewports we render
+  // the URL's `?view=month` AS list (mirrors what the surface is
+  // physically capable of showing) so:
+  //   1. The OhPillSwitcher highlights "list" instead of an option
+  //      that's display:none (avoids "no pill is highlighted" UX).
+  //   2. We don't render two copies of the list view stacked.
+  // SSR returns false from useIsMobile so the desktop branch (full
+  // month grid) paints first; the swap to list happens after mount,
+  // which is fine since both branches share the same outer layout.
+  const isMobile = useIsMobile();
+  const effectiveView: ViewMode =
+    isMobile && activeView === "month" ? "list" : activeView;
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
@@ -365,7 +378,7 @@ export function BookingsList({
   //   week    1440px  7 columns × ~190px each on a 1440 viewport
   //   month   1200px  7 columns × ~165px each, comfortable for chips
   const calendarMaxWidthClass = (() => {
-    switch (activeView) {
+    switch (effectiveView) {
       case "day":
         return "max-w-[760px]";
       case "week":
@@ -391,16 +404,18 @@ export function BookingsList({
         <OnboardingChecklist />
 
         {/* View-mode segmented control. Above both branches so the
-            switcher itself stays in the narrow column. */}
+            switcher itself stays in the narrow column. Highlights the
+            EFFECTIVE view (mobile + ?view=month coalesces to "list"
+            so the pill matches what's actually rendered below). */}
         <div className="mt-8">
           <BookingsViewSwitcher
-            value={activeView}
+            value={effectiveView}
             onValueChange={onViewChange}
           />
         </div>
       </OhPageShell>
 
-      {activeView === "list" ? (
+      {effectiveView === "list" ? (
         // List mode: stay in the standard 760px shell. The list rows
         // don't benefit from a wider column.
         <OhPageShell>
@@ -479,7 +494,7 @@ export function BookingsList({
           )}
         >
           <BookingsCursorControls
-            view={activeView}
+            view={effectiveView}
             cursorDate={cursorDate}
             onDateChange={onDateChange}
           />
@@ -507,7 +522,7 @@ export function BookingsList({
           ) : null}
 
           {/* Day view — works at any width, no mobile fallback needed. */}
-          {activeView === "day" ? (
+          {effectiveView === "day" ? (
             <DayView
               date={cursorDate}
               events={calendarEvents}
@@ -528,7 +543,7 @@ export function BookingsList({
               and no hydration flash. (Project pattern per
               dashboard-forms.md "Breakpoint-dependent primitive
               swaps".) */}
-          {activeView === "week" ? (
+          {effectiveView === "week" ? (
             <>
               <div className="hidden md:block">
                 <WeekView
@@ -563,80 +578,25 @@ export function BookingsList({
             </>
           ) : null}
 
-          {/* Month view — mobile fallback to List (B.PT144, §11 q1).
-              A 7-column month grid on a 400px viewport gives each
-              cell ~57px wide; chips can't fit and the +N MORE
-              overflow dominates every cell. List is the better
-              scan-and-tap surface on mobile. URL stays `?view=month`;
-              resizing back to desktop renders the grid. */}
-          {activeView === "month" ? (
-            <>
-              <div className="hidden md:block">
-                <MonthView
-                  date={cursorDate}
-                  events={calendarEvents}
-                  selectedRefId={selectedUid}
-                  onEventClick={onEventClick}
-                  getHref={getEventHref}
-                  onOverflowClick={onOverflowClick}
-                  getOverflowHref={getOverflowHref}
-                />
-              </div>
-              <div className="md:hidden">
-                {/* Tab clicks navigate to ?view=list&tab=X — picking
-                    a tab takes the user out of month-mode entirely
-                    (no more month-grid at any viewport width).
-                    Reads as "month is desktop-only; tabs reset
-                    you to the canonical list view." */}
-                <OhPillSwitcher
-                  ariaLabel={t("tablistLabel")}
-                  value={activeTab}
-                  onChange={(value) => {
-                    if (value === activeTab) return;
-                    router.push(`?view=list&tab=${value}`, {
-                      scroll: false,
-                    });
-                  }}
-                  options={[
-                    {
-                      value: "upcoming",
-                      label: (
-                        <BookingsTabLabel
-                          label={t("tabUpcoming")}
-                          count={data?.upcoming.length ?? 0}
-                          isActive={activeTab === "upcoming"}
-                        />
-                      ),
-                    },
-                    {
-                      value: "past",
-                      label: (
-                        <BookingsTabLabel
-                          label={t("tabPast")}
-                          count={data?.past.length ?? 0}
-                          isActive={activeTab === "past"}
-                        />
-                      ),
-                    },
-                  ]}
-                />
-                <div className="mt-6">
-                  {activeTab === "upcoming" ? (
-                    <BookingsListPanel
-                      tab="upcoming"
-                      bookings={data?.upcoming ?? []}
-                      onSelect={setSelectedUid}
-                    />
-                  ) : (
-                    <BookingsListPanel
-                      tab="past"
-                      bookings={data?.past ?? []}
-                      onSelect={setSelectedUid}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
+          {/* Month view — desktop only. On <md the `effectiveView`
+              swap above coalesces ?view=month → "list" so the
+              dedicated list branch (top of this component) handles
+              the rendering instead of duplicating the tabs + list
+              here. The hidden md:block wrapper is belt-and-braces
+              against any cascade where the swap doesn't engage
+              (e.g. server render). */}
+          {effectiveView === "month" ? (
+            <div className="hidden md:block">
+              <MonthView
+                date={cursorDate}
+                events={calendarEvents}
+                selectedRefId={selectedUid}
+                onEventClick={onEventClick}
+                getHref={getEventHref}
+                onOverflowClick={onOverflowClick}
+                getOverflowHref={getOverflowHref}
+              />
+            </div>
           ) : null}
         </div>
         {/* DragOverlay renders the chip ghost following the pointer.

@@ -30,6 +30,13 @@ type Option<T extends string> = {
   // "Upcoming <span class="opacity-65">3</span>" with primary label +
   // muted count for the bookings list-view tab bar.
   label: ReactNode;
+  // CSS-driven responsive hide. When set, the option is `display:none`
+  // below the named breakpoint and reveals at it. Hydration-safe (no
+  // SSR/client divergence) and zero layout shift on mount, unlike
+  // useState-driven option filtering. Use for view-mode switchers
+  // where some options don't fit narrower viewports — e.g. month grid
+  // is desktop-only in the bookings page (`hiddenAtBelow: "md"`).
+  hiddenAtBelow?: "sm" | "md" | "lg" | "xl";
 };
 
 type Props<T extends string> = {
@@ -57,44 +64,63 @@ export function OhPillSwitcher<T extends string>({
         aria-label={ariaLabel}
         className={cn(
           // Track: muted paper (the project's "darker main" tone —
-          // paper + ~8% ink in oklab). Replaces the earlier paper bg
-          // so the track contrasts against the paper-colored page,
-          // and the active pill (now paper) reads as the LIGHTER /
-          // recessed-feeling element. Same two-tone the auth shell
-          // uses, just inverted to match the visual ref.
-          // Outer radius: `--oh-r-sm` (6px) — matches the app's
-          // canonical structural radius (per oh-ui.md "Radius scale:
-          // one structural token"). Drops the previous rounded-full
-          // pill which read as "stock shadcn" rather than the
-          // project's tighter chrome vocabulary.
-          // Drop shadow same vocabulary as `oh` / `ohGhost` button
-          // variants in `button.tsx` so the track sits as a chrome
-          // layer floating above the page.
+          // paper + ~8% ink in oklab) with an INSET shadow matching
+          // `.oh-input` / `.oh-textarea`'s focus state (the
+          // `--oh-focus-shadow-input` token: `inset 0 3px 10px
+          // rgba(0,0,0,0.32)`, defined in `globals.css:215`). The
+          // track now reads as a recessed paper "well" the active
+          // pill floats inside, mirroring the booking form's
+          // recessed-input vocabulary instead of the elevated-button
+          // vocabulary.
+          // Outer radius: `--oh-r-sm` (6px) — canonical structural
+          // radius per `oh-ui.md`.
           "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
-          "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+          "[box-shadow:var(--oh-focus-shadow-input)]",
           className,
         )}
       >
         {options.map((opt) => {
           const isActive = opt.value === value;
+          // Tailwind responsive hide-classes paired explicitly so the
+          // tree-shaker doesn't drop them. Keep verbatim — Tailwind's
+          // JIT only emits classes it sees as literal strings.
+          const responsiveHide =
+            opt.hiddenAtBelow === "sm"
+              ? "hidden sm:inline-flex"
+              : opt.hiddenAtBelow === "md"
+                ? "hidden md:inline-flex"
+                : opt.hiddenAtBelow === "lg"
+                  ? "hidden lg:inline-flex"
+                  : opt.hiddenAtBelow === "xl"
+                    ? "hidden xl:inline-flex"
+                    : null;
           return (
             <TabsTrigger
               key={opt.value}
               value={opt.value}
               className={cn(
                 // Strip shadcn's pre-baked: flex-1 (we want auto-width),
-                // rounded-sm + h-[calc(100%-1px)] (we want rounded-[10px]
+                // rounded-sm + h-[calc(100%-1px)] (we want rounded-[3px]
                 // + content-driven height), data-active:bg-background +
                 // data-active:shadow-sm (we paint the active pill via
                 // the motion.span beneath instead). after:hidden kills
                 // the line-variant underline pseudo.
-                "relative h-auto flex-none rounded-(--oh-r-xs) border-0 px-4 py-[7px]",
+                // Inner radius = 3px per Apple HIG concentric formula
+                // (`inner = outer - padding`): track is `--oh-r-sm`
+                // (6px) with `p-[3px]` → button bounds inset 3px from
+                // the outer edge, so the inner radius that traces a
+                // perfectly concentric arc is 6 - 3 = 3px. Neither
+                // `--oh-r-xs` (2px) nor `--oh-r-sm` (6px) matches the
+                // exact 3px value, so we use a literal arbitrary
+                // class for this one Apple-HIG-derived measurement.
+                "relative h-auto flex-none rounded-[3px] border-0 px-4 py-[7px]",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
                 isActive
                   ? "font-semibold text-[color:var(--oh-ink)]"
                   : "font-medium text-[rgba(10,10,10,0.55)] hover:text-[rgba(10,10,10,0.75)]",
+                responsiveHide,
               )}
               style={{
                 transitionTimingFunction:
@@ -106,15 +132,20 @@ export function OhPillSwitcher<T extends string>({
                   layoutId={layoutId}
                   aria-hidden
                   // Active pill = `--oh-paper` (the LIGHTER main
-                  // tone). With the track now on `--oh-bg-muted`
-                  // (the darker main), the pill is the lighter
-                  // contrast — matches the visual ref and mirrors
-                  // the auth shell's outer-muted / inner-paper
-                  // vocabulary. Inner radius `--oh-r-xs` (2px) per
-                  // the app's chip / segment radius token (smaller
-                  // than the `--oh-r-sm` structural outer = clean
-                  // concentric).
-                  className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                  // tone). Outer drop shadow matching the `oh` /
+                  // `ohGhost` button variants
+                  // (`0 3px 12px rgba(0,0,0,0.22)`) so the pill
+                  // reads as floating ABOVE the recessed track.
+                  // Radius = 3px per Apple HIG concentric formula:
+                  // outer track is `--oh-r-sm` (6px) with `p-[3px]`,
+                  // so a perfectly concentric inner arc is at
+                  // `outer - padding = 6 - 3 = 3px`. WWDC22 "What's
+                  // new in SwiftUI" calls this out as the canonical
+                  // way to nest rounded rects. Tracks the
+                  // TabsTrigger's `rounded-[3px]` above so the pill
+                  // and its containing button share bounds + radius
+                  // exactly.
+                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,
