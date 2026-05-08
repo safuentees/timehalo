@@ -65,6 +65,33 @@ const nextConfig: NextConfig = {
         key: "Strict-Transport-Security",
         value: "max-age=63072000; includeSubDomains; preload",
       },
+      {
+        // D4 — Referrer-Policy. strict-origin-when-cross-origin
+        // sends the origin (no path) on cross-site, full URL on
+        // same-origin. Default for most browsers; setting it
+        // explicitly defends against any UA that defaults looser.
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+      {
+        // D4 — Permissions-Policy. Deny everything we don't use:
+        // camera, microphone, geolocation, payment-handler (Stripe
+        // checkout uses redirect, not the Payment Request API),
+        // accelerometer / gyroscope (booking flow doesn't need
+        // motion sensors). Empty parens = "deny for all origins."
+        key: "Permissions-Policy",
+        value: [
+          "camera=()",
+          "microphone=()",
+          "geolocation=()",
+          "payment=()",
+          "accelerometer=()",
+          "gyroscope=()",
+          "magnetometer=()",
+          "usb=()",
+          "interest-cohort=()",
+        ].join(", "),
+      },
     ];
     return [
       {
