@@ -10,14 +10,21 @@ import { Toaster } from "@/components/ui/sonner";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
+  // Google Fonts ships Space Grotesk at 300-700 only. The visual
+  // identity references "weight 800-900" on headlines but those
+  // are browser-synthesized (faux-bold from 700) — confirmed via
+  // Google Fonts API. If real 800/900 glyphs are wanted, swap to
+  // a variable font (Inter, etc.) — out of scope for F5.
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
