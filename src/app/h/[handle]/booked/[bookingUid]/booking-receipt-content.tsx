@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
 import { cn } from "@/lib/utils";
 import type { BookingConfirmationBooking } from "./booking-confirmation";
+import { HandleHostAvatar } from "../../components/handle-host-avatar";
 
 // B.PT265 — receipt-modal-only content. Standalone /booked page
 // keeps `BookingConfirmationContent` (variant="page") with its
@@ -137,23 +137,22 @@ export function BookingReceiptContent({
           state. Avatar 48 (down from 40+sm:48 in the page variant)
           keeps the row dense; eyebrow/name/handle stack on the right. */}
         <div className="flex items-center gap-3.5">
-          {/* B.PT269 — drop the `rounded-(--oh-r-xs)` overrides so
-              the Avatar primitive's defaults (circular Root +
-              Image + Fallback + `::after` border ring all at
-              `rounded-full`) ride. Previous overrides only hit the
-              Root, Image, and Fallback — they DID NOT touch the
-              primitive's `after:rounded-full` pseudo-element ring,
-              so a circular ring sat over a 2px-square image and
-              the corners poked outside the ring. Default circle is
-              also the same shape host-profile uses for the landing
-              avatar — receipt-modal stays consistent with the
-              visitor surface vocabulary. */}
-          <Avatar className="size-12">
-            <AvatarImage src={booking.host.image ?? undefined} alt={hostName} />
-            <AvatarFallback className="bg-oh-paper font-[family-name:var(--oh-mono)] text-[12px] font-extrabold text-oh-ink">
-              {toInitials(hostName)}
-            </AvatarFallback>
-          </Avatar>
+          {/* B.PT270 — shared `<HandleHostAvatar>` so the receipt-
+              modal and the `/h/[handle]` landing/modal identity
+              row pull from one source of truth. The component
+              owns the drop-shadow + circular border-radius
+              (`HANDLE_AVATAR_PROJECTION_STYLE`), the AvatarImage
+              + AvatarFallback config, and the 1px `#E5E5E5` ring
+              overlay. Both surfaces stay visually consistent
+              without duplicate inline blocks. Receipt uses
+              size=48 for the tighter card density; host-profile
+              uses the default 55 (Figma-spec landing-card size). */}
+          <HandleHostAvatar
+            src={booking.host.image}
+            alt={hostName}
+            initials={toInitials(hostName)}
+            size={48}
+          />
           <div className="min-w-0 flex-1">
             <p className="oh-eyebrow opacity-55">{t("withLabel")}</p>
             <p className="mt-0.5 truncate text-[17px] font-bold leading-tight tracking-tight">
