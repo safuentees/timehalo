@@ -584,6 +584,13 @@
     "reference": "Referencia {digest}",
     "tryAgain": "Vuelve a intentarlo"
   },
+  "VisitorError": {
+    "label": "Algo se rompió",
+    "title": "Tuvimos un problema cargando esta página",
+    "body": "Ocurrió un error inesperado al preparar este perfil. Vuelve a intentarlo — si persiste, puede que el enlace del anfitrión necesite actualizarse.",
+    "tryAgain": "Vuelve a intentarlo",
+    "reference": "Referencia {digest}"
+  },
   "BookingCalendar": {
     "triggerEmpty": "Elige una fecha",
     "triggerEmptyAria": "Elige una fecha",
