@@ -15,17 +15,26 @@ import { createPublicSSRHelper } from "@/trpc/server-helpers";
 // flexbox + simple typography works; CSS variables, transforms,
 // and Tailwind class compilation do NOT. Inline styles only.
 
-export const runtime = "edge";
+// Runtime: nodejs (NOT edge). The route imports createPublicSSRHelper
+// → Prisma → node:path / node:crypto / node:events. Edge runtime
+// can't load Node-builtins; build fails with
+// "Native module not found: node:path". Per Next.js 16 docs
+// (`opengraph-image.mdx`): nodejs runtime is fully supported here
+// and the right pick when the route reads from a DB.
+export const runtime = "nodejs";
 export const alt = "Host profile on Officehours";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+// Next.js 16 changed `params` to a Promise per the version-history
+// table on opengraph-image.mdx (v16.0.0: "params is now a promise
+// that resolves to an object"). Pre-16 was a plain object.
 export default async function OpengraphImage({
   params,
 }: {
-  params: { handle: string };
+  params: Promise<{ handle: string }>;
 }) {
-  const { handle } = params;
+  const { handle } = await params;
 
   let displayName = `@${handle}`;
   try {
