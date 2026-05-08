@@ -37,7 +37,7 @@ export default async function RegisterPage() {
           type="submit"
           variant="ohGhost"
           size="oh"
-          className="w-full justify-center gap-2"
+          className="w-full justify-center gap-2 bg-[color:var(--oh-paper)]! text-[color:var(--oh-ink)]! hover:bg-[color:var(--oh-paper)]! hover:text-[color:var(--oh-ink)]!"
         >
           <img src="/icons/github.svg" alt="" className="size-4 dark:invert" />
           {t("continueWithGithub")}

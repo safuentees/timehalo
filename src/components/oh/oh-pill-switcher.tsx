@@ -1,0 +1,79 @@
+"use client";
+
+import { motion } from "motion/react";
+import { useId } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+
+type Option<T extends string> = {
+  value: T;
+  label: string;
+};
+
+type Props<T extends string> = {
+  options: Option<T>[];
+  value: T;
+  onChange: (next: T) => void;
+  ariaLabel?: string;
+  className?: string;
+};
+
+export function OhPillSwitcher<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+  className,
+}: Props<T>) {
+  const layoutId = useId();
+
+  return (
+    <Tabs value={value} onValueChange={(v) => onChange(v as T)}>
+      <TabsList
+        aria-label={ariaLabel}
+        className={cn(
+          "h-auto gap-0 rounded-full bg-[color:var(--oh-paper)] p-[3px] text-foreground",
+          "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+          className,
+        )}
+      >
+        {options.map((opt) => {
+          const isActive = opt.value === value;
+          return (
+            <TabsTrigger
+              key={opt.value}
+              value={opt.value}
+              className={cn(
+                "relative h-auto flex-none rounded-[10px] border-0 px-4 py-[7px]",
+                "font-sans text-[14px] leading-none",
+                "transition-colors duration-200 outline-none",
+                "data-active:!bg-transparent data-active:!shadow-none after:hidden",
+                isActive
+                  ? "font-semibold text-[color:var(--oh-ink)]"
+                  : "font-medium text-[rgba(10,10,10,0.55)] hover:text-[rgba(10,10,10,0.75)]",
+              )}
+              style={{
+                transitionTimingFunction:
+                  "var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1))",
+              }}
+            >
+              {isActive ? (
+                <motion.span
+                  layoutId={layoutId}
+                  aria-hidden
+                  className="absolute inset-0 rounded-[10px] bg-oh-bg-muted shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                  transition={{
+                    type: "spring",
+                    duration: 0.22,
+                    bounce: 0,
+                  }}
+                />
+              ) : null}
+              <span className="relative z-10">{opt.label}</span>
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </Tabs>
+  );
+}

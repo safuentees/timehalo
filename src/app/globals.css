@@ -138,10 +138,8 @@
   --oh-focus-ring: 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   --oh-focus-shadow: var(--oh-focus-halo), var(--oh-focus-ring);
 
-  --oh-focus-shadow-input:
-    inset 0 0 0 1px var(--oh-ink),
-    var(--oh-focus-halo),
-    var(--oh-focus-ring);
+  --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.32);
+  --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
   --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
   --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
@@ -1340,22 +1338,19 @@
   width: 100%;
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-ink);
-  padding: 11px 12px;
+  padding: 11px 16px;
   font-family: inherit;
   font-size: 15px;
   line-height: 1.4;
   outline: 0;
   border-radius: var(--oh-r-xs);
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
     background-color var(--oh-t-fast),
     box-shadow var(--oh-t-fast);
 }
 .oh-input::placeholder {
   color: var(--oh-placeholder);
-}
-.oh-input:hover:not(:focus):not(:focus-visible):not([disabled]) {
-  background: var(--oh-input-bg-hover);
 }
 .oh-input:focus,
 .oh-input:focus-visible {
@@ -1868,8 +1863,7 @@
 .oh-textarea {
   width: 100%;
   min-height: 88px;
-  padding: 10px 12px;
-  border: 1.5px solid var(--oh-ink);
+  padding: 10px 16px;
   background: var(--oh-paper);
   color: var(--oh-ink);
   font-family: inherit;
@@ -1877,12 +1871,10 @@
   line-height: 1.45;
   resize: vertical;
   border-radius: var(--oh-r-xs);
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
     background-color var(--oh-t-fast),
     box-shadow var(--oh-t-fast);
-}
-.oh-textarea:hover:not(:focus):not(:focus-visible):not([disabled]) {
-  background: var(--oh-input-bg-hover);
 }
 .oh-textarea:focus,
 .oh-textarea:focus-visible {
@@ -1891,7 +1883,34 @@
   box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-textarea[aria-invalid="true"] {
-  border-color: var(--oh-ink);
+}
+
+[data-slot="input-group"]:not([data-oh-input-skip="true"]),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]) {
+  height: 43px !important;
+  border: 0 !important;
+  border-radius: var(--oh-r-xs) !important;
+  background: var(--oh-paper) !important;
+  box-shadow: var(--oh-input-shadow-rest) !important;
+  outline: 0 !important;
+  transition:
+    background-color var(--oh-t-fast),
+    box-shadow var(--oh-t-fast);
+}
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):focus-within {
+  background: var(--oh-input-bg-focus) !important;
+  box-shadow: var(--oh-focus-shadow-input) !important;
+  outline: 0 !important;
+}
+[data-slot="input-group"]:not([data-oh-input-skip="true"])
+  [data-slot="input-group-control"],
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"])
+  [data-slot="input-group-control"] {
+  padding-left: 16px !important;
+  font-size: 15px !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .oh-book-submit {
   width: 100%;

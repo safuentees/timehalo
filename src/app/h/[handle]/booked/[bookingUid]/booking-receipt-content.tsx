@@ -73,7 +73,7 @@ export function BookingReceiptContent({
     <div className="flex min-h-0 flex-1 flex-col justify-between p-5 sm:p-6">
       <div className="flex flex-col gap-6">
         <div
-          className="@container flex items-center bg-amber-200"
+          className="@container flex items-center"
           style={{ gap: "clamp(14px, 5.5cqi, 24px)" }}
         >
           <HandleHostAvatar

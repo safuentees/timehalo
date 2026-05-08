@@ -145,9 +145,8 @@ type BookingTextareaFieldName = Extract<keyof BookingFormValues, "question">;
 
 const BOOKING_FIELD_SURFACE_CLASS = cn(
   "rounded-(--oh-r-xs) bg-[color:var(--oh-paper)]",
-  "shadow-[inset_0_0_4px_rgba(0,0,0,0.15)]",
+  "[box-shadow:var(--oh-input-shadow-rest)]",
   "transition-[background-color,box-shadow] duration-150 ease-oh",
-  "hover:bg-[var(--oh-input-bg-hover)]",
 );
 
 export const BOOKING_SUBMIT_BUTTON_CLASS = cn(
@@ -177,18 +176,8 @@ function BookingTextField({
       name={name}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <div
-            className={cn(
-              "flex h-[33px] items-stretch",
-              BOOKING_FIELD_SURFACE_CLASS,
-              "focus-within:bg-[var(--oh-input-bg-focus)]",
-              "focus-within:[box-shadow:var(--oh-focus-shadow-input)]",
-            )}
-          >
-            <label
-              htmlFor={field.name}
-              className="oh-legend flex w-[63px] shrink-0 items-center pl-[6px] opacity-100"
-            >
+          <div className="grid gap-2">
+            <label htmlFor={field.name} className="oh-legend">
               {label}
             </label>
             <input
@@ -199,8 +188,12 @@ function BookingTextField({
               placeholder={placeholder}
               aria-invalid={fieldState.invalid}
               className={cn(
-                "min-w-0 flex-1 bg-transparent px-[6px] py-[7px]",
+                "h-[33px] min-w-0 px-4 py-[7px]",
+                BOOKING_FIELD_SURFACE_CLASS,
+                "focus:bg-[var(--oh-input-bg-focus)]",
+                "focus:[box-shadow:var(--oh-focus-shadow-input)]",
                 "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
+                "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
                 "outline-none",
               )}
             />
@@ -246,12 +239,12 @@ function BookingTextareaField({
             className={cn(
               "w-full resize-none",
               BOOKING_FIELD_SURFACE_CLASS,
-              "px-[12.5px] py-[10.5px]",
+              "px-4 py-[10.5px]",
               "font-sans text-[14px] leading-[18px] text-[color:var(--oh-ink)]",
               "placeholder:text-[color:var(--oh-ink)] placeholder:opacity-55",
               "outline-none",
               "focus:bg-[var(--oh-input-bg-focus)]",
-              "focus:[box-shadow:var(--oh-focus-shadow-input)]",
+              "focus:[box-shadow:inset_0_3px_10px_rgba(0,0,0,0.32)]",
             )}
           />
           <FieldError

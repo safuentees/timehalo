@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,30 +13,13 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-  InputGroupText,
 } from "@/components/ui/input-group";
-import {
-  OhInputGroup,
-  OhInputGroupAddon,
-  OhInputGroupInput,
-  OhInputGroupText,
-} from "@/components/oh/oh-input-group";
-import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import { registerInputSchema } from "@/lib/register-schema";
 import { useRegister } from "@/lib/mutations/use-register";
-import { trpc } from "@/trpc/hooks";
-
-type Availability =
-  | "idle"
-  | "checking"
-  | "available"
-  | "taken"
-  | "invalid"
-  | "error";
 
 type Form = {
   email: string;
   password: string;
-  handle: string;
 };
 
 export function RegisterForm() {
@@ -46,27 +29,14 @@ export function RegisterForm() {
   const {
     register: registerField,
     handleSubmit,
-    control,
-    setValue,
     setError,
     setFocus,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
-    defaultValues: { email: "", password: "", handle: "" },
+    defaultValues: { email: "", password: "" },
     resolver: zodResolver(registerInputSchema),
     mode: "onBlur",
   });
-
-  const watchedHandle = useWatch({ control, name: "handle" });
-  const handle = watchedHandle ?? "";
-  const handleReady = handleSchema.safeParse(handle).success;
-  const handleAvailability = trpc.auth.handleAvailability.useQuery(
-    { handle },
-    {
-      enabled: handleReady,
-      retry: false,
-    },
-  );
 
   const registerMutation = useRegister({
     onSuccess: async (created, variables) => {
@@ -83,34 +53,15 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/bookings");
+      router.push("/onboarding/handle");
       router.refresh();
     },
     onError: (error) => {
       if (error.data?.code !== "CONFLICT") return;
-
-      if (error.message.toLowerCase().includes("email")) {
-        setError("email", { message: error.message });
-        setFocus("email");
-        return;
-      }
-
-      setError("handle", { message: error.message });
-      setFocus("handle");
+      setError("email", { message: error.message });
+      setFocus("email");
     },
   });
-
-  const availability: Availability = !handle
-    ? "idle"
-    : !handleReady
-      ? "invalid"
-      : handleAvailability.isError
-        ? "error"
-        : handleAvailability.data
-          ? handleAvailability.data.available
-            ? "available"
-            : "taken"
-          : "checking";
 
   const onSubmit = handleSubmit(async (values) => {
     try {
@@ -120,7 +71,6 @@ export function RegisterForm() {
   });
 
   const isBusy = isSubmitting || registerMutation.isPending;
-  const canSubmit = availability === "available" && !isBusy;
 
   return (
     <form onSubmit={onSubmit} className="grid gap-5">
@@ -148,24 +98,23 @@ export function RegisterForm() {
         <label htmlFor="register-password" className="oh-legend">
           {t("fieldPassword")}
         </label>
-        <InputGroup className="overflow-hidden rounded-(--oh-r-xs) border-[1.5px] border-[color:var(--oh-ink)] bg-[color:var(--oh-paper)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--oh-ink)]">
+        <InputGroup>
           <InputGroupInput
             id="register-password"
             type={showPassword ? "text" : "password"}
             placeholder={t("registerPasswordPlaceholder")}
             autoComplete="new-password"
             aria-invalid={errors.password ? true : undefined}
-            className="px-3 py-2.5 text-[15px] text-[color:var(--oh-ink)] placeholder:text-[color:var(--oh-placeholder)]"
             {...registerField("password")}
           />
-          <InputGroupAddon align="inline-end" className="bg-transparent pr-2">
+          <InputGroupAddon align="inline-end" className="!bg-transparent pr-3">
             <InputGroupButton
               type="button"
               size="icon-xs"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? t("hidePassword") : t("showPassword")}
               aria-pressed={showPassword}
-              className="text-[color:var(--oh-ink)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 hover:[&_svg]:opacity-100 hover:bg-[color:var(--oh-tint-hover)]"
+              className="!bg-transparent !shadow-none !ring-0 hover:!bg-transparent text-[color:var(--oh-ink)] [&_svg]:opacity-55 [&_svg]:transition-opacity [&_svg]:duration-150 hover:[&_svg]:opacity-100"
             >
               {showPassword ? (
                 <EyeOff className="size-4" strokeWidth={1.75} />
@@ -182,44 +131,6 @@ export function RegisterForm() {
         ) : null}
       </div>
 
-      <div className="grid gap-2">
-        <label htmlFor="register-handle" className="oh-legend">
-          {t("fieldHandle")}
-        </label>
-        <OhInputGroup>
-          <OhInputGroupAddon>
-            <OhInputGroupText>officehours.app/h/</OhInputGroupText>
-          </OhInputGroupAddon>
-          <OhInputGroupInput
-            id="register-handle"
-            placeholder={t("fieldHandlePlaceholder")}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            maxLength={30}
-            name="handle"
-            aria-invalid={errors.handle ? true : undefined}
-            value={handle}
-            onChange={(e) =>
-              setValue(
-                "handle",
-                e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                { shouldDirty: true, shouldValidate: true },
-              )
-            }
-          />
-          <OhInputGroupAddon align="inline-end">
-            <AvailabilityBadge state={availability} />
-          </OhInputGroupAddon>
-        </OhInputGroup>
-        <HandleHelp state={availability} />
-        {errors.handle ? (
-          <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
-            {errors.handle.message}
-          </p>
-        ) : null}
-      </div>
-
       {errors.root?.message ? (
         <p className="oh-field-error text-[12px] text-[color:var(--destructive)]">
           {errors.root.message}
@@ -230,68 +141,11 @@ export function RegisterForm() {
         type="submit"
         variant="oh"
         size="oh"
-        disabled={!canSubmit}
+        disabled={isBusy}
         className="w-full justify-center"
       >
         {isBusy ? t("submitCreateAccountPending") : t("submitCreateAccount")}
       </Button>
     </form>
   );
-}
-
-function AvailabilityBadge({ state }: { state: Availability }) {
-  const t = useTranslations("Auth");
-  switch (state) {
-    case "checking":
-      return (
-        <InputGroupText className="text-[color:var(--oh-content-muted)] tracking-[3px]">
-          …
-        </InputGroupText>
-      );
-    case "available":
-      return (
-        <InputGroupText className="text-green-600 dark:text-green-400">
-          {t("handleAvailabilityFree")}
-        </InputGroupText>
-      );
-    case "taken":
-      return (
-        <InputGroupText className="text-[color:var(--destructive)]">
-          {t("handleAvailabilityTaken")}
-        </InputGroupText>
-      );
-    case "invalid":
-      return (
-        <InputGroupText className="text-[color:var(--oh-content-muted)]">
-          {t("handleAvailabilityInvalid")}
-        </InputGroupText>
-      );
-    case "error":
-      return (
-        <InputGroupText className="text-[color:var(--destructive)]">
-          {t("handleAvailabilityError")}
-        </InputGroupText>
-      );
-    default:
-      return null;
-  }
-}
-
-function HandleHelp({ state }: { state: Availability }) {
-  const t = useTranslations("Auth");
-  const text =
-    state === "taken"
-      ? t("handleHelpTaken")
-      : state === "invalid"
-        ? t("handleHelpInvalid")
-        : state === "error"
-          ? t("handleHelpError")
-          : state === "available"
-            ? t("handleHelpAvailable")
-            : t("handleHelpDefault");
-  const tone =
-    state === "taken"
-      ? "text-[color:var(--destructive)]"
-      : "text-[color:var(--oh-content-muted)]";
-  return <p className={`text-[12px] leading-[1.4] ${tone}`}>{text}</p>;
 }

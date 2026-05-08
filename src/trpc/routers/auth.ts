@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { withSpan } from "@/lib/observability";
 import { hashPassword } from "@/lib/password";
-import { handleSchema, registerInputSchema } from "@/lib/register-schema";
+import {
+  derivePlaceholderHandle,
+  handleSchema,
+  registerInputSchema,
+} from "@/lib/register-schema";
 import { DEFAULT_AVAILABILITY_ROWS } from "@/lib/schedule";
 import { personalWorkspaceSlugFor } from "@/lib/workspaces";
 import { DEFAULT_REMINDER_WORKFLOW } from "@/lib/workflows";
@@ -74,6 +78,21 @@ export const auth = router({
       return { available: existing === null };
     }),
 
+  checkAccountForLogin: publicProcedure
+    .use(createRateLimitMiddleware("auth.checkAccount", 10, "1 m"))
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const email = input.email.trim().toLowerCase();
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { passwordHash: true },
+      });
+      return {
+        accountExists: user !== null,
+        hasPassword: !!user?.passwordHash,
+      };
+    }),
+
   register: publicProcedure
     .use(createRateLimitMiddleware("auth.register", 5, "1 m"))
     .input(registerInputSchema)
@@ -83,13 +102,18 @@ export const auth = router({
           name: "auth.register",
           op: "user.write",
           attributes: {
-            handle: input.handle,
             ipIdentifier: ctx.ipIdentifier,
           },
         },
         async () => {
-          if (RESERVED_HANDLES.has(input.handle)) {
-            throw handleConflict();
+          let placeholderHandle = derivePlaceholderHandle();
+          for (let attempt = 0; attempt < 5; attempt++) {
+            const taken = await prisma.user.findUnique({
+              where: { handle: placeholderHandle },
+              select: { id: true },
+            });
+            if (!taken) break;
+            placeholderHandle = derivePlaceholderHandle();
           }
 
           const existingEmail = await prisma.user.findUnique({
@@ -100,14 +124,6 @@ export const auth = router({
             throw emailConflict();
           }
 
-          const existingHandle = await prisma.user.findUnique({
-            where: { handle: input.handle },
-            select: { id: true },
-          });
-          if (existingHandle) {
-            throw handleConflict();
-          }
-
           const passwordHash = await hashPassword(input.password);
 
           try {
@@ -115,7 +131,7 @@ export const auth = router({
               const user = await tx.user.create({
                 data: {
                   email: input.email,
-                  handle: input.handle,
+                  handle: placeholderHandle,
                   passwordHash,
                   availabilityRanges: {
                     createMany: { data: [...DEFAULT_AVAILABILITY_ROWS] },
@@ -128,14 +144,14 @@ export const auth = router({
                 },
               });
               const slugTaken = await tx.workspace.findUnique({
-                where: { slug: input.handle },
+                where: { slug: placeholderHandle },
                 select: { id: true },
               });
               const workspace = await tx.workspace.create({
                 data: {
                   slug: slugTaken
                     ? personalWorkspaceSlugFor(user.id)
-                    : input.handle,
+                    : placeholderHandle,
                   name: "Personal",
                   ownerId: user.id,
                 },
@@ -157,8 +173,8 @@ export const auth = router({
               const eventType = await tx.eventType.create({
                 data: {
                   workspaceId: workspace.id,
-                  slug: input.handle,
-                  name: input.handle,
+                  slug: placeholderHandle,
+                  name: placeholderHandle,
                   durationMins: 15,
                 },
                 select: { id: true },
