@@ -158,22 +158,27 @@ export function HandleModal({
             aria-hidden
           />
         </button>
-        <AnimatePresence mode="wait" initial={false}>
-          {chromeRowText ? (
-            <motion.span
-              key={chromeRowText}
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -8, opacity: 0 }}
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-              className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
-            >
-              {chromeRowText}
-            </motion.span>
-          ) : (
-            <span className="justify-self-center" aria-hidden />
-          )}
-        </AnimatePresence>
+        <motion.span
+          layoutId="oh-modal-chrome-title"
+          layout="position"
+          transition={{ type: "spring", ...openSpring }}
+          className="min-w-0 justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {chromeRowText ? (
+              <motion.span
+                key={chromeRowText}
+                initial={{ y: 8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -8, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                className="block truncate"
+              >
+                {chromeRowText}
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
+        </motion.span>
         <button
           type="button"
           onClick={() => onOpenChange(false)}

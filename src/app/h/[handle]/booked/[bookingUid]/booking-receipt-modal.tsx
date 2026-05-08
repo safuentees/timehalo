@@ -92,7 +92,7 @@ export function BookingReceiptModal({
             <div className="relative z-30 grid h-7 shrink-0 grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] items-center gap-2">
               <span aria-hidden />
               <motion.span
-                layoutId="oh-modal-title"
+                layoutId="oh-modal-chrome-title"
                 layout="position"
                 transition={{ type: "spring", ...openSpring }}
                 className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
