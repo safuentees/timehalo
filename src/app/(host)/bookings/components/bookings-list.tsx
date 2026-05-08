@@ -46,9 +46,11 @@ import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
+import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import {
-  Tabs,
-  TabsContent,
+  // List view tab bar uses OhPillSwitcher now; the legacy
+  // `BookingsTabBar` (GSAP-underline) below is retained for the
+  // /playground/animations/bookings-tabs reference page only.
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
@@ -402,38 +404,52 @@ export function BookingsList({
         // List mode: stay in the standard 760px shell. The list rows
         // don't benefit from a wider column.
         <OhPageShell>
-          <Tabs
+          <OhPillSwitcher
+            ariaLabel={t("tablistLabel")}
             value={activeTab}
-            onValueChange={(value) => {
+            onChange={(value) => {
               if (value === activeTab) return;
-              if (!VALID_TABS.includes(value as Tab)) return;
               router.push(`?view=list&tab=${value}`, { scroll: false });
             }}
-          >
-            <BookingsTabBar
-              activeTab={activeTab}
-              upcomingCount={data?.upcoming.length ?? 0}
-              pastCount={data?.past.length ?? 0}
-              tablistLabel={t("tablistLabel")}
-              upcomingLabel={t("tabUpcoming")}
-              pastLabel={t("tabPast")}
-            />
+            options={[
+              {
+                value: "upcoming",
+                label: (
+                  <BookingsTabLabel
+                    label={t("tabUpcoming")}
+                    count={data?.upcoming.length ?? 0}
+                    isActive={activeTab === "upcoming"}
+                  />
+                ),
+              },
+              {
+                value: "past",
+                label: (
+                  <BookingsTabLabel
+                    label={t("tabPast")}
+                    count={data?.past.length ?? 0}
+                    isActive={activeTab === "past"}
+                  />
+                ),
+              },
+            ]}
+          />
 
-            <TabsContent value="upcoming" className="mt-6">
+          <div className="mt-6">
+            {activeTab === "upcoming" ? (
               <BookingsListPanel
                 tab="upcoming"
                 bookings={data?.upcoming ?? []}
                 onSelect={setSelectedUid}
               />
-            </TabsContent>
-            <TabsContent value="past" className="mt-6">
+            ) : (
               <BookingsListPanel
                 tab="past"
                 bookings={data?.past ?? []}
                 onSelect={setSelectedUid}
               />
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </OhPageShell>
       ) : (
         // Calendar mode: escape the OhPageShell width cap so each
@@ -572,39 +588,53 @@ export function BookingsList({
                     (no more month-grid at any viewport width).
                     Reads as "month is desktop-only; tabs reset
                     you to the canonical list view." */}
-                <Tabs
+                <OhPillSwitcher
+                  ariaLabel={t("tablistLabel")}
                   value={activeTab}
-                  onValueChange={(value) => {
+                  onChange={(value) => {
                     if (value === activeTab) return;
-                    if (!VALID_TABS.includes(value as Tab)) return;
                     router.push(`?view=list&tab=${value}`, {
                       scroll: false,
                     });
                   }}
-                >
-                  <BookingsTabBar
-                    activeTab={activeTab}
-                    upcomingCount={data?.upcoming.length ?? 0}
-                    pastCount={data?.past.length ?? 0}
-                    tablistLabel={t("tablistLabel")}
-                    upcomingLabel={t("tabUpcoming")}
-                    pastLabel={t("tabPast")}
-                  />
-                  <TabsContent value="upcoming" className="mt-6">
+                  options={[
+                    {
+                      value: "upcoming",
+                      label: (
+                        <BookingsTabLabel
+                          label={t("tabUpcoming")}
+                          count={data?.upcoming.length ?? 0}
+                          isActive={activeTab === "upcoming"}
+                        />
+                      ),
+                    },
+                    {
+                      value: "past",
+                      label: (
+                        <BookingsTabLabel
+                          label={t("tabPast")}
+                          count={data?.past.length ?? 0}
+                          isActive={activeTab === "past"}
+                        />
+                      ),
+                    },
+                  ]}
+                />
+                <div className="mt-6">
+                  {activeTab === "upcoming" ? (
                     <BookingsListPanel
                       tab="upcoming"
                       bookings={data?.upcoming ?? []}
                       onSelect={setSelectedUid}
                     />
-                  </TabsContent>
-                  <TabsContent value="past" className="mt-6">
+                  ) : (
                     <BookingsListPanel
                       tab="past"
                       bookings={data?.past ?? []}
                       onSelect={setSelectedUid}
                     />
-                  </TabsContent>
-                </Tabs>
+                  )}
+                </div>
               </div>
             </>
           ) : null}
@@ -700,6 +730,35 @@ function formatDateParam(d: Date): string {
 function formatCount(n: number): string {
   if (n >= 100) return "99+";
   return String(n).padStart(2, "0");
+}
+
+// Label cell for the OhPillSwitcher in list-view mode.
+// Renders "Upcoming 03" with the count dimmed only when the tab is
+// active (matches the prior `BookingsTabBar` hierarchy: label-primary,
+// count-secondary on the active tab). On inactive tabs the count
+// inherits the muted parent color.
+function BookingsTabLabel({
+  label,
+  count,
+  isActive,
+}: {
+  label: string;
+  count: number;
+  isActive: boolean;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 leading-none">
+      <span>{label}</span>
+      <span
+        className={cn(
+          "tabular-nums",
+          isActive ? "opacity-65" : "opacity-100",
+        )}
+      >
+        {formatCount(count)}
+      </span>
+    </span>
+  );
 }
 
 // Tablist with a per-tab underline that animates between tabs via

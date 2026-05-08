@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,10 @@ import { cn } from "@/lib/utils";
 
 type Option<T extends string> = {
   value: T;
-  label: string;
+  // ReactNode (not string) so callers can compose richer labels — e.g.
+  // "Upcoming <span class="opacity-65">3</span>" with primary label +
+  // muted count for the bookings list-view tab bar.
+  label: ReactNode;
 };
 
 type Props<T extends string> = {
@@ -53,17 +56,21 @@ export function OhPillSwitcher<T extends string>({
       <TabsList
         aria-label={ariaLabel}
         className={cn(
-          // Override shadcn's defaults: rounded-sm → rounded-full,
-          // bg-muted → paper, h-8 → h-auto (active pill content drives
-          // height), gap-0 to keep buttons flush so the active pill
-          // morphs without intermediate gaps.
-          // Drop shadow matches the app-wide button vocabulary
-          // (`0 3px 12px rgba(0,0,0,0.22)` — same as `oh` / `ohGhost`
-          // variants in `button.tsx`). The track is paper-colored AND
-          // sits on a paper page bg, so without a shadow it would
-          // visually disappear; the shadow gives the track presence
-          // as a chrome layer floating above the page.
-          "h-auto gap-0 rounded-full bg-[color:var(--oh-paper)] p-[3px] text-foreground",
+          // Track: muted paper (the project's "darker main" tone —
+          // paper + ~8% ink in oklab). Replaces the earlier paper bg
+          // so the track contrasts against the paper-colored page,
+          // and the active pill (now paper) reads as the LIGHTER /
+          // recessed-feeling element. Same two-tone the auth shell
+          // uses, just inverted to match the visual ref.
+          // Outer radius: `--oh-r-sm` (6px) — matches the app's
+          // canonical structural radius (per oh-ui.md "Radius scale:
+          // one structural token"). Drops the previous rounded-full
+          // pill which read as "stock shadcn" rather than the
+          // project's tighter chrome vocabulary.
+          // Drop shadow same vocabulary as `oh` / `ohGhost` button
+          // variants in `button.tsx` so the track sits as a chrome
+          // layer floating above the page.
+          "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
           "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
           className,
         )}
@@ -81,7 +88,7 @@ export function OhPillSwitcher<T extends string>({
                 // data-active:shadow-sm (we paint the active pill via
                 // the motion.span beneath instead). after:hidden kills
                 // the line-variant underline pseudo.
-                "relative h-auto flex-none rounded-[10px] border-0 px-4 py-[7px]",
+                "relative h-auto flex-none rounded-(--oh-r-xs) border-0 px-4 py-[7px]",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
@@ -98,15 +105,16 @@ export function OhPillSwitcher<T extends string>({
                 <motion.span
                   layoutId={layoutId}
                   aria-hidden
-                  // Active pill = `--oh-bg-muted` (the project's
-                  // "other" main paper variant — paper darkened ~8%
-                  // ink in oklab). On a paper-colored track, a
-                  // darker pill creates the same two-tone
-                  // vocabulary the auth shell uses (just inverted —
-                  // here the LIGHTER one is the outer / track and
-                  // the DARKER one is the inner / active pill). Soft
-                  // outer shadow preserves the floating-pill depth.
-                  className="absolute inset-0 rounded-[10px] bg-oh-bg-muted shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                  // Active pill = `--oh-paper` (the LIGHTER main
+                  // tone). With the track now on `--oh-bg-muted`
+                  // (the darker main), the pill is the lighter
+                  // contrast — matches the visual ref and mirrors
+                  // the auth shell's outer-muted / inner-paper
+                  // vocabulary. Inner radius `--oh-r-xs` (2px) per
+                  // the app's chip / segment radius token (smaller
+                  // than the `--oh-r-sm` structural outer = clean
+                  // concentric).
+                  className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

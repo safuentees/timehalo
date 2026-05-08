@@ -138,9 +138,12 @@ export function TimeGridColumn({
   });
 
   // Current-time position — only painted if showCurrentTimeLine AND
-  // the column's date matches today (caller usually pre-checks).
+  // the hook has filled in a wall-clock value (null on SSR + first
+  // render to avoid hydration mismatch — see use-current-minute.ts)
+  // AND the column's date matches today (caller usually pre-checks).
   const currentTimeLineTop = (() => {
     if (!showCurrentTimeLine) return null;
+    if (!now) return null;
     if (!isSameDay(now, date)) return null;
     const minutesFromStart =
       (now.getHours() - startHour) * 60 + now.getMinutes();
