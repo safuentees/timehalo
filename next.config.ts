@@ -57,6 +57,16 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: cspDirectives,
           },
+          {
+            // D2 — HSTS. 2-year max-age (63072000s) is the canonical
+            // value most browsers + the preload list expect.
+            // includeSubDomains covers any future api.officehours.app
+            // / cdn.officehours.app etc. preload directive opts in to
+            // the browser-shipped preload list (must submit domain at
+            // hstspreload.org for inclusion).
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
         ],
       },
     ];
