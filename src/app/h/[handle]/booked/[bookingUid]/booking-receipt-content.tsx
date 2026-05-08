@@ -71,7 +71,7 @@ export function BookingReceiptContent({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col justify-evenly px-5 sm:px-6">
+    <div className="flex min-h-0 flex-1 flex-col justify-evenly px-5 sm:px-6">
       <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3.5">
         <Avatar className="size-12 rounded-(--oh-r-xs)">
