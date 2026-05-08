@@ -136,55 +136,63 @@ export function BookingReceiptContent({
           meeting in a face + handle, not re-confirm the booking
           state. Avatar 48 (down from 40+sm:48 in the page variant)
           keeps the row dense; eyebrow/name/handle stack on the right. */}
-        {/* B.PT272 — host card scales uniformly with container width
-            via `@container` + `cqi` units (CSS container query length
-            unit, 1cqi = 1% of container's inline size — see MDN
+        {/* B.PT272 / B.PT273 — host card scales uniformly with
+            container width via `@container` + `cqi` units (1cqi =
+            1% of container's inline size, MDN
             `developer.mozilla.org/.../length#container_query_length_units`).
-            The flex row is marked as a query container; the avatar
-            size, gap, and font-sizes all use `clamp(min, Ncqi, max)`
-            so they grow proportionally as the cream-content area
-            widens. Calibrated at ~376px container width: avatar 48
-            → 12.77cqi, gap 14 → 3.7cqi, name 17px → 4.5cqi, eyebrow
-            10px → 2.66cqi. `clamp()` bounds keep values readable on
-            tiny viewports and prevent runaway growth on huge ones.
-            Truncate on the name + handle text already handles the
-            "wall touch" boundary — long names ellipsis-clip when
-            content reaches the right edge. Same primitive the
-            codebase's `oh-drawer-weekdays-cell` uses for cqi-driven
-            scaling (see `globals.css:2629`). */}
+            **B.PT273 recalibration**: the original B.PT272
+            multipliers were too conservative — picked so that at
+            the BASE container width (~376px) the cqi value equaled
+            the base size, which meant zero visible change at that
+            same container. The receipt card is bounded by
+            `max-w-[450px]`, so the container's actual range is
+            narrow (~228px on small mobile to ~380px on desktop).
+            Multipliers must be aggressive enough that ranging
+            across THAT range produces visible movement.
+            Recalibrated targets across container 228 → 380:
+              Avatar 48 → 80px  (21cqi → clamp 48px floor, 88px ceiling)
+              Gap    14 → 21px  (5.5cqi → clamp 14px floor, 24px ceiling)
+              Name   17 → 30px  (8cqi  → clamp 17px floor, 32px ceiling)
+              Eyebrow 10 → 13px (3.5cqi → clamp 10px floor, 14px ceiling)
+            Floors floor the value on the smallest viewports so
+            text stays readable; ceilings cap growth on huge
+            containers (irrelevant in practice since the card caps
+            at 450). Truncate on the name + handle text already
+            handles the "wall touch" boundary — long names
+            ellipsis-clip when content reaches the right edge. */}
         <div
           className="@container flex items-center bg-amber-200"
-          style={{ gap: "clamp(10px, 3.7cqi, 22px)" }}
+          style={{ gap: "clamp(14px, 5.5cqi, 24px)" }}
         >
-          {/* B.PT270 / B.PT272 — shared `<HandleHostAvatar>` so the
-              receipt-modal and `/h/[handle]` landing/modal identity
-              row pull from one source of truth. The size prop now
-              accepts a CSS string so the receipt can scale with
-              container queries (`clamp(40px, 12.77cqi, 88px)`)
+          {/* B.PT270 / B.PT272 / B.PT273 — shared `<HandleHostAvatar>`
+              so the receipt-modal and `/h/[handle]` landing/modal
+              identity row pull from one source of truth. The size
+              prop now accepts a CSS string so the receipt can scale
+              with container queries (`clamp(48px, 21cqi, 88px)`)
               while host-profile keeps its fixed Figma-spec 55px. */}
           <HandleHostAvatar
             src={booking.host.image}
             alt={hostName}
             initials={toInitials(hostName)}
-            size="clamp(40px, 12.77cqi, 88px)"
+            size="clamp(48px, 21cqi, 88px)"
           />
           <div className="min-w-0 flex-1">
             <p
               className="oh-eyebrow opacity-55"
-              style={{ fontSize: "clamp(9px, 2.66cqi, 13px)" }}
+              style={{ fontSize: "clamp(10px, 3.5cqi, 14px)" }}
             >
               {t("withLabel")}
             </p>
             <p
               className="mt-0.5 truncate font-bold leading-tight tracking-tight"
-              style={{ fontSize: "clamp(15px, 4.5cqi, 26px)" }}
+              style={{ fontSize: "clamp(17px, 8cqi, 32px)" }}
             >
               {hostName}
             </p>
             {booking.host.handle ? (
               <p
                 className="mt-0.5 truncate oh-eyebrow opacity-55"
-                style={{ fontSize: "clamp(9px, 2.66cqi, 13px)" }}
+                style={{ fontSize: "clamp(10px, 3.5cqi, 14px)" }}
               >
                 /h/{booking.host.handle}
               </p>
