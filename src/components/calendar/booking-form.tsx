@@ -150,7 +150,7 @@ const BOOKING_FIELD_SURFACE_CLASS = cn(
   "hover:bg-[var(--oh-input-bg-hover)]",
 );
 
-const BOOKING_SUBMIT_BUTTON_CLASS = cn(
+export const BOOKING_SUBMIT_BUTTON_CLASS = cn(
   "oh-book-submit h-9 rounded-[10px] font-mono text-[13px] font-extrabold",
   "shadow-[0_0_15px_rgba(0,0,0,0.25)]",
   "hover:!bg-oh-ink hover:!text-oh-paper",

@@ -748,7 +748,12 @@
   "BookingConfirmation": {
     "headerHomeAria": "Inicio de Officehours",
     "badgeBooked": "Reservado",
+    "badgeBookedOn": "Reservado el {date} a las {time}",
     "withHost": "con {name}",
+    "withLabel": "Con",
+    "durationLabel": "Duración",
+    "timeZoneLabel": "Zona horaria",
+    "durationMinutes": "{minutes} min",
     "addToCalendar": "Añadir al calendario",
     "share": "Compartir",
     "shared": "Compartido",

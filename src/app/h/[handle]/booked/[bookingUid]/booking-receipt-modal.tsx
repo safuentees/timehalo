@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { XIcon } from "lucide-react";
@@ -12,10 +12,8 @@ import {
 } from "../../components/handle-morph-parts";
 import { HandleMorphCard } from "../../components/handle-morph-card";
 import { useModalDebug } from "../../_components/visitor-debug-overlay";
-import {
-  BookingConfirmationContent,
-  type BookingConfirmationBooking,
-} from "./booking-confirmation";
+import { type BookingConfirmationBooking } from "./booking-confirmation";
+import { BookingReceiptContent } from "./booking-receipt-content";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
 const CLOSE_SPRING =
@@ -31,10 +29,25 @@ export function BookingReceiptModal({
   const router = useRouter();
   const t = useTranslations("BookingConfirmation");
   const tCalendar = useTranslations("BookingCalendar");
+  const format = useFormatter();
   const { values: debug, panelShardRef } = useModalDebug();
   const openSpring = debug?.openSpring ?? OPEN_SPRING;
   const closeSpring = debug?.closeSpring ?? CLOSE_SPRING;
   const focusShards = panelShardRef ? [panelShardRef] : [];
+
+  const startDate = new Date(booking.slotStart);
+  const titleDate = format.dateTime(startDate, {
+    month: "short",
+    day: "numeric",
+  });
+  const titleTime = format.dateTime(startDate, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const titleText = t("badgeBookedOn", {
+    date: titleDate,
+    time: titleTime,
+  });
 
   function close() {
     router.back();
@@ -84,7 +97,7 @@ export function BookingReceiptModal({
                 transition={{ type: "spring", ...openSpring }}
                 className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
               >
-                {t("badgeBooked")}
+                {titleText}
               </motion.span>
               <button
                 type="button"
@@ -115,7 +128,7 @@ export function BookingReceiptModal({
               }}
               className="relative z-10 min-h-0 overflow-hidden bg-[#F5EFDF]"
             >
-              <BookingConfirmationContent booking={booking} variant="modal" />
+              <BookingReceiptContent booking={booking} />
             </motion.div>
           </div>
         </HandleMorphCard>
