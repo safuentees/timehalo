@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { HourAxis } from "./hour-axis";
@@ -62,10 +63,13 @@ function addDays(d: Date, n: number): Date {
   return result;
 }
 
-function formatDayHeader(d: Date): { weekday: string; ordinal: string } {
+function formatDayHeader(
+  d: Date,
+  locale: string,
+): { weekday: string; ordinal: string } {
   return {
     weekday: d
-      .toLocaleDateString("en-US", { weekday: "short" })
+      .toLocaleDateString(locale, { weekday: "short" })
       .toUpperCase(),
     ordinal: String(d.getDate()),
   };
@@ -84,6 +88,7 @@ export function WeekView({
   minBodyWidthPx = 1100,
   nowOverride,
 }: WeekViewProps) {
+  const locale = useLocale();
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(monday, i)),
@@ -128,8 +133,8 @@ export function WeekView({
   // already-memoized `monday` from above; sunday derived locally.
   const sunday = days[6];
   const weekLabel = (() => {
-    const startMonth = monday.toLocaleDateString("en-US", { month: "short" });
-    const endMonth = sunday.toLocaleDateString("en-US", { month: "short" });
+    const startMonth = monday.toLocaleDateString(locale, { month: "short" });
+    const endMonth = sunday.toLocaleDateString(locale, { month: "short" });
     if (startMonth === endMonth) {
       return `${startMonth} ${monday.getDate()}-${sunday.getDate()}, ${sunday.getFullYear()}`;
     }
@@ -164,7 +169,7 @@ export function WeekView({
             />
             {days.map((d) => {
               const isToday = isSameDay(d, today);
-              const { weekday, ordinal } = formatDayHeader(d);
+              const { weekday, ordinal } = formatDayHeader(d, locale);
               return (
                 <div
                   key={d.toISOString()}
