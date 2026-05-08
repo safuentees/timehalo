@@ -58,6 +58,13 @@ describe("calendar busy-time integration (mocked Google freeBusy)", () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeAll(async () => {
+    // Pin to a known Thursday morning UTC so `getUpcomingSlots`
+    // deterministically finds upcoming slots regardless of the
+    // operator's wall clock. See calendar.test.ts for context: the
+    // test host's weekday availability runs out after ~23:45 UTC
+    // and `days:1` calls below return [] without the pin.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-15T14:00:00Z"));
     host = await createTestHost("vitest-cal-integration");
     // Plaintext tokens — encryption helper's `decryptToken` returns
     // input unchanged when there's no `v1:` envelope prefix (see
@@ -93,6 +100,7 @@ describe("calendar busy-time integration (mocked Google freeBusy)", () => {
   });
 
   afterAll(async () => {
+    vi.useRealTimers();
     globalThis.fetch = originalFetch;
     await prisma.selectedCalendar.deleteMany({ where: { credentialId } });
     await prisma.calendarCredential.deleteMany({

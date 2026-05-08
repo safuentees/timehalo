@@ -5,6 +5,7 @@ import {
   beforeAll,
   beforeEach,
   afterAll,
+  vi,
 } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
@@ -356,6 +357,14 @@ describe("schedule.getUpcomingSlots — busy-time integration", () => {
   let host: { id: string; handle: string };
 
   beforeAll(async () => {
+    // Pin to a known Thursday morning UTC. `createTestHost` seeds
+    // weekday availability 00:00–23:45; pinning to 14:00 UTC on a
+    // Thursday guarantees `getUpcomingSlots(days:1)` finds slots
+    // regardless of the operator's wall clock. Without the pin the
+    // tests below flake when the test host runs after ~23:45 UTC
+    // (the remaining-today slots run out and `days:1` returns []).
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-15T14:00:00Z"));
     host = await createTestHost("vitest-calendar-merge");
   });
   beforeEach(async () => {
@@ -364,6 +373,7 @@ describe("schedule.getUpcomingSlots — busy-time integration", () => {
     await prisma.calendarCredential.deleteMany({});
   });
   afterAll(async () => {
+    vi.useRealTimers();
     await tearDownTestHost(host.id);
   });
 
