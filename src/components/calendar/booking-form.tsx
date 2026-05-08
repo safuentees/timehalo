@@ -1,7 +1,7 @@
 "use client";
 
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -67,6 +67,10 @@ function CreateForm({
 }) {
   const t = useTranslations("BookingCalendar");
   const router = useRouter();
+  // B.PT264 — `useTransition` so we can both (a) wrap the
+  // navigation + close in a transition AND (b) gate the submit
+  // button on the transition pending state. See onSuccess.
+  const [isTransitionPending, startTransition] = useTransition();
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: { visitorName: "", visitorEmail: "", question: "" },
@@ -83,20 +87,38 @@ function CreateForm({
 
   const book = useBookingCreate({
     onSuccess: (booking) => {
-      // B.PT263 — order matters. Push the route FIRST so the
-      // intercepted `@receipt/(.)booked/[bookingUid]` slot mounts
-      // its `<HandleMorphCard layoutId="handle-card">` in the same
-      // React commit that closes this modal. Motion sees both the
-      // form-card (exiting) and the receipt-card (entering) with
-      // matching `layoutId` → morphs form-rect → receipt-rect.
-      // Previous order (onBooked → push) flipped `drawerOpen=false`
-      // first, the form-card exited toward the landing card's rect
-      // (visible flash to "times and name" landing chrome) before
-      // the receipt-card mounted, then receipt-card snapped to its
-      // own rect with no morph.
-      router.push(`/h/${handle}/booked/${booking.publicUid}`);
-      onBooked?.();
-      form.reset();
+      // B.PT264 — wrap router.push + onBooked in startTransition so
+      // React keeps the form modal visible while the @receipt slot's
+      // server-component fetch resolves. When the navigation settles,
+      // the modal exits AND BookingReceiptModal mounts in the SAME
+      // React commit — Motion's shared `layoutId="handle-card"` sees
+      // both elements together and morphs form-rect → receipt-rect
+      // cleanly.
+      //
+      // Why B.PT263's reorder alone wasn't enough:
+      // `router.push` only QUEUES navigation; the @receipt slot's
+      // async `getBookingConfirmation` server fetch hadn't resolved
+      // when `setDrawerOpen(false)` committed in the same React pass.
+      // → form-card exited alone → Motion fell back to its last-
+      // known cached source rect (the landing card from when the
+      // modal first opened) → "flash to landing" the user observed.
+      //
+      // `startTransition` marks both updates as non-urgent transitions
+      // so React holds the OLD tree visible (modal open with form)
+      // until the new tree's Suspense (the @receipt slot's server
+      // fetch) resolves. Per react.dev/reference/react/Suspense —
+      // "Marking a state transition as non-urgent using
+      // startTransition tells React to keep showing the previous
+      // page instead of hiding already revealed content."
+      //
+      // `form.reset()` removed: the form unmounts via the modal
+      // exit. Skipping the reset also preserves visitor input if the
+      // navigation is interrupted (browser back, network error mid-
+      // transition), so retry doesn't force them to retype.
+      startTransition(() => {
+        router.push(`/h/${handle}/booked/${booking.publicUid}`);
+        onBooked?.();
+      });
     },
   });
 
@@ -169,7 +191,16 @@ function CreateForm({
           type="submit"
           variant="oh"
           size="oh"
-          disabled={book.isPending}
+          // B.PT264 — disable through both the mutation phase AND
+          // the post-success transition window (Suspense-held while
+          // the @receipt slot resolves). Without `isTransitionPending`
+          // the button re-enables the moment the mutation succeeds
+          // even though the modal is still visibly open during the
+          // transition — a second click during that window would
+          // re-fire the mutation (idempotency key short-circuits
+          // server-side, but the UX still reads as the button being
+          // tappable when it shouldn't be).
+          disabled={book.isPending || isTransitionPending}
           // Figma confirm-button: cornerRadius 10 (pill-ish CTA, NOT
           // the project's --oh-r-xs 2px), DROP_SHADOW r=15 halo, mono
           // 13 ExtraBold paper-on-ink (paper-on-ink baked into the
@@ -178,7 +209,9 @@ function CreateForm({
           // elsewhere.
           className={BOOKING_SUBMIT_BUTTON_CLASS}
         >
-          {book.isPending ? t("submitBookPending") : t("submitBook")}
+          {book.isPending || isTransitionPending
+            ? t("submitBookPending")
+            : t("submitBook")}
         </Button>
       </form>
     </FormProvider>
@@ -345,14 +378,19 @@ function RescheduleConfirm({
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
   const router = useRouter();
+  const [isTransitionPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
-      // B.PT263 — same push-first ordering as CreateForm onSuccess
-      // so the intercepted receipt slot mounts its layoutId card
-      // in the same commit that closes this modal.
-      router.push(`/h/${handle}/booked/${result.publicUid}`);
-      onBooked?.();
+      // B.PT264 — same startTransition wrap as CreateForm.onSuccess
+      // so React holds the modal open until the @receipt slot's
+      // server fetch resolves; modal exits and receipt-card mounts
+      // in the SAME commit → Motion morphs form→receipt cleanly.
+      // See CreateForm.onSuccess for the full diagnosis.
+      startTransition(() => {
+        router.push(`/h/${handle}/booked/${result.publicUid}`);
+        onBooked?.();
+      });
     },
   });
 
@@ -388,7 +426,7 @@ function RescheduleConfirm({
         type="button"
         variant="oh"
         size="oh"
-        disabled={reschedule.isPending}
+        disabled={reschedule.isPending || isTransitionPending}
         className="oh-book-submit"
         onClick={() => {
           reschedule.mutate({
@@ -399,7 +437,7 @@ function RescheduleConfirm({
           });
         }}
       >
-        {reschedule.isPending
+        {reschedule.isPending || isTransitionPending
           ? t("submitReschedulePending")
           : t("submitReschedule")}
       </Button>
