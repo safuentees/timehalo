@@ -584,6 +584,13 @@
     "reference": "Reference {digest}",
     "tryAgain": "Try again"
   },
+  "VisitorError": {
+    "label": "Something broke",
+    "title": "We hit a snag loading this page",
+    "body": "An unexpected error fired while we were preparing this profile. Try again — if it sticks, the host's link may need to refresh.",
+    "tryAgain": "Try again",
+    "reference": "Reference {digest}"
+  },
   "BookingCalendar": {
     "triggerEmpty": "Pick a date",
     "triggerEmptyAria": "Pick a date",
