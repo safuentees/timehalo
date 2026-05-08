@@ -13,6 +13,7 @@ import {
 import { ChevronRightIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
+import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 // Custom oh-themed time picker. Replaces the previous opacity-0
@@ -113,6 +114,11 @@ export function OhTimePicker({
           style={{ zIndex: 100 }}
         >
           <Popover.Popup className="oh-time-picker-popup">
+            {/* `items-end` — the row anchors children at the bottom
+                so the input + AM/PM track baselines align under
+                their labels. Heights match because both read the
+                shared `--oh-time-picker-control-h` token (36px) —
+                no flex-grow propagation chain needed. */}
             <div className="flex items-end gap-2">
               <FieldStack labelText="Hour">
                 <OhTimePickerInput
@@ -126,7 +132,7 @@ export function OhTimePicker({
               </FieldStack>
               <span
                 aria-hidden
-                className="select-none pb-2 text-[18px] font-black opacity-55"
+                className="select-none self-end pb-2 text-[18px] font-black opacity-55"
               >
                 :
               </span>
@@ -191,28 +197,46 @@ function PeriodToggle({
   period: Period;
   onChange: (next: Period) => void;
 }) {
+  // B.PT296 — replaces the bespoke `.oh-time-picker-period` CSS
+  // segmented control with the canonical `<OhPillSwitcher>`. AM/PM
+  // is structurally a 2-option segmented switcher, so it inherits
+  // the same paper-pill-on-muted-track aesthetic as the bookings
+  // view-mode switcher: muted-paper inset track, paper sliding
+  // pill via motion's `layoutId`, Apple-HIG concentric corners.
+  // Single design vocabulary across every segmented control in the
+  // app — view-mode switcher, list-view tab bar, day strip, AM/PM.
   return (
-    <div
-      role="radiogroup"
-      aria-label="AM or PM"
-      className="oh-time-picker-period"
-    >
-      {PERIODS.map((p) => (
-        <button
-          key={p}
-          type="button"
-          role="radio"
-          aria-checked={p === period}
-          onClick={() => onChange(p)}
-          className={cn(
-            "oh-time-picker-period-cell",
-            p === period && "is-active",
-          )}
-        >
-          {p}
-        </button>
-      ))}
-    </div>
+    <OhPillSwitcher
+      ariaLabel="AM or PM"
+      value={period}
+      onChange={onChange}
+      // B.PT297 — height pulled from the shared
+      // `--oh-time-picker-control-h` CSS variable (36px) which
+      // `.oh-time-picker-input` also reads. Single source of truth
+      // for the popup's control row.
+      // Tailwind v4 shorthand `h-(--name)` is used instead of the
+      // bracket-form alternative — Tailwind's CSS parser raises a
+      // build error on the bracket form combined with the `!`
+      // important modifier (the parser fails to extract the var
+      // name from inside the bracket). The shorthand is the v4
+      // canonical way to reference a CSS variable in an arbitrary
+      // utility (per `tailwindcss.com/docs/adding-custom-styles`).
+      // The `!` modifier itself is required to beat shadcn's
+      // `group-data-horizontal/tabs:h-8` variant on TabsList,
+      // which has higher CSS specificity than a plain utility and
+      // would otherwise lock the track at 32px.
+      // B.PT298 — softened inset shadow at this callsite
+      // (`!shadow-[inset_0_3px_10px_rgba(0,0,0,0.16)]` overrides the
+      // OhPillSwitcher default's 0.22 opacity). The popup is on a
+      // smaller surface than the bookings page, so 0.22 read too
+      // heavy here; 0.16 is calibrated to feel like the same recess
+      // metaphor at smaller scale.
+      className="!h-(--oh-time-picker-control-h) !shadow-[inset_0_3px_10px_rgba(0,0,0,0.16)]"
+      options={[
+        { value: "AM", label: "AM" },
+        { value: "PM", label: "PM" },
+      ]}
+    />
   );
 }
 

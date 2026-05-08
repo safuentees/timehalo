@@ -317,12 +317,25 @@ export function MobileNavContent({
                     aria-current={active ? "page" : undefined}
                     className={[
                       "flex items-center gap-3 rounded-(--oh-r-xs) px-3 py-3 text-[15px] font-medium",
-                      "border-l-2 border-l-transparent",
-                      "transition-colors duration-150 ease-oh",
+                      // Transition both colors AND box-shadow so the
+                      // shadow lift fades smoothly when the active row
+                      // changes via route navigation. ease-oh matches
+                      // the rest of the dashboard's motion vocabulary.
+                      "transition-[background-color,color,box-shadow] duration-150 ease-oh",
                       "hover:bg-[var(--oh-tint-hover)]",
                       "oh-focus-ring",
+                      // Active = paper-on-paper chip with drop shadow
+                      // (B.PT289 — match OhPillSwitcher's active pill
+                      // vocabulary). Replaces the prior bg-tint-active
+                      // + 2px ink left-border combo with a single
+                      // unified treatment: the row reads as a paper
+                      // card lifted off the page surface, shadow
+                      // matching the `oh` button drop
+                      // (`0 3px 12px rgba(0,0,0,0.22)`). Same chrome
+                      // the active pill chip carries — one design
+                      // vocabulary across switchers + nav rows.
                       active
-                        ? "bg-[var(--oh-tint-active)] border-l-[var(--oh-ink)] font-bold"
+                        ? "bg-[color:var(--oh-paper)] font-bold shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
                         : "",
                     ].join(" ")}
                   >

@@ -235,6 +235,11 @@
      sm (6px) cards - ~4px padding = xs (2px) inner inputs/chips. */
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
+  /* Shared height for the time picker's spinner inputs + AM/PM toggle.
+     Both `.oh-time-picker-input` and the `<OhPillSwitcher>` inside the
+     popup read from this so they stay aligned without one tracking
+     the other. Bump here, both update. */
+  --oh-time-picker-control-h: 36px;
   /* Inner-window radius — only used by .oh-host-content for the
      dub.co-style "page sits in a rounded panel" effect. Deliberately
      larger than the structural radius scale so the panel reads as a
@@ -796,43 +801,46 @@
   text-align: left;
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-line-firm);
   border-radius: var(--oh-r-sm);
   cursor: pointer;
+  /* B.PT295 — borderless drop-shadow vocabulary matching the
+     `oh` button + the BlockChip + DayPickerTrigger above. Hover
+     bumps the shadow for tactile feedback. */
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
   transition:
-    border-color 150ms var(--ease-oh, ease),
+    box-shadow 150ms var(--ease-oh, ease),
     background-color 150ms var(--ease-oh, ease);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
   outline: none;
 }
 .oh-time-picker-trigger:hover,
 .oh-time-picker-trigger[data-popup-open] {
-  border-color: var(--oh-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
 }
 .oh-time-picker-trigger:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28), var(--oh-focus-shadow);
 }
 .oh-time-picker-trigger:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
 }
 
 .oh-time-picker-positioner {
   outline: none;
 }
 .oh-time-picker-popup {
-  /* Spinner layout (B.PT53 follow-up). The inner JSX provides its
-     own flex layout; the popup just owns the chrome (bg, border,
-     shadow, padding, open/close transition). */
+  /* B.PT295 — borderless. The popup chrome leans on its existing
+     stacked drop shadow (already present pre-refactor) — strong
+     enough to define the elevated surface against the page. */
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 14px 16px;
   box-shadow:
-    0 16px 32px -12px rgb(0 0 0 / 0.22),
-    0 4px 12px -6px rgb(0 0 0 / 0.12);
+    0 16px 32px -12px rgb(0 0 0 / 0.28),
+    0 4px 12px -6px rgb(0 0 0 / 0.18);
   outline: none;
   transform-origin: top left;
   transition:
@@ -851,10 +859,19 @@
 .oh-time-picker-input {
   appearance: none;
   width: 48px;
-  height: 36px;
-  background: transparent;
-  border: 1.5px solid var(--oh-line-firm);
-  border-radius: var(--oh-r-xs);
+  /* B.PT297 — height now reads from a shared --oh-time-picker-control-h
+     variable so the AM/PM toggle (OhPillSwitcher with the matching
+     Tailwind v4 shorthand utility on this same custom property) and
+     the spinner inputs share a single source of truth. Bump the
+     variable, both update. */
+  height: var(--oh-time-picker-control-h, 36px);
+  background: var(--oh-paper);
+  border: 0;
+  /* B.PT298 — match the AM/PM switcher's outer track radius
+     (`--oh-r-sm` = 6px). Spinner inputs and the segmented switcher
+     beside them now share the same outer corner curvature so the
+     popup row reads as one cohesive control strip. */
+  border-radius: var(--oh-r-sm);
   padding: 0;
   text-align: center;
   font-family: var(--oh-mono);
@@ -864,17 +881,22 @@
   color: var(--oh-ink);
   caret-color: transparent;
   outline: none;
+  /* B.PT295 — borderless paper + inset depth, matching .oh-input.
+     Spinner inputs read as recessed paper "wells" — fits the
+     keyboard-spinner interaction (you press up/down on a recessed
+     dial). */
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
-    border-color 120ms var(--ease-oh, ease),
+    box-shadow 120ms var(--ease-oh, ease),
     background-color 120ms var(--ease-oh, ease);
 }
 .oh-time-picker-input:hover {
-  border-color: var(--oh-ink);
+  background: var(--oh-input-bg-hover);
 }
 .oh-time-picker-input:focus,
 .oh-time-picker-input:focus-visible {
-  border-color: var(--oh-ink);
-  background: var(--oh-tint-hover);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 /* Hide native UA spinner buttons — we drive value via keyDown. */
 .oh-time-picker-input::-webkit-inner-spin-button,
@@ -883,18 +905,18 @@
   margin: 0;
 }
 
-/* AM/PM segmented toggle. Two pill buttons inside a 1.5px frame —
-   matches the brutalist segmented-control vocabulary on /bookings. */
+/* AM/PM segmented toggle. Borderless paper "well" with the same
+   inset shadow vocabulary the OhPillSwitcher track uses (B.PT295)
+   so the AM/PM control reads as a sibling segmented pill of the
+   bookings view-mode switcher. */
 .oh-time-picker-period {
   display: inline-flex;
   height: 36px;
-  border: 1.5px solid var(--oh-line-firm);
+  background: var(--oh-bg-muted);
   border-radius: var(--oh-r-xs);
   overflow: hidden;
-  transition: border-color 120ms var(--ease-oh, ease);
-}
-.oh-time-picker-period:hover {
-  border-color: var(--oh-ink);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.22);
+  transition: box-shadow 120ms var(--ease-oh, ease);
 }
 .oh-time-picker-period-cell {
   appearance: none;
@@ -1762,6 +1784,80 @@
   outline: 0;
   background: var(--oh-input-bg-focus);
   box-shadow: var(--oh-focus-shadow-input);
+}
+
+/* B.PT294 — invalid-state cue for borderless inputs.
+   With the 1.5px ink border removed in B.PT284, validation errors no
+   longer have an obvious visual cue at the input itself (the
+   `<FieldError>` text below was the only signal). We tint the inset
+   shadow toward the destructive token so the recess reads as "this
+   surface has a problem" without re-introducing a contrasting border.
+   Pairs with `<FieldError>` text below for AT users + visual users
+   both. */
+.oh-input[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+    var(--oh-input-shadow-rest);
+}
+.oh-input[aria-invalid="true"]:focus,
+.oh-input[aria-invalid="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
+}
+
+/* Disabled state — paper bg muted slightly so the input reads as
+   "you can't edit me right now" without losing the recess metaphor. */
+.oh-input:disabled,
+.oh-input[aria-disabled="true"] {
+  background: color-mix(in srgb, var(--oh-paper) 75%, var(--oh-twdivider-bg));
+  color: var(--oh-content-muted);
+  cursor: not-allowed;
+}
+
+/* B.PT288 — Paper-on-paper separator with a centered glow.
+   Replaces the prior `border-b-2 border-oh-line-strong` ink-hairline
+   app-wide.
+   Implementation: an `::after` pseudo-element is absolute-anchored
+   to the bottom edge of the wrapping element. The pseudo is a 1px
+   paper-colored line; its box-shadow is a `0 0 Npx` symmetric blur
+   (no y-offset) so the glow paints EQUALLY above and below the
+   line — the visual "rule" sits centered on its own height. This
+   replaces a prior implementation that put `box-shadow` directly on
+   the wrapper div with positive y-offset; that version visibly
+   bled below into the next section's top edge ("behind the text").
+   The pseudo-on-edge approach scopes the visible chrome to a
+   ~4-5px strip centered at `bottom: 0` of the wrapper.
+   Reference: Notion section dividers; Linear settings groups —
+   shadow-only rules for paper-and-ink palettes where a contrasting
+   ink line would feel heavy. */
+.oh-rule {
+  position: relative;
+}
+.oh-rule::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  display: block;
+  height: 1px;
+  /* Secondary "darker main" — paper darkened ~8% ink in oklab. The
+     line is now subtly visible at rest (the prior `--oh-paper` was
+     fully invisible against the page bg, leaving only the shadow as
+     the rule). With the line itself slightly defined, the shadow is
+     supportive depth rather than the sole cue. */
+  background: var(--oh-twdivider-bg);
+  /* Two-layer shadow:
+       — `0 0 0 1px rgba(0,0,0,0.03)`: a tight ink halo at the line's
+         exact edges, makes the rule visually crisp at hairline scale
+         (where a 5px-blur shadow alone reads as a faint smudge)
+       — `0 0 8px rgba(0,0,0,0.20)`: symmetric soft outer glow.
+         8px / 0.20 matches the project's canonical shadow opacity
+         (`oh` button drop, pill switcher, input recess all sit at
+         0.20-0.22) so the rule's depth fits the existing budget.
+     `0 0` offsets keep the glow centered on the line — equal
+     weight above and below — per the prior fix. */
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 0 8px rgba(0, 0, 0, 0.2);
 }
 .oh-textarea {
   resize: vertical;

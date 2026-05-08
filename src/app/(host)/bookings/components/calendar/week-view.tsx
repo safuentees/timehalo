@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { HourAxis } from "./hour-axis";
 import { TimeGridColumn } from "./time-grid-column";
+
+// Scroll target hour when the displayed week does NOT contain today
+// (no "current time" anchor). 8am roughly matches the booking-flow
+// working-hours assumption + cal.com's behavior.
+const SCROLL_TARGET_HOUR_DEFAULT = 8;
 
 // Week mode — 7-column time grid Mon–Sun.
 //
@@ -74,8 +79,8 @@ function formatDayHeader(d: Date): { weekday: string; ordinal: string } {
 export function WeekView({
   date,
   events,
-  startHour = 7,
-  endHour = 20,
+  startHour = 0,
+  endHour = 23,
   oneMinuteHeightPx = 1,
   selectedRefId = null,
   onEventClick,
@@ -123,6 +128,29 @@ export function WeekView({
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
+  // Auto-scroll to a meaningful hour on cursor change (B.PT292).
+  // Mirrors `day-view.tsx` — cal.com's pattern of starting at the
+  // current time when today is in view, falling back to 8am when
+  // navigating to other weeks. Without this, the 0-23 grid would
+  // paint at midnight by default. `mondayKey` (YYYY-MM-DD) gates
+  // re-runs to actual week changes.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const todayInThisWeek = days.some((d) => isSameDay(d, today));
+  const mondayKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`;
+  useEffect(() => {
+    if (!isCapped) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const targetHour = todayInThisWeek
+      ? today.getHours() + today.getMinutes() / 60
+      : SCROLL_TARGET_HOUR_DEFAULT;
+    const targetMinutesFromStart = (targetHour - startHour) * 60;
+    const targetPx = targetMinutesFromStart * oneMinuteHeightPx;
+    const desiredScroll = targetPx - wrapper.clientHeight / 2;
+    wrapper.scrollTop = Math.max(0, desiredScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mondayKey, startHour, oneMinuteHeightPx, isCapped]);
+
   // Region label for screen readers (B.PT145). "Week view for May 4-10
   // 2026" tells SR users which week they're focused into. Reuses the
   // already-memoized `monday` from above; sunday derived locally.
@@ -138,6 +166,7 @@ export function WeekView({
 
   return (
     <div
+      ref={wrapperRef}
       role="region"
       aria-label={`Week view for ${weekLabel}`}
       // tabIndex=0 — both vertical and horizontal scrolling on this
@@ -145,7 +174,13 @@ export function WeekView({
       // scrollable-region-focusable).
       tabIndex={isCapped || minBodyWidthPx > 0 ? 0 : undefined}
       className={cn(
-        "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        // B.PT290 — outer border replaced with drop shadow (canonical
+        // `0 3px 12px rgba(0,0,0,0.22)`); inner grid hairlines (day
+        // column borders, day-header bottom rule) kept as STRUCTURAL
+        // separators because they communicate "7-column grid" not
+        // "card edge."
+        "rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
       )}

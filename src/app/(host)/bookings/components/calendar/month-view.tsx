@@ -112,7 +112,13 @@ export function MonthView({
       // (B.PT149, axe rule scrollable-region-focusable).
       tabIndex={isCapped ? 0 : undefined}
       className={cn(
-        "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        // B.PT290 — outer border replaced with drop shadow (canonical
+        // `0 3px 12px rgba(0,0,0,0.22)`); inner grid hairlines (the
+        // 7-col weekday header, day-cell borders, week separators)
+        // are STRUCTURAL — they communicate "month grid" not "card
+        // edge" — kept verbatim.
+        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         isCapped && "overflow-y-auto",
       )}
       style={wrapperStyle}

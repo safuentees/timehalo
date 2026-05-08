@@ -1,6 +1,13 @@
 "use client";
 
-import { forwardRef, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -125,6 +132,25 @@ export function BookingsList({
   const isMobile = useIsMobile();
   const effectiveView: ViewMode =
     isMobile && activeView === "month" ? "list" : activeView;
+
+  // B.PT293 — opportunistic UI for view/tab/cursor navigation.
+  // Each routing action wraps `router.push` in `useTransition` so
+  // React keeps the existing UI interactive while the new server
+  // tree resolves (cal.com pattern in
+  // `useSwitchToCorrectStatusTab.ts:54`). We pair that with
+  // `useOptimistic` so the active-pill, tab indicator, and cursor
+  // label LEAD the URL update — the chrome jumps to the next
+  // value the moment the click registers, then the URL catches up.
+  // React 19 docs: react.dev/reference/react/useOptimistic — "use
+  // useOptimistic to optimistically update the UI by showing a
+  // different state during an async action that's still in
+  // flight." Combined with `useTransition`, this is the modern
+  // canonical pattern for optimistic chrome on routing-driven
+  // tabs / segmented controls.
+  const [isPending, startTransition] = useTransition();
+  const [optimisticView, setOptimisticView] = useOptimistic(effectiveView);
+  const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
+  const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDate);
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
@@ -207,26 +233,48 @@ export function BookingsList({
   // who switches list → week → list lands back on their original tab,
   // and `?date=...` so the cursor doesn't reset when the user flips
   // between calendar modes).
+  // B.PT293 — wraps router.push in startTransition so the old UI
+  // stays interactive during navigation, and updates optimistic
+  // state synchronously so the active pill jumps immediately.
   const onViewChange = (next: ViewMode) => {
-    if (next === activeView) return;
+    if (next === optimisticView) return;
     const params = new URLSearchParams();
     params.set("view", next);
     if (next === "list") {
-      params.set("tab", activeTab);
+      params.set("tab", optimisticTab);
     } else {
-      params.set("date", formatDateParam(cursorDate));
+      params.set("date", formatDateParam(optimisticCursor));
     }
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      setOptimisticView(next);
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   // Cursor date controls (B.PT140) — push `?date=YYYY-MM-DD`
   // alongside `?view=`. URL state stays the source of truth so back/
   // forward + bookmark + cmd-click all work consistently.
+  // B.PT293 — optimistic cursor update so the date label flips
+  // before the server tree commits.
   const onDateChange = (next: Date) => {
     const params = new URLSearchParams();
-    params.set("view", activeView);
+    params.set("view", optimisticView);
     params.set("date", formatDateParam(next));
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      setOptimisticCursor(next);
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  // Tab switcher (Upcoming / Past in list view).
+  // B.PT293 — optimistic update so the active pill flips
+  // immediately on click; URL update follows in the transition.
+  const onTabChange = (next: Tab) => {
+    if (next === optimisticTab) return;
+    startTransition(() => {
+      setOptimisticTab(next);
+      router.push(`?view=list&tab=${next}`, { scroll: false });
+    });
   };
 
   const onEventClick = (event: CalendarEvent) => {
@@ -378,7 +426,7 @@ export function BookingsList({
   //   week    1440px  7 columns × ~190px each on a 1440 viewport
   //   month   1200px  7 columns × ~165px each, comfortable for chips
   const calendarMaxWidthClass = (() => {
-    switch (effectiveView) {
+    switch (optimisticView) {
       case "day":
         return "max-w-[760px]";
       case "week":
@@ -409,23 +457,20 @@ export function BookingsList({
             so the pill matches what's actually rendered below). */}
         <div className="mt-8">
           <BookingsViewSwitcher
-            value={effectiveView}
+            value={optimisticView}
             onValueChange={onViewChange}
           />
         </div>
       </OhPageShell>
 
-      {effectiveView === "list" ? (
+      {optimisticView === "list" ? (
         // List mode: stay in the standard 760px shell. The list rows
         // don't benefit from a wider column.
         <OhPageShell>
           <OhPillSwitcher
             ariaLabel={t("tablistLabel")}
-            value={activeTab}
-            onChange={(value) => {
-              if (value === activeTab) return;
-              router.push(`?view=list&tab=${value}`, { scroll: false });
-            }}
+            value={optimisticTab}
+            onChange={onTabChange}
             options={[
               {
                 value: "upcoming",
@@ -433,7 +478,7 @@ export function BookingsList({
                   <BookingsTabLabel
                     label={t("tabUpcoming")}
                     count={data?.upcoming.length ?? 0}
-                    isActive={activeTab === "upcoming"}
+                    isActive={optimisticTab === "upcoming"}
                   />
                 ),
               },
@@ -443,7 +488,7 @@ export function BookingsList({
                   <BookingsTabLabel
                     label={t("tabPast")}
                     count={data?.past.length ?? 0}
-                    isActive={activeTab === "past"}
+                    isActive={optimisticTab === "past"}
                   />
                 ),
               },
@@ -451,7 +496,7 @@ export function BookingsList({
           />
 
           <div className="mt-6">
-            {activeTab === "upcoming" ? (
+            {optimisticTab === "upcoming" ? (
               <BookingsListPanel
                 tab="upcoming"
                 bookings={data?.upcoming ?? []}
@@ -488,14 +533,25 @@ export function BookingsList({
           onDragCancel={() => setActiveDrag(null)}
         >
         <div
+          // B.PT293 — `aria-busy` + a subtle opacity dim during the
+          // navigation transition. The optimistic chrome (cursor
+          // label, active pill, calendar view layout) updates
+          // synchronously on click; this signals to AT users + any
+          // visually-detected feedback that the data layer is
+          // still resolving. 70% opacity is calibrated to read as
+          // "transitioning" without obscuring the content the user
+          // is interacting with.
+          aria-busy={isPending || undefined}
           className={cn(
             "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
             calendarMaxWidthClass,
+            isPending &&
+              "opacity-70 transition-opacity duration-150 ease-oh",
           )}
         >
           <BookingsCursorControls
-            view={effectiveView}
-            cursorDate={cursorDate}
+            view={optimisticView}
+            cursorDate={optimisticCursor}
             onDateChange={onDateChange}
           />
 
@@ -522,9 +578,9 @@ export function BookingsList({
           ) : null}
 
           {/* Day view — works at any width, no mobile fallback needed. */}
-          {effectiveView === "day" ? (
+          {optimisticView === "day" ? (
             <DayView
-              date={cursorDate}
+              date={optimisticCursor}
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
@@ -543,11 +599,11 @@ export function BookingsList({
               and no hydration flash. (Project pattern per
               dashboard-forms.md "Breakpoint-dependent primitive
               swaps".) */}
-          {effectiveView === "week" ? (
+          {optimisticView === "week" ? (
             <>
               <div className="hidden md:block">
                 <WeekView
-                  date={cursorDate}
+                  date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
@@ -564,11 +620,11 @@ export function BookingsList({
                     the WeekView's step semantics in
                     cursor-controls.tsx). */}
                 <DayStrip
-                  cursorDate={cursorDate}
+                  cursorDate={optimisticCursor}
                   onDateChange={onDateChange}
                 />
                 <DayView
-                  date={cursorDate}
+                  date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
@@ -585,10 +641,10 @@ export function BookingsList({
               here. The hidden md:block wrapper is belt-and-braces
               against any cascade where the swap doesn't engage
               (e.g. server render). */}
-          {effectiveView === "month" ? (
+          {optimisticView === "month" ? (
             <div className="hidden md:block">
               <MonthView
-                date={cursorDate}
+                date={optimisticCursor}
                 events={calendarEvents}
                 selectedRefId={selectedUid}
                 onEventClick={onEventClick}

@@ -64,18 +64,30 @@ export function OhPillSwitcher<T extends string>({
         aria-label={ariaLabel}
         className={cn(
           // Track: muted paper (the project's "darker main" tone —
-          // paper + ~8% ink in oklab) with an INSET shadow matching
-          // `.oh-input` / `.oh-textarea`'s focus state (the
-          // `--oh-focus-shadow-input` token: `inset 0 3px 10px
-          // rgba(0,0,0,0.32)`, defined in `globals.css:215`). The
-          // track now reads as a recessed paper "well" the active
-          // pill floats inside, mirroring the booking form's
-          // recessed-input vocabulary instead of the elevated-button
-          // vocabulary.
+          // paper + ~8% ink in oklab) with a softened inset shadow.
+          // `inset 0 3px 10px rgba(0,0,0,0.22)` — same shape as
+          // `--oh-focus-shadow-input` (defined in `globals.css:215`
+          // as `inset 0 3px 10px rgba(0,0,0,0.32)`) but with the
+          // opacity dropped 0.32 → 0.22 to match the project's
+          // canonical drop-shadow opacity (the `oh` / `ohGhost`
+          // button shadow uses 0.22 too — keeps the depth intensity
+          // consistent across inset / outset directions). Inline
+          // value rather than the token because the input focus
+          // state intentionally stays at 0.32 (stronger to signal
+          // "actively engaged with this control"); the pill switcher
+          // wants a calmer recess at rest.
           // Outer radius: `--oh-r-sm` (6px) — canonical structural
           // radius per `oh-ui.md`.
-          "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
-          "[box-shadow:var(--oh-focus-shadow-input)]",
+          // `items-stretch` so children fill the track height. Lets a
+          // caller set a fixed-height track (e.g. `className="h-9"`)
+          // and have the buttons + active pill expand to match —
+          // useful when the switcher sits next to fixed-height
+          // siblings (e.g. AM/PM next to 36px hour/minute spinner
+          // inputs in the time picker). Default `h-auto` track means
+          // children inherit content-height; the items-stretch is a
+          // no-op there.
+          "h-auto items-stretch gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
+          "[box-shadow:inset_0_3px_10px_rgba(0,0,0,0.22)]",
           className,
         )}
       >

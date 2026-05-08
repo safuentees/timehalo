@@ -4,9 +4,11 @@ import type { ReactNode } from "react";
 // right-aligned aside slot for page-level metadata (live status,
 // counts, etc).
 //
-// Sticking with `border-b-2 border-oh-line-strong` (no radius) because
-// it reads as a horizontal rule, not a card edge. Curves go on cards
-// below; this one stays sharp.
+// B.PT288 — bottom rule now uses `.oh-rule` (paper-colored line +
+// soft drop shadow, defined in `globals.css`) instead of the prior
+// `border-b-2 border-oh-line-strong` ink hairline. Reads as
+// "content above is lifted off what follows" — calmer chrome,
+// no contrasting ink line on a paper-and-ink palette.
 //
 // `kicker` is optional and intentionally bare: only pass one when the
 // eyebrow carries data the title doesn't (a status string, a count,
@@ -28,7 +30,7 @@ type Props = {
 
 export function OhPageHeader({ kicker, title, aside }: Props) {
   return (
-    <div className="border-b-2 border-oh-line-strong pb-6">
+    <div className="oh-rule pb-6">
       {kicker ? (
         <p className="oh-legend">
           {kicker}
