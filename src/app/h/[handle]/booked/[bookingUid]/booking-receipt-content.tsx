@@ -95,7 +95,15 @@ export function BookingReceiptContent({
   }
 
   return (
-    <div className="flex flex-col gap-6 px-5 py-7 sm:px-6 sm:py-8">
+    // B.PT266 — `h-full justify-between` distributes the host+meta
+    // group at the top and the action group at the bottom of the
+    // now-square cream container. Same shape as the form-card's
+    // content fill: top section pinned to the cream's top, action
+    // stack pinned to the bottom, and the flex-between space sits
+    // empty between them as visual breathing room.
+    <div className="flex h-full min-h-0 flex-col justify-between px-5 py-7 sm:px-6 sm:py-8">
+      {/* Top group — host card + meta strip */}
+      <div className="flex flex-col gap-6">
       {/* Host card — replaces the page-variant's CHECK badge as the
           primary visual anchor. The chrome-row title already
           confirms "Booked on …", so the body's job is to ground the
@@ -126,12 +134,14 @@ export function BookingReceiptContent({
         </div>
       </div>
 
-      {/* Meta strip — duration + tz. Hairlines top + bottom frame
-          the row as a discrete information layer (visually
-          separates the host from the action stack below). Two
-          columns with mono numerics on the right; same legend/value
-          pattern the dashboard's hub pages use. */}
-      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-y-2 border-y border-oh-line py-4">
+      {/* Meta strip — duration + tz. Two columns with mono
+          numerics on the right; same legend/value pattern the
+          dashboard's hub pages use. The hairline border-y from the
+          first pass was removed (B.PT266) — separators between the
+          host card and the action stack created an extra visual
+          layer that wasn't pulling its weight. Spacing alone (the
+          parent's gap-6) carries the rhythm. */}
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-y-2">
         <dt className="oh-eyebrow opacity-55">{t("durationLabel")}</dt>
         <dd className="text-right font-[family-name:var(--oh-mono)] text-[13px] font-bold tabular-nums">
           {t("durationMinutes", { minutes: durationMinutes })}
@@ -141,7 +151,11 @@ export function BookingReceiptContent({
           {tzLabel}
         </dd>
       </dl>
+      </div>
 
+      {/* Bottom group — primary action + footer row. Pinned to the
+          bottom of the cream by the parent's `justify-between`. */}
+      <div className="flex flex-col gap-4">
       {/* Primary action — Add to Calendar shaped exactly like
           BookingForm's Confirm Booking pill (BOOKING_SUBMIT_BUTTON_
           CLASS, exported from booking-form.tsx). The button.tsx
@@ -202,6 +216,7 @@ export function BookingReceiptContent({
           ) : null}
         </div>
         <span className="truncate opacity-40">#{booking.publicUid}</span>
+      </div>
       </div>
     </div>
   );
