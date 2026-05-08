@@ -1,4 +1,6 @@
 import "server-only";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 export type Unit = "ms" | "s" | "m" | "h" | "d";
 export type Duration = `${number} ${Unit}` | `${number}${Unit}`;
@@ -77,9 +79,43 @@ function createMemoryLimiter(
   };
 }
 
+function createRedisLimiter(
+  maxRequests: number,
+  duration: Duration,
+): Limiter {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  });
+  const ratelimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.fixedWindow(maxRequests, duration),
+    prefix: "officehours-rl",
+    analytics: false,
+  });
+  return {
+    async limit(key: string) {
+      const r = await ratelimit.limit(key);
+      return {
+        success: r.success,
+        remainingPoints: r.remaining,
+        resetAtMs: r.reset,
+        limit: r.limit,
+      };
+    },
+    name: "redis",
+  };
+}
+
 export function createRatelimit(
   requests: number,
   duration: Duration,
 ): Limiter {
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    return createRedisLimiter(requests, duration);
+  }
   return createMemoryLimiter(requests, duration);
 }
