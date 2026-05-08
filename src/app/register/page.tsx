@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { OhAuthShell } from "@/components/oh/oh-auth-shell";
 import { RegisterForm } from "./register-form";
+
+export const metadata: Metadata = {
+  title: "Create account — Officehours",
+  description: "Claim your booking handle and start taking 1:1s.",
+  robots: { index: false, follow: false },
+};
 
 // Register shell consumer (B.PT108) — mirror of /login. Drops the
 // inline `min-h-screen` div + bespoke `pt-12 pb-16` main wrapper for
