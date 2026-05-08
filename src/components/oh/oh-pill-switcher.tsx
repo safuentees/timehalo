@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 type Option<T extends string> = {
   value: T;
   label: ReactNode;
+  hiddenAtBelow?: "sm" | "md" | "lg" | "xl";
 };
 
 type Props<T extends string> = {
@@ -33,24 +34,35 @@ export function OhPillSwitcher<T extends string>({
         aria-label={ariaLabel}
         className={cn(
           "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
-          "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+          "[box-shadow:var(--oh-focus-shadow-input)]",
           className,
         )}
       >
         {options.map((opt) => {
           const isActive = opt.value === value;
+          const responsiveHide =
+            opt.hiddenAtBelow === "sm"
+              ? "hidden sm:inline-flex"
+              : opt.hiddenAtBelow === "md"
+                ? "hidden md:inline-flex"
+                : opt.hiddenAtBelow === "lg"
+                  ? "hidden lg:inline-flex"
+                  : opt.hiddenAtBelow === "xl"
+                    ? "hidden xl:inline-flex"
+                    : null;
           return (
             <TabsTrigger
               key={opt.value}
               value={opt.value}
               className={cn(
-                "relative h-auto flex-none rounded-(--oh-r-xs) border-0 px-4 py-[7px]",
+                "relative h-auto flex-none rounded-[3px] border-0 px-4 py-[7px]",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
                 isActive
                   ? "font-semibold text-[color:var(--oh-ink)]"
                   : "font-medium text-[rgba(10,10,10,0.55)] hover:text-[rgba(10,10,10,0.75)]",
+                responsiveHide,
               )}
               style={{
                 transitionTimingFunction:
@@ -61,7 +73,7 @@ export function OhPillSwitcher<T extends string>({
                 <motion.span
                   layoutId={layoutId}
                   aria-hidden
-                  className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

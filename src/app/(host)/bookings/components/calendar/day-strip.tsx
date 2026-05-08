@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { motion } from "motion/react";
+import { useId, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 export type DayStripProps = {
@@ -50,13 +51,16 @@ export function DayStrip({
     [monday],
   );
   const today = nowOverride ?? new Date();
+  const layoutId = useId();
 
   return (
     <div
       role="tablist"
       aria-label="Day picker"
       className={cn(
-        "flex items-stretch gap-1 overflow-x-auto",
+        "flex w-full items-stretch gap-0 overflow-x-auto",
+        "rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
@@ -80,18 +84,29 @@ export function DayStrip({
               if (!isCursor) onDateChange(d);
             }}
             className={cn(
-              "oh-focus-ring flex flex-col items-center gap-1.5 shrink-0",
-              "rounded-(--oh-r-sm) px-3 py-2 cursor-pointer min-w-[52px]",
-              "transition-colors duration-150 ease-oh",
-              isCursor
-                ? "bg-[color:var(--oh-tint)]"
-                : "hover:bg-[color:var(--oh-tint)]",
+              "group oh-focus-ring relative flex flex-1 basis-0 flex-col items-center gap-1",
+              "rounded-(--oh-r-xs) px-2 py-1.5 cursor-pointer min-w-[52px]",
+              "transition-colors duration-150 ease-oh outline-none",
             )}
           >
+            {isCursor ? (
+              <motion.span
+                layoutId={layoutId}
+                aria-hidden
+                className="absolute inset-0 rounded-(--oh-r-xs) bg-oh-paper shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]"
+                transition={{
+                  type: "spring",
+                  duration: 0.22,
+                  bounce: 0,
+                }}
+              />
+            ) : null}
             <span
               className={cn(
-                "oh-eyebrow",
-                isCursor ? "opacity-100" : "opacity-55",
+                "oh-eyebrow relative z-10 transition-opacity duration-150",
+                isCursor
+                  ? "opacity-100"
+                  : "opacity-55 group-hover:opacity-100",
               )}
             >
               {formatWeekday(d)}
@@ -99,20 +114,21 @@ export function DayStrip({
             <span
               aria-current={isToday ? "date" : undefined}
               className={cn(
-                "font-sans text-[18px] font-bold leading-none tracking-tight tabular-nums",
-                isCursor &&
-                  "inline-flex size-7 items-center justify-center rounded-full bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)]",
+                "relative z-10 font-sans text-[18px] leading-none tracking-tight tabular-nums",
+                isCursor
+                  ? "font-bold text-[color:var(--oh-ink)]"
+                  : "font-semibold text-[color:var(--oh-content-muted)]",
               )}
             >
               {d.getDate()}
             </span>
-            {isToday && !isCursor ? (
+            {isToday ? (
               <span
                 aria-hidden
-                className="block size-1 rounded-full bg-[color:var(--oh-status-confirmed)]"
+                className="relative z-10 block size-1 rounded-full bg-[color:var(--oh-status-confirmed)]"
               />
             ) : (
-              <span aria-hidden className="block size-1" />
+              <span aria-hidden className="relative z-10 block size-1" />
             )}
           </button>
         );

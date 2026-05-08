@@ -47,6 +47,7 @@ import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   TabsList,
   TabsTrigger,
@@ -77,6 +78,9 @@ export function BookingsList({
   cursorDate: Date;
 }) {
   const t = useTranslations("Bookings");
+  const isMobile = useIsMobile();
+  const effectiveView: ViewMode =
+    isMobile && activeView === "month" ? "list" : activeView;
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
@@ -226,7 +230,7 @@ export function BookingsList({
     `/bookings?view=day&date=${formatDateParam(date)}`;
 
   const calendarMaxWidthClass = (() => {
-    switch (activeView) {
+    switch (effectiveView) {
       case "day":
         return "max-w-[760px]";
       case "week":
@@ -250,13 +254,13 @@ export function BookingsList({
 
         <div className="mt-8">
           <BookingsViewSwitcher
-            value={activeView}
+            value={effectiveView}
             onValueChange={onViewChange}
           />
         </div>
       </OhPageShell>
 
-      {activeView === "list" ? (
+      {effectiveView === "list" ? (
         <OhPageShell>
           <OhPillSwitcher
             ariaLabel={t("tablistLabel")}
@@ -320,7 +324,7 @@ export function BookingsList({
           )}
         >
           <BookingsCursorControls
-            view={activeView}
+            view={effectiveView}
             cursorDate={cursorDate}
             onDateChange={onDateChange}
           />
@@ -336,7 +340,7 @@ export function BookingsList({
             <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
           ) : null}
 
-          {activeView === "day" ? (
+          {effectiveView === "day" ? (
             <DayView
               date={cursorDate}
               events={calendarEvents}
@@ -346,7 +350,7 @@ export function BookingsList({
             />
           ) : null}
 
-          {activeView === "week" ? (
+          {effectiveView === "week" ? (
             <>
               <div className="hidden md:block">
                 <WeekView
@@ -373,69 +377,18 @@ export function BookingsList({
             </>
           ) : null}
 
-          {activeView === "month" ? (
-            <>
-              <div className="hidden md:block">
-                <MonthView
-                  date={cursorDate}
-                  events={calendarEvents}
-                  selectedRefId={selectedUid}
-                  onEventClick={onEventClick}
-                  getHref={getEventHref}
-                  onOverflowClick={onOverflowClick}
-                  getOverflowHref={getOverflowHref}
-                />
-              </div>
-              <div className="md:hidden">
-                <OhPillSwitcher
-                  ariaLabel={t("tablistLabel")}
-                  value={activeTab}
-                  onChange={(value) => {
-                    if (value === activeTab) return;
-                    router.push(`?view=list&tab=${value}`, {
-                      scroll: false,
-                    });
-                  }}
-                  options={[
-                    {
-                      value: "upcoming",
-                      label: (
-                        <BookingsTabLabel
-                          label={t("tabUpcoming")}
-                          count={data?.upcoming.length ?? 0}
-                          isActive={activeTab === "upcoming"}
-                        />
-                      ),
-                    },
-                    {
-                      value: "past",
-                      label: (
-                        <BookingsTabLabel
-                          label={t("tabPast")}
-                          count={data?.past.length ?? 0}
-                          isActive={activeTab === "past"}
-                        />
-                      ),
-                    },
-                  ]}
-                />
-                <div className="mt-6">
-                  {activeTab === "upcoming" ? (
-                    <BookingsListPanel
-                      tab="upcoming"
-                      bookings={data?.upcoming ?? []}
-                      onSelect={setSelectedUid}
-                    />
-                  ) : (
-                    <BookingsListPanel
-                      tab="past"
-                      bookings={data?.past ?? []}
-                      onSelect={setSelectedUid}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
+          {effectiveView === "month" ? (
+            <div className="hidden md:block">
+              <MonthView
+                date={cursorDate}
+                events={calendarEvents}
+                selectedRefId={selectedUid}
+                onEventClick={onEventClick}
+                getHref={getEventHref}
+                onOverflowClick={onOverflowClick}
+                getOverflowHref={getOverflowHref}
+              />
+            </div>
           ) : null}
         </div>
         <DragOverlay dropAnimation={null}>

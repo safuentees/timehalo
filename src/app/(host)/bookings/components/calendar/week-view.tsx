@@ -115,7 +115,7 @@ export function WeekView({
     >
       <div className="flex flex-col" style={innerStyle}>
         <div className="sticky top-0 z-30 border-b border-oh-line bg-[color:var(--oh-paper)]">
-          <div className="flex">
+          <div className="flex w-full">
             <div
               className="sticky left-0 z-10 w-14 shrink-0 bg-[color:var(--oh-paper)]"
               aria-hidden
@@ -126,7 +126,7 @@ export function WeekView({
               return (
                 <div
                   key={d.toISOString()}
-                  className="flex flex-1 flex-col items-center gap-1 pb-3 pt-3"
+                  className="flex min-w-0 flex-1 basis-0 flex-col items-center gap-1 pb-3 pt-3"
                 >
                   <span className="oh-eyebrow opacity-100">{weekday}</span>
                   <span
