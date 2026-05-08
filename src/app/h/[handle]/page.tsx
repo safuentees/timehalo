@@ -52,6 +52,11 @@ export default async function HostPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
+  // N10 SMOKE: deliberate throw to verify error.tsx renders +
+  // Sentry receives the event. REVERT IMMEDIATELY after capture.
+  if (handle) {
+    throw new Error("N10 smoke — verify error.tsx + Sentry capture");
+  }
   const trpc = await createPublicSSRHelper();
   const renderedAt = new Date().toISOString();
   let user;
