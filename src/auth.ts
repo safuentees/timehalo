@@ -6,7 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/password";
 import { sendEmail } from "@/lib/email";
 import { bootstrapUserWorkspace, resolveAuthRedirect } from "@/lib/auth-events";
+import { createLogger } from "@/lib/logger";
 import type { JWT } from "next-auth/jwt";
+
+const log = createLogger("auth");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const APP_NAME = "Officehours";
@@ -117,7 +120,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email ?? null,
         });
       } catch (error) {
-        console.error("[auth.createUser] workspace bootstrap failed", error);
+        log.error("auth.createUser workspace bootstrap failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     },
   },
