@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { HourAxis } from "./hour-axis";
 import { TimeGridColumn } from "./time-grid-column";
+
+const SCROLL_TARGET_HOUR_DEFAULT = 8;
 
 export type WeekViewProps = {
   date: Date;
@@ -54,8 +56,8 @@ function formatDayHeader(d: Date): { weekday: string; ordinal: string } {
 export function WeekView({
   date,
   events,
-  startHour = 7,
-  endHour = 20,
+  startHour = 0,
+  endHour = 23,
   oneMinuteHeightPx = 1,
   selectedRefId = null,
   onEventClick,
@@ -91,6 +93,23 @@ export function WeekView({
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const todayInThisWeek = days.some((d) => isSameDay(d, today));
+  const mondayKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`;
+  useEffect(() => {
+    if (!isCapped) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const targetHour = todayInThisWeek
+      ? today.getHours() + today.getMinutes() / 60
+      : SCROLL_TARGET_HOUR_DEFAULT;
+    const targetMinutesFromStart = (targetHour - startHour) * 60;
+    const targetPx = targetMinutesFromStart * oneMinuteHeightPx;
+    const desiredScroll = targetPx - wrapper.clientHeight / 2;
+    wrapper.scrollTop = Math.max(0, desiredScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mondayKey, startHour, oneMinuteHeightPx, isCapped]);
+
   const sunday = days[6];
   const weekLabel = (() => {
     const startMonth = monday.toLocaleDateString("en-US", { month: "short" });
@@ -103,11 +122,13 @@ export function WeekView({
 
   return (
     <div
+      ref={wrapperRef}
       role="region"
       aria-label={`Week view for ${weekLabel}`}
       tabIndex={isCapped || minBodyWidthPx > 0 ? 0 : undefined}
       className={cn(
-        "rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        "rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
       )}

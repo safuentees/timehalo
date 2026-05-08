@@ -132,7 +132,7 @@ function HostRow({
   const removeHost = useRemoveEventTypeHost();
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4">
+    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[0_3px_12px_rgba(0,0,0,0.22)]">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h4 className="text-[14px] font-bold truncate">
           {host.user.name ?? host.user.handle ?? host.user.email}

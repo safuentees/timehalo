@@ -13,6 +13,7 @@ import {
 import { ChevronRightIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
+import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 export type OhTimePickerProps = {
@@ -85,7 +86,7 @@ export function OhTimePicker({
               </FieldStack>
               <span
                 aria-hidden
-                className="select-none pb-2 text-[18px] font-black opacity-55"
+                className="select-none self-end pb-2 text-[18px] font-black opacity-55"
               >
                 :
               </span>
@@ -139,27 +140,16 @@ function PeriodToggle({
   onChange: (next: Period) => void;
 }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label="AM or PM"
-      className="oh-time-picker-period"
-    >
-      {PERIODS.map((p) => (
-        <button
-          key={p}
-          type="button"
-          role="radio"
-          aria-checked={p === period}
-          onClick={() => onChange(p)}
-          className={cn(
-            "oh-time-picker-period-cell",
-            p === period && "is-active",
-          )}
-        >
-          {p}
-        </button>
-      ))}
-    </div>
+    <OhPillSwitcher
+      ariaLabel="AM or PM"
+      value={period}
+      onChange={onChange}
+      className="!h-(--oh-time-picker-control-h) !shadow-[inset_0_3px_10px_rgba(0,0,0,0.16)]"
+      options={[
+        { value: "AM", label: "AM" },
+        { value: "PM", label: "PM" },
+      ]}
+    />
   );
 }
 

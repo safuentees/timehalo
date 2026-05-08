@@ -5,7 +5,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <main className="oh-main">
       <div className="mx-auto w-full max-w-[920px] px-4 py-8 sm:px-6 sm:py-10">
-        <div className="border-b-2 border-oh-line-strong pb-6">
+        <div className="oh-rule pb-6">
           <p className="oh-legend">
             Officehours / Admin
           </p>

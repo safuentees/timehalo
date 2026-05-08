@@ -33,8 +33,8 @@ export function OhPillSwitcher<T extends string>({
       <TabsList
         aria-label={ariaLabel}
         className={cn(
-          "h-auto gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
-          "[box-shadow:var(--oh-focus-shadow-input)]",
+          "h-auto items-stretch gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
+          "[box-shadow:inset_0_3px_10px_rgba(0,0,0,0.22)]",
           className,
         )}
       >

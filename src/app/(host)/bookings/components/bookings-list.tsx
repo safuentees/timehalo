@@ -1,6 +1,13 @@
 "use client";
 
-import { forwardRef, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "next-view-transitions";
 import { useRouter } from "next/navigation";
@@ -81,6 +88,11 @@ export function BookingsList({
   const isMobile = useIsMobile();
   const effectiveView: ViewMode =
     isMobile && activeView === "month" ? "list" : activeView;
+
+  const [isPending, startTransition] = useTransition();
+  const [optimisticView, setOptimisticView] = useOptimistic(effectiveView);
+  const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
+  const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDate);
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery();
   const { data: flags } = trpc.users.featureFlags.useQuery();
@@ -122,22 +134,36 @@ export function BookingsList({
   }, [data]);
 
   const onViewChange = (next: ViewMode) => {
-    if (next === activeView) return;
+    if (next === optimisticView) return;
     const params = new URLSearchParams();
     params.set("view", next);
     if (next === "list") {
-      params.set("tab", activeTab);
+      params.set("tab", optimisticTab);
     } else {
-      params.set("date", formatDateParam(cursorDate));
+      params.set("date", formatDateParam(optimisticCursor));
     }
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      setOptimisticView(next);
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   const onDateChange = (next: Date) => {
     const params = new URLSearchParams();
-    params.set("view", activeView);
+    params.set("view", optimisticView);
     params.set("date", formatDateParam(next));
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      setOptimisticCursor(next);
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const onTabChange = (next: Tab) => {
+    if (next === optimisticTab) return;
+    startTransition(() => {
+      setOptimisticTab(next);
+      router.push(`?view=list&tab=${next}`, { scroll: false });
+    });
   };
 
   const onEventClick = (event: CalendarEvent) => {
@@ -230,7 +256,7 @@ export function BookingsList({
     `/bookings?view=day&date=${formatDateParam(date)}`;
 
   const calendarMaxWidthClass = (() => {
-    switch (effectiveView) {
+    switch (optimisticView) {
       case "day":
         return "max-w-[760px]";
       case "week":
@@ -254,21 +280,18 @@ export function BookingsList({
 
         <div className="mt-8">
           <BookingsViewSwitcher
-            value={effectiveView}
+            value={optimisticView}
             onValueChange={onViewChange}
           />
         </div>
       </OhPageShell>
 
-      {effectiveView === "list" ? (
+      {optimisticView === "list" ? (
         <OhPageShell>
           <OhPillSwitcher
             ariaLabel={t("tablistLabel")}
-            value={activeTab}
-            onChange={(value) => {
-              if (value === activeTab) return;
-              router.push(`?view=list&tab=${value}`, { scroll: false });
-            }}
+            value={optimisticTab}
+            onChange={onTabChange}
             options={[
               {
                 value: "upcoming",
@@ -276,7 +299,7 @@ export function BookingsList({
                   <BookingsTabLabel
                     label={t("tabUpcoming")}
                     count={data?.upcoming.length ?? 0}
-                    isActive={activeTab === "upcoming"}
+                    isActive={optimisticTab === "upcoming"}
                   />
                 ),
               },
@@ -286,7 +309,7 @@ export function BookingsList({
                   <BookingsTabLabel
                     label={t("tabPast")}
                     count={data?.past.length ?? 0}
-                    isActive={activeTab === "past"}
+                    isActive={optimisticTab === "past"}
                   />
                 ),
               },
@@ -294,7 +317,7 @@ export function BookingsList({
           />
 
           <div className="mt-6">
-            {activeTab === "upcoming" ? (
+            {optimisticTab === "upcoming" ? (
               <BookingsListPanel
                 tab="upcoming"
                 bookings={data?.upcoming ?? []}
@@ -318,14 +341,17 @@ export function BookingsList({
           onDragCancel={() => setActiveDrag(null)}
         >
         <div
+          aria-busy={isPending || undefined}
           className={cn(
             "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
             calendarMaxWidthClass,
+            isPending &&
+              "opacity-70 transition-opacity duration-150 ease-oh",
           )}
         >
           <BookingsCursorControls
-            view={effectiveView}
-            cursorDate={cursorDate}
+            view={optimisticView}
+            cursorDate={optimisticCursor}
             onDateChange={onDateChange}
           />
 
@@ -340,9 +366,9 @@ export function BookingsList({
             <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
           ) : null}
 
-          {effectiveView === "day" ? (
+          {optimisticView === "day" ? (
             <DayView
-              date={cursorDate}
+              date={optimisticCursor}
               events={calendarEvents}
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
@@ -350,11 +376,11 @@ export function BookingsList({
             />
           ) : null}
 
-          {effectiveView === "week" ? (
+          {optimisticView === "week" ? (
             <>
               <div className="hidden md:block">
                 <WeekView
-                  date={cursorDate}
+                  date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
@@ -363,11 +389,11 @@ export function BookingsList({
               </div>
               <div className="md:hidden flex flex-col gap-3">
                 <DayStrip
-                  cursorDate={cursorDate}
+                  cursorDate={optimisticCursor}
                   onDateChange={onDateChange}
                 />
                 <DayView
-                  date={cursorDate}
+                  date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
@@ -377,10 +403,10 @@ export function BookingsList({
             </>
           ) : null}
 
-          {effectiveView === "month" ? (
+          {optimisticView === "month" ? (
             <div className="hidden md:block">
               <MonthView
-                date={cursorDate}
+                date={optimisticCursor}
                 events={calendarEvents}
                 selectedRefId={selectedUid}
                 onEventClick={onEventClick}

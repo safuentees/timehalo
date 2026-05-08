@@ -8,7 +8,7 @@ type Props = {
 
 export function OhPageHeader({ kicker, title, aside }: Props) {
   return (
-    <div className="border-b-2 border-oh-line-strong pb-6">
+    <div className="oh-rule pb-6">
       {kicker ? (
         <p className="oh-legend">
           {kicker}

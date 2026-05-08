@@ -146,6 +146,7 @@
 
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
+  --oh-time-picker-control-h: 36px;
   --oh-r-window: 18px;
 
   --oh-frame: color-mix(in srgb, var(--oh-ink) 12%, var(--oh-paper));
@@ -517,26 +518,27 @@
   text-align: left;
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-line-firm);
   border-radius: var(--oh-r-sm);
   cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
   transition:
-    border-color 150ms var(--ease-oh, ease),
+    box-shadow 150ms var(--ease-oh, ease),
     background-color 150ms var(--ease-oh, ease);
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
   outline: none;
 }
 .oh-time-picker-trigger:hover,
 .oh-time-picker-trigger[data-popup-open] {
-  border-color: var(--oh-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
 }
 .oh-time-picker-trigger:focus-visible {
   outline: 0;
-  box-shadow: var(--oh-focus-shadow);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28), var(--oh-focus-shadow);
 }
 .oh-time-picker-trigger:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
 }
 
 .oh-time-picker-positioner {
@@ -545,12 +547,11 @@
 .oh-time-picker-popup {
   background: var(--oh-paper);
   color: var(--oh-ink);
-  border: 1.5px solid var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 14px 16px;
   box-shadow:
-    0 16px 32px -12px rgb(0 0 0 / 0.22),
-    0 4px 12px -6px rgb(0 0 0 / 0.12);
+    0 16px 32px -12px rgb(0 0 0 / 0.28),
+    0 4px 12px -6px rgb(0 0 0 / 0.18);
   outline: none;
   transform-origin: top left;
   transition:
@@ -566,10 +567,10 @@
 .oh-time-picker-input {
   appearance: none;
   width: 48px;
-  height: 36px;
-  background: transparent;
-  border: 1.5px solid var(--oh-line-firm);
-  border-radius: var(--oh-r-xs);
+  height: var(--oh-time-picker-control-h, 36px);
+  background: var(--oh-paper);
+  border: 0;
+  border-radius: var(--oh-r-sm);
   padding: 0;
   text-align: center;
   font-family: var(--oh-mono);
@@ -579,17 +580,18 @@
   color: var(--oh-ink);
   caret-color: transparent;
   outline: none;
+  box-shadow: var(--oh-input-shadow-rest);
   transition:
-    border-color 120ms var(--ease-oh, ease),
+    box-shadow 120ms var(--ease-oh, ease),
     background-color 120ms var(--ease-oh, ease);
 }
 .oh-time-picker-input:hover {
-  border-color: var(--oh-ink);
+  background: var(--oh-input-bg-hover);
 }
 .oh-time-picker-input:focus,
 .oh-time-picker-input:focus-visible {
-  border-color: var(--oh-ink);
-  background: var(--oh-tint-hover);
+  background: var(--oh-input-bg-focus);
+  box-shadow: var(--oh-focus-shadow-input);
 }
 .oh-time-picker-input::-webkit-inner-spin-button,
 .oh-time-picker-input::-webkit-outer-spin-button {
@@ -600,13 +602,11 @@
 .oh-time-picker-period {
   display: inline-flex;
   height: 36px;
-  border: 1.5px solid var(--oh-line-firm);
+  background: var(--oh-bg-muted);
   border-radius: var(--oh-r-xs);
   overflow: hidden;
-  transition: border-color 120ms var(--ease-oh, ease);
-}
-.oh-time-picker-period:hover {
-  border-color: var(--oh-ink);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.22);
+  transition: box-shadow 120ms var(--ease-oh, ease);
 }
 .oh-time-picker-period-cell {
   appearance: none;
@@ -1357,6 +1357,39 @@
   outline: 0;
   background: var(--oh-input-bg-focus);
   box-shadow: var(--oh-focus-shadow-input);
+}
+
+.oh-input[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+    var(--oh-input-shadow-rest);
+}
+.oh-input[aria-invalid="true"]:focus,
+.oh-input[aria-invalid="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
+}
+
+.oh-input:disabled,
+.oh-input[aria-disabled="true"] {
+  background: color-mix(in srgb, var(--oh-paper) 75%, var(--oh-twdivider-bg));
+  color: var(--oh-content-muted);
+  cursor: not-allowed;
+}
+
+.oh-rule {
+  position: relative;
+}
+.oh-rule::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  display: block;
+  height: 1px;
+  background: var(--oh-twdivider-bg);
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 0 8px rgba(0, 0, 0, 0.2);
 }
 .oh-textarea {
   resize: vertical;

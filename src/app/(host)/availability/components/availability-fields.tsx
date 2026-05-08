@@ -178,7 +178,7 @@ function BlockChip({
     <button
       type="button"
       onClick={onEdit}
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editBlockAria", {
         days: dayLabel,
         time: formatTimeRange(block.from, block.to),
@@ -318,14 +318,15 @@ function BlockEditorContent({
         {error ? (
           <p
             role="alert"
-            className="mt-5 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase"
+            className="mt-5 rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
           >
             {error}
           </p>
         ) : null}
       </div>
 
-      <div className="border-t border-[var(--oh-line-firm)] bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
+      <div className="oh-rule h-0" aria-hidden />
+      <div className="bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
         <div
           className={`flex flex-col-reverse gap-3 md:flex-row md:items-center ${
             onRemove ? "md:justify-between" : "md:justify-end"
@@ -390,7 +391,7 @@ function DaysRowButton({
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) border-[1.5px] border-[var(--oh-line-firm)] bg-[var(--oh-paper)] px-5 py-4 text-left transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editDaysAria", { label })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -426,18 +427,18 @@ function DayToggle({
       onClick={onClick}
       aria-pressed={selected}
       aria-label={longLabel}
-      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) border-[1.5px] border-[var(--oh-ink)] px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-colors duration-150 ease-oh focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] ${
+      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-[box-shadow,background-color,color,opacity] duration-150 ease-oh focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] shadow-[0_3px_12px_rgba(0,0,0,0.22)] ${
         selected
           ? "bg-oh-ink text-oh-paper"
-          : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100"
+          : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100 hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)]"
       }`}
     >
       <span>{label}</span>
       <span
-        className={`grid size-5 shrink-0 place-items-center rounded-(--oh-r-xs) border-[1.5px] ${
+        className={`grid size-5 shrink-0 place-items-center rounded-(--oh-r-xs) transition-[background-color,box-shadow] duration-150 ease-oh ${
           selected
-            ? "border-oh-paper bg-oh-paper text-oh-ink"
-            : "border-oh-ink bg-transparent text-transparent"
+            ? "bg-oh-paper text-oh-ink shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            : "bg-[color:var(--oh-paper)]/30 text-transparent shadow-[inset_0_0_3px_rgba(0,0,0,0.18)]"
         }`}
         aria-hidden
       >

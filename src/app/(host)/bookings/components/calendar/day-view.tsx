@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
 import { HourAxis } from "./hour-axis";
 import { TimeGridColumn } from "./time-grid-column";
+
+const SCROLL_TARGET_HOUR_DEFAULT = 8;
 
 export type DayViewProps = {
   date: Date;
@@ -41,8 +43,8 @@ function formatHeaderDate(date: Date): { weekday: string; ordinal: string } {
 export function DayView({
   date,
   events,
-  startHour = 7,
-  endHour = 20,
+  startHour = 0,
+  endHour = 23,
   oneMinuteHeightPx = 1,
   selectedRefId = null,
   onEventClick,
@@ -65,6 +67,24 @@ export function DayView({
   const isCapped = maxBodyHeight !== "none";
   const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  useEffect(() => {
+    if (!isCapped) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const now = nowOverride ?? new Date();
+    const isShowingToday = isSameDay(now, date);
+    const targetHour = isShowingToday
+      ? now.getHours() + now.getMinutes() / 60
+      : SCROLL_TARGET_HOUR_DEFAULT;
+    const targetMinutesFromStart = (targetHour - startHour) * 60;
+    const targetPx = targetMinutesFromStart * oneMinuteHeightPx;
+    const desiredScroll = targetPx - wrapper.clientHeight / 2;
+    wrapper.scrollTop = Math.max(0, desiredScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateKey, startHour, oneMinuteHeightPx, isCapped]);
+
   const dayLabel = date.toLocaleDateString("en-US", {
     weekday: "long",
     month: "short",
@@ -73,36 +93,33 @@ export function DayView({
 
   return (
     <div
+      ref={wrapperRef}
       role="region"
       aria-label={`Day view for ${dayLabel}`}
       tabIndex={isCapped ? 0 : undefined}
       className={cn(
-        "flex flex-col rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)]",
+        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
         isCapped && "overflow-y-auto",
       )}
       style={bodyStyle}
     >
       <div className="sticky top-0 z-20 border-b border-oh-line bg-[color:var(--oh-paper)]">
-        <div className="flex items-baseline gap-3 pb-3 pl-14 pt-3">
-          <span
-            className={cn(
-              "oh-eyebrow opacity-100",
-              isToday && "font-extrabold",
-            )}
-          >
-            {weekday}
-          </span>
-          <span
-            aria-current={isToday ? "date" : undefined}
-            className={cn(
-              "font-sans text-[20px] font-bold leading-none tracking-tight",
-              isToday &&
-                "inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[color:var(--oh-ink)] px-1.5 text-[color:var(--oh-paper)]",
-            )}
-          >
-            {ordinal}
-          </span>
-        </div>
+        <p
+          aria-current={isToday ? "date" : undefined}
+          className={cn(
+            "oh-eyebrow flex items-center gap-2 py-3 pl-14",
+            isToday ? "opacity-100" : "opacity-65",
+          )}
+        >
+          <span>{ordinal}</span>
+          {isToday ? (
+            <span
+              aria-hidden
+              className="block size-1 rounded-full bg-[color:var(--oh-status-confirmed)]"
+            />
+          ) : null}
+        </p>
       </div>
 
       <div className="relative flex pt-2">

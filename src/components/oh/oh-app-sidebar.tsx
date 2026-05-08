@@ -192,12 +192,11 @@ export function MobileNavContent({
                     aria-current={active ? "page" : undefined}
                     className={[
                       "flex items-center gap-3 rounded-(--oh-r-xs) px-3 py-3 text-[15px] font-medium",
-                      "border-l-2 border-l-transparent",
-                      "transition-colors duration-150 ease-oh",
+                      "transition-[background-color,color,box-shadow] duration-150 ease-oh",
                       "hover:bg-[var(--oh-tint-hover)]",
                       "oh-focus-ring",
                       active
-                        ? "bg-[var(--oh-tint-active)] border-l-[var(--oh-ink)] font-bold"
+                        ? "bg-[color:var(--oh-paper)] font-bold shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
                         : "",
                     ].join(" ")}
                   >
