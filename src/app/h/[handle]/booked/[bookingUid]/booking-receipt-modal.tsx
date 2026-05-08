@@ -108,8 +108,17 @@ export function BookingReceiptModal({
           <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-[15px]">
             <div className="relative z-30 grid h-7 shrink-0 grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] items-center gap-2">
               <span aria-hidden />
+              {/* B.PT271 — `layoutId="oh-modal-chrome-title"` (was
+                  `oh-modal-title` — that id pairs with the form's
+                  cream-content H2, which made the receipt's chrome
+                  text appear to morph from inside the cream rather
+                  than from the form's own chrome row). The new id
+                  pairs with the form-modal's chrome span at
+                  `handle-modal.tsx` `renderChromeRow()` — same
+                  position (chrome row, both modals) so the morph
+                  is a smooth in-place text-rect transition. */}
               <motion.span
-                layoutId="oh-modal-title"
+                layoutId="oh-modal-chrome-title"
                 layout="position"
                 transition={{ type: "spring", ...openSpring }}
                 className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"

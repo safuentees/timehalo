@@ -251,22 +251,45 @@ export function HandleModal({
             aria-hidden
           />
         </button>
-        <AnimatePresence mode="wait" initial={false}>
-          {chromeRowText ? (
-            <motion.span
-              key={chromeRowText}
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -8, opacity: 0 }}
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-              className="justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
-            >
-              {chromeRowText}
-            </motion.span>
-          ) : (
-            <span className="justify-self-center" aria-hidden />
-          )}
-        </AnimatePresence>
+        {/* B.PT271 — outer motion.span with `layoutId="oh-modal-
+            chrome-title"` carries the cross-component morph from
+            the form-card's chrome row to the receipt-modal's
+            chrome row (same `layoutId` set on the receipt's chrome
+            span at `booking-receipt-modal.tsx`). Inner
+            AnimatePresence + key-based y-slide handles the local
+            text-change animation when `chromeRowText` updates
+            within the same modal (strip "15 min" → form "15
+            minutes on May 12 at 3:00 PM"). Outer = identity for
+            cross-modal morph, inner = local key-based swap.
+            Without the outer layoutId, motion was pairing the
+            receipt's chrome span with the form's `oh-modal-title`
+            H2 (inside the cream content area) — receipt's chrome
+            text appeared to morph from the deep-inside-cream H2
+            position rather than from the form's chrome row. The
+            chrome-title layoutId is distinct from the H2's
+            `oh-modal-title` so the H2 keeps its intra-modal
+            strip↔form↔month morph independently. */}
+        <motion.span
+          layoutId="oh-modal-chrome-title"
+          layout="position"
+          transition={{ type: "spring", ...openSpring }}
+          className="min-w-0 justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {chromeRowText ? (
+              <motion.span
+                key={chromeRowText}
+                initial={{ y: 8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -8, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                className="block truncate"
+              >
+                {chromeRowText}
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
+        </motion.span>
         <button
           type="button"
           onClick={() => onOpenChange(false)}
