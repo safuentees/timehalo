@@ -136,30 +136,56 @@ export function BookingReceiptContent({
           meeting in a face + handle, not re-confirm the booking
           state. Avatar 48 (down from 40+sm:48 in the page variant)
           keeps the row dense; eyebrow/name/handle stack on the right. */}
-        <div className="flex items-center gap-3.5">
-          {/* B.PT270 — shared `<HandleHostAvatar>` so the receipt-
-              modal and the `/h/[handle]` landing/modal identity
-              row pull from one source of truth. The component
-              owns the drop-shadow + circular border-radius
-              (`HANDLE_AVATAR_PROJECTION_STYLE`), the AvatarImage
-              + AvatarFallback config, and the 1px `#E5E5E5` ring
-              overlay. Both surfaces stay visually consistent
-              without duplicate inline blocks. Receipt uses
-              size=48 for the tighter card density; host-profile
-              uses the default 55 (Figma-spec landing-card size). */}
+        {/* B.PT272 — host card scales uniformly with container width
+            via `@container` + `cqi` units (CSS container query length
+            unit, 1cqi = 1% of container's inline size — see MDN
+            `developer.mozilla.org/.../length#container_query_length_units`).
+            The flex row is marked as a query container; the avatar
+            size, gap, and font-sizes all use `clamp(min, Ncqi, max)`
+            so they grow proportionally as the cream-content area
+            widens. Calibrated at ~376px container width: avatar 48
+            → 12.77cqi, gap 14 → 3.7cqi, name 17px → 4.5cqi, eyebrow
+            10px → 2.66cqi. `clamp()` bounds keep values readable on
+            tiny viewports and prevent runaway growth on huge ones.
+            Truncate on the name + handle text already handles the
+            "wall touch" boundary — long names ellipsis-clip when
+            content reaches the right edge. Same primitive the
+            codebase's `oh-drawer-weekdays-cell` uses for cqi-driven
+            scaling (see `globals.css:2629`). */}
+        <div
+          className="@container flex items-center bg-amber-200"
+          style={{ gap: "clamp(10px, 3.7cqi, 22px)" }}
+        >
+          {/* B.PT270 / B.PT272 — shared `<HandleHostAvatar>` so the
+              receipt-modal and `/h/[handle]` landing/modal identity
+              row pull from one source of truth. The size prop now
+              accepts a CSS string so the receipt can scale with
+              container queries (`clamp(40px, 12.77cqi, 88px)`)
+              while host-profile keeps its fixed Figma-spec 55px. */}
           <HandleHostAvatar
             src={booking.host.image}
             alt={hostName}
             initials={toInitials(hostName)}
-            size={48}
+            size="clamp(40px, 12.77cqi, 88px)"
           />
           <div className="min-w-0 flex-1">
-            <p className="oh-eyebrow opacity-55">{t("withLabel")}</p>
-            <p className="mt-0.5 truncate text-[17px] font-bold leading-tight tracking-tight">
+            <p
+              className="oh-eyebrow opacity-55"
+              style={{ fontSize: "clamp(9px, 2.66cqi, 13px)" }}
+            >
+              {t("withLabel")}
+            </p>
+            <p
+              className="mt-0.5 truncate font-bold leading-tight tracking-tight"
+              style={{ fontSize: "clamp(15px, 4.5cqi, 26px)" }}
+            >
               {hostName}
             </p>
             {booking.host.handle ? (
-              <p className="mt-0.5 truncate oh-eyebrow opacity-55">
+              <p
+                className="mt-0.5 truncate oh-eyebrow opacity-55"
+                style={{ fontSize: "clamp(9px, 2.66cqi, 13px)" }}
+              >
                 /h/{booking.host.handle}
               </p>
             ) : null}

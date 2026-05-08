@@ -40,8 +40,13 @@ type HandleHostAvatarBodyProps = {
   src: string | null | undefined;
   alt: string;
   initials: string;
-  /** Pixel size. Defaults to the Figma-spec 55px landing-card size. */
-  size?: number;
+  /**
+   * Avatar dimension. Number is treated as pixels; string passes
+   * through as-is (e.g. `"clamp(40px, 13cqi, 80px)"` for container-
+   * query-driven scaling at the receipt-modal callsite). Defaults
+   * to the Figma-spec 55px landing-card size.
+   */
+  size?: number | string;
 };
 
 export function HandleHostAvatarBody({
