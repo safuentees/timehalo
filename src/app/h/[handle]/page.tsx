@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
+import { env } from "@/env";
 import HostProfile from "./components/host-profile";
 
 export async function generateMetadata({
@@ -58,12 +59,28 @@ export default async function HostPage({
     throw err;
   }
 
+  const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://officehours.app";
+  const personLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: user.name ?? `@${handle}`,
+    url: `${baseUrl}/h/${handle}`,
+    ...(user.image ? { image: user.image } : {}),
+    identifier: handle,
+  };
+
   return (
-    <HostProfile
-      handle={handle}
-      initialUser={user}
-      initialSlots={slots}
-      renderedAt={renderedAt}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
+      />
+      <HostProfile
+        handle={handle}
+        initialUser={user}
+        initialSlots={slots}
+        renderedAt={renderedAt}
+      />
+    </>
   );
 }
