@@ -1,20 +1,24 @@
 import "server-only";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-// Fixed-window in-memory rate limiter — ported from rallly's pattern
-// (apps/web/src/lib/rate-limit/index.ts:29-81). Keeps the project
-// shippable without any infra. To swap in Upstash Redis for prod:
+// Two-mode rate limiter: in-memory fallback + Upstash Redis swap.
 //
-//   1. pnpm add @upstash/ratelimit @upstash/redis
-//   2. import { Ratelimit } from "@upstash/ratelimit"
-//   3. import { Redis } from "@upstash/redis"
-//   4. In createRatelimit, when process.env.UPSTASH_REDIS_REST_URL is
-//      set, return a Ratelimit({ redis, limiter: Ratelimit.fixedWindow(...) })
-//      wrapper that matches the shape of createMemoryLimiter — see
-//      rallly lines 62-78 for the exact return shape.
+// The memory path is rallly's pattern (apps/web/src/lib/rate-limit/
+// index.ts:29-81) — fixed-window with `setTimeout(...).unref?.()` so
+// the dev server's event loop doesn't stay alive forever after `pnpm
+// dev` exits. Per-instance only — multi-region serverless can't
+// share state across cold-started processes, so this mode is NOT a
+// real rate limit when more than one Lambda is running.
 //
-// The memory limiter cleans up entries with `setTimeout(...).unref?.()`
-// so the dev server's event loop doesn't stay alive forever after
-// `pnpm dev` exits.
+// The Redis path uses `@upstash/ratelimit` + `@upstash/redis` REST
+// client (HTTP, no TCP — works on Vercel Edge / Lambda / Cloudflare).
+// `Ratelimit.fixedWindow` runs atomically via Lua so concurrent
+// invocations across instances see consistent budgets. Activated when
+// both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set.
+//
+// Both paths return the same `LimiterResult` shape so callers don't
+// branch on transport.
 
 export type Unit = "ms" | "s" | "m" | "h" | "d";
 export type Duration = `${number} ${Unit}` | `${number}${Unit}`;
@@ -101,14 +105,43 @@ function createMemoryLimiter(
   };
 }
 
+function createRedisLimiter(
+  maxRequests: number,
+  duration: Duration,
+): Limiter {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  });
+  const ratelimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.fixedWindow(maxRequests, duration),
+    prefix: "officehours-rl",
+    analytics: false,
+  });
+  return {
+    async limit(key: string) {
+      const r = await ratelimit.limit(key);
+      return {
+        success: r.success,
+        remainingPoints: r.remaining,
+        resetAtMs: r.reset,
+        limit: r.limit,
+      };
+    },
+    name: "redis",
+  };
+}
+
 export function createRatelimit(
   requests: number,
   duration: Duration,
 ): Limiter {
-  // Memory-only today. The Upstash Redis swap lives behind a real
-  // signal — when prod traffic justifies it, branch on
-  // UPSTASH_REDIS_REST_URL and return a Redis-backed Limiter with
-  // the same return shape so caller code doesn't change. Tracked
-  // as B.PT14 in BACKLOG.md.
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    return createRedisLimiter(requests, duration);
+  }
   return createMemoryLimiter(requests, duration);
 }

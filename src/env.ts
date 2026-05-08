@@ -57,10 +57,16 @@ export const env = createEnv({
      */
     EMAIL_DEV_REDIRECT: z.string().email().optional(),
     /**
-     * Optional Upstash Redis for the rate-limit fallback path. When
-     * unset, the in-memory limiter (rallly's pattern) is used.
+     * Optional Upstash Redis for the rate-limit fallback path. Both
+     * URL and TOKEN must be set together — `createRatelimit`
+     * (`src/lib/rate-limit.ts`) branches on URL presence and would
+     * fail at request time if TOKEN is missing. When either is
+     * unset, the in-memory limiter (rallly's pattern) is used; that's
+     * fine for single-instance deploys but not multi-region (state
+     * doesn't share across processes).
      */
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
     /**
      * CSV of host handles permitted to access /admin/*. Empty/unset
      * → no admin access from any account. dub uses workspace-
