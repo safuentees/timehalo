@@ -3,7 +3,7 @@ import path from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const cspDirectives = [
+const baseCspParts = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
   "style-src 'self' 'unsafe-inline'",
@@ -11,30 +11,42 @@ const cspDirectives = [
   "font-src 'self' data:",
   "connect-src 'self' https://api.stripe.com https://*.sentry.io https://*.ingest.sentry.io https://*.upstash.io",
   "frame-src https://js.stripe.com https://hooks.stripe.com",
-  "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
   "upgrade-insecure-requests",
-].join("; ");
+];
+const cspDefault = [...baseCspParts, "frame-ancestors 'none'"].join("; ");
+const cspEmbed = [...baseCspParts, "frame-ancestors *"].join("; ");
 
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
   async headers() {
+    const sharedHeaders = [
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+    ];
     return [
+      {
+        source: "/(embed.js|embed/.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: cspEmbed },
+          ...sharedHeaders,
+        ],
+      },
       {
         source: "/:path*",
         headers: [
+          { key: "Content-Security-Policy", value: cspDefault },
           {
-            key: "Content-Security-Policy",
-            value: cspDirectives,
+            key: "X-Frame-Options",
+            value: "DENY",
           },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...sharedHeaders,
         ],
       },
     ];
