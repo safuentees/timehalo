@@ -17,6 +17,7 @@ import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
+import { OhCard } from "@/components/oh/oh-card";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
 // Members panel for /workspaces/<slug>/members. Three sections
@@ -177,7 +178,7 @@ function MemberRow({
     : ROLE_OPTIONS.filter((r) => r === "MEMBER" || r === "VIEWER");
 
   return (
-    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)]">
+    <OhCard className="p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[15px] leading-[1.2] font-black truncate">{name}</h3>
@@ -235,7 +236,7 @@ function MemberRow({
           />
         </div>
       ) : null}
-    </article>
+    </OhCard>
   );
 }
 
@@ -282,14 +283,7 @@ function InvitationRow({
       : ["MEMBER", "VIEWER"];
 
   return (
-    <article
-      className={[
-        "rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color,opacity] duration-150 ease-oh",
-        accepted || expired
-          ? "opacity-60"
-          : "hover:shadow-[var(--oh-shadow-hover)]",
-      ].join(" ")}
-    >
+    <OhCard muted={accepted || expired} className="p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[14px] leading-[1.2] font-black truncate">{email}</h3>
@@ -362,6 +356,6 @@ function InvitationRow({
           ) : null}
         </div>
       </header>
-    </article>
+    </OhCard>
   );
 }

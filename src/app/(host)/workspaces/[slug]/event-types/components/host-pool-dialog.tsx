@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { OhCard } from "@/components/oh/oh-card";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -139,7 +140,7 @@ function HostRow({
   const removeHost = useRemoveEventTypeHost();
 
   return (
-    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)]">
+    <OhCard className="p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h4 className="text-[14px] font-bold truncate">
           {host.user.name ?? host.user.handle ?? host.user.email}
@@ -255,7 +256,7 @@ function HostRow({
           />
         </div>
       ) : null}
-    </article>
+    </OhCard>
   );
 }
 
