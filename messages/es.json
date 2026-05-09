@@ -170,6 +170,7 @@
     "upgradeToPro": "Actualizar a PRO",
     "upgradeTo": "Cambiar a {tier}",
     "manageBilling": "Gestionar facturación",
+    "everythingInPlus": "Todo lo de {tier}, y además",
     "tier": {
       "FREE": "Gratis",
       "PRO": "Pro",

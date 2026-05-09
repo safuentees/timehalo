@@ -16,37 +16,25 @@ type PlanTier = "FREE" | "PRO" | "TEAM";
 
 const UPGRADE_TIERS = ["PRO", "TEAM"] as const;
 
-const PLAN_DISPLAY: Record<
-  PlanTier,
-  { priceCents: number; featureKeys: ReadonlyArray<string> }
-> = {
+type PlanDisplay = {
+  priceCents: number;
+  inheritsFrom?: PlanTier;
+  extraKeys?: ReadonlyArray<string>;
+};
+
+const PLAN_DISPLAY: Record<PlanTier, PlanDisplay> = {
   FREE: {
     priceCents: 0,
-    featureKeys: ["bookings", "calendar", "membersUpTo1"],
   },
   PRO: {
     priceCents: 1999,
-    featureKeys: [
-      "bookings",
-      "calendar",
-      "membersUpTo5",
-      "webhooks",
-      "apiKeys",
-      "workflows",
-    ],
+    inheritsFrom: "FREE",
+    extraKeys: ["membersUpTo5", "webhooks", "apiKeys", "workflows"],
   },
   TEAM: {
     priceCents: 4999,
-    featureKeys: [
-      "bookings",
-      "calendar",
-      "membersUpTo25",
-      "webhooks",
-      "apiKeys",
-      "workflows",
-      "roundRobin",
-      "prioritySupport",
-    ],
+    inheritsFrom: "PRO",
+    extraKeys: ["membersUpTo25", "roundRobin", "prioritySupport"],
   },
 };
 
@@ -185,7 +173,6 @@ function CurrentPlanBanner({
 }) {
   const t = useTranslations("Billing");
   const fmt = useFormatter();
-  const checkout = useBillingCheckout();
   const portal = useBillingPortal();
   const isFree = plan === "FREE";
 
@@ -230,33 +217,19 @@ function CurrentPlanBanner({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {isFree ? (
+        {!isFree && hasStripeCustomer ? (
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              variant="oh"
+              variant="ohGhost"
               size="oh"
-              disabled={checkout.isPending}
-              onClick={() =>
-                checkout.mutate({ slug, plan: "PRO" })
-              }
+              disabled={portal.isPending}
+              onClick={() => portal.mutate({ slug })}
             >
-              {checkout.isPending ? t("redirecting") : t("upgradeToPro")}
+              {portal.isPending ? t("redirecting") : t("manageBilling")}
             </Button>
-          ) : (
-            hasStripeCustomer && (
-              <Button
-                type="button"
-                variant="ohGhost"
-                size="oh"
-                disabled={portal.isPending}
-                onClick={() => portal.mutate({ slug })}
-              >
-                {portal.isPending ? t("redirecting") : t("manageBilling")}
-              </Button>
-            )
-          )}
-        </div>
+          </div>
+        ) : null}
       </div>
     </OhCard>
   );
@@ -276,7 +249,8 @@ function PlanCard({
   const t = useTranslations("Billing");
   const checkout = useBillingCheckout();
   const display = PLAN_DISPLAY[tier];
-  const featureLabels = display.featureKeys.map((k) => t(`feature.${k}`));
+  const inheritsFrom = display.inheritsFrom ?? "FREE";
+  const extraKeys = display.extraKeys ?? [];
 
   return (
     <OhCard
@@ -293,17 +267,22 @@ function PlanCard({
         </p>
       </header>
 
-      <ul className="mt-5 flex flex-1 flex-col gap-2 text-[13px]">
-        {featureLabels.map((label) => (
-          <li key={label} className="flex items-start gap-2">
-            <span
-              aria-hidden
-              className="mt-[5px] inline-block size-1.5 rounded-full bg-oh-line-strong"
-            />
-            <span className="opacity-80">{label}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-5 flex flex-1 flex-col gap-2.5">
+        <p className="oh-eyebrow">
+          {t("everythingInPlus", { tier: t(`tier.${inheritsFrom}`) })}
+        </p>
+        <ul className="flex flex-col gap-2 text-[13px]">
+          {extraKeys.map((k) => (
+            <li key={k} className="flex items-start gap-2">
+              <span
+                aria-hidden
+                className="mt-[5px] inline-block size-1.5 rounded-full bg-oh-line-strong"
+              />
+              <span className="opacity-80">{t(`feature.${k}`)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="mt-6">
         {isCurrent ? (
