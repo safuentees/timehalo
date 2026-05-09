@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import {
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
@@ -78,15 +80,32 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   });
 
   return (
-    // Outer wrapper mirrors the modal's `fixed inset-0 ... p-4 sm:p-8`
-    // but as a regular page — `min-h-dvh` so short viewports still
-    // host the centered card without scrollbars; `bg-oh-bg-muted`
-    // matches `OhVisitorShell`'s outer chrome so the receipt still
-    // sits inside the brand surface visually.
-    <div
-      role="region"
-      aria-label={t("badgeBooked")}
-      className="flex min-h-dvh items-center justify-center bg-oh-bg-muted p-4 sm:p-8"
+    // Wrap in `OhVisitorShell` so the standalone page picks up the
+    // same brand chrome the visitor surface (`/h/[handle]`) ships:
+    // muted-paper outer, rounded paper inner panel (with
+    // `oh-visitor-panel`'s depth shadow), sticky header. The morph
+    // card is the `<main>` content; the shell centers it. This keeps
+    // the inner-panel + morph-card nesting identical to the
+    // intercepted-modal context, where the modal sits over the same
+    // visitor-surface inner panel underneath.
+    //
+    // Header carries a single small clickable link back to the
+    // host's profile (`/h/<handle>`) so a visitor who landed here
+    // via an email / shared link can navigate to the host's main
+    // page. The link uses the same `oh-legend` mono-caps style the
+    // visitor profile's header uses for the handle eyebrow, so it
+    // reads as part of the same chrome vocabulary across routes.
+    <OhVisitorShell
+      header={
+        booking.host.handle ? (
+          <Link
+            href={`/h/${booking.host.handle}`}
+            className="oh-focus-ring oh-legend rounded-(--oh-r-xs) opacity-65 transition-opacity hover:opacity-100"
+          >
+            /h/{booking.host.handle}
+          </Link>
+        ) : null
+      }
     >
       <HandleMorphCard
         // No `layoutId` — standalone page, nothing to morph from.
@@ -134,6 +153,6 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           </div>
         </div>
       </HandleMorphCard>
-    </div>
+    </OhVisitorShell>
   );
 }
