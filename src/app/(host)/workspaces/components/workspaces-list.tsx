@@ -8,6 +8,7 @@ import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { SectionHeader } from "@/components/oh/section-header";
+import { OhCard } from "@/components/oh/oh-card";
 import { WorkspaceCreateDialog } from "./workspace-create-dialog";
 
 export default function WorkspacesList() {
@@ -68,21 +69,25 @@ function WorkspaceRow({
 }) {
   const t = useTranslations("Workspaces");
   return (
-    <Link
-      href={`/workspaces/${slug}/members`}
-      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)]"
+    <OhCard
+      asChild
+      className="group flex items-center justify-between gap-3 p-4"
     >
-      <div className="flex min-w-0 flex-col gap-1.5">
-        <span className="oh-eyebrow tabular-nums">{t(`role_${role}`)}</span>
-        <h3 className="text-[16px] leading-[1.2] font-black truncate">{name}</h3>
-        <span className="oh-eyebrow normal-case tracking-[1.5px] text-[11px]">
-          /{slug}
-        </span>
-      </div>
-      <ArrowRightIcon
-        className="size-4 shrink-0 opacity-40 transition-opacity duration-150 ease-oh group-hover:opacity-100"
-        aria-hidden
-      />
-    </Link>
+      <Link href={`/workspaces/${slug}/members`}>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <span className="oh-eyebrow tabular-nums">{t(`role_${role}`)}</span>
+          <h3 className="text-[16px] leading-[1.2] font-black truncate">
+            {name}
+          </h3>
+          <span className="oh-eyebrow normal-case tracking-[1.5px] text-[11px]">
+            /{slug}
+          </span>
+        </div>
+        <ArrowRightIcon
+          className="size-4 shrink-0 opacity-40 transition-opacity duration-150 ease-oh group-hover:opacity-100"
+          aria-hidden
+        />
+      </Link>
+    </OhCard>
   );
 }

@@ -12,6 +12,7 @@ import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
+import { OhCard } from "@/components/oh/oh-card";
 import { EventTypeCreateDialog } from "./event-type-create-dialog";
 import { EventTypeEditDialog } from "./event-type-edit-dialog";
 import { HostPoolDialog } from "./host-pool-dialog";
@@ -99,7 +100,7 @@ function EventTypeRow({
   const deleteEventType = useDeleteEventType();
 
   return (
-    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)]">
+    <OhCard className="p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {eventType.name}
@@ -181,6 +182,6 @@ function EventTypeRow({
         open={hostsOpen}
         onOpenChange={setHostsOpen}
       />
-    </article>
+    </OhCard>
   );
 }
