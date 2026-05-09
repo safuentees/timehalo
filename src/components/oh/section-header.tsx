@@ -12,18 +12,24 @@ import type { ReactNode } from "react";
 // section content can wire `aria-labelledby` for radiogroups, lists,
 // and other composite controls.
 //
-// Typography roles use .oh-legend / .oh-description from globals.css
-// rather than inlining the mono+size+tracking+opacity strings — keeps
-// the eight-class repetition out of every callsite.
+// Typography matches the availability + profile single-form pattern
+// (`<FieldLegend className="oh-legend opacity-100">` +
+// `<FieldDescription className="text-[13px] leading-[1.5] opacity-65">`)
+// so hub-page sections (workspaces, settings/general, members,
+// danger zones) read identical to single-form pages.
 //
-// Legend overrides `.oh-legend`'s default 55% opacity to 100% to match
-// the availability + profile single-form pattern
-// (`availability-form.tsx` + `profile-form.tsx` render
-// `<FieldLegend className="oh-legend opacity-100">`). Without the
-// override, hub pages (workspaces, settings/general, members, danger
-// zones) read at 55% — visibly dimmer than the single-form pages,
-// which the user flagged as inconsistent. Bumping it here propagates
-// to every SectionHeader callsite at once.
+// Two reasons we don't reach for `.oh-description` here even though
+// it ships in globals.css:
+//   1. `.oh-description` carries `max-width: 65ch` — availability +
+//      profile inline `text-[13px] leading-[1.5] opacity-65` instead,
+//      so their descriptions span the full content column.
+//   2. Spacing: availability's FieldSet `gap-4` + FieldLegend `mb-1.5`
+//      + FieldDescription `-mt-1.5` collapse to ~16px visible gap
+//      between legend and description. We match with `mt-4` on the
+//      description in this plain-div layout.
+//
+// Net: identical look across every legend/description block in the
+// host shell.
 
 export function SectionHeader({
   legendId,
@@ -51,7 +57,9 @@ export function SectionHeader({
           </h2>
         ) : null}
         {description ? (
-          <p className="oh-description mt-3">{description}</p>
+          <p className="mt-4 text-[13px] leading-[1.5] opacity-65">
+            {description}
+          </p>
         ) : null}
       </div>
       {action ? <div className="shrink-0 self-start">{action}</div> : null}
