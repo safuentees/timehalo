@@ -461,57 +461,72 @@ export function BookingsList({
             onValueChange={onViewChange}
           />
         </div>
+
+        {optimisticView === "list" ? (
+          // List mode renders inside the SAME OhPageShell as the
+          // header / view-switcher above. Previously this lived in
+          // a sibling `<OhPageShell>` underneath, which doubled the
+          // `py-8 sm:py-10` chrome padding (one shell's bottom +
+          // the next shell's top = ~64px gap on mobile / 80px
+          // desktop). User wanted the Upcoming / Past tabs to sit
+          // tight against the view switcher above; folding into one
+          // shell makes the only gap the explicit `mt-6` between
+          // siblings.
+          <>
+            <div className="mt-6">
+              <OhPillSwitcher
+                ariaLabel={t("tablistLabel")}
+                value={optimisticTab}
+                onChange={onTabChange}
+                // Tab bar fills the column — Upcoming + Past split
+                // the page width into equal halves instead of
+                // sitting as a content-width AM/PM-style picker.
+                fullWidth
+                options={[
+                  {
+                    value: "upcoming",
+                    label: (
+                      <BookingsTabLabel
+                        label={t("tabUpcoming")}
+                        count={data?.upcoming.length ?? 0}
+                        isActive={optimisticTab === "upcoming"}
+                      />
+                    ),
+                  },
+                  {
+                    value: "past",
+                    label: (
+                      <BookingsTabLabel
+                        label={t("tabPast")}
+                        count={data?.past.length ?? 0}
+                        isActive={optimisticTab === "past"}
+                      />
+                    ),
+                  },
+                ]}
+              />
+            </div>
+
+            <div className="mt-6">
+              {optimisticTab === "upcoming" ? (
+                <BookingsListPanel
+                  tab="upcoming"
+                  bookings={data?.upcoming ?? []}
+                  onSelect={setSelectedUid}
+                />
+              ) : (
+                <BookingsListPanel
+                  tab="past"
+                  bookings={data?.past ?? []}
+                  onSelect={setSelectedUid}
+                />
+              )}
+            </div>
+          </>
+        ) : null}
       </OhPageShell>
 
-      {optimisticView === "list" ? (
-        // List mode: stay in the standard 760px shell. The list rows
-        // don't benefit from a wider column.
-        <OhPageShell>
-          <OhPillSwitcher
-            ariaLabel={t("tablistLabel")}
-            value={optimisticTab}
-            onChange={onTabChange}
-            options={[
-              {
-                value: "upcoming",
-                label: (
-                  <BookingsTabLabel
-                    label={t("tabUpcoming")}
-                    count={data?.upcoming.length ?? 0}
-                    isActive={optimisticTab === "upcoming"}
-                  />
-                ),
-              },
-              {
-                value: "past",
-                label: (
-                  <BookingsTabLabel
-                    label={t("tabPast")}
-                    count={data?.past.length ?? 0}
-                    isActive={optimisticTab === "past"}
-                  />
-                ),
-              },
-            ]}
-          />
-
-          <div className="mt-6">
-            {optimisticTab === "upcoming" ? (
-              <BookingsListPanel
-                tab="upcoming"
-                bookings={data?.upcoming ?? []}
-                onSelect={setSelectedUid}
-              />
-            ) : (
-              <BookingsListPanel
-                tab="past"
-                bookings={data?.past ?? []}
-                onSelect={setSelectedUid}
-              />
-            )}
-          </div>
-        </OhPageShell>
-      ) : (
+      {optimisticView !== "list" ? (
         // Calendar mode: escape the OhPageShell width cap so each
         // view can use its appropriate max width (week 1440, month
         // 1200, day 760). Outer wrapper provides the same horizontal
@@ -668,7 +683,7 @@ export function BookingsList({
           ) : null}
         </DragOverlay>
         </DndContext>
-      )}
+      ) : null}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
 

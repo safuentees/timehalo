@@ -45,6 +45,15 @@ type Props<T extends string> = {
   onChange: (next: T) => void;
   ariaLabel?: string;
   className?: string;
+  /**
+   * When true, the segmented control fills the parent's width and
+   * options share equal flex space. Default is content-width
+   * (`flex-none` on each option, AM/PM-style picker behaviour). Tab-
+   * bar callsites where the row is the dominant chrome opt in via
+   * this flag — gives the Upcoming / Past split equal halves of the
+   * page column.
+   */
+  fullWidth?: boolean;
 };
 
 export function OhPillSwitcher<T extends string>({
@@ -53,6 +62,7 @@ export function OhPillSwitcher<T extends string>({
   onChange,
   ariaLabel,
   className,
+  fullWidth = false,
 }: Props<T>) {
   // Unique per instance so two switchers on the same page don't share
   // a layoutId namespace and morph into each other.
@@ -88,6 +98,11 @@ export function OhPillSwitcher<T extends string>({
           // no-op there.
           "h-auto items-stretch gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
           "[box-shadow:inset_0_3px_10px_rgba(0,0,0,0.22)]",
+          // `fullWidth` flips the track to fill its parent. Default
+          // shadcn `<TabsList>` is `inline-flex` (content-width); we
+          // override with `flex w-full` so the track stretches and the
+          // `flex-1` triggers below can claim equal halves.
+          fullWidth ? "flex w-full" : null,
           className,
         )}
       >
@@ -125,7 +140,8 @@ export function OhPillSwitcher<T extends string>({
                 // `--oh-r-xs` (2px) nor `--oh-r-sm` (6px) matches the
                 // exact 3px value, so we use a literal arbitrary
                 // class for this one Apple-HIG-derived measurement.
-                "relative h-auto flex-none rounded-[3px] border-0 px-4 py-[7px]",
+                "relative h-auto rounded-[3px] border-0 px-4 py-[7px]",
+                fullWidth ? "flex-1" : "flex-none",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
