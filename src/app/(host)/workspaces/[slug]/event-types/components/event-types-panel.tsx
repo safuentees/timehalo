@@ -122,7 +122,7 @@ function EventTypeRow({
         /{eventType.slug}
       </p>
 
-      <p className="mt-2 text-[13px] opacity-75">
+      <p className="oh-description mt-2">
         {t("summary", {
           hostsCount: eventType._count.hosts,
           bookingsCount: eventType._count.bookings,

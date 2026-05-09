@@ -164,7 +164,7 @@ function EmptyDurations() {
   return (
     <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
       <p className="oh-eyebrow">{t("durationsEmpty")}</p>
-      <p className="mt-2 text-[13px] leading-[1.5] opacity-70">
+      <p className="oh-description mt-2">
         {t("durationsEmptyHint")}
       </p>
     </div>
