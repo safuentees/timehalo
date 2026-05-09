@@ -38,6 +38,8 @@
     "deleteDescription": "El disparador deja de funcionar de inmediato. Los recordatorios que ya se enviaron no se retiran.",
     "toggleOn": "Activar",
     "toggleOff": "Desactivar",
+    "toggleAria": "Activar/desactivar {name}",
+    "deleteAria": "Eliminar {name}",
     "loading": "Cargando flujos…",
     "listEmpty": "Aún no hay flujos. Añade uno para enviar recordatorios o disparar webhooks en eventos de reserva.",
     "statusActive": "Activo",

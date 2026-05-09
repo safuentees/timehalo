@@ -38,6 +38,8 @@
     "deleteDescription": "This stops the trigger immediately. Existing reminders that have already fired stay sent.",
     "toggleOn": "Activate",
     "toggleOff": "Deactivate",
+    "toggleAria": "Toggle {name}",
+    "deleteAria": "Delete {name}",
     "loading": "Loading workflows…",
     "listEmpty": "No workflows yet. Add one to send reminders or fire webhooks on booking events.",
     "statusActive": "Active",

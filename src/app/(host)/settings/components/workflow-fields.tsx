@@ -1,8 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
@@ -114,32 +116,33 @@ function WorkflowRow({
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {name}
         </h3>
-        <span className="oh-eyebrow tabular-nums">
-          {active ? t("statusActive") : t("statusInactive")}
-        </span>
+        <span
+          aria-hidden
+          className={
+            active
+              ? "inline-block size-2 shrink-0 rounded-full bg-[var(--oh-status-confirmed)] transition-colors duration-150 ease-oh"
+              : "inline-block size-2 shrink-0 rounded-full bg-[var(--oh-status-cancelled)] transition-colors duration-150 ease-oh"
+          }
+        />
       </header>
-      <p className="oh-eyebrow mt-2">
-        {subtitle}
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="ohGhost"
-          size="oh"
+      <p className="oh-eyebrow mt-2">{subtitle}</p>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <Switch
+          checked={active}
+          onCheckedChange={(next) => update.mutate({ id, active: next })}
           disabled={isUpdating}
-          onClick={() => update.mutate({ id, active: !active })}
-        >
-          {active ? t("toggleOff") : t("toggleOn")}
-        </Button>
+          aria-label={t("toggleAria", { name })}
+        />
         <ConfirmDialog
           trigger={
             <Button
               type="button"
               variant="ohGhost"
-              size="oh"
+              size="ohIcon"
               disabled={isDeleting}
+              aria-label={t("deleteAria", { name })}
             >
-              {isDeleting ? t("deleting") : t("delete")}
+              <Trash2 strokeWidth={1.75} className="size-4" aria-hidden />
             </Button>
           }
           title={t("deleteTitle")}
