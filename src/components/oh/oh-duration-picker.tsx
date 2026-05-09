@@ -102,7 +102,17 @@ export function OhDurationPicker({
   const reactId = useId();
   const portalContainer = useResponsiveModalPortalContainer();
 
-  const [open, setOpen] = useState(false);
+  // `<Popover.Root>` runs UNCONTROLLED — same as `<OhTimePicker>`
+  // ships. When the Root was controlled (open + onOpenChange), the
+  // trigger's click handler still fired but the popover failed to
+  // appear because the controlled state propagation skipped a beat
+  // somewhere in Base UI's internal store. Reverting to uncontrolled
+  // matches the working time-picker exactly.
+  //
+  // For programmatic close (Save / Remove path), we hold an
+  // `actionsRef` so the commit handlers can call `actions.close()`
+  // after the async mutation resolves.
+  const actionsRef = useRef<Popover.Root.Actions | null>(null);
 
   // Picker draft is kept LOCAL to the popover so closing without
   // committing discards any unsaved changes. Lazy initializer seeds
@@ -134,7 +144,7 @@ export function OhDurationPicker({
     if (!canCommit) return;
     try {
       await onCommit(totalMinutes);
-      setOpen(false);
+      actionsRef.current?.close();
     } catch {
       // Parent mutation hook toasted; keep popover open so the
       // host can adjust + retry.
@@ -145,7 +155,7 @@ export function OhDurationPicker({
     if (!onRemove || isPending) return;
     try {
       await onRemove();
-      setOpen(false);
+      actionsRef.current?.close();
     } catch {
       // Same as commit — keep open on error.
     }
@@ -153,11 +163,8 @@ export function OhDurationPicker({
 
   return (
     <Popover.Root
-      open={open}
+      actionsRef={actionsRef}
       onOpenChange={(next) => {
-        // Block close while a mutation is in flight — prevents the
-        // user from accidentally abandoning a pending save.
-        if (!next && isPending) return;
         // Re-seed draft on open so the picker reflects the chip's
         // current saved state. Event-handler form so React 19's
         // `react-hooks/set-state-in-effect` rule doesn't fire.
@@ -166,7 +173,6 @@ export function OhDurationPicker({
           setHours(Math.floor(seed / 60));
           setMinutes(seed % 60);
         }
-        setOpen(next);
       }}
     >
       <Popover.Trigger
