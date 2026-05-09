@@ -261,11 +261,37 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         aria-label="Duration in minutes"
         className={cn(
           "oh-time-picker-input tabular-nums",
-          // Override the time-picker-input's fixed 48px width — single-
-          // field duration picker auto-grows with the digit count via
-          // CSS field-sizing. min width keeps a comfortable tap target
-          // even on a one-digit value.
-          "w-auto !min-w-[64px] !px-3",
+          // Overrides over the inherited `.oh-time-picker-input` rules.
+          //
+          // `!w-auto` — base class sets `width: 48px` as **unlayered
+          // CSS**, which per the Cascade Layers spec beats any rule
+          // in `@layer utilities` (including Tailwind's `w-auto`)
+          // regardless of specificity. The `!` prefix forces
+          // !important so the layered utility wins. Combined with
+          // the inline `fieldSizing: content` below, the input then
+          // auto-grows with digit count instead of being pinned at
+          // 48px (which made longer values overflow behind the MIN
+          // suffix and spinner).
+          //
+          // `!text-left` — base class centers (correct for the time
+          // picker's HH/MM spinners), but the duration field is a
+          // variable-width single value (5, 30, 120, 480). Centered
+          // text grows in BOTH directions; with the native number-
+          // input spinner sitting at the right edge of the box, the
+          // rightward growth overlaps the spinner's hit area —
+          // user reported "the number goes behind the increaser."
+          // Left-aligned text grows rightward only, into the padding
+          // reserve below.
+          //
+          // `!pl-3 !pr-6` — asymmetric padding. 12px left for the
+          // first digit's breathing room. 24px right reserves space
+          // for the native number-input spinner (~16-22px wide
+          // depending on browser) so digits never reach the spinner's
+          // hit zone.
+          //
+          // `!min-w-[64px]` — comfortable tap target even on a one-
+          // digit value. Field-sizing only grows past this floor.
+          "!w-auto !min-w-[64px] !pl-3 !pr-6 !text-left",
         )}
         style={{ fieldSizing: "content" } as React.CSSProperties}
       />
