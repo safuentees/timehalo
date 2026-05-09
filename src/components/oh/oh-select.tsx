@@ -50,6 +50,21 @@ export function OhSelect({
           "oh-input appearance-none pr-9",
           className,
         )}
+        // Chrome's built-in autofill / form-discovery scanner runs in
+        // the page lifecycle BEFORE React hydration on slower first
+        // loads. It tags every `<select>` (and credit-card / address
+        // `<input>`) with `__gcruniqueid="N"` so its scanner can
+        // correlate the field across reflows. The attribute is added
+        // to the live DOM, NOT the server-rendered HTML — so React's
+        // hydration pass sees a tree that doesn't match the SSR
+        // payload and surfaces the "tree hydrated but some attributes
+        // didn't match" warning. Standard React 19 escape hatch:
+        // suppressHydrationWarning on the specific element. Per Next
+        // docs (nextjs.org/docs/messages/react-hydration-error), this
+        // is the recommended fix for browser-injected attributes.
+        // Reload makes it disappear because the scanner runs after
+        // hydration on warm caches.
+        suppressHydrationWarning
       >
         {children}
       </select>

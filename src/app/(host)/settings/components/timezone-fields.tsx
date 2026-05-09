@@ -62,7 +62,17 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
   return (
     <section aria-labelledby="timezone-legend">
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Chrome's autofill / form-discovery scanner injects
+            `__gcruniqueid` onto every `<form>` it inspects, BEFORE
+            React hydrates on slower first loads — see the matching
+            comment on `<select>` in `src/components/oh/oh-select.tsx`
+            for the full story. `suppressHydrationWarning` is the
+            React 19 escape hatch documented in the Next hydration-
+            error guide for browser-injected attributes. */}
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          suppressHydrationWarning
+        >
           <SectionHeader
             legendId="timezone-legend"
             legend={t("timezoneLegend")}
