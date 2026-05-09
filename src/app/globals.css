@@ -249,8 +249,7 @@
      `--oh-shadow-resting` defines. Sheen highlight comes from the
      surface's own `--oh-sheen-top` overlay, same as chip surfaces. */
   --oh-shadow-popup:
-    0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18);
+    0 16px 32px -12px rgb(0 0 0 / 0.28), 0 4px 12px -6px rgb(0 0 0 / 0.18);
   /* Drawer top-edge shadow — the slim band above a bottom-sheet so
      the sheet visibly lifts off the page. Light mode: dark drop
      bleeding upward; sheen overlay on the drawer surface itself. */
@@ -269,8 +268,7 @@
      `inset 0 1px 0` rim that read as a stripe across the panel
      width. */
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12);
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.12);
   /* Specular sheen — gradient brightening at the top edge.
      Applied as `background-image` on every surface that previously
      wore an `inset 0 1px 0 rgba(255,255,255,X)` rim. The gradient
@@ -283,13 +281,12 @@
      Light-mode opacity is meaningful (white@45 on cream paper
      visible as a ~8% L* lift); dark-mode opacity stays low so
      it doesn't fight the lighter dark-paper surface. */
-  --oh-sheen-top:
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.12) 30%,
-      rgba(255, 255, 255, 0) 65%
-    );
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0) 65%
+  );
   /* Recessed "well" — empty placeholders inside the panel. The
      inverse cue of the resting/hover/popup tokens: instead of
      reading as a raised surface above the page, the well reads as
@@ -305,14 +302,21 @@
      Theme-aware: dark mode bumps the shadow opacity because the
      lighter dark-paper surface eats softer shadows. */
   --oh-shadow-well:
-    inset 0 2px 5px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    inset 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
      at pure paper so the brutalist DNA is preserved. */
-  --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
-  --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
+  --oh-input-bg-hover: color-mix(
+    in srgb,
+    var(--oh-paper) 96%,
+    var(--oh-ink) 4%
+  );
+  --oh-input-bg-focus: color-mix(
+    in srgb,
+    var(--oh-paper) 92%,
+    var(--oh-ink) 8%
+  );
 
   /* Soft-brutalist radius scale — concentric-friendly.
      Apple's outer = inner + padding law applied manually:
@@ -433,16 +437,14 @@
      than chips. The gradient sheen on the popup surface itself
      supplies the upper-edge catch; the inset rim line is gone. */
   --oh-shadow-popup:
-    0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5);
+    0 18px 36px -12px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.5);
   --oh-shadow-drawer-edge: 0 -20px 48px rgba(0, 0, 0, 0.55);
   /* Panel elevation in dark mode — two-layer recipe scaled for the
      lighter-gray panel against near-black chrome. Drop shadow
      stays soft (chip-scale); brightening is the gradient sheen on
      the panel's own bg, not an inset line. */
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55);
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.55);
   /* Sheen override — much lower opacity than light mode because
      the dark-paper surface (`#1a1a1a`) is closer to black; white
      at 0.45 there would read as a grey stripe, not a highlight.
@@ -450,20 +452,18 @@
      with macOS dark-mode card elevation. Falloff is wider (80%
      vs 65%) because dark surfaces tolerate longer light gradients
      before they read as banding. */
-  --oh-sheen-top:
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.06) 0%,
-      rgba(255, 255, 255, 0.02) 40%,
-      rgba(255, 255, 255, 0) 80%
-    );
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 40%,
+    rgba(255, 255, 255, 0) 80%
+  );
   /* Well token in dark mode — deeper inset shadow because the
      lighter dark-paper panel eats subtle shadows. The 1px inner
      ring uses near-black so the well's perimeter resolves against
      #1a1a1a paper hosting #0a0a0a well bg. */
   --oh-shadow-well:
-    inset 0 2px 6px rgba(0, 0, 0, 0.45),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+    inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 @layer base {
@@ -1160,7 +1160,9 @@
 }
 .oh-time-picker-period-cell:focus-visible {
   outline: 0;
-  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 2px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  box-shadow:
+    inset var(--oh-focus-halo),
+    inset 0 0 0 2px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   opacity: 1;
 }
 .oh-time-picker-period-cell.is-active {
@@ -2041,13 +2043,16 @@
    Pairs with `<FieldError>` text below for AT users + visual users
    both. */
 .oh-input[aria-invalid="true"] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
     var(--oh-input-shadow-rest);
 }
 .oh-input[aria-invalid="true"]:focus,
 .oh-input[aria-invalid="true"]:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--destructive),
-    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
+  box-shadow:
+    inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px
+      color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
 }
 
 /* Disabled state — paper bg muted slightly so the input reads as
@@ -2145,7 +2150,9 @@
   outline: 0;
   /* `oh-post` is a card-shaped surface; use INSET shadow so the ring
      reads inside the card frame rather than ballooning outside it. */
-  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  box-shadow:
+    inset var(--oh-focus-halo),
+    inset 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
 }
 .oh-post-delete:focus-visible {
   opacity: 1;
@@ -2754,7 +2761,9 @@
     box-shadow var(--oh-t-fast);
 }
 [data-slot="input-group"]:not([data-oh-input-skip="true"]):focus-within,
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):focus-within {
+[data-slot="brutalist-input-group"]:not(
+    [data-oh-input-skip="true"]
+  ):focus-within {
   background: var(--oh-input-bg-focus) !important;
   box-shadow: var(--oh-focus-shadow-input) !important;
   outline: 0 !important;
@@ -2763,17 +2772,26 @@
    `<has-[…]>` selector lights up when ANY descendant carries
    aria-invalid=true, so the wrapper paints the destructive recess
    regardless of whether the inner input or a sibling sets the attr. */
-[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]),
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]) {
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ) {
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
     var(--oh-input-shadow-rest) !important;
 }
-[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within,
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within {
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ):focus-within {
   box-shadow:
     inset 0 0 0 1px var(--destructive),
-    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
+    inset 0 3px 10px
+      color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
 }
 /* Inner input matches the email field's font + horizontal padding.
    Vertical centering is automatic (wrapper is `flex items-center`).
@@ -3735,39 +3753,26 @@
    panel — within the per-frame budget on desktop without VT API. */
 
 .oh-host-content {
-  /* Panel-scoped sheen override. The global `--oh-sheen-top` is
-     calibrated for chip-scale surfaces (32-80px tall). At panel
-     scale (the full viewport's worth of paper) the same gradient
-     reads as a 240px-wide stripe across the top — exact same
-     scale-rule that made `--oh-shadow-panel` softer than
-     `--oh-shadow-resting`.
-     Two changes vs. the global token:
-       1. Tonal highlight, not pure white. `color-mix(in srgb,
-          var(--oh-paper), white X%)` keeps the highlight in the
-          paper's hue family — no warm→neutral desaturation
-          artifact at the top edge. Apple HIG / Material 3 surface
-          tint convention ("elevation overlays match the underlying
-          surface's hue").
-       2. Pixel-fixed band, not percentage. The lift terminates at
-          a hard 14px from the top regardless of the panel's
-          height — visual consistency across viewport sizes,
-          never reads as a stripe. Below 14px the gradient is
-          paper-on-paper (no transition), so the highlight
-          dissolves into the surface instead of having a faint
-          tail trailing for hundreds of pixels.
-     Light mode lifts 30% toward white (cream → lifted-cream,
-     subtle warm lift); dark mode lifts 8% (paper #1a1a1a is too
-     close to black for a heavier mix without becoming a grey
-     band). Both produce equivalent perceptual L* lifts because
-     the dark-paper has ~1/4 the available headroom of light
-     paper before it desaturates. */
-  --oh-sheen-top: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--oh-paper), white 30%) 0%,
-    var(--oh-paper) 14px
-  );
+  /* Panel rim highlight uses `box-shadow inset 0 1px 0` instead of
+     a `background-image` gradient. The reason: only inset shadows
+     follow `border-radius` natively. A linear-gradient bg-image
+     paints a horizontal band that the rounded corner clips at the
+     top — the band itself never curves down with the panel's 18px
+     corner radius, so the highlight cuts off in a straight line
+     where the corner curve would expect it to follow. Inset
+     shadows are drawn inside the border-box and respect the same
+     curvature as the bg, so the rim hugs the corners cleanly.
+     Reference: moderncss.dev/expanded-use-of-box-shadow-and-
+     border-radius — "if border-radius is specified, the inset
+     shadow takes on the same rounded corners."
+     Color is tonal cream — `color-mix(in srgb, var(--oh-paper),
+     white 30%)` not pure white. The earlier 1px white rim looked
+     too sharp because white-on-cream at 50% alpha had high local
+     contrast against the warm paper; a 1px line with no falloff
+     reads as a stripe under that contrast. Cream-on-cream at 30%
+     mix has ~1/4 the contrast — the 1px terminator dissolves
+     into the surface, exactly how the user wants it. */
   background-color: var(--oh-paper);
-  background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
      adds margin-left below. */
@@ -3788,27 +3793,28 @@
      the percentage chain. */
   position: relative;
   overflow: hidden;
-  /* Panel elevation. Two-layer recipe (soft ambient drop + tight
-     1-2px contact) defined as a single token so dark mode swaps
-     the depth vocabulary in lockstep with chips + popovers. The
-     upper-edge specular catch comes from `--oh-sheen-top` as a
-     gradient bg overlay (continuous falloff, no terminator line) —
-     replaces the previous `inset 0 1px 0` rim that read as a
-     stripe across the panel width. */
-  box-shadow: var(--oh-shadow-panel);
+  /* Panel elevation. Two-layer drop shadow (soft ambient + tight
+     1-2px contact) tokenized as `--oh-shadow-panel` so dark mode
+     swaps in lockstep with chips + popovers. The 1px tonal rim
+     follows the rounded corners because inset shadows respect
+     border-radius — the upper edge of the panel reads as a curved
+     glint that wraps the 18px corner curve, not a straight band
+     that cuts off where the curve begins. */
+  box-shadow:
+    var(--oh-shadow-panel),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 30%);
 }
 
-/* Dark-mode panel sheen — paper here is `#1a1a1a`, much closer to
-   black than light-mode cream. A 30% white-mix would push the top
-   to ~`#5a5a5a` (visible grey band). 8% mix lands at ~`#2c2c2c`
-   which is one perceptual notch above paper — same "lit from
-   above" cue scaled for the dark surface's available headroom. */
+/* Dark-mode panel rim — paper here is `#1a1a1a`, much closer to
+   black than light-mode cream. A 30% white-mix would push the rim
+   to ~`#5a5a5a` (visible grey line). 8% mix lands at ~`#2c2c2c`
+   which is one perceptual notch above paper — equivalent
+   perceptual L* lift to the light-mode 30% mix because dark paper
+   has ~1/4 the available headroom before reading as grey. */
 .dark .oh-host-content {
-  --oh-sheen-top: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--oh-paper), white 8%) 0%,
-    var(--oh-paper) 14px
-  );
+  box-shadow:
+    var(--oh-shadow-panel),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
 }
 
 /* Mobile (< 768px, matches src/hooks/use-mobile.ts MOBILE_BREAKPOINT
@@ -4150,7 +4156,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms var(--ease-oh), border-color 120ms var(--ease-oh);
+  transition:
+    background 120ms var(--ease-oh),
+    border-color 120ms var(--ease-oh);
 }
 .oh-dev-checklist-box:hover {
   background: color-mix(in srgb, var(--oh-ink) 6%, var(--oh-paper));
