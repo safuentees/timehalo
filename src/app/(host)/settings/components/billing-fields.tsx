@@ -215,7 +215,7 @@ function CurrentPlanBanner({
           <h3 className="mt-2 font-[family-name:var(--oh-mono)] text-[28px] font-black uppercase leading-none tracking-[1px]">
             {t(`tier.${plan}`)}
           </h3>
-          <p className="mt-2 text-[13px] opacity-65">
+          <p className="oh-description mt-2">
             {isFree
               ? t("freeBlurb")
               : t("priceMonth", {

@@ -656,26 +656,22 @@ function BookingsListPanel({
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
   return (
-    <ul
-      role="list"
-      className="divide-y divide-oh-line"
-    >
-      {bookings.map((b) => (
-        <li
-          key={b.id}
-          className="[&:only-child]:border-b [&:only-child]:border-oh-line"
-        >
-          <BookingRow
-            publicUid={b.publicUid}
-            visitorName={b.visitorName}
-            visitorEmail={b.visitorEmail}
-            question={b.question}
-            slotStart={new Date(b.slotStart as unknown as string)}
-            onSelect={onSelect}
-          />
-        </li>
-      ))}
-    </ul>
+    <div className="overflow-hidden rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] shadow-[0_3px_12px_rgba(0,0,0,0.22)]">
+      <ul role="list" className="divide-y divide-oh-line">
+        {bookings.map((b) => (
+          <li key={b.id}>
+            <BookingRow
+              publicUid={b.publicUid}
+              visitorName={b.visitorName}
+              visitorEmail={b.visitorEmail}
+              question={b.question}
+              slotStart={new Date(b.slotStart as unknown as string)}
+              onSelect={onSelect}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
