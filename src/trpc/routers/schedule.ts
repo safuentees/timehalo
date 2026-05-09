@@ -7,6 +7,9 @@ import {
   fetchHostBusyTimes,
   subtractBusyTimes,
 } from "@/lib/calendar";
+import { resolveDurationChoices } from "@/lib/durations";
+import { resolveEventTypeForHandle } from "@/lib/event-types";
+import { durationMinutesSchema } from "@/lib/durations";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 // Form keys like "mon" map to the Prisma enum values.
@@ -98,6 +101,12 @@ export const schedule = router({
       z.object({
         handle: z.string(),
         days: z.number().int().min(1).max(14).default(7),
+        // B.PT277 — visitor's picked duration. Drives slot generation
+        // (`start + duration ≤ range.end`) AND the range-overlap status
+        // check below. Optional: when omitted we resolve the host's
+        // default duration server-side (first chip on /h/[handle]) so
+        // SSR works without the client knowing the default.
+        durationMinutes: durationMinutesSchema.optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -106,6 +115,34 @@ export const schedule = router({
         select: { id: true, timezone: true },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // B.PT277 — resolve the EventType so we can validate the picked
+      // duration AND fall back to the host's default. Legacy hosts
+      // without an EventType keep behaving as today (15-min step,
+      // single duration).
+      const eventType = await resolveEventTypeForHandle(input.handle);
+      const choices = eventType ? resolveDurationChoices(eventType) : [];
+      let effectiveDurationMinutes: number;
+      if (!eventType) {
+        effectiveDurationMinutes = input.durationMinutes ?? 15;
+      } else if (choices.length === 0) {
+        // Host explicitly cleared the list (B.PT278) — no bookable
+        // durations. Return zero slots so /h/[handle] renders the
+        // "not taking bookings" placeholder consistently.
+        return [];
+      } else if (input.durationMinutes === undefined) {
+        effectiveDurationMinutes = eventType.durationMins;
+      } else if (choices.includes(input.durationMinutes)) {
+        effectiveDurationMinutes = input.durationMinutes;
+      } else {
+        // Stale chip strip / direct API call with an off-list duration.
+        // Bookings.create would reject the same value; align early so
+        // the visitor doesn't see slots they can't book.
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That duration isn't available for this host.",
+        });
+      }
 
       const ranges = await prisma.availabilityRange.findMany({
         where: { userId: user.id },
@@ -118,6 +155,7 @@ export const schedule = router({
         from: new Date(),
         days: input.days,
         stepMinutes: 15,
+        eventDurationMinutes: effectiveDurationMinutes,
         hostTimezone: user.timezone,
       });
 
@@ -143,30 +181,49 @@ export const schedule = router({
         return [];
       }
 
+      // B.PT277 — pull every booking that could overlap the slot
+      // horizon. The query mirrors cal.com's `getBusyTimes` shape
+      // (`startTime: { lte: endDate }, endTime: { gte: startDate }`):
+      // canonical interval-overlap predicate. Pre-B.PT277 we used
+      // `slotStart` point-equality, which missed adjacent-but-
+      // overlapping bookings (e.g. a 5:00 PM + 2hr booking didn't
+      // mark the 5:15 + 15min slot as taken — visitor saw "open",
+      // server eventually rejected on submit).
       const bookings = await prisma.booking.findMany({
         where: {
           hostId: user.id,
           deleted: false,
-          slotStart: {
-            gte: new Date(slots[0].start),
-            lte: new Date(slots[slots.length - 1].end),
-          },
+          slotStart: { lte: new Date(slots[slots.length - 1].end) },
+          slotEnd: { gte: new Date(slots[0].start) },
         },
         select: {
           slotStart: true,
+          slotEnd: true,
         },
       });
 
-      const takenStarts = new Set(
-        bookings.map((booking) => booking.slotStart.getTime()),
-      );
+      // Convert to ms ranges once — every status check loops over
+      // these. For typical hosts (single-digit bookings per slot
+      // horizon) the O(slots × bookings) scan is fine; if it grows we
+      // can sort + binary-search later.
+      const bookingRanges = bookings.map((b) => ({
+        start: b.slotStart.getTime(),
+        end: b.slotEnd.getTime(),
+      }));
 
       return slots.map((slot) => {
-        const status: "open" | "taken" = takenStarts.has(
-          new Date(slot.start).getTime(),
-        )
-          ? "taken"
-          : "open";
+        const slotStartMs = new Date(slot.start).getTime();
+        const slotEndMs = new Date(slot.end).getTime();
+        // Range-overlap predicate: A overlaps B iff
+        //   A.start < B.end AND A.end > B.start
+        // Strict inequalities so exact-touch boundaries (10:00 booking
+        // ending exactly at 11:00 doesn't block an 11:00 slot) don't
+        // count as overlap. Mirrors what bookings.create's collision
+        // check below uses — both sides agree on "overlap" semantics.
+        const taken = bookingRanges.some(
+          (b) => slotStartMs < b.end && slotEndMs > b.start,
+        );
+        const status: "open" | "taken" = taken ? "taken" : "open";
 
         return {
           ...slot,

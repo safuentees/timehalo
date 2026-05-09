@@ -147,12 +147,39 @@ export default function HostProfile({
     { handle },
     { initialData: initialUser },
   );
-  const { data: fetchedSlots } = trpc.schedule.getUpcomingSlots.useQuery(
-    { handle },
-    { initialData: initialSlots },
+  // B.PT276 — track which slot duration the visitor clicked on the
+  // landing card. Modal renders the label in its chrome row; the
+  // slot query (B.PT277) refires with the picked minutes so server-
+  // returned slots fit + reflect range-overlap against the new
+  // duration. State declared before the slot query so the hook can
+  // read it on first render.
+  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
+    string | undefined
+  >(undefined);
+  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
+    number | undefined
+  >(undefined);
+  // B.PT277 — slot query refetches when the visitor changes chip.
+  // SSR's `initialSlots` covers the host's default duration
+  // (page.tsx prefetches without `durationMinutes`, so the server
+  // resolves the host's primary chip). After a chip click,
+  // react-query refires with the new duration → server returns
+  // slots that fit + reflect range-overlap with existing bookings.
+  const fetchedSlotsResult = trpc.schedule.getUpcomingSlots.useQuery(
+    {
+      handle,
+      durationMinutes: selectedDurationMinutes,
+    },
+    {
+      // initialData only matches when the picked duration is undefined
+      // (the SSR default-resolution path). After the visitor clicks a
+      // chip the query keys diverge from the SSR cache and refetches.
+      initialData:
+        selectedDurationMinutes === undefined ? initialSlots : undefined,
+    },
   );
   const user = fetchedUser ?? initialUser;
-  const slots = fetchedSlots ?? initialSlots;
+  const slots = fetchedSlotsResult.data ?? initialSlots;
   const now = new Date(renderedAt);
   const availableSlots = slots.filter(isOpenSlot);
   const nextSlot = availableSlots[0];
@@ -192,18 +219,11 @@ export default function HostProfile({
     if (drawerOpen && !next) exitInFlightRef.current = true;
     setDrawerOpenRaw(next);
   };
-  // B.PT229 — track which slot duration the visitor clicked on the
-  // landing card. Modal renders this in its chrome row (between
-  // chevron and X) as the meeting-duration context label.
-  // B.PT276 — alongside the display label, track the picked duration
-  // in MINUTES so we can pass it to `bookings.create`. Both updates
-  // happen together inside the chip's onClick.
-  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
-    string | undefined
-  >(undefined);
-  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
-    number | undefined
-  >(undefined);
+  // B.PT229 — chrome-row meeting-duration label.
+  // B.PT276 — selectedDuration state lifted earlier in the component
+  // (B.PT277 needs it for the slot query); this anchor block is the
+  // legacy comment site, kept so a search for the original B.PT229
+  // explainer still lands somewhere structured.
 
   // B.PT276 — chip strip data from `users.getByHandle` (B.PT158).
   // Empty list defends against a race where the backend ships an

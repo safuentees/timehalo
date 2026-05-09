@@ -278,6 +278,65 @@ describe("bookings.create durationMinutes", () => {
     ).rejects.toThrow(TRPCError);
   });
 
+  it("rejects with CONFLICT when a longer existing booking overlaps the new slot", async () => {
+    // B.PT277 — range-overlap collision. The exact scenario the user
+    // reported: host has a 5:00 PM + 60-min booking, second visitor
+    // tries 5:15 PM + 15-min. Pre-B.PT277 the point-equality check
+    // missed this and minted the booking; range-overlap rejects.
+    const caller = callRouter(fakeContext());
+    const baseStart = nextMondayAt10UTC();
+    // Existing 60-min booking 10:00–11:00 UTC.
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: baseStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 60,
+    });
+
+    // New 15-min booking 10:15–10:30 UTC (sits inside the 10:00–11:00
+    // existing booking). Different `slotStart` from the existing one
+    // — old point-equality check would have allowed it.
+    const overlapStart = new Date(baseStart.getTime() + 15 * 60_000);
+    await expect(
+      caller.bookings.create({
+        handle: DURATION_HANDLE,
+        slotStart: overlapStart.toISOString(),
+        idempotencyKey: crypto.randomUUID(),
+        visitorName: "Bob",
+        visitorEmail: "bob@test.local",
+        durationMinutes: 15,
+      }),
+    ).rejects.toThrow(TRPCError);
+  });
+
+  it("permits a back-to-back booking (existing 10:00–10:30 + new 10:30–10:45)", async () => {
+    // B.PT277 — exact-touch boundaries (existing.end === new.start)
+    // do NOT count as overlap. Strict `<` / `>` predicate keeps the
+    // common back-to-back case bookable.
+    const caller = callRouter(fakeContext());
+    const baseStart = nextMondayAt10UTC();
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: baseStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 30,
+    });
+    const adjacentStart = new Date(baseStart.getTime() + 30 * 60_000);
+    const second = await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: adjacentStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Bob",
+      visitorEmail: "bob@test.local",
+      durationMinutes: 15,
+    });
+    expect(second.publicUid).toBeDefined();
+  });
+
   it("rejects with BAD_REQUEST when the host has cleared their durations list", async () => {
     // B.PT278 — empty list semantically means "host isn't accepting
     // bookings". Programmatic callers (the chip strip already wouldn't

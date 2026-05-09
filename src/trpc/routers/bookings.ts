@@ -354,8 +354,30 @@ export const bookings = router({
                 return existingByKeyInTx;
               }
 
+              // B.PT277 — range-overlap collision check. Mirrors
+              // cal.com `getBusyTimes`'s `startTime: { lte: endDate },
+              // endTime: { gte: startDate }` shape (BookingRepository
+              // .ts:699-705) — canonical interval-overlap for a booking
+              // calendar. Strict inequality on the equality boundaries
+              // (`lt` instead of `lte`, `gt` instead of `gte`) so a new
+              // booking can start the moment an existing one ends
+              // without colliding (10:00–11:00 booking + 11:00 new =
+              // back-to-back, not overlap).
+              //
+              // Pre-B.PT277 we matched `slotStart` for point-equality.
+              // That missed adjacent overlaps — host with a 5:00 PM +
+              // 2hr booking didn't block a 5:15 + 15min visitor,
+              // because the slotStart values differed even though the
+              // ranges overlapped. The visitor's slot picker showed
+              // "open", they clicked it, the procedure committed an
+              // invalid booking.
               const slotCollision = await tx.booking.findFirst({
-                where: { hostId: pickedHostId, slotStart, deleted: false },
+                where: {
+                  hostId: pickedHostId,
+                  deleted: false,
+                  slotStart: { lt: slotEnd },
+                  slotEnd: { gt: slotStart },
+                },
                 select: { id: true },
               });
               if (slotCollision) {
@@ -1270,11 +1292,20 @@ export const bookings = router({
                 return existingInTx;
               }
 
+              // B.PT277 — range-overlap, same shape as bookings.create.
+              // Reschedule preserves the original duration server-side
+              // (newSlotEnd derived above), so the predicate covers
+              // adjacent-overlap reschedules just like create does.
               const slotCollision = await tx.booking.findFirst({
                 where: {
                   hostId: host.id,
-                  slotStart: newSlotStart,
                   deleted: false,
+                  slotStart: { lt: newSlotEnd },
+                  slotEnd: { gt: newSlotStart },
+                  // Exclude the source booking itself — rescheduling a
+                  // 10:00 → 10:30 booking with the same id obviously
+                  // overlaps itself; that's not a conflict.
+                  id: { not: original.id },
                 },
                 select: { id: true },
               });

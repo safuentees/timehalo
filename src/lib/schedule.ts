@@ -191,12 +191,28 @@ export function generateUpcomingSlots({
   from,
   days,
   stepMinutes,
+  eventDurationMinutes,
   hostTimezone = DEFAULT_TIMEZONE,
 }: {
   ranges: DbRow[];
   from: Date;
   days: number;
+  /** Slot grid step (visitor-facing density). Defaults to 15 across the app. */
   stepMinutes: number;
+  /**
+   * B.PT277 — full event length the visitor would book at this slot.
+   * Drives two things separate from `stepMinutes`:
+   *   1. The slot's `end` ISO reflects the picked duration so callers
+   *      (status check, collision predicate, calendar write) can use
+   *      `[start, end)` as the booking range without recomputing.
+   *   2. A slot only emits when `start + duration ≤ rangeEnd` — a
+   *      60-min booking can't start at 9:45 if availability ends at
+   *      10:00. Mirrors cal.com's `slots.ts:178` while-loop guard
+   *      (`slotStartTime.add(eventLength).isAfter(range.end)`).
+   * When omitted, falls back to `stepMinutes` (today's behaviour: 15
+   * step + 15 length, single-duration hosts).
+   */
+  eventDurationMinutes?: number;
   hostTimezone?: string;
 }): UpcomingSlot[] {
   const byDay = new Map<DayOfWeek, DbRow[]>();
@@ -207,6 +223,7 @@ export function generateUpcomingSlots({
   }
 
   const stepMs = stepMinutes * 60_000;
+  const eventMs = (eventDurationMinutes ?? stepMinutes) * 60_000;
   const nowMs = from.getTime();
   // Dedupe by slot-start timestamp. Overlapping availability ranges on
   // the same day (e.g. 10:00–17:00 and 14:00–18:00) would otherwise emit
@@ -242,11 +259,16 @@ export function generateUpcomingSlots({
       const rangeStartMs = fromZonedTime(wallStart, hostTimezone).getTime();
       const rangeEndMs = fromZonedTime(wallEnd, hostTimezone).getTime();
 
-      for (let t = rangeStartMs; t + stepMs <= rangeEndMs; t += stepMs) {
+      // B.PT277 — step by `stepMs` (the visitor-facing chip cadence)
+      // but require `start + eventMs ≤ rangeEnd` so the booked range
+      // genuinely fits inside the host's availability. With multi-
+      // duration enabled, a 60-min visitor on a range that ends at
+      // 17:00 sees their last bookable slot at 16:00 (not 16:45).
+      for (let t = rangeStartMs; t + eventMs <= rangeEndMs; t += stepMs) {
         if (t > nowMs && !seen.has(t)) {
           seen.set(t, {
             start: new Date(t).toISOString(),
-            end: new Date(t + stepMs).toISOString(),
+            end: new Date(t + eventMs).toISOString(),
           });
         }
       }
