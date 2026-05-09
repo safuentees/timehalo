@@ -74,7 +74,22 @@ type EditorState =
 
 type FormShape = { availability: ScheduleValues };
 
-export function AvailabilityFields() {
+export function AvailabilityFields({
+  onPersist,
+  isPersisting,
+}: {
+  /**
+   * B.PT300 — drawer save persists directly to the server. Returns
+   * a Promise so the drawer can await it (close on success, stay
+   * open on error). Form local state is updated AFTER the server
+   * confirms — keeps UI in sync with persisted truth, no revert
+   * needed on failure.
+   */
+  onPersist: (next: ScheduleValues) => Promise<unknown>;
+  /** True while the mutation is in flight. Threads through to the
+   *  drawer's Save button so it shows "Saving…" + disables. */
+  isPersisting: boolean;
+}) {
   const t = useTranslations("Availability");
   const { setValue } = useFormContext<FormShape>();
   const watchedAvailability = useWatch<FormShape, "availability">({
@@ -87,7 +102,7 @@ export function AvailabilityFields() {
   const commit = useCallback(
     (next: Block[]) => {
       setValue("availability", blocksToSchedule(next), {
-        shouldDirty: true,
+        shouldDirty: false,
         shouldTouch: true,
         shouldValidate: true,
       });
@@ -95,7 +110,16 @@ export function AvailabilityFields() {
     [setValue],
   );
 
-  function handleSave(draft: BlockDraft) {
+  // B.PT300 — drawer "Save" / "Remove" now persist atomically:
+  //   1. Compute the next blocks list
+  //   2. Await the server mutation (await catches errors)
+  //   3. On success: update form local state + close drawer
+  //   4. On error: hook's onError already toasted — we keep the
+  //      drawer open so the user can retry or cancel
+  // The `await` keeps the drawer's Save button in `isPending` state
+  // throughout (visual feedback) without a manual loading state of
+  // our own.
+  async function handleSave(draft: BlockDraft) {
     if (!editor) return;
     const withoutEditing =
       editor.mode === "edit"
@@ -105,14 +129,25 @@ export function AvailabilityFields() {
       ...withoutEditing,
       { id: `block-${Date.now()}`, ...draft },
     ];
-    commit(committed);
-    setEditor(null);
+    try {
+      await onPersist(blocksToSchedule(committed));
+      commit(committed);
+      setEditor(null);
+    } catch {
+      // Mutation hook already shows error toast; drawer stays open.
+    }
   }
 
-  function handleRemove() {
+  async function handleRemove() {
     if (!editor || editor.mode !== "edit") return;
-    commit(blocks.filter((b) => b.id !== editor.originalId));
-    setEditor(null);
+    const next = blocks.filter((b) => b.id !== editor.originalId);
+    try {
+      await onPersist(blocksToSchedule(next));
+      commit(next);
+      setEditor(null);
+    } catch {
+      // Same as handleSave — keep drawer open on error.
+    }
   }
 
   return (
@@ -178,6 +213,7 @@ export function AvailabilityFields() {
         onClose={() => setEditor(null)}
         onSave={handleSave}
         onRemove={editor?.mode === "edit" ? handleRemove : undefined}
+        isPending={isPersisting}
       />
     </>
   );
@@ -241,17 +277,27 @@ function BlockEditorDrawer({
   onClose,
   onSave,
   onRemove,
+  isPending,
 }: {
   state: EditorState | null;
   otherBlocks: Block[];
   onClose: () => void;
-  onSave: (draft: BlockDraft) => void;
-  onRemove?: () => void;
+  onSave: (draft: BlockDraft) => Promise<void> | void;
+  onRemove?: () => Promise<void> | void;
+  /** B.PT300 — true while the save mutation is in flight. Disables
+   *  Save/Remove + swaps Save copy to "Saving…". Also blocks
+   *  `onClose` (via overlay click / Esc) so the user can't accidentally
+   *  abandon a pending save. */
+  isPending: boolean;
 }) {
   return (
     <ResponsiveModal
       open={state !== null}
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open) => {
+        if (open) return;
+        if (isPending) return; // don't close mid-save
+        onClose();
+      }}
     >
       <ResponsiveModalContent defaultClose={false}>
         {state ? (
@@ -262,6 +308,7 @@ function BlockEditorDrawer({
             onClose={onClose}
             onSave={onSave}
             onRemove={onRemove}
+            isPending={isPending}
           />
         ) : null}
       </ResponsiveModalContent>
@@ -275,12 +322,14 @@ function BlockEditorContent({
   onClose,
   onSave,
   onRemove,
+  isPending,
 }: {
   state: EditorState;
   otherBlocks: Block[];
   onClose: () => void;
-  onSave: (draft: BlockDraft) => void;
-  onRemove?: () => void;
+  onSave: (draft: BlockDraft) => Promise<void> | void;
+  onRemove?: () => Promise<void> | void;
+  isPending: boolean;
 }) {
   // B.PT26 — chrome strings localized via the Availability namespace.
   // B.PT26B — day-name range compression + overlap-payload day list
@@ -405,6 +454,7 @@ function BlockEditorContent({
               variant="ohGhost"
               size="oh"
               onClick={onRemove}
+              disabled={isPending}
               className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
             >
               <Trash2Icon /> {t("remove")}
@@ -415,10 +465,15 @@ function BlockEditorContent({
             variant="oh"
             size="oh"
             onClick={() => onSave(draft)}
-            disabled={!canSave}
+            disabled={!canSave || isPending}
             className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
           >
-            <CheckIcon /> {state.mode === "edit" ? t("save") : t("add")}
+            <CheckIcon />{" "}
+            {isPending
+              ? t("savingLabel")
+              : state.mode === "edit"
+                ? t("save")
+                : t("add")}
           </Button>
         </div>
       </div>

@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/field";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
-import { InlineFormSave } from "@/components/oh/inline-form-save";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -24,8 +23,22 @@ import {
 } from "./availability-fields";
 
 // Single-purpose form: weekly availability windows. Persists via
-// `schedule.save`. Apple HIG one-screen-one-purpose — handle editing
-// lives on /profile, account stuff on /settings.
+// `schedule.save`.
+//
+// B.PT300 — single-save UX. Was: drawer "Save" committed to form
+// local state + outer `<InlineFormSave>` persisted to server (two
+// steps, ambiguous). Now: drawer "Save" persists DIRECTLY to the
+// server in one action; outer button removed entirely. The drawer's
+// save button shows the pending state and stays open until the
+// mutation succeeds — error keeps the drawer up so the user can
+// retry. Each block edit is one atomic save (fine for the small
+// data set: hosts typically have 1-7 blocks total).
+//
+// Cal.com runs the inverse pattern (single page-level save, no
+// drawer; their schedule edits are inline) — but they don't have
+// a drawer-based block editor. We took their principle ("ONE save
+// action, owned where the work happens") and applied it to OUR
+// surface: in our case, the work happens in the drawer.
 
 const schema = z.object({
   availability: availabilitySchema,
@@ -54,23 +67,14 @@ export default function AvailabilityForm() {
 
   const saveSchedule = useScheduleSave();
 
-  async function onSubmit(v: FormValues) {
-    await saveSchedule.mutateAsync(v.availability);
-  }
-
-  // First-time visitors land on the form pre-filled from
-  // `defaultAvailability` (Mon-Fri 9-5) but RHF reads that as
-  // "not dirty" because form values match the seed. The save button
-  // would stay gated forever — even though the visual default IS the
-  // intent — and the onboarding "draw weekly hours" step would never
-  // auto-check. Treat zero server rows as "needs save" so the button
-  // is clickable. cal.com's setup-availability screen behaves the
-  // same: unconditional save on submit.
-  const seededFromDefault = (rows?.length ?? 0) === 0;
-
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* Form element kept for the FormProvider context (RHF needs it
+          for register/setValue) but no `onSubmit` — saves now happen
+          via the drawer's `<AvailabilityFields onPersist={...}>`
+          callback. The `noValidate` prevents the browser's native
+          submit on Enter from firing a blank submit. */}
+      <form noValidate>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8">
@@ -83,20 +87,16 @@ export default function AvailabilityForm() {
                   {t("weeklyDescription")}
                 </FieldDescription>
                 <FieldGroup>
-                  <AvailabilityFields />
+                  <AvailabilityFields
+                    onPersist={(schedule) =>
+                      saveSchedule.mutateAsync(schedule)
+                    }
+                    isPersisting={saveSchedule.isPending}
+                  />
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
           </div>
-          <InlineFormSave
-            isPending={saveSchedule.isPending}
-            isDirty={form.formState.isDirty || seededFromDefault}
-            labels={{
-              save: t("saveLabel"),
-              saving: t("savingLabel"),
-              saved: t("savedLabel"),
-            }}
-          />
         </OhPageShell>
       </form>
     </FormProvider>

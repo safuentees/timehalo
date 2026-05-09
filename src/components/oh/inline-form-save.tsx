@@ -28,7 +28,17 @@ import { Button } from "@/components/ui/button";
 export type InlineFormSaveLabels = {
   save: string;
   saving: string;
-  saved: string;
+  /**
+   * Optional. Pre-B.PT299 the button cycled through THREE labels —
+   * `save` (dirty) / `saving` (pending) / `saved` (clean). User
+   * feedback: the "Saved" state read as redundant noise (the
+   * disabled button + visible form values already convey "no
+   * changes to save"). Now the button shows just `save` in idle
+   * states (disabled when clean) and `saving` while pending. Kept
+   * the field optional so existing callsites that still pass
+   * `saved: t("...")` don't break.
+   */
+  saved?: string;
 };
 
 export function InlineFormSave({
@@ -45,13 +55,10 @@ export function InlineFormSave({
 }) {
   const mounted = useMounted();
   const disabled = mounted ? isPending || !isDirty : true;
-  const label = !mounted
-    ? labels.saved
-    : isPending
-      ? labels.saving
-      : isDirty
-        ? labels.save
-        : labels.saved;
+  // B.PT299 — simplified to two labels. `saving` while pending,
+  // `save` otherwise (covers idle/dirty AND idle/clean — disabled
+  // state communicates "no changes" without a separate label).
+  const label = mounted && isPending ? labels.saving : labels.save;
 
   return (
     <div
@@ -64,7 +71,13 @@ export function InlineFormSave({
         variant="oh"
         size="oh"
         disabled={disabled}
-        className="min-w-[160px]"
+        // B.PT299 — `min-w-[100px]` (was 160px). The longer "Save
+        // changes" copy needed 160 to fit across all three label
+        // states; with the simplified two-label vocabulary the
+        // button content is short enough that 100px is a
+        // comfortable floor while keeping the click target above
+        // 44px (Apple HIG / WCAG 2.5.8).
+        className="min-w-[100px]"
       >
         {label}
       </Button>

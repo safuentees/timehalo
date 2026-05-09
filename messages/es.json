@@ -566,7 +566,7 @@
     "pageTitle": "Horas",
     "weeklyLegend": "Disponibilidad semanal",
     "weeklyDescription": "Las horas en las que los visitantes pueden reservar en tu página pública.",
-    "saveLabel": "Guardar cambios",
+    "saveLabel": "Guardar",
     "savingLabel": "Guardando…",
     "savedLabel": "Guardado"
   },
@@ -575,7 +575,7 @@
     "handleLegend": "Nombre público",
     "handleDescription": "El identificador que los visitantes usan para llegar a tu página de reservas — officehours.app/h/'<nombre>'.",
     "handlePlaceholder": "alex",
-    "saveLabel": "Guardar cambios",
+    "saveLabel": "Guardar",
     "savingLabel": "Guardando…",
     "savedLabel": "Guardado"
   },
