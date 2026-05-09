@@ -22,6 +22,8 @@ const buttonVariants = cva(
           "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-ink text-oh-paper transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-oh-paper hover:text-oh-ink hover:shadow-[var(--oh-shadow-hover)] dark:hover:bg-oh-ink dark:hover:text-oh-paper dark:hover:shadow-[var(--oh-shadow-resting)] disabled:opacity-35 disabled:shadow-none",
         ohGhost:
           "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-oh-ink transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-oh-ink hover:text-oh-paper hover:shadow-[var(--oh-shadow-hover)] dark:hover:bg-oh-paper dark:hover:text-oh-ink dark:hover:shadow-[var(--oh-shadow-resting)] disabled:opacity-35 disabled:shadow-none",
+        ohDanger:
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-[var(--oh-status-cancelled)] transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-[var(--oh-status-cancelled)] hover:text-oh-paper hover:shadow-[var(--oh-shadow-hover)] dark:hover:bg-oh-paper dark:hover:text-[var(--oh-status-cancelled)] disabled:opacity-35 disabled:shadow-none",
       },
       size: {
         default:

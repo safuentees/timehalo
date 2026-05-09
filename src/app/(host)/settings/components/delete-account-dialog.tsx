@@ -40,7 +40,7 @@ export function DeleteAccountDialog() {
   return (
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild id="oh-delete-account-trigger">
-        <Button variant="ohGhost" size="oh">
+        <Button variant="ohDanger" size="oh">
           {t("deleteAccountButton")}
         </Button>
       </ResponsiveModalTrigger>

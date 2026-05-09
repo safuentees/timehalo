@@ -27,10 +27,11 @@ const eslintConfig = defineConfig([
   // `ghost` / `default` / `destructive` / `link` use the generic
   // shadcn palette (`bg-background`, `border-border`, `bg-muted`
   // hover) and read as foreign against the oh aesthetic. Use
-  // `variant="oh"` for primary actions and `variant="ohGhost"` for
-  // secondary / cancel / icon-only. Auth pages, the public visitor
-  // surface, and the ui/ primitives can keep stock variants — they
-  // are not in this glob.
+  // `variant="oh"` for primary actions, `variant="ohGhost"` for
+  // secondary / cancel / icon-only, and `variant="ohDanger"` for
+  // destructive triggers (red text + flip-to-red on hover). Auth
+  // pages, the public visitor surface, and the ui/ primitives can
+  // keep stock variants — they are not in this glob.
   {
     files: [
       "src/app/(host)/**/*.{ts,tsx}",
@@ -43,7 +44,7 @@ const eslintConfig = defineConfig([
           selector:
             'JSXOpeningElement[name.name="Button"] JSXAttribute[name.name="variant"][value.value=/^(default|outline|secondary|ghost|destructive|link)$/]',
           message:
-            "<Button variant=\"…\"> must use an `oh` variant in the dashboard surface. Use `oh` for primary actions, `ohGhost` for secondary / cancel / icon-only. Stock shadcn variants (outline, secondary, ghost, default, destructive, link) read as foreign against the oh chrome.",
+            "<Button variant=\"…\"> must use an `oh` variant in the dashboard surface. Use `oh` for primary actions, `ohGhost` for secondary / cancel / icon-only, and `ohDanger` for destructive triggers. Stock shadcn variants (outline, secondary, ghost, default, destructive, link) read as foreign against the oh chrome.",
         },
       ],
     },
