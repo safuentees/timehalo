@@ -22,6 +22,7 @@ import {
   defaultHandle,
 } from "./handle-fields";
 import { DurationFields } from "./duration-fields";
+import { BioFields } from "./bio-fields";
 
 // Public-profile editor. Hub page (B.PT274) — each section owns its
 // own commit affordance, matching /settings/general's pattern from
@@ -103,6 +104,9 @@ export default function ProfileForm() {
             }}
           />
         </form>
+        <div className="mt-12">
+          <BioFields />
+        </div>
         <div className="mt-12">
           <DurationFields />
         </div>

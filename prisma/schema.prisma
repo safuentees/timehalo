@@ -16,6 +16,15 @@ model User {
   passwordHash         String?
   invalidLoginAttempts Int                 @default(0)
   handle               String?             @unique
+  // Public-profile bio (B.PT??). Renders on /h/<handle> below the
+  // host's name. Optional; max 500 chars enforced at the procedure
+  // layer (zod), not in the schema — Prisma SQLite doesn't have a
+  // native length constraint and the friendlier zod error path is
+  // worth the duplication. Cal.com's equivalent `User.bio` is also
+  // optional, with their length cap (~1500) in tRPC schema not
+  // Prisma. We chose 500 as the cap because the visitor surface
+  // wants a scannable elevator-pitch, not long-form copy.
+  bio                  String?
   // IANA timezone for the host's wall-clock interpretation. Drives
   // how AvailabilityRange.startTime/endTime get mapped to UTC slots.
   // Default "UTC" is the historical no-op behavior — every host has

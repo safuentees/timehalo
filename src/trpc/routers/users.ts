@@ -53,6 +53,7 @@ export const users = router({
         email: true,
         name: true,
         image: true,
+        bio: true,
         // B.PT43 — onboarding checklist state. Was localStorage-only;
         // moved to the User row so SSR can read it. Parsed manualSteps
         // is a string-array stored as JSON because SQLite has no
@@ -153,12 +154,14 @@ export const users = router({
         where: { handle: input.handle },
         // timezone is public — visitors need it to label the slot
         // picker ("Times shown in Pacific time"). No PII; no email/hash.
+        // bio is public by design — host writes it for visitors.
         select: {
           id: true,
           name: true,
           handle: true,
           image: true,
           timezone: true,
+          bio: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
@@ -278,6 +281,48 @@ export const users = router({
         data: { timezone: input.timezone },
       });
       return { timezone: input.timezone };
+    }),
+
+  // Update the host's public-profile bio. Renders on /h/<handle>
+  // beneath the host's name. Cal.com's `viewer.updateProfile`
+  // accepts an optional `bio` string and clears it when null/empty;
+  // we follow the same shape but split into a focused procedure to
+  // match this project's "one mutation per field" pattern (see
+  // `setHandle` / `setTimezone`).
+  //
+  // Validation:
+  //   - max 500 chars (after trim) — keeps the bio scannable on
+  //     the visitor surface where it sits as a single paragraph
+  //     under the host's name. cal.com caps at 1500; their bio
+  //     supports markdown + paragraph copy. Officehours stays
+  //     plaintext + short.
+  //   - whitespace-only input → null (empty bio = "user hasn't
+  //     written one"; storing "   " would be confused with "set").
+  //   - null input → null (explicit clear).
+  //   - omitted input → schema fails (caller must send `bio`).
+  //
+  // Returns the canonical stored value so the client can update
+  // its cache without re-fetching.
+  setBio: privateProcedure
+    .input(
+      z.object({
+        bio: z
+          .string()
+          .max(500, "500 characters max")
+          .nullable()
+          .transform((v) => {
+            if (v === null) return null;
+            const trimmed = v.trim();
+            return trimmed.length === 0 ? null : trimmed;
+          }),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { bio: input.bio },
+      });
+      return { bio: input.bio };
     }),
 
   // B.PT158 — set the visitor-selectable duration list on the host's
