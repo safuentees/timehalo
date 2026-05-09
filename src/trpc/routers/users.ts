@@ -12,6 +12,11 @@ import {
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
+import {
+  durationsListSchema,
+  parseDurationsList,
+  resolveDurationChoices,
+} from "@/lib/durations";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 // SQLite has no native array type so onboardingManualSteps is stored as
@@ -56,10 +61,29 @@ export const users = router({
         onboardingManualSteps: true,
       },
     });
+    // B.PT158 — visitor-selectable duration list. Lives on the host's
+    // primary EventType (slug === handle). Pulled in the `me` query so
+    // /profile can render the durations editor with one network hop;
+    // /h/[handle] reads its own copy via the public `getByHandle` /
+    // `bookings.create` paths. The `findFirst` (not findUnique) covers
+    // pre-handle-set users — magic-link / GitHub OAuth bootstrap defers
+    // EventType creation until handle is set, so during that window
+    // the host has no row yet. `null` cleanly degrades the editor to
+    // disabled.
+    const eventType = user.handle
+      ? await prisma.eventType.findFirst({
+          where: { slug: user.handle, hosts: { some: { userId: user.id } } },
+          select: { id: true, durationMins: true, durationMinsList: true },
+        })
+      : null;
     return {
       ...user,
       isAdmin: isAdminHandle(user.handle),
       onboardingManualSteps: parseManualSteps(user.onboardingManualSteps),
+      durations: {
+        defaultMinutes: eventType?.durationMins ?? 15,
+        list: eventType ? parseDurationsList(eventType.durationMinsList) : [],
+      },
     };
   }),
 
@@ -138,7 +162,20 @@ export const users = router({
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      return user;
+      // B.PT158 — visitor's effective duration choice list. Pulled
+      // from the host's primary EventType (slug === handle). When the
+      // host hasn't configured a durations list, `resolveDurationChoices`
+      // collapses to `[durationMins]` so the chip strip renders a
+      // single-row default.
+      const eventType = await prisma.eventType.findFirst({
+        where: { slug: input.handle, hosts: { some: { userId: user.id } } },
+        select: { durationMins: true, durationMinsList: true },
+      });
+      const durationChoices = eventType
+        ? resolveDurationChoices(eventType)
+        : [15];
+      const defaultDurationMinutes = eventType?.durationMins ?? 15;
+      return { ...user, durationChoices, defaultDurationMinutes };
     }),
 
   // Atomic handle update with unique-constraint error mapping:
@@ -235,6 +272,51 @@ export const users = router({
         data: { timezone: input.timezone },
       });
       return { timezone: input.timezone };
+    }),
+
+  // B.PT158 — set the visitor-selectable duration list on the host's
+  // primary EventType (slug === handle). Empty array clears the list
+  // (visitor sees only `durationMins`). Schema-side dedup + sort means
+  // the on-disk row is canonical regardless of input order.
+  //
+  // NOT_FOUND when the host has no primary EventType yet — the
+  // bootstrapUserWorkspace path defers EventType creation until
+  // handle is set; calling this before handle setup is a programming
+  // error (the /profile editor disables in that state via the empty
+  // `durations` shape on `users.me`).
+  setDurationsList: privateProcedure
+    .input(z.object({ minutes: durationsListSchema }))
+    .mutation(async ({ input, ctx }) => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { id: ctx.user.id },
+        select: { handle: true },
+      });
+      if (!user.handle) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Set your public handle before configuring durations.",
+        });
+      }
+      const eventType = await prisma.eventType.findFirst({
+        where: {
+          slug: user.handle,
+          hosts: { some: { userId: ctx.user.id } },
+        },
+        select: { id: true },
+      });
+      if (!eventType) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No event type found for your handle.",
+        });
+      }
+      // `durationsListSchema.transform` already dedup+sorted the input;
+      // we just JSON.stringify the canonical shape onto the row.
+      await prisma.eventType.update({
+        where: { id: eventType.id },
+        data: { durationMinsList: JSON.stringify(input.minutes) },
+      });
+      return { minutes: input.minutes };
     }),
 
   // Account deletion. Cascades through every relation onDelete:

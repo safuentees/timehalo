@@ -216,6 +216,13 @@ model EventType {
   slug         String
   name         String
   durationMins Int             @default(15)
+  // B.PT158 — visitor-selectable duration allow-list. JSON-stringified
+  // Int[] (SQLite has no array type; same pattern as User.onboarding
+  // ManualSteps). Empty `[]` falls back to single-duration behavior —
+  // bookings.create + the /h/[handle] chip strip use durationMins.
+  // When non-empty, the chip strip renders one chip per minute value
+  // and bookings.create validates the visitor's pick is in the list.
+  durationMinsList String       @default("[]")
   hosts        EventTypeHost[]
   bookings     Booking[]
   createdAt    DateTime        @default(now())
