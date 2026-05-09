@@ -33,13 +33,9 @@ export function parseDurationsList(raw: string): number[] {
 }
 
 export function resolveDurationChoices({
-  durationMins,
   durationMinsList,
 }: {
-  durationMins: number;
   durationMinsList: string;
 }): number[] {
-  const parsed = parseDurationsList(durationMinsList);
-  if (parsed.length === 0) return [durationMins];
-  return parsed;
+  return parseDurationsList(durationMinsList);
 }

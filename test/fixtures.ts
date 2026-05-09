@@ -345,13 +345,15 @@ export async function createTestEventTypeHostPool(opts: {
   }
 
   const slug = opts.slug ?? opts.hostHandle;
+  const durationMins = opts.durationMins ?? 15;
   const eventType = await prisma.eventType.upsert({
     where: { workspaceId_slug: { workspaceId, slug } },
     create: {
       workspaceId,
       slug,
       name: slug,
-      durationMins: opts.durationMins ?? 15,
+      durationMins,
+      durationMinsList: JSON.stringify([durationMins]),
     },
     update: {},
     select: { id: true },

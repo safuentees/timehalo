@@ -155,6 +155,13 @@ export const bookings = router({
               input.durationMinutes ?? SLOT_MINUTES;
           } else {
             const choices = resolveDurationChoices(resolvedEventType);
+            if (choices.length === 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "This host isn't accepting bookings right now.",
+              });
+            }
             if (input.durationMinutes === undefined) {
               effectiveDurationMinutes = resolvedEventType.durationMins;
             } else if (choices.includes(input.durationMinutes)) {

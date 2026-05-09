@@ -374,7 +374,13 @@ export default function HostProfile({
                     "bg-[#F5EFDF]",
                   )}
                 >
-                  {hasOpenSlots ? (
+                  {slotOptions.length === 0 ? (
+                    <p className="oh-description py-6 text-center">
+                      {t("emptyNoDurationsDescription", {
+                        name: displayName,
+                      })}
+                    </p>
+                  ) : hasOpenSlots ? (
                     <motion.ul
                       layoutId={landingLayoutId("oh-slot-stack")}
                       transition={{

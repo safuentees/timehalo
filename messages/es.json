@@ -474,6 +474,7 @@
     "emptyClosedDescription": "{name} aún no ha abierto ningún horario. Vuelve más tarde.",
     "emptyBookedTitle": "Completamente reservado esta semana",
     "emptyBookedDescription": "{name} tiene disponibilidad, pero todos los horarios visibles ya están ocupados. Vuelve más tarde para ver nuevas aperturas.",
+    "emptyNoDurationsDescription": "{name} no está aceptando reservas por ahora.",
     "nextAvailable": "Próximo disponible",
     "pickADate": "Elige una fecha",
     "nextSlotAria": "Próximo horario disponible",

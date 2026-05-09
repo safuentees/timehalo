@@ -28,7 +28,7 @@ describe("users.setDurationsList + me.durations", () => {
     await wipeTransientState(host.id);
     await prisma.eventType.updateMany({
       where: { slug: HANDLE },
-      data: { durationMinsList: "[]" },
+      data: { durationMinsList: JSON.stringify([15]) },
     });
   });
 
@@ -36,10 +36,20 @@ describe("users.setDurationsList + me.durations", () => {
     await tearDownTestHost(host.id);
   });
 
-  it("me.durations is empty + defaults to 15 when host has not configured", async () => {
+  it("me.durations exposes the seeded default list ([durationMins]) for new hosts", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
     const me = await caller.users.me();
-    expect(me.durations).toEqual({ defaultMinutes: 15, list: [] });
+    expect(me.durations).toEqual({ defaultMinutes: 15, list: [15] });
+  });
+
+  it("me.durations.list is empty when the host has explicitly cleared it", async () => {
+    await prisma.eventType.updateMany({
+      where: { slug: HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const caller = callRouter(fakeContext({ userId: host.id }));
+    const me = await caller.users.me();
+    expect(me.durations.list).toEqual([]);
   });
 
   it("setDurationsList writes a sorted, deduped list and reads back via me", async () => {
@@ -94,11 +104,21 @@ describe("users.setDurationsList + me.durations", () => {
     expect(profile.defaultDurationMinutes).toBe(15);
   });
 
-  it("getByHandle falls back to [durationMins] when host has not configured a list", async () => {
+  it("getByHandle returns the seeded default for new hosts", async () => {
     const anon = callRouter(fakeContext());
     const profile = await anon.users.getByHandle({ handle: HANDLE });
     expect(profile.durationChoices).toEqual([15]);
     expect(profile.defaultDurationMinutes).toBe(15);
+  });
+
+  it("getByHandle returns an empty durationChoices when the host has cleared the list", async () => {
+    await prisma.eventType.updateMany({
+      where: { slug: HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const anon = callRouter(fakeContext());
+    const profile = await anon.users.getByHandle({ handle: HANDLE });
+    expect(profile.durationChoices).toEqual([]);
   });
 
   it("PRECONDITION_FAILED when the caller has no handle yet", async () => {

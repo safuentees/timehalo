@@ -474,6 +474,7 @@
     "emptyClosedDescription": "{name} hasn't opened any time yet. Check back later.",
     "emptyBookedTitle": "Fully booked this week",
     "emptyBookedDescription": "{name} has availability, but every visible slot is already taken. Check back later for the next opening.",
+    "emptyNoDurationsDescription": "{name} isn't taking bookings right now.",
     "nextAvailable": "Next available",
     "pickADate": "Pick a date",
     "nextSlotAria": "Next available slot",

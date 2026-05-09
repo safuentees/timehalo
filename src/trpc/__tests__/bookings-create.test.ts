@@ -237,6 +237,27 @@ describe("bookings.create durationMinutes", () => {
     ).rejects.toThrow(TRPCError);
   });
 
+  it("rejects with BAD_REQUEST when the host has cleared their durations list", async () => {
+    await prisma.eventType.updateMany({
+      where: { slug: DURATION_HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const caller = callRouter(fakeContext());
+    await expect(
+      caller.bookings.create({
+        handle: DURATION_HANDLE,
+        slotStart: slotIso,
+        idempotencyKey: crypto.randomUUID(),
+        visitorName: "Alice",
+        visitorEmail: "alice@test.local",
+      }),
+    ).rejects.toThrow(TRPCError);
+    await prisma.eventType.updateMany({
+      where: { slug: DURATION_HANDLE },
+      data: { durationMinsList: JSON.stringify([15, 30, 60]) },
+    });
+  });
+
   it("idempotency replay preserves the original duration", async () => {
     const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();

@@ -154,6 +154,7 @@ export const users = router({
                   slug: input.handle,
                   name: input.handle,
                   durationMins: 15,
+                  durationMinsList: JSON.stringify([15]),
                 },
                 select: { id: true },
               });
