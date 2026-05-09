@@ -294,7 +294,50 @@ export function MobileNavContent({
       // animation. Same structural pattern as commit 898cef8 used for
       // the Sheet drawer; selector updated for the inline-menu case.
       data-oh-mobile-menu="true"
-      className="flex flex-col gap-6 px-4 py-6 sm:px-6"
+      // Frosted-glass surface — the iOS / OS-style "frosty glass"
+      // recipe per Google web.dev "OS-style backgrounds" + Apple HIG:
+      //
+      //   1. `bg-oh-paper/78` — semi-transparent bg. Backdrop-filter
+      //      on an opaque bg is a silent no-op; the spec needs
+      //      something to "see through" to. 78% paper keeps the nav
+      //      legible while the underlying surface still varies the
+      //      blur.
+      //   2. `supports-backdrop-filter:backdrop-blur-xl` — 24px
+      //      blur, the iOS-sidebar magnitude. The
+      //      `supports-backdrop-filter:` Tailwind variant generates
+      //      `@supports (backdrop-filter: ...) { ... }` so browsers
+      //      without the property see the bg-color directly (no
+      //      polyfill needed; clean degradation).
+      //   3. `supports-backdrop-filter:backdrop-saturate-150` —
+      //      restores color vibrancy the blur otherwise washes
+      //      out. Pairs blur with the iOS "vibrant material" feel.
+      //   4. `relative z-0 transform-gpu` — Safari requires a
+      //      stacking context on the blurred element OR
+      //      backdrop-filter no-ops silently. `transform-gpu`
+      //      promotes to a GPU layer so the blur is cheap during
+      //      stagger entry / scroll.
+      //
+      // Tailwind v4 emits both `backdrop-filter` AND
+      // `-webkit-backdrop-filter` for the same utility, so Safari
+      // < 17 (which still needs the prefix) gets the effect for
+      // free without manual prefix work.
+      //
+      // Architectural note: the mobile nav is content-replace
+      // (replaces the page body inside the dashboard panel rather
+      // than overlaying it). When the nav fills a uniform paper
+      // panel, the blur has no varied content to render against
+      // and looks identical to opaque paper. The recipe is in
+      // place + correct; the visual effect activates fully when /
+      // if the nav becomes a true overlay. Until then it adds the
+      // modern translucent vocabulary that already matches the
+      // visitor shell's sticky header.
+      className={[
+        "flex flex-col gap-6 px-4 py-6 sm:px-6",
+        "relative z-0 transform-gpu",
+        "bg-oh-paper/85 supports-backdrop-filter:bg-oh-paper/78",
+        "supports-backdrop-filter:backdrop-blur-xl",
+        "supports-backdrop-filter:backdrop-saturate-150",
+      ].join(" ")}
     >
       {groups.map((group, index) => (
         <div key={group.labelKey ?? `mobile-group-${index}`}>
