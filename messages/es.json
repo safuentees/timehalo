@@ -591,6 +591,8 @@
     "durationsValueLabel": "Minutos",
     "durationsValueAria": "Duración en minutos",
     "durationsValueLegend": "Longitud",
+    "durationsHourLabel": "Horas",
+    "durationsMinuteLabel": "Minutos",
     "durationsRemove": "Quitar",
     "durationsSave": "Guardar",
     "durationsAdd": "Agregar",
