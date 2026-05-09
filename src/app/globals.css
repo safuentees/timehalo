@@ -2273,9 +2273,9 @@
 
   background: var(--oh-paper) !important;
   color: var(--oh-ink) !important;
-  border: 2px solid var(--oh-ink) !important;
+  border: 0 !important;
   border-radius: var(--oh-r-sm) !important;
-  box-shadow: none !important;
+  box-shadow: var(--oh-shadow-popup) !important;
 }
 .oh-drawer-handle {
   width: 72px;
