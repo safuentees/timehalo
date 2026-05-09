@@ -167,7 +167,7 @@ export function DayView({
         // line. Inner grid borders (hour axis, header bottom rule,
         // event-chip dividers) are STRUCTURAL — they convey "this is
         // a grid" not "this is a card edge" — kept as hairlines.
-        "oh-sheen flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
       )}
