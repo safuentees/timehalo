@@ -47,36 +47,37 @@ export function SectionHeader({
 }) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0 flex-1">
-        {/* Two Tailwind utilities are needed here to match what
-            `<FieldLegend>` ships on availability + profile. Both
-            survive a cascade-layers gotcha — `.oh-legend` lives in
-            `@layer components` while Tailwind utilities live in
-            `@layer utilities` (utilities win), so FieldLegend's
-            built-in `font-medium` + `data-[variant=legend]:text-base`
-            silently override `.oh-legend`'s `font-weight: 800` and
-            `font-size: 11px`. Effective FieldLegend rendering:
-            weight 500, size 16px. SectionHeader's plain `<p>` had
-            no utilities competing → rendered at 800/11px (heavier
-            AND smaller than "PUBLIC HANDLE" / "WEEKLY AVAILABILITY").
-            Match by adding both utilities here so the visible
-            output is identical. Field-label consumers of
-            `.oh-legend` (form labels in dialogs) don't ship these
-            utilities, so they keep the 800/11px treatment that's
-            load-bearing for tertiary chrome. */}
+      {/* Inner column matches availability/profile's `<FieldSet>`
+          layout exactly so the legend → description rhythm is
+          pixel-identical:
+            • `flex flex-col gap-4` mirrors FieldSet's gap-4 (16px).
+            • Legend carries `mb-1.5` (FieldLegend's default) + the
+              cascade-layer-beating `text-base font-medium` so the
+              utility-layer rules win over `.oh-legend`'s 11px / 800
+              components-layer rules (effective: 16px / 500).
+            • Description carries `-mt-1.5` ([[data-variant=legend]+&]:
+              -mt-1.5 from FieldDescription's default — fires when the
+              previous sibling is a legend variant), pulling it tight
+              against the legend's bottom margin.
+          Net visible content-to-content gap:
+            6 (legend mb) + 16 (flex gap) + (-6) (description -mt) = 16px
+          — the same number availability/profile render. Field-label
+          consumers of `.oh-legend` (form labels in dialogs) ship
+          neither the utilities nor this layout, so they keep the
+          smaller / heavier treatment load-bearing for tertiary roles. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         <p
           id={legendId}
-          className="oh-legend text-base font-medium opacity-100"
+          className="oh-legend mb-1.5 text-base font-medium opacity-100"
+          data-variant="legend"
         >
           {legend}
         </p>
         {title ? (
-          <h2 className="mt-3 text-[20px] font-black tracking-tight">
-            {title}
-          </h2>
+          <h2 className="text-[20px] font-black tracking-tight">{title}</h2>
         ) : null}
         {description ? (
-          <p className="mt-4 text-[13px] leading-[1.5] opacity-65">
+          <p className="-mt-1.5 text-[13px] leading-[1.5] opacity-65">
             {description}
           </p>
         ) : null}
