@@ -163,10 +163,12 @@ function CreateForm({
                 name={field.name}
                 ref={field.ref}
                 onBlur={field.onBlur}
-                value={field.value}
+                value={
+                  Number.isFinite(field.value) ? field.value : ""
+                }
                 onChange={(e) => {
                   const next = e.target.valueAsNumber;
-                  field.onChange(Number.isFinite(next) ? next : 15);
+                  field.onChange(next);
                 }}
                 type="number"
                 min={5}

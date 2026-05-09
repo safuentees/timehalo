@@ -17,8 +17,6 @@ import {
   DURATION_MIN_MINUTES,
 } from "@/lib/durations";
 
-const SEED_MINUTES = 30;
-
 export type OhDurationPickerProps = {
   initialMinutes?: number;
   mode: "add" | "edit";
@@ -50,7 +48,9 @@ export function OhDurationPicker({
   const reactId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [draft, setDraft] = useState<number>(initialMinutes ?? SEED_MINUTES);
+  const [draft, setDraft] = useState<number | null>(
+    initialMinutes ?? null,
+  );
   const [dirty, setDirty] = useState(false);
 
   const draftRef = useRef(draft);
@@ -65,6 +65,7 @@ export function OhDurationPicker({
   function maybeCommitOnClose() {
     if (!dirtyRef.current) return;
     const value = draftRef.current;
+    if (value === null) return;
     const inRange =
       value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
     if (!inRange) return;
@@ -77,7 +78,7 @@ export function OhDurationPicker({
     <Popover.Root
       onOpenChange={(next) => {
         if (next) {
-          setDraft(initialMinutes ?? SEED_MINUTES);
+          setDraft(initialMinutes ?? null);
           setDirty(false);
           requestAnimationFrame(() => inputRef.current?.focus());
         } else {
@@ -131,8 +132,8 @@ export function OhDurationPicker({
 }
 
 interface DurationFieldProps {
-  value: number;
-  onChange: (next: number) => void;
+  value: number | null;
+  onChange: (next: number | null) => void;
 }
 
 const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
@@ -148,7 +149,9 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
-        const next = clamp(value + 5 * direction);
+        const baseline = value ?? (direction === 1 ? 0 : null);
+        if (baseline === null) return;
+        const next = clamp(baseline + 5 * direction);
         onChange(next);
       }
     }
@@ -161,11 +164,11 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         min={0}
         max={DURATION_MAX_MINUTES}
         step={5}
-        value={Number.isFinite(value) ? value : ""}
+        value={value !== null && Number.isFinite(value) ? value : ""}
         onChange={(e) => {
           const raw = e.target.value;
           if (raw === "") {
-            onChange(0);
+            onChange(null);
             return;
           }
           const parsed = Number(raw);
