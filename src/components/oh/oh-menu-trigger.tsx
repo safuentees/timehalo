@@ -141,6 +141,12 @@ export function OhMenuTrigger({ className }: { className?: string }) {
       onClick={toggleSidebar}
       aria-label={openMobile ? t("closeMenu") : t("openMenu")}
       aria-expanded={openMobile}
+      // Mobile dashboard-bar grid slot — pinned to column 1 by the
+      // `[data-bar-slot="start"]` rule in globals.css. Explicit slot
+      // marker (instead of positional :first-child) so the
+      // OhTopProgressBar mounting as a sibling during a workspace
+      // switch can't shift the icons-group out of column 3.
+      data-bar-slot="start"
       className={cn(
         "inline-flex size-7 items-center justify-center rounded-(--oh-r-xs)",
         // Solid ink color + opacity-on-SVG so the hamburger ↔ X

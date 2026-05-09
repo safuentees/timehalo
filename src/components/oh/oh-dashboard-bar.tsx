@@ -143,6 +143,8 @@ export function OhDashboardBar() {
           // the `<OhTopProgressBar>` aria-live announcement.
           aria-busy={isPending || undefined}
           data-pending={isPending || undefined}
+          // Mobile dashboard-bar grid slot — pinned to column 2.
+          data-bar-slot="center"
         >
           <span className="oh-dashboard-bar-label">{label}</span>
           {isPending ? (
@@ -254,7 +256,12 @@ export function OhDashboardBar() {
         </Menu.Portal>
       </Menu.Root>
 
-      <div className="flex items-center gap-2">
+      {/* Mobile dashboard-bar grid slot — pinned to column 3. The
+          `data-bar-slot` marker keeps the icons + avatar justified to
+          the bar's right edge regardless of how many UNMARKED
+          siblings (OhTopProgressBar during a switch, dialog stubs,
+          etc) the bar gains at runtime. */}
+      <div data-bar-slot="end" className="flex items-center gap-2">
         <ChromeIconLink
           href="/bookings"
           label={t("bookingsAria")}
