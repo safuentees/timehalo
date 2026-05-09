@@ -50,32 +50,66 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Popup
-        data-slot="dialog-content"
-        className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--oh-r-sm) border border-border bg-background p-6 text-sm text-foreground duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          className
-        )}
-        {...props}
+      {/*
+        Base UI Dialog v1.4.0 anatomy (per the official docs) requires a
+        `<Dialog.Viewport>` wrapper between `Portal` and `Popup`:
+
+          <Dialog.Portal>
+            <Dialog.Backdrop />
+            <Dialog.Viewport>     ← required
+              <Dialog.Popup />
+            </Dialog.Viewport>
+          </Dialog.Portal>
+
+        Without Viewport, Base UI doesn't apply the
+        `pointer-events: none ↔ auto` toggle that gates click-handling
+        on the popup subtree (see
+        `node_modules/@base-ui/react/dialog/viewport/DialogViewport.js`
+        line 71 — `pointerEvents: !open ? 'none' : undefined`). Symptom
+        on desktop: clicks on form inputs and buttons inside the popup
+        registered on the popup element but never propagated to the
+        underlying control because the missing layer left the subtree
+        in an inconsistent pointer-events state. Mobile worked because
+        vaul's Drawer follows a different anatomy (Overlay + Content,
+        no Viewport) and doesn't depend on the same toggle.
+
+        Viewport itself is `fixed inset-0` (covers the viewport) so its
+        own pointer-events apply across the full surface — `auto` when
+        open lets backdrop clicks through to the Backdrop sibling for
+        outside-click-to-close, AND lets popup-area clicks reach the
+        Popup child for normal interaction.
+      */}
+      <DialogPrimitive.Viewport
+        data-slot="dialog-viewport"
+        className="fixed inset-0 z-50"
       >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-2 right-2"
-                size="icon-sm"
+        <DialogPrimitive.Popup
+          data-slot="dialog-content"
+          className={cn(
+            "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--oh-r-sm) border border-border bg-background p-6 text-sm text-foreground duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            className
+          )}
+          {...props}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogPrimitive.Close
+              data-slot="dialog-close"
+              render={
+                <Button
+                  variant="ghost"
+                  className="absolute top-2 right-2"
+                  size="icon-sm"
+                />
+              }
+            >
+              <XIcon
               />
-            }
-          >
-            <XIcon
-            />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Popup>
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Popup>
+      </DialogPrimitive.Viewport>
     </DialogPortal>
   )
 }
