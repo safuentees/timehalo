@@ -270,6 +270,23 @@
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 12px 32px -16px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  /* Recessed "well" — empty placeholders inside the panel. The
+     inverse cue of the resting/hover/popup tokens: instead of
+     reading as a raised surface above the page, the well reads as
+     a scoop INTO the page. Combined with the bg one tint darker
+     than paper (`--oh-frame` rather than `--oh-paper`), the surface
+     dips visibly without needing a dotted border to mark "this is
+     empty / placeholder."
+       1. Inset top shadow — upper inside edge catches shadow as if
+          light hits the surrounding paper but skips the recess.
+       2. Inset 1px ring — a faint inner outline so the well's
+          perimeter resolves cleanly even when bg sits on bg
+          (panel paper hosting frame-tinted well, ~6% delta).
+     Theme-aware: dark mode bumps the shadow opacity because the
+     lighter dark-paper surface eats softer shadows. */
+  --oh-shadow-well:
+    inset 0 2px 5px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
@@ -417,6 +434,13 @@
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 12px 32px -16px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* Well token in dark mode — deeper inset shadow because the
+     lighter dark-paper panel eats subtle shadows. The 1px inner
+     ring uses near-black so the well's perimeter resolves against
+     #1a1a1a paper hosting #0a0a0a well bg. */
+  --oh-shadow-well:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 @layer base {
@@ -1882,6 +1906,19 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     opacity: 0.55;
+  }
+  /* Empty placeholder surface — depth-driven inverse of the
+     resting/hover chip vocabulary. Replaces the 1.5px dotted border
+     pattern that read as a CTA outline against the borderless
+     panel chrome. The frame-tinted bg + inset shadow expresses
+     "this is a hollow waiting to be filled" with the same depth
+     metaphor the rest of the surface uses. Compose with
+     `rounded-(--oh-r-sm)` + padding utilities at the callsite —
+     two-line empties (eyebrow + description) get more vertical
+     rhythm than single-line empties. */
+  .oh-empty-surface {
+    background-color: var(--oh-frame);
+    box-shadow: var(--oh-shadow-well);
   }
 }
 
