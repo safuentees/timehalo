@@ -106,27 +106,29 @@ function WebhooksForWorkspace({
         </div>
       ) : null}
 
-      <div className="mt-5">
-        {isLoading ? (
-          <p className="text-[13px] opacity-55">{t("loading")}</p>
-        ) : !subs || subs.length === 0 ? (
-          <NoSubsEmpty />
-        ) : (
-          <ul role="list" className="flex flex-col gap-2.5">
-            {subs.map((s) => (
-              <li key={s.publicUid}>
-                <WebhookRow
-                  slug={slug}
-                  publicUid={s.publicUid}
-                  subscriberUrl={s.subscriberUrl}
-                  events={s.events}
-                  active={s.active}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {!isLocked || (subs && subs.length > 0) ? (
+        <div className="mt-5">
+          {isLoading ? (
+            <p className="text-[13px] opacity-55">{t("loading")}</p>
+          ) : !subs || subs.length === 0 ? (
+            <NoSubsEmpty />
+          ) : (
+            <ul role="list" className="flex flex-col gap-2.5">
+              {subs.map((s) => (
+                <li key={s.publicUid}>
+                  <WebhookRow
+                    slug={slug}
+                    publicUid={s.publicUid}
+                    subscriberUrl={s.subscriberUrl}
+                    events={s.events}
+                    active={s.active}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         {isLocked ? <UpgradePrompt /> : <WebhookCreateDialog slug={slug} />}

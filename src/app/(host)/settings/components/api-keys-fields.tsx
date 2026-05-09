@@ -106,29 +106,31 @@ function ApiKeysForWorkspace({
         </div>
       ) : null}
 
-      <div className="mt-5">
-        {isLoading ? (
-          <p className="text-[13px] opacity-55">{t("loading")}</p>
-        ) : !keys || keys.length === 0 ? (
-          <NoKeysEmpty />
-        ) : (
-          <ul role="list" className="flex flex-col gap-2.5">
-            {keys.map((k) => (
-              <li key={k.id}>
-                <ApiKeyRow
-                  slug={slug}
-                  id={k.id}
-                  name={k.name}
-                  prefix={k.prefix}
-                  scopes={k.scopes}
-                  createdAt={k.createdAt as unknown as string}
-                  revokedAt={k.revokedAt as unknown as string | null}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {!isLocked || (keys && keys.length > 0) ? (
+        <div className="mt-5">
+          {isLoading ? (
+            <p className="text-[13px] opacity-55">{t("loading")}</p>
+          ) : !keys || keys.length === 0 ? (
+            <NoKeysEmpty />
+          ) : (
+            <ul role="list" className="flex flex-col gap-2.5">
+              {keys.map((k) => (
+                <li key={k.id}>
+                  <ApiKeyRow
+                    slug={slug}
+                    id={k.id}
+                    name={k.name}
+                    prefix={k.prefix}
+                    scopes={k.scopes}
+                    createdAt={k.createdAt as unknown as string}
+                    revokedAt={k.revokedAt as unknown as string | null}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         {isLocked ? <UpgradePrompt /> : <ApiKeyCreateDialog slug={slug} />}
