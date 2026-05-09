@@ -76,6 +76,7 @@ export function HandleModal({
   durationMinutes,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const tHost = useTranslations("HostProfile");
   const format = useFormatter();
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
   const monthBarDate = selectedDate ?? startOfToday();
@@ -97,7 +98,11 @@ export function HandleModal({
         hour: "numeric",
         minute: "2-digit",
       });
-      return `${durationLabel} on ${datePart} at ${timePart}`;
+      return tHost("chromeRowSlotTitle", {
+        duration: durationLabel,
+        date: datePart,
+        time: timePart,
+      });
     }
     return durationLabel;
   })();

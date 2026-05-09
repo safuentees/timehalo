@@ -115,8 +115,8 @@ function SlotChip({
     return (
       <button
         type="button"
-        disabled
         aria-disabled="true"
+        tabIndex={-1}
         className="oh-slot-chip oh-slot-chip--taken"
         aria-label={t("slotTakenAria", { time: timeLabel })}
       >

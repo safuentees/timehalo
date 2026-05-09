@@ -51,36 +51,44 @@ export type SlotOption = {
   minutes: number;
 };
 
-export function minutesToSlotOption(minutes: number): SlotOption {
+type SlotOptionT = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string;
+
+export function minutesToSlotOption(
+  minutes: number,
+  t: SlotOptionT,
+): SlotOption {
   if (minutes < 60) {
     return {
-      label: `${minutes} min`,
-      fullLabel: `${minutes} minutes`,
+      label: t("slotDurationCompactMinutes", { minutes }),
+      fullLabel: t("slotDurationFullMinutes", { minutes }),
       minutes,
     };
   }
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
   if (rem === 0) {
-    const hourWord = hours === 1 ? "hour" : "hours";
-    const hourCompact = hours === 1 ? "hr" : "hrs";
     return {
-      label: `${hours} ${hourCompact}`,
-      fullLabel: `${hours} ${hourWord}`,
+      label: t("slotDurationCompactHours", { count: hours }),
+      fullLabel: t("slotDurationFullHours", { count: hours }),
       minutes,
     };
   }
-  const hourWord = hours === 1 ? "hour" : "hours";
-  const hourCompact = hours === 1 ? "hr" : "hrs";
   return {
-    label: `${hours} ${hourCompact} ${rem} min`,
-    fullLabel: `${hours} ${hourWord} ${rem} minutes`,
+    label: t("slotDurationCompactHoursMinutes", { hours, minutes: rem }),
+    fullLabel: t("slotDurationFullHoursMinutes", { hours, minutes: rem }),
     minutes,
   };
 }
 
 export const FALLBACK_SLOT_OPTIONS: ReadonlyArray<SlotOption> = [
-  minutesToSlotOption(15),
+  {
+    label: "15 min",
+    fullLabel: "15 minutes",
+    minutes: 15,
+  },
 ];
 
 type SlotRowMotionProps = {
