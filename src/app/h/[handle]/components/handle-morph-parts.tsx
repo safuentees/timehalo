@@ -58,23 +58,62 @@ export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
   HANDLE_SLOT_ROW_RADIUS,
 );
 
-// 1-to-1 hardcoded slot durations from Figma frame 1 (B.PT155).
-// Real multi-event-type wiring is B.PT158 (canonical-win, deferred).
-// B.PT172 — exported so `<HandleModal>` can render the same labels
-// inside phantom slot rects when `keepLandingMounted` debug is on
-// (lets the user see Layer 1 content at its post-morph position).
-// B.PT231 — `fullLabel` added: chip uses the compact `label`
-// ("15 min" / "1 hr") that fits the small chip frame; the modal's
-// chrome-row meeting-duration title uses `fullLabel` ("15 minutes"
-// / "1 hour") which reads as a sentence-case header. Two fields
-// instead of one regex transform keeps the data explicit and
-// localizable later.
-export const SLOT_OPTIONS = [
-  { label: "15 min", fullLabel: "15 minutes" },
-  { label: "25 min", fullLabel: "25 minutes" },
-  { label: "30 min", fullLabel: "30 minutes" },
-  { label: "1 hr", fullLabel: "1 hour" },
-] as const;
+// Per-chip label shape consumed by `SlotRow` + the modal's chrome-row
+// meeting-duration title. Two fields per option:
+//   • `label`   — compact form ("15 min" / "1 hr") that fits the small
+//                 chip frame.
+//   • `fullLabel` — sentence-case form ("15 minutes" / "1 hour") for
+//                   the chrome-row title.
+// Two fields instead of one regex transform keeps the data explicit
+// and locale-friendly when we eventually thread `useTranslations`
+// through (B.PT231 framing).
+export type SlotOption = {
+  label: string;
+  fullLabel: string;
+  minutes: number;
+};
+
+// B.PT276 — minutes → chip label. Replaces the hardcoded `SLOT_OPTIONS`
+// constant from B.PT155: hosts now configure their `durationMinsList`
+// on /profile (B.PT274), and `users.getByHandle` returns the resolved
+// list as `durationChoices` (B.PT158). When a host hasn't configured
+// anything, `durationChoices` collapses to `[durationMins]` (single
+// chip — same single-duration UX as today's hardcoded list pre-B.PT158).
+export function minutesToSlotOption(minutes: number): SlotOption {
+  if (minutes < 60) {
+    return {
+      label: `${minutes} min`,
+      fullLabel: `${minutes} minutes`,
+      minutes,
+    };
+  }
+  const hours = Math.floor(minutes / 60);
+  const rem = minutes % 60;
+  if (rem === 0) {
+    const hourWord = hours === 1 ? "hour" : "hours";
+    const hourCompact = hours === 1 ? "hr" : "hrs";
+    return {
+      label: `${hours} ${hourCompact}`,
+      fullLabel: `${hours} ${hourWord}`,
+      minutes,
+    };
+  }
+  const hourWord = hours === 1 ? "hour" : "hours";
+  const hourCompact = hours === 1 ? "hr" : "hrs";
+  return {
+    label: `${hours} ${hourCompact} ${rem} min`,
+    fullLabel: `${hours} ${hourWord} ${rem} minutes`,
+    minutes,
+  };
+}
+
+// B.PT276 — fallback slot list used when the host's `durationChoices`
+// is somehow empty (defensive — `resolveDurationChoices` already
+// collapses to `[durationMins]` so the empty path shouldn't fire in
+// production, but keeps the chip strip from rendering 0 rows).
+export const FALLBACK_SLOT_OPTIONS: ReadonlyArray<SlotOption> = [
+  minutesToSlotOption(15),
+];
 
 type SlotRowMotionProps = {
   layoutId?: string;

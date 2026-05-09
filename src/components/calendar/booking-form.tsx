@@ -27,6 +27,11 @@ type Props = {
   // them from the original via the procedure). Submit calls
   // `bookings.reschedule` instead of `bookings.create`.
   rescheduleFromUid?: string;
+  /** B.PT276 — visitor's picked duration in minutes (host's chip
+   *  strip on /h/[handle]). Optional: undefined falls back to the
+   *  host's `EventType.durationMins` server-side. Reschedule mode
+   *  ignores this — the procedure preserves the original duration. */
+  durationMinutes?: number;
 };
 
 /**
@@ -41,6 +46,7 @@ export function BookingForm({
   handle,
   slotStart,
   rescheduleFromUid,
+  durationMinutes,
   onBooked,
 }: Props) {
   if (rescheduleFromUid) {
@@ -53,16 +59,25 @@ export function BookingForm({
       />
     );
   }
-  return <CreateForm handle={handle} slotStart={slotStart} onBooked={onBooked} />;
+  return (
+    <CreateForm
+      handle={handle}
+      slotStart={slotStart}
+      durationMinutes={durationMinutes}
+      onBooked={onBooked}
+    />
+  );
 }
 
 function CreateForm({
   handle,
   slotStart,
+  durationMinutes,
   onBooked,
 }: {
   handle: string;
   slotStart: string;
+  durationMinutes?: number;
   onBooked?: () => void;
 }) {
   const t = useTranslations("BookingCalendar");
@@ -135,6 +150,11 @@ function CreateForm({
       // future reminder/confirmation rendering in the visitor's
       // local time.
       visitorTimezone: getBrowserTimezone(),
+      // B.PT276 — picked duration from the chip strip on
+      // /h/[handle]. Server validates against the host's
+      // configured `durationMinsList`; falls back to
+      // `EventType.durationMins` when omitted.
+      durationMinutes,
     });
   }
 

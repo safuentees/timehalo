@@ -19,11 +19,11 @@ import {
   zStyle,
 } from "../_components/visitor-debug-overlay";
 import {
+  FALLBACK_SLOT_OPTIONS,
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
   HANDLE_SLOT_ROW_RADIUS_STYLE,
-  SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
 } from "./handle-morph-parts";
@@ -106,6 +106,12 @@ type Props = {
    *  chrome row between the back-chevron and close-X as the
    *  meeting-context header. */
   durationLabel?: string;
+  /** B.PT276 — picked duration in MINUTES, passed straight through
+   *  to `<BookingForm>` so the eventual `bookings.create` mutation
+   *  ships the visitor's choice. Optional: when undefined (legacy
+   *  flow / single-duration host) the procedure falls back to
+   *  `EventType.durationMins`. */
+  durationMinutes?: number;
 };
 
 export function HandleModal({
@@ -122,6 +128,7 @@ export function HandleModal({
   months = 3,
   identityContent,
   durationLabel,
+  durationMinutes,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -422,7 +429,12 @@ export function HandleModal({
           className="p-[15px]"
         >
           {Array.from({ length: 4 }).map((_, i) => {
-            const opt = SLOT_OPTIONS[i];
+            // B.PT276 — phantom slots (debug-only `keepLandingMounted`
+            // chrome) — when host has only 1 configured duration, use
+            // it; otherwise repeat the first option for the phantom
+            // strip's 4 slots. The phantom chrome is debug-mode only,
+            // so a non-perfect mapping is fine here.
+            const opt = FALLBACK_SLOT_OPTIONS[0];
             const slotRadiusStyle = cornerRadiusStyle(
               HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
             );
@@ -698,6 +710,7 @@ export function HandleModal({
             handle={handle}
             slotStart={selectedSlot.start}
             rescheduleFromUid={rescheduleFromUid}
+            durationMinutes={durationMinutes}
             onBooked={onBookingComplete}
           />
         ) : null}

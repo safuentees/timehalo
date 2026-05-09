@@ -36,12 +36,14 @@ import {
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 import { HandleMorphCard } from "./handle-morph-card";
 import {
+  FALLBACK_SLOT_OPTIONS,
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
-  SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
+  minutesToSlotOption,
+  type SlotOption,
 } from "./handle-morph-parts";
 
 // B.PT156 — open spring is the SMART_ANIMATE physics from Figma
@@ -193,9 +195,25 @@ export default function HostProfile({
   // B.PT229 — track which slot duration the visitor clicked on the
   // landing card. Modal renders this in its chrome row (between
   // chevron and X) as the meeting-duration context label.
+  // B.PT276 — alongside the display label, track the picked duration
+  // in MINUTES so we can pass it to `bookings.create`. Both updates
+  // happen together inside the chip's onClick.
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
   >(undefined);
+  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
+    number | undefined
+  >(undefined);
+
+  // B.PT276 — chip strip data from `users.getByHandle` (B.PT158).
+  // Empty list defends against a race where the backend ships an
+  // empty array (shouldn't happen — `resolveDurationChoices` collapses
+  // to `[durationMins]` server-side) but keeps the chip strip from
+  // rendering 0 rows in production.
+  const slotOptions: ReadonlyArray<SlotOption> =
+    initialUser.durationChoices.length > 0
+      ? initialUser.durationChoices.map(minutesToSlotOption)
+      : FALLBACK_SLOT_OPTIONS;
   const receiptRouteActive = pathname.includes(`/h/${handle}/booked/`);
   const receiptOverlayActive = receiptRouteActive || receiptTransitionPending;
   useEffect(() => {
@@ -635,7 +653,7 @@ export default function HostProfile({
                       // only size/position transfer, not styles.
                       className="flex flex-col gap-2.5 p-[15px]"
                     >
-                      {SLOT_OPTIONS.map((opt, i) => {
+                      {slotOptions.map((opt, i) => {
                         // B.PT213 — uniform concentric radius on
                         // all 4 corners of every chip (was per-
                         // index in B.PT212 — top corners of first +
@@ -725,7 +743,11 @@ export default function HostProfile({
                                 // expanded `fullLabel` ("15
                                 // minutes"); chip itself keeps
                                 // compact `label` ("15 min").
+                                // B.PT276 — also stash the duration
+                                // in minutes so the booking-form
+                                // can ship it on `bookings.create`.
                                 setSelectedDurationLabel(opt.fullLabel);
+                                setSelectedDurationMinutes(opt.minutes);
                                 setDrawerOpen(true);
                               }}
                             />
@@ -785,6 +807,7 @@ export default function HostProfile({
                 selectedSlot={selectedSlot}
                 rescheduleFromUid={rescheduleFromUid}
                 durationLabel={selectedDurationLabel}
+                durationMinutes={selectedDurationMinutes}
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });
