@@ -45,12 +45,43 @@ export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
   HANDLE_SLOT_ROW_RADIUS,
 );
 
-export const SLOT_OPTIONS = [
-  { label: "15 min", fullLabel: "15 minutes" },
-  { label: "25 min", fullLabel: "25 minutes" },
-  { label: "30 min", fullLabel: "30 minutes" },
-  { label: "1 hr", fullLabel: "1 hour" },
-] as const;
+export type SlotOption = {
+  label: string;
+  fullLabel: string;
+  minutes: number;
+};
+
+export function minutesToSlotOption(minutes: number): SlotOption {
+  if (minutes < 60) {
+    return {
+      label: `${minutes} min`,
+      fullLabel: `${minutes} minutes`,
+      minutes,
+    };
+  }
+  const hours = Math.floor(minutes / 60);
+  const rem = minutes % 60;
+  if (rem === 0) {
+    const hourWord = hours === 1 ? "hour" : "hours";
+    const hourCompact = hours === 1 ? "hr" : "hrs";
+    return {
+      label: `${hours} ${hourCompact}`,
+      fullLabel: `${hours} ${hourWord}`,
+      minutes,
+    };
+  }
+  const hourWord = hours === 1 ? "hour" : "hours";
+  const hourCompact = hours === 1 ? "hr" : "hrs";
+  return {
+    label: `${hours} ${hourCompact} ${rem} min`,
+    fullLabel: `${hours} ${hourWord} ${rem} minutes`,
+    minutes,
+  };
+}
+
+export const FALLBACK_SLOT_OPTIONS: ReadonlyArray<SlotOption> = [
+  minutesToSlotOption(15),
+];
 
 type SlotRowMotionProps = {
   layoutId?: string;

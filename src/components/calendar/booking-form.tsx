@@ -23,12 +23,14 @@ type Props = {
   slotStart: string; // ISO
   onBooked?: () => void;
   rescheduleFromUid?: string;
+  durationMinutes?: number;
 };
 
 export function BookingForm({
   handle,
   slotStart,
   rescheduleFromUid,
+  durationMinutes,
   onBooked,
 }: Props) {
   if (rescheduleFromUid) {
@@ -41,16 +43,25 @@ export function BookingForm({
       />
     );
   }
-  return <CreateForm handle={handle} slotStart={slotStart} onBooked={onBooked} />;
+  return (
+    <CreateForm
+      handle={handle}
+      slotStart={slotStart}
+      durationMinutes={durationMinutes}
+      onBooked={onBooked}
+    />
+  );
 }
 
 function CreateForm({
   handle,
   slotStart,
+  durationMinutes,
   onBooked,
 }: {
   handle: string;
   slotStart: string;
+  durationMinutes?: number;
   onBooked?: () => void;
 }) {
   const t = useTranslations("BookingCalendar");
@@ -82,6 +93,7 @@ function CreateForm({
       visitorEmail: values.visitorEmail,
       question: values.question,
       visitorTimezone: getBrowserTimezone(),
+      durationMinutes,
     });
   }
 

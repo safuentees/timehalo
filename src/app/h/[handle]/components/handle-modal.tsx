@@ -19,11 +19,11 @@ import {
   zStyle,
 } from "../_components/visitor-debug-overlay";
 import {
+  FALLBACK_SLOT_OPTIONS,
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
   HANDLE_SLOT_ROW_RADIUS_STYLE,
-  SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
 } from "./handle-morph-parts";
@@ -56,6 +56,7 @@ type Props = {
   months?: number;
   identityContent?: ReactNode;
   durationLabel?: string;
+  durationMinutes?: number;
 };
 
 export function HandleModal({
@@ -72,6 +73,7 @@ export function HandleModal({
   months = 3,
   identityContent,
   durationLabel,
+  durationMinutes,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const format = useFormatter();
@@ -260,7 +262,7 @@ export function HandleModal({
           className="p-[15px]"
         >
           {Array.from({ length: 4 }).map((_, i) => {
-            const opt = SLOT_OPTIONS[i];
+            const opt = FALLBACK_SLOT_OPTIONS[0];
             const slotRadiusStyle = cornerRadiusStyle(
               HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
             );
@@ -530,6 +532,7 @@ export function HandleModal({
             handle={handle}
             slotStart={selectedSlot.start}
             rescheduleFromUid={rescheduleFromUid}
+            durationMinutes={durationMinutes}
             onBooked={onBookingComplete}
           />
         ) : null}

@@ -36,12 +36,14 @@ import {
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 import { HandleMorphCard } from "./handle-morph-card";
 import {
+  FALLBACK_SLOT_OPTIONS,
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
-  SLOT_OPTIONS,
   SlotRow,
   cornerRadiusStyle,
+  minutesToSlotOption,
+  type SlotOption,
 } from "./handle-morph-parts";
 
 const OPEN_SPRING = animSpec.transitions[0].spring;
@@ -107,6 +109,14 @@ export default function HostProfile({
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
   >(undefined);
+  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
+    number | undefined
+  >(undefined);
+
+  const slotOptions: ReadonlyArray<SlotOption> =
+    initialUser.durationChoices.length > 0
+      ? initialUser.durationChoices.map(minutesToSlotOption)
+      : FALLBACK_SLOT_OPTIONS;
   const receiptRouteActive = pathname.includes(`/h/${handle}/booked/`);
   const receiptOverlayActive = receiptRouteActive || receiptTransitionPending;
   useEffect(() => {
@@ -374,7 +384,7 @@ export default function HostProfile({
                       style={{ boxShadow: "none" }}
                       className="flex flex-col gap-2.5 p-[15px]"
                     >
-                      {SLOT_OPTIONS.map((opt, i) => {
+                      {slotOptions.map((opt, i) => {
                         const slotRadiusStyle = cornerRadiusStyle(
                           HANDLE_SLOT_CONCENTRIC_OUTER_RADIUS,
                         );
@@ -447,6 +457,7 @@ export default function HostProfile({
                               durationLabel={opt.label}
                               onClick={() => {
                                 setSelectedDurationLabel(opt.fullLabel);
+                                setSelectedDurationMinutes(opt.minutes);
                                 setDrawerOpen(true);
                               }}
                             />
@@ -492,6 +503,7 @@ export default function HostProfile({
                 selectedSlot={selectedSlot}
                 rescheduleFromUid={rescheduleFromUid}
                 durationLabel={selectedDurationLabel}
+                durationMinutes={selectedDurationMinutes}
                 onPickSlot={(s) => {
                   setSelectedSlot(s);
                   updateQueryParam("slot", s.start, { pushEntry: true });
