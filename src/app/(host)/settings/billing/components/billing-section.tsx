@@ -40,7 +40,7 @@ function CheckoutReturnSync() {
     sessionStartedRef.current = true;
 
     const POLL_INTERVAL_MS = 2_000;
-    const POLL_BUDGET_MS = 10_000;
+    const POLL_BUDGET_MS = 30_000;
     const startedAt = Date.now();
 
     let active = true;

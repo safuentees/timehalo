@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useFormatter } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useBillingCheckout } from "@/lib/mutations/use-billing-checkout";
 import { useBillingPortal } from "@/lib/mutations/use-billing-portal";
@@ -98,6 +100,8 @@ function BillingForWorkspace({
   const t = useTranslations("Billing");
   const { data: current, isLoading } =
     trpc.billing.currentPlan.useQuery({ slug });
+  const searchParams = useSearchParams();
+  const isProcessingCheckout = searchParams.get("billing") === "success";
 
   return (
     <>
@@ -138,6 +142,7 @@ function BillingForWorkspace({
             }
             cancelAtPeriodEnd={current.cancelAtPeriodEnd}
             hasStripeCustomer={current.hasStripeCustomer}
+            isProcessingCheckout={isProcessingCheckout}
           />
         )}
       </div>
@@ -150,6 +155,7 @@ function BillingForWorkspace({
               tier={tier}
               isCurrent={current?.plan === tier}
               disabled={isLoading || !current}
+              isProcessingCheckout={isProcessingCheckout}
             />
           </li>
         ))}
@@ -164,12 +170,14 @@ function CurrentPlanBanner({
   currentPeriodEnd,
   cancelAtPeriodEnd,
   hasStripeCustomer,
+  isProcessingCheckout,
 }: {
   slug: string;
   plan: PlanTier;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
   hasStripeCustomer: boolean;
+  isProcessingCheckout: boolean;
 }) {
   const t = useTranslations("Billing");
   const fmt = useFormatter();
@@ -223,10 +231,23 @@ function CurrentPlanBanner({
               type="button"
               variant="ohGhost"
               size="oh"
-              disabled={portal.isPending}
+              disabled={portal.isPending || isProcessingCheckout}
               onClick={() => portal.mutate({ slug })}
             >
-              {portal.isPending ? t("redirecting") : t("manageBilling")}
+              {portal.isPending ? (
+                t("redirecting")
+              ) : isProcessingCheckout ? (
+                <>
+                  <Loader2
+                    className="size-3.5 animate-spin"
+                    strokeWidth={2}
+                    aria-hidden
+                  />
+                  {t("processingCheckout")}
+                </>
+              ) : (
+                t("manageBilling")
+              )}
             </Button>
           </div>
         ) : null}
@@ -240,11 +261,13 @@ function PlanCard({
   tier,
   isCurrent,
   disabled,
+  isProcessingCheckout,
 }: {
   slug: string;
   tier: "PRO" | "TEAM";
   isCurrent: boolean;
   disabled: boolean;
+  isProcessingCheckout: boolean;
 }) {
   const t = useTranslations("Billing");
   const checkout = useBillingCheckout();
@@ -292,13 +315,26 @@ function PlanCard({
             type="button"
             variant="oh"
             size="oh"
-            disabled={disabled || checkout.isPending}
+            disabled={
+              disabled || checkout.isPending || isProcessingCheckout
+            }
             onClick={() => checkout.mutate({ slug, plan: tier })}
             className="w-full"
           >
-            {checkout.isPending
-              ? t("redirecting")
-              : t("upgradeTo", { tier: t(`tier.${tier}`) })}
+            {checkout.isPending ? (
+              t("redirecting")
+            ) : isProcessingCheckout ? (
+              <>
+                <Loader2
+                  className="size-3.5 animate-spin"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                {t("processingCheckout")}
+              </>
+            ) : (
+              t("upgradeTo", { tier: t(`tier.${tier}`) })
+            )}
           </Button>
         )}
       </div>
