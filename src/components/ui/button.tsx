@@ -19,11 +19,11 @@ const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
         oh:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-[var(--oh-button-primary-bg)] text-[var(--oh-button-primary-text)] transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-[var(--oh-button-primary-bg-hover)] hover:text-[var(--oh-button-primary-text-hover)] hover:shadow-[var(--oh-shadow-hover)] dark:hover:shadow-[var(--oh-shadow-resting)] disabled:opacity-35 disabled:shadow-none",
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-[var(--oh-button-primary-bg)] text-[var(--oh-button-primary-text)] transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:shadow-[var(--oh-shadow-hover)] disabled:opacity-35 disabled:shadow-none",
         ohGhost:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-oh-ink transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-oh-ink hover:text-oh-paper hover:shadow-[var(--oh-shadow-hover)] dark:hover:bg-oh-paper dark:hover:text-oh-ink dark:hover:shadow-[var(--oh-shadow-resting)] disabled:opacity-35 disabled:shadow-none",
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-oh-ink transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:shadow-[var(--oh-shadow-hover)] disabled:opacity-35 disabled:shadow-none",
         ohDanger:
-          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-[var(--oh-status-cancelled)] transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:bg-[var(--oh-status-cancelled)] hover:text-oh-paper hover:shadow-[var(--oh-shadow-hover)] dark:hover:bg-oh-paper dark:hover:text-[var(--oh-status-cancelled)] disabled:opacity-35 disabled:shadow-none",
+          "font-mono font-extrabold uppercase tracking-[1.5px] border-0 bg-clip-border bg-oh-paper text-[var(--oh-status-cancelled)] transition-[background-color,color,outline-color,box-shadow]! duration-150 ease-oh shadow-[var(--oh-shadow-resting)] hover:shadow-[var(--oh-shadow-hover)] disabled:opacity-35 disabled:shadow-none",
       },
       size: {
         default:

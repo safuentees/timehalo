@@ -163,8 +163,6 @@
 
   --oh-button-primary-bg: var(--oh-ink);
   --oh-button-primary-text: var(--oh-paper);
-  --oh-button-primary-bg-hover: var(--oh-paper);
-  --oh-button-primary-text-hover: var(--oh-ink);
 
   --oh-input-bg-hover: color-mix(
     in srgb,
@@ -256,12 +254,6 @@
 
   --oh-button-primary-bg: color-mix(in srgb, var(--oh-paper), white 12%);
   --oh-button-primary-text: var(--oh-ink);
-  --oh-button-primary-bg-hover: color-mix(
-    in srgb,
-    var(--oh-paper),
-    white 12%
-  );
-  --oh-button-primary-text-hover: var(--oh-ink);
 }
 
 @layer base {
