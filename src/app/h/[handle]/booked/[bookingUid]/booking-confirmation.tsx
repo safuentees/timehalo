@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
+import { OhVisitorShell } from "@/components/oh/oh-visitor-shell";
 import {
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
@@ -42,10 +44,17 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
   });
 
   return (
-    <div
-      role="region"
-      aria-label={t("badgeBooked")}
-      className="flex min-h-dvh items-center justify-center bg-oh-bg-muted p-4 sm:p-8"
+    <OhVisitorShell
+      header={
+        booking.host.handle ? (
+          <Link
+            href={`/h/${booking.host.handle}`}
+            className="oh-focus-ring oh-legend rounded-(--oh-r-xs) opacity-65 transition-opacity hover:opacity-100"
+          >
+            /h/{booking.host.handle}
+          </Link>
+        ) : null
+      }
     >
       <HandleMorphCard
         style={{
@@ -72,6 +81,6 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
           </div>
         </div>
       </HandleMorphCard>
-    </div>
+    </OhVisitorShell>
   );
 }
