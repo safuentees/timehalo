@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { CheckIcon } from "lucide-react";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { Field } from "@/components/ui/field";
@@ -154,9 +155,21 @@ export function HandleFields({ currentHandle }: { currentHandle?: string }) {
               <OhInputGroupAddon align="inline-start">
                 <OhInputGroupText>officehours.app/h/</OhInputGroupText>
               </OhInputGroupAddon>
-              <OhInputGroupAddon align="inline-end">
-                <AvailabilityBadge state={availability} />
-              </OhInputGroupAddon>
+              {/* Trailing addon hidden in the "current" state — the
+                  prior "YOURS" badge sat as a cryptic noun next to
+                  the input value with no surrounding context (user
+                  feedback: "I didn't understand what I meant"). The
+                  message moved to the field's help text below as a
+                  full sentence with a ✓ icon — same information,
+                  language-agnostic visual cue + clear copy. Other
+                  states (free / taken / 3+ / !) keep the inline
+                  addon because their badges read clearly on their
+                  own. */}
+              {availability !== "current" ? (
+                <OhInputGroupAddon align="inline-end">
+                  <AvailabilityBadge state={availability} />
+                </OhInputGroupAddon>
+              ) : null}
             </OhInputGroup>
             <HandleHelp state={availability} />
           </Field>
@@ -181,12 +194,9 @@ function AvailabilityBadge({ state }: { state: Availability }) {
           {t("handleAvailabilityFree")}
         </OhInputGroupText>
       );
-    case "current":
-      return (
-        <OhInputGroupText className="opacity-55">
-          {t("handleAvailabilityCurrent")}
-        </OhInputGroupText>
-      );
+    // "current" state intentionally renders no inline badge — see
+    // the call-site comment + the help-text branch below for the
+    // promoted external indicator.
     case "taken":
       return (
         <OhInputGroupText className="text-[color:var(--destructive)] opacity-100">
@@ -224,13 +234,31 @@ function HandleHelp({ state }: { state: Availability }) {
             : state === "current"
               ? t("handleHelpCurrent")
               : t("handleHelpDefault");
+  // "current" state shares the emerald "things look good" tone with
+  // "available" — they're both positive, no-action-needed states.
+  // Adds a ✓ icon prefix so the cue reads in 50ms regardless of
+  // language; combined with the full sentence in the help copy
+  // ("This is your current handle.") the user understands the
+  // affordance instantly without parsing a cryptic "YOURS" tag
+  // inside the input.
   const tone =
     state === "taken" || state === "error"
       ? "text-[color:var(--destructive)]"
-      : state === "available"
+      : state === "available" || state === "current"
         ? "text-emerald-600 dark:text-emerald-400"
         : "text-[color:var(--oh-content-muted)]";
   return (
-    <p className={`mt-1 text-[12px] leading-[1.5] ${tone}`}>{text}</p>
+    <p
+      className={`mt-1 inline-flex items-center gap-1.5 text-[12px] leading-[1.5] ${tone}`}
+    >
+      {state === "current" ? (
+        <CheckIcon
+          className="size-3.5 shrink-0"
+          strokeWidth={2.5}
+          aria-hidden
+        />
+      ) : null}
+      <span>{text}</span>
+    </p>
   );
 }
