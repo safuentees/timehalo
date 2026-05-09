@@ -80,7 +80,14 @@ export function WorkflowFields() {
             {t("upgradePrompt")}{" "}
             <a
               href="#billing-legend"
-              className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-oh hover:opacity-100"
+              // Underline utilities need the `!` prefix because
+              // globals.css ships an unlayered `:where(.oh-root a) {
+              // text-decoration: none }` shell reset; unlayered CSS
+              // beats Tailwind's utilities layer (Cascade Layers spec)
+              // regardless of specificity, so the bare `underline`
+              // class would render as no decoration. Same gotcha +
+              // same fix as the bookings-list "View preview" link.
+              className="oh-focus-ring !underline !underline-offset-4 !decoration-[1.5px] !decoration-current transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("upgradeLink")}
             </a>
