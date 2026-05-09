@@ -12,7 +12,6 @@ import {
 import { Popover } from "@base-ui/react/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
@@ -100,20 +99,19 @@ export function OhDurationPicker({
   labels,
 }: OhDurationPickerProps) {
   const reactId = useId();
-  const portalContainer = useResponsiveModalPortalContainer();
 
-  // `<Popover.Root>` runs UNCONTROLLED — same as `<OhTimePicker>`
-  // ships. When the Root was controlled (open + onOpenChange), the
-  // trigger's click handler still fired but the popover failed to
-  // appear because the controlled state propagation skipped a beat
-  // somewhere in Base UI's internal store. Reverting to uncontrolled
-  // matches the working time-picker exactly.
+  // `<Popover.Root>` runs FULLY UNCONTROLLED — no `open`,
+  // `onOpenChange`, or `actionsRef`. Each prop subtly changes the
+  // mount/unmount lifecycle in Base UI v1.4 (`actionsRef` swaps to
+  // keep-mounted-on-close; controlled `open` requires the parent to
+  // mirror Base UI's internal store, which dropped a frame in this
+  // setup). The working `<OhTimePicker>` runs bare-Root for exactly
+  // the same reason.
   //
-  // For programmatic close (Save / Remove path), we hold an
-  // `actionsRef` so the commit handlers can call `actions.close()`
-  // after the async mutation resolves.
-  const actionsRef = useRef<Popover.Root.Actions | null>(null);
-
+  // The Save / Remove buttons in the popup are wrapped in
+  // `<Popover.Close>` so the click auto-dismisses; the async commit
+  // fires onClick and resolves in the background. Outside-click and
+  // Escape close on their own (Base UI default).
   // Picker draft is kept LOCAL to the popover so closing without
   // committing discards any unsaved changes. Lazy initializer seeds
   // from initialMinutes (or 30 default) on first mount; the
@@ -140,30 +138,22 @@ export function OhDurationPicker({
   const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
 
-  async function handleCommit() {
+  function handleCommit() {
     if (!canCommit) return;
-    try {
-      await onCommit(totalMinutes);
-      actionsRef.current?.close();
-    } catch {
-      // Parent mutation hook toasted; keep popover open so the
-      // host can adjust + retry.
-    }
+    // Fire-and-forget: Popover.Close auto-dismisses on click. The
+    // async mutation resolves in the background; the wrapping
+    // `useSetDurations` hook surfaces errors via toast. Trade-off:
+    // on error the popover is already gone — user re-opens to retry.
+    void onCommit(totalMinutes);
   }
 
-  async function handleRemove() {
-    if (!onRemove || isPending) return;
-    try {
-      await onRemove();
-      actionsRef.current?.close();
-    } catch {
-      // Same as commit — keep open on error.
-    }
+  function handleRemove() {
+    if (!onRemove) return;
+    void onRemove();
   }
 
   return (
     <Popover.Root
-      actionsRef={actionsRef}
       onOpenChange={(next) => {
         // Re-seed draft on open so the picker reflects the chip's
         // current saved state. Event-handler form so React 19's
@@ -183,7 +173,7 @@ export function OhDurationPicker({
       >
         {triggerContent}
       </Popover.Trigger>
-      <Popover.Portal container={portalContainer}>
+      <Popover.Portal>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}
@@ -235,27 +225,35 @@ export function OhDurationPicker({
                 )}
               >
                 {onRemove ? (
-                  <Button
-                    type="button"
-                    variant="ohGhost"
-                    size="oh"
-                    onClick={handleRemove}
-                    disabled={isPending}
-                    className="rounded-(--oh-r-xs)"
+                  <Popover.Close
+                    render={
+                      <Button
+                        type="button"
+                        variant="ohGhost"
+                        size="oh"
+                        onClick={handleRemove}
+                        disabled={isPending}
+                        className="rounded-(--oh-r-xs)"
+                      />
+                    }
                   >
                     {labels.removeAction}
-                  </Button>
+                  </Popover.Close>
                 ) : null}
-                <Button
-                  type="button"
-                  variant="oh"
-                  size="oh"
-                  onClick={handleCommit}
-                  disabled={!canCommit}
-                  className="rounded-(--oh-r-xs)"
+                <Popover.Close
+                  render={
+                    <Button
+                      type="button"
+                      variant="oh"
+                      size="oh"
+                      onClick={handleCommit}
+                      disabled={!canCommit}
+                      className="rounded-(--oh-r-xs)"
+                    />
+                  }
                 >
                   {mode === "add" ? labels.addAction : labels.saveAction}
-                </Button>
+                </Popover.Close>
               </div>
             </div>
           </Popover.Popup>
