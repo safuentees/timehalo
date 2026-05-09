@@ -6,11 +6,13 @@ export default async function SettingsDeveloperPage() {
   const trpc = await createPrivateSSRHelper();
 
   const workspaces = await trpc.workspaces.list.fetch();
-  const firstSlug = workspaces[0]?.slug;
-  if (firstSlug) {
+  const activeSlug =
+    workspaces.find((w) => w.isActive)?.slug ?? workspaces[0]?.slug;
+  if (activeSlug) {
     await Promise.all([
-      trpc.workspaces.apiKeys.list.prefetch({ slug: firstSlug }),
-      trpc.webhooks.list.prefetch({ slug: firstSlug }),
+      trpc.workspaces.apiKeys.list.prefetch({ slug: activeSlug }),
+      trpc.webhooks.list.prefetch({ slug: activeSlug }),
+      trpc.billing.currentPlan.prefetch({ slug: activeSlug }),
     ]);
   }
 
