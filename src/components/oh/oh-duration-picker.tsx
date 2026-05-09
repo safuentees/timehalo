@@ -28,18 +28,19 @@ export type OhDurationPickerProps = {
   onCommit: (minutes: number) => Promise<void> | void;
   onRemove?: () => Promise<void> | void;
   isPending?: boolean;
-  children: ReactNode;
+  triggerContent: ReactNode;
+  triggerClassName?: string;
+  triggerAriaLabel?: string;
   disabled?: boolean;
-  duplicateMessage?: string;
   existingMinutes?: ReadonlyArray<number>;
   labels: {
-    hourLabel: string; // "Hours"
-    minuteLabel: string; // "Minutes"
-    addAction: string; // "Add duration"
-    saveAction: string; // "Save"
-    removeAction: string; // "Remove"
-    rangeError: string; // "Use a number between 5 and 480 minutes."
-    duplicateError: string; // "That duration is already on your list."
+    hourLabel: string;
+    minuteLabel: string;
+    addAction: string;
+    saveAction: string;
+    removeAction: string;
+    rangeError: string;
+    duplicateError: string;
   };
 };
 
@@ -49,7 +50,9 @@ export function OhDurationPicker({
   onCommit,
   onRemove,
   isPending = false,
-  children,
+  triggerContent,
+  triggerClassName,
+  triggerAriaLabel,
   disabled,
   existingMinutes = [],
   labels,
@@ -112,8 +115,11 @@ export function OhDurationPicker({
       <Popover.Trigger
         id={`oh-duration-picker-${reactId}`}
         disabled={disabled}
-        render={children as React.ReactElement}
-      />
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+      >
+        {triggerContent}
+      </Popover.Trigger>
       <Popover.Portal container={portalContainer}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
