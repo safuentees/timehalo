@@ -63,6 +63,34 @@ export function InlineFormSave({
   ariaLabel?: string;
 }) {
   const mounted = useMounted();
+
+  // 2026-05-09 — hide when there's nothing to save. The previous
+  // shape rendered the button always, just disabled when undirty.
+  // On hub pages with multiple sections (`/profile` ships
+  // HandleFields + BioFields, each with its own InlineFormSave),
+  // that meant 2+ visible (but inert) Save buttons stacked down
+  // the column — visual noise the user reported as cluttered.
+  //
+  // Pattern reference: GitHub / Linear / Vercel all hide their
+  // section save action when no field is dirty; cal.com tried
+  // outright autosave (PR #14849) and reverted because of duplicate
+  // toasts + unclear save state, so they're back to explicit
+  // saves but only when there's actually pending work. We follow
+  // the latter — explicit, no surprise, but invisible at rest.
+  //
+  // Visibility rules:
+  //   - Pre-mount: render the button (disabled) so SSR + first
+  //     client paint don't differ. RHF's `isDirty` is client-only,
+  //     so any mounted-only branching would flicker.
+  //   - Mounted + dirty: render (enabled, ready to save)
+  //   - Mounted + pending: render (disabled, label = saving)
+  //   - Mounted + invalid + dirty: render (disabled — user sees
+  //     a CTA they can't yet click, prompting them to fix the
+  //     field; matches cal.com's `SectionBottomActions` shape)
+  //   - Mounted + clean + idle + valid: HIDE — no work to do.
+  const settled = mounted && !isPending && !isDirty;
+  if (settled) return null;
+
   const disabled = mounted ? isPending || !isDirty || isInvalid : true;
   // B.PT299 — simplified to two labels. `saving` while pending,
   // `save` otherwise (covers idle/dirty AND idle/clean — disabled
