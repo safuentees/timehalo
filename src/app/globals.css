@@ -2117,6 +2117,19 @@
 .dark .oh-drawer-content {
   background: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
 }
+
+[data-oh-modal-host="true"] .oh-drawer-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+}
+[data-oh-modal-host="true"] .oh-drawer-content {
+  position: absolute !important;
+  top: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  max-height: 100% !important;
+}
 .oh-drawer-content-nested {
   max-height: 94%;
 }

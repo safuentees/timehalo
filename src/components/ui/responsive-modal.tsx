@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ComponentProps,
   type ReactElement,
@@ -141,10 +142,17 @@ export function ResponsiveModalContent({
   defaultClose = true,
 }: ContentProps) {
   const { isMobile, setMobilePortalContainer } = useResponsiveModal();
+  const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setModalHost(
+      document.querySelector<HTMLElement>('[data-oh-modal-host="true"]'),
+    );
+  }, []);
 
   if (isMobile) {
     return (
-      <DrawerPrimitive.Portal>
+      <DrawerPrimitive.Portal container={modalHost ?? undefined}>
         <DrawerPrimitive.Overlay
           className={cn("oh-drawer-overlay", overlayClassName)}
         />

@@ -45,7 +45,10 @@ export function OhDashboardLayout({
         <div className="oh-app flex min-h-0 flex-1">
           <OhAppSidebar />
           <SidebarInset className={insetClass}>
-            <div className="oh-host-content">
+            <div
+              className="oh-host-content"
+              data-oh-modal-host="true"
+            >
               <ScrollArea className="oh-host-content-inner">
                 <ContentSlot>{children}</ContentSlot>
               </ScrollArea>
