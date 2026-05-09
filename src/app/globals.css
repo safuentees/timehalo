@@ -2332,7 +2332,13 @@
    the page truthful and quiet. */
 .oh-v1 {
   width: 100%;
-  max-width: 520px;
+  /* 520 → 560 (+40px) — small expansion gives long names like
+     "Bartholomew Cumberbatch-Wellington" room to wrap to two lines
+     on a sane viewport without pushing the meta strip down or
+     forcing aggressive line-clamping. Capped at 560 so the
+     surface stays visually centered + still feels like a focused
+     profile card, not a wide-format page. */
+  max-width: 560px;
   margin: 0 auto;
   /* Soft-brutalist outer card frame — matches the curved bordered cards
      on /bookings so the public profile reads as part of the same system,
@@ -2509,11 +2515,42 @@
 .oh-v1-name {
   margin: 4px 0 2px;
   font-weight: 900;
-  font-size: clamp(40px, 12cqi, 64px);
+  /* Lower bound dropped 40 → 32 so long names auto-shrink on
+     narrow viewports before wrapping is forced. Upper still 60
+     (was 64) — hero stays prominent without becoming a billboard
+     on wide viewports. */
+  font-size: clamp(32px, 12cqi, 60px);
   line-height: 0.92;
   letter-spacing: -0.04em;
+  /* Three-tier wrap strategy for the hero name (long-name
+     overflow fix). Each tier kicks in only when the prior one
+     can't resolve the overflow:
+       1. text-wrap: balance — distribute lines evenly. Spec-
+          capped at ≤6 lines per Chromium / 10 per Firefox; our
+          line-clamp below holds at 3 so balance always applies.
+       2. hyphens: auto — break long words at language-aware
+          hyphenation points (e.g. "Cumberbatch-Wellington" can
+          break at "Wel-lington"). Was missing before — the gap
+          that let single long words push the card sideways.
+       3. overflow-wrap: anywhere — last-resort character-level
+          break for words with no hyphenation point at all (e.g.
+          a 30-char no-space handle).
+     References: MDN "Wrapping and breaking text" + Chrome devs
+     CSS text-wrap balance docs. */
   text-wrap: balance;
+  hyphens: auto;
   overflow-wrap: anywhere;
+  /* Cap visible height at 3 lines + ellipsis so a name like a
+     full 60-char title doesn't push the meta strip + bio off-
+     screen. Three lines is the sweet spot — gives "Bartholomew
+     Cumberbatch-Wellington III" room to fully render while
+     truncating genuinely-extreme names. -webkit-* prefixes are
+     the spec for line-clamp; modern Firefox (68+) + Safari +
+     Chromium all honor them despite the vendor prefix. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .oh-v1-bio {
   margin: 0;
