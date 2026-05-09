@@ -2235,6 +2235,10 @@
   box-shadow: var(--oh-handle-card-shadow);
 }
 
+.oh-visitor-panel {
+  box-shadow: var(--oh-shadow-panel);
+}
+
 .oh-drawer-overlay,
 [data-slot="dialog-overlay"] {
   position: fixed !important;

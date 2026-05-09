@@ -12,7 +12,7 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]">
       <div
         className={[
-          "relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
+          "oh-visitor-panel relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
           className,
         ]
           .filter(Boolean)
