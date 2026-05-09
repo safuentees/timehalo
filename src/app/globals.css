@@ -2810,6 +2810,11 @@
 }
 
 .oh-host-content {
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--oh-paper), white 30%) 0%,
+    var(--oh-paper) 14px
+  );
   background-color: var(--oh-paper);
   background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
@@ -2818,6 +2823,14 @@
   position: relative;
   overflow: hidden;
   box-shadow: var(--oh-shadow-panel);
+}
+
+.dark .oh-host-content {
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--oh-paper), white 8%) 0%,
+    var(--oh-paper) 14px
+  );
 }
 
 @media (max-width: 767px) {
