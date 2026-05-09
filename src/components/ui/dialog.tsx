@@ -7,119 +7,128 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-// Click-routing debug instrumentation. Enabled when
-// `window.__OH_DIALOG_DEBUG = true` (set in DevTools console)
-// OR when the URL carries `?dialogDebug=1`. Logs everything that
-// could be intercepting clicks on the popup:
-//   • The popup element + computed pointer-events / position /
-//     z-index at open time.
-//   • `document.elementsFromPoint` at the popup's center —
-//     reveals the ACTUAL paint-order stack at that pixel. If
-//     anything is sitting on top of the popup (chrome, overlay,
-//     phantom transition node), it shows up here.
-//   • Every ancestor of the popup with non-default pointer-events.
-//     A single `pointer-events: none` anywhere in the chain
-//     blocks clicks on the popup's contents.
-//   • Any element with `inert` set OR a `data-base-ui-inert`
-//     attribute, since Base UI's FloatingFocusManager uses these
-//     to gate focus on body siblings.
-//   • Pointerdown / pointerup / click capture loggers that fire
-//     when the user tries to click a form control inside the
-//     popup — shows whether the events even reach the popup
-//     subtree.
+// Click-routing debug instrumentation. Always on in development —
+// no flag, no URL param. Logs everything that could be
+// intercepting clicks on the popup. Logs are namespaced with
+// `[oh-dialog-debug]` so they're easy to filter in DevTools
+// (just type `oh-dialog-debug` into the console filter).
 //
-// Logs are namespaced with `[oh-dialog-debug]` so they're easy to
-// grep in DevTools. Cleanup on unmount removes the capture
-// listeners. Zero overhead when the debug flag isn't set.
-function useDialogDebug(popupRef: React.RefObject<HTMLDivElement | null>) {
+// MutationObserver pattern (not a ref-callback or state) — a
+// previous version took the popup element as a function parameter
+// AND used it as a useEffect dependency, which Turbopack/React-
+// Compiler in Next 16 rewrote into a closure that read the
+// parameter before its compiler-generated init shim ran, throwing
+// `can't access lexical declaration 'popupEl' before initialization`
+// at runtime. The current pattern avoids any parameter at all:
+//   1. Mount one persistent observer that watches `document.body`
+//      for any element with `data-slot="dialog-content"`.
+//   2. When one appears, run the snapshot + ancestor-walk + paint-
+//      order check ONCE per element (idempotent via
+//      `dataset.ohDebugged`).
+//   3. Document-level capture listeners log every pointerdown +
+//      click, and at log time look up the popup from the DOM —
+//      so the closure never holds a stale or pre-init reference.
+//
+// Drops to a no-op in production via the NODE_ENV check.
+function useDialogDebug() {
   React.useEffect(() => {
     if (typeof window === "undefined") return
-    const enabled =
-      (window as unknown as { __OH_DIALOG_DEBUG?: boolean })
-        .__OH_DIALOG_DEBUG === true ||
-      new URLSearchParams(window.location.search).get("dialogDebug") === "1"
-    if (!enabled) return
-    const popup = popupRef.current
-    if (!popup) return
+    if (process.env.NODE_ENV === "production") return
 
     const tag = "[oh-dialog-debug]"
     const log = (...args: unknown[]) =>
       // eslint-disable-next-line no-console
       console.log(tag, ...args)
 
-    // Snapshot the popup + its computed style + z-index chain.
-    const cs = window.getComputedStyle(popup)
-    log("popup mounted", popup)
-    log("popup computed", {
-      pointerEvents: cs.pointerEvents,
-      position: cs.position,
-      zIndex: cs.zIndex,
-      visibility: cs.visibility,
-      opacity: cs.opacity,
-      display: cs.display,
-    })
-
-    // What's actually painted at the popup's center?
-    const rect = popup.getBoundingClientRect()
-    const cx = Math.round(rect.left + rect.width / 2)
-    const cy = Math.round(rect.top + rect.height / 2)
-    log(`popup center (${cx},${cy}) rect`, rect)
-    const stack = document.elementsFromPoint(cx, cy)
-    log(
-      `elementsFromPoint at center (top → bottom), ${stack.length} layers`,
-      stack,
-    )
-    if (stack[0] !== popup && !popup.contains(stack[0])) {
-      log(
-        "⚠️  TOPMOST ELEMENT AT POPUP CENTER IS NOT THE POPUP OR ITS CHILD",
-        { topmost: stack[0], popup },
+    function getPopup(): HTMLElement | null {
+      return document.querySelector<HTMLElement>(
+        '[data-slot="dialog-content"]',
       )
     }
 
-    // Walk up the popup's ancestors, log non-default pointer-events.
-    const ancestors: Array<{
-      el: Element
-      pointerEvents: string
-      position: string
-      zIndex: string
-      inert: boolean
-    }> = []
-    let node: Element | null = popup
-    while (node) {
-      const acs = window.getComputedStyle(node)
-      ancestors.push({
-        el: node,
-        pointerEvents: acs.pointerEvents,
-        position: acs.position,
-        zIndex: acs.zIndex,
-        inert: (node as HTMLElement).inert === true,
+    function snapshot(popup: HTMLElement) {
+      if (popup.dataset.ohDebugged === "1") return
+      popup.dataset.ohDebugged = "1"
+
+      const cs = window.getComputedStyle(popup)
+      log("popup mounted", popup)
+      log("popup computed", {
+        pointerEvents: cs.pointerEvents,
+        position: cs.position,
+        zIndex: cs.zIndex,
+        visibility: cs.visibility,
+        opacity: cs.opacity,
+        display: cs.display,
       })
-      node = node.parentElement
-    }
-    log("popup ancestor chain (popup → html)", ancestors)
-    const blockers = ancestors.filter(
-      (a) => a.pointerEvents === "none" || a.inert === true,
-    )
-    if (blockers.length > 0) {
-      log("⚠️  ANCESTORS WITH pointer-events:none OR inert:", blockers)
+
+      const rect = popup.getBoundingClientRect()
+      const cx = Math.round(rect.left + rect.width / 2)
+      const cy = Math.round(rect.top + rect.height / 2)
+      log(`popup center (${cx},${cy}) rect`, rect)
+      const stack = document.elementsFromPoint(cx, cy)
+      log(
+        `elementsFromPoint at center (top → bottom), ${stack.length} layers`,
+        stack,
+      )
+      if (stack[0] !== popup && !popup.contains(stack[0])) {
+        log(
+          "⚠️  TOPMOST ELEMENT AT POPUP CENTER IS NOT THE POPUP OR ITS CHILD",
+          { topmost: stack[0], popup },
+        )
+      }
+
+      const ancestors: Array<{
+        el: Element
+        pointerEvents: string
+        position: string
+        zIndex: string
+        inert: boolean
+      }> = []
+      let cursor: Element | null = popup
+      while (cursor) {
+        const acs = window.getComputedStyle(cursor)
+        ancestors.push({
+          el: cursor,
+          pointerEvents: acs.pointerEvents,
+          position: acs.position,
+          zIndex: acs.zIndex,
+          inert: (cursor as HTMLElement).inert === true,
+        })
+        cursor = cursor.parentElement
+      }
+      log("popup ancestor chain (popup → html)", ancestors)
+      const blockers = ancestors.filter(
+        (a) => a.pointerEvents === "none" || a.inert === true,
+      )
+      if (blockers.length > 0) {
+        log("⚠️  ANCESTORS WITH pointer-events:none OR inert:", blockers)
+      }
+
+      const inertEls = document.querySelectorAll(
+        "[inert], [data-base-ui-inert]",
+      )
+      log(`inert elements in document: ${inertEls.length}`, [...inertEls])
     }
 
-    // Any body-level inert / aria-hidden siblings? (Base UI
-    // FloatingFocusManager sets aria-hidden on body siblings when
-    // modal=true; if it accidentally inerts the popup container
-    // itself, clicks die here.)
-    const inertEls = document.querySelectorAll(
-      "[inert], [data-base-ui-inert]",
-    )
-    log(`inert elements in document: ${inertEls.length}`, [...inertEls])
+    // Snapshot any popup that's already mounted at hook-mount time.
+    const existing = getPopup()
+    if (existing) snapshot(existing)
 
-    // Live capture of pointer events anywhere on document so we
-    // can see whether clicks even REACH the popup subtree (or
-    // get swallowed by an ancestor / overlay).
-    const popupEl: HTMLElement = popup
+    // Watch for the popup attaching after dialog-open via Portal.
+    const observer = new MutationObserver(() => {
+      const popup = getPopup()
+      if (popup) snapshot(popup)
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    // Document-level capture listeners — log every pointer event so
+    // the routing is visible. Look up the popup at log time (not
+    // closure-captured) so we always have the live element.
     function logPointerDown(event: Event) {
+      const popup = getPopup()
       const target = event.target as Element | null
-      const insidePopup = target ? popupEl.contains(target) : false
+      const insidePopup =
+        popup !== null && target !== null && popup.contains(target)
       log("pointerdown", {
         target,
         insidePopup,
@@ -127,8 +136,10 @@ function useDialogDebug(popupRef: React.RefObject<HTMLDivElement | null>) {
       })
     }
     function logClick(event: Event) {
+      const popup = getPopup()
       const target = event.target as Element | null
-      const insidePopup = target ? popupEl.contains(target) : false
+      const insidePopup =
+        popup !== null && target !== null && popup.contains(target)
       log("click", {
         target,
         insidePopup,
@@ -139,10 +150,11 @@ function useDialogDebug(popupRef: React.RefObject<HTMLDivElement | null>) {
     document.addEventListener("click", logClick, true)
 
     return () => {
+      observer.disconnect()
       document.removeEventListener("pointerdown", logPointerDown, true)
       document.removeEventListener("click", logClick, true)
     }
-  }, [popupRef])
+  }, [])
 }
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -185,13 +197,12 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
-  // Debug instrumentation — opt-in via `?dialogDebug=1` URL param OR
-  // `window.__OH_DIALOG_DEBUG = true` set in DevTools console. Logs
-  // popup mount + paint-order at popup center + ancestor chain +
-  // pointer-events blockers + every pointerdown/click on the
-  // document so the actual click-routing is visible.
-  const popupRef = React.useRef<HTMLDivElement | null>(null)
-  useDialogDebug(popupRef)
+  // Debug instrumentation — always on in development, no flag.
+  // Watches the DOM for the dialog-content popup and logs paint-
+  // order + ancestor chain + every pointer/click event so the
+  // actual click-routing is visible. Filter DevTools console by
+  // `oh-dialog-debug` to see only these lines.
+  useDialogDebug()
 
   return (
     <DialogPortal>
@@ -230,7 +241,6 @@ function DialogContent({
         className="fixed inset-0 z-[201]"
       >
         <DialogPrimitive.Popup
-          ref={popupRef}
           data-slot="dialog-content"
           className={cn(
             "fixed top-1/2 left-1/2 z-[202] grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--oh-r-sm) border border-border bg-background p-6 text-sm text-foreground duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
