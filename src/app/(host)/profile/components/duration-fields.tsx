@@ -1,9 +1,7 @@
 "use client";
 
-import { forwardRef, type ComponentPropsWithoutRef } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
 import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
@@ -13,17 +11,13 @@ import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
 
 // Profile durations editor (popup variant).
 //
-// Replaces the prior `<ResponsiveModal>` drawer with a Base UI Popover
-// anchored directly to each chip + the "Add duration" button. The
-// popover reuses the same hour/minute spinner vocabulary as the
-// availability flow's `<OhTimePicker>` — single source of truth for
-// "pick a length of time" across the dashboard.
+// Each chip / "Add duration" button is the trigger of its own
+// `<Popover>` whose inner content reuses the hour/minute spinner
+// vocabulary `<OhTimePicker>` ships. Outside-click discards; Save /
+// Add commits via the footer button.
 //
-// Server-truth via `users.me`; mutation persists the FULL list in
-// one call (server schema dedup+sorts via the transform). The Popover
-// owns its own draft state internally so closing without saving
-// discards any unsaved changes — close-on-outside is the dismiss
-// signal.
+// Server-truth via `users.me`; mutation persists the FULL list in one
+// call (server schema dedup+sorts via the transform).
 
 const FALLBACK_DEFAULT_MINUTES = 30;
 
@@ -41,13 +35,13 @@ export function DurationFields() {
   }
 
   async function handleEditCommit(original: number, picked: number) {
-    if (picked === original) return; // no-op
+    if (picked === original) return;
     const next = list.filter((m) => m !== original).concat(picked);
     await persist(next);
   }
 
   async function handleAddCommit(picked: number) {
-    if (list.includes(picked)) return; // duplicate guard already in popover
+    if (list.includes(picked)) return;
     await persist([...list, picked]);
   }
 
@@ -80,24 +74,43 @@ export function DurationFields() {
           <EmptyDurations />
         ) : (
           <ul className="flex flex-col gap-2.5" role="list">
-            {list.map((minutes) => (
-              <li key={minutes}>
-                <OhDurationPicker
-                  mode="edit"
-                  initialMinutes={minutes}
-                  onCommit={(picked) => handleEditCommit(minutes, picked)}
-                  onRemove={() => handleRemove(minutes)}
-                  isPending={setDurations.isPending}
-                  existingMinutes={list.filter((m) => m !== minutes)}
-                  labels={pickerLabels}
-                >
-                  <DurationChipTrigger
-                    minutes={minutes}
-                    isDefault={minutes === defaultMinutes}
+            {list.map((minutes) => {
+              const summary = formatDurationSummary(minutes, t);
+              const isDefault = minutes === defaultMinutes;
+              return (
+                <li key={minutes}>
+                  <OhDurationPicker
+                    mode="edit"
+                    initialMinutes={minutes}
+                    onCommit={(picked) => handleEditCommit(minutes, picked)}
+                    onRemove={() => handleRemove(minutes)}
+                    isPending={setDurations.isPending}
+                    existingMinutes={list.filter((m) => m !== minutes)}
+                    labels={pickerLabels}
+                    triggerAriaLabel={t("durationsEditAria", { label: summary })}
+                    triggerClassName="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[0_4px_16px_rgba(0,0,0,0.28)]"
+                    triggerContent={
+                      <>
+                        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                          <span className="oh-eyebrow">
+                            {isDefault
+                              ? t("durationsValueLabel")
+                              : t("durationsValueLegend")}
+                          </span>
+                          <span className="text-[18px] leading-[1.1] font-black tabular-nums">
+                            {summary}
+                          </span>
+                        </span>
+                        <ChevronRightIcon
+                          className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover:opacity-100 group-data-[popup-open]:rotate-90 group-data-[popup-open]:opacity-100"
+                          aria-hidden
+                        />
+                      </>
+                    }
                   />
-                </OhDurationPicker>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
 
@@ -108,12 +121,22 @@ export function DurationFields() {
           existingMinutes={list}
           labels={pickerLabels}
           disabled={!canAdd}
-        >
-          <AddDurationTrigger
-            label={t("durationsAddLabel")}
-            disabled={!canAdd}
-          />
-        </OhDurationPicker>
+          triggerClassName={cn(
+            // Mirrors the ohGhost variant's chrome on /availability's
+            // "Add more hours" CTA: mobile dotted full-width + desktop
+            // content-sized link-style.
+            "oh-focus-ring inline-flex items-center justify-center gap-2 rounded-(--oh-r-sm) px-4 py-2 text-[13px] font-mono font-bold tracking-[2px] uppercase transition-colors duration-150 ease-oh",
+            "w-full border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent hover:bg-[var(--oh-tint)]",
+            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
+            "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
+          )}
+          triggerContent={
+            <>
+              <PlusIcon className="size-4" />
+              {t("durationsAddLabel")}
+            </>
+          }
+        />
       </div>
     </section>
   );
@@ -128,83 +151,6 @@ function EmptyDurations() {
     </div>
   );
 }
-
-// Trigger element for an existing duration chip — Base UI Popover
-// renders the trigger via `render={children}`, so this component
-// must be valid as a `<button>` it can clone its own props onto.
-//
-// `forwardRef` + spread props let Base UI's Trigger inject the click/
-// keyboard handlers + aria attributes. `data-popup-open` toggles when
-// the popover opens — used to rotate the chevron + bump the shadow.
-
-const DurationChipTrigger = forwardRef<
-  HTMLButtonElement,
-  ComponentPropsWithoutRef<"button"> & {
-    minutes: number;
-    isDefault: boolean;
-  }
->(function DurationChipTrigger(
-  { minutes, isDefault, className, ...rest },
-  ref,
-) {
-  const t = useTranslations("Profile");
-  const summary = formatDurationSummary(minutes, t);
-  return (
-    <button
-      ref={ref}
-      type="button"
-      {...rest}
-      aria-label={t("durationsEditAria", { label: summary })}
-      className={cn(
-        "group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[0_4px_16px_rgba(0,0,0,0.28)]",
-        className,
-      )}
-    >
-      <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="oh-eyebrow">
-          {isDefault ? t("durationsValueLabel") : t("durationsValueLegend")}
-        </span>
-        <span className="text-[18px] leading-[1.1] font-black tabular-nums">
-          {summary}
-        </span>
-      </span>
-      <ChevronRightIcon
-        className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover:opacity-100 group-data-[popup-open]:rotate-90 group-data-[popup-open]:opacity-100"
-        aria-hidden
-      />
-    </button>
-  );
-});
-
-const AddDurationTrigger = forwardRef<
-  HTMLButtonElement,
-  ComponentPropsWithoutRef<"button"> & {
-    label: string;
-    disabled?: boolean;
-  }
->(function AddDurationTrigger(
-  { label, disabled, className, ...rest },
-  ref,
-) {
-  return (
-    <Button
-      ref={ref}
-      type="button"
-      variant="ohGhost"
-      size="oh"
-      disabled={disabled}
-      {...rest}
-      className={cn(
-        // Same dual-mode shape as availability's "Add more hours" CTA.
-        "w-full justify-center border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent",
-        "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
-        className,
-      )}
-    >
-      <PlusIcon /> {label}
-    </Button>
-  );
-});
 
 // "75 min" → "1 hr 15 min", "60" → "1 hr", "30" → "30 min".
 function formatDurationSummary(

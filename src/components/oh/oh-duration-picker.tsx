@@ -57,29 +57,32 @@ export type OhDurationPickerProps = {
   onRemove?: () => Promise<void> | void;
   /** True while a parent mutation is in flight — disables footer buttons + close. */
   isPending?: boolean;
-  /** The trigger element (rendered as the popover anchor). */
-  children: ReactNode;
+  /**
+   * Trigger content — rendered INSIDE `<Popover.Trigger>` (which
+   * itself is a `<button>`). Mirrors `<OhTimePicker>`'s pattern of
+   * letting the caller compose the trigger's inner spans + icons
+   * while Base UI owns the button element + click/keyboard wiring.
+   */
+  triggerContent: ReactNode;
+  /** Class names applied to the `<button>` rendered by Popover.Trigger. */
+  triggerClassName?: string;
+  /** Optional aria-label for the trigger button. */
+  triggerAriaLabel?: string;
   /** Disabled state on the trigger. */
   disabled?: boolean;
-  /**
-   * Optional override for the duplicate-value error copy when the
-   * caller already knows the picked minutes collide with an existing
-   * chip. Surfaced as the popover's inline error.
-   */
-  duplicateMessage?: string;
   /** Set of existing minutes values (excluding the one being edited)
    *  used for client-side duplicate detection before commit. */
   existingMinutes?: ReadonlyArray<number>;
   /** Localized strings — caller passes them so the picker stays
    *  i18n-agnostic. */
   labels: {
-    hourLabel: string; // "Hours"
-    minuteLabel: string; // "Minutes"
-    addAction: string; // "Add duration"
-    saveAction: string; // "Save"
-    removeAction: string; // "Remove"
-    rangeError: string; // "Use a number between 5 and 480 minutes."
-    duplicateError: string; // "That duration is already on your list."
+    hourLabel: string;
+    minuteLabel: string;
+    addAction: string;
+    saveAction: string;
+    removeAction: string;
+    rangeError: string;
+    duplicateError: string;
   };
 };
 
@@ -89,7 +92,9 @@ export function OhDurationPicker({
   onCommit,
   onRemove,
   isPending = false,
-  children,
+  triggerContent,
+  triggerClassName,
+  triggerAriaLabel,
   disabled,
   existingMinutes = [],
   labels,
@@ -167,8 +172,11 @@ export function OhDurationPicker({
       <Popover.Trigger
         id={`oh-duration-picker-${reactId}`}
         disabled={disabled}
-        render={children as React.ReactElement}
-      />
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+      >
+        {triggerContent}
+      </Popover.Trigger>
       <Popover.Portal container={portalContainer}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
