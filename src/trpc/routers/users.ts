@@ -12,6 +12,11 @@ import {
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
+import {
+  durationsListSchema,
+  parseDurationsList,
+  resolveDurationChoices,
+} from "@/lib/durations";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 function parseManualSteps(raw: string): OnboardingStepId[] {
@@ -41,10 +46,20 @@ export const users = router({
         onboardingManualSteps: true,
       },
     });
+    const eventType = user.handle
+      ? await prisma.eventType.findFirst({
+          where: { slug: user.handle, hosts: { some: { userId: user.id } } },
+          select: { id: true, durationMins: true, durationMinsList: true },
+        })
+      : null;
     return {
       ...user,
       isAdmin: isAdminHandle(user.handle),
       onboardingManualSteps: parseManualSteps(user.onboardingManualSteps),
+      durations: {
+        defaultMinutes: eventType?.durationMins ?? 15,
+        list: eventType ? parseDurationsList(eventType.durationMinsList) : [],
+      },
     };
   }),
 
@@ -97,7 +112,15 @@ export const users = router({
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      return user;
+      const eventType = await prisma.eventType.findFirst({
+        where: { slug: input.handle, hosts: { some: { userId: user.id } } },
+        select: { durationMins: true, durationMinsList: true },
+      });
+      const durationChoices = eventType
+        ? resolveDurationChoices(eventType)
+        : [15];
+      const defaultDurationMinutes = eventType?.durationMins ?? 15;
+      return { ...user, durationChoices, defaultDurationMinutes };
     }),
 
   setHandle: privateProcedure
@@ -182,6 +205,39 @@ export const users = router({
         data: { timezone: input.timezone },
       });
       return { timezone: input.timezone };
+    }),
+
+  setDurationsList: privateProcedure
+    .input(z.object({ minutes: durationsListSchema }))
+    .mutation(async ({ input, ctx }) => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { id: ctx.user.id },
+        select: { handle: true },
+      });
+      if (!user.handle) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Set your public handle before configuring durations.",
+        });
+      }
+      const eventType = await prisma.eventType.findFirst({
+        where: {
+          slug: user.handle,
+          hosts: { some: { userId: ctx.user.id } },
+        },
+        select: { id: true },
+      });
+      if (!eventType) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No event type found for your handle.",
+        });
+      }
+      await prisma.eventType.update({
+        where: { id: eventType.id },
+        data: { durationMinsList: JSON.stringify(input.minutes) },
+      });
+      return { minutes: input.minutes };
     }),
 
   deleteAccount: privateProcedure.mutation(async ({ ctx }) => {

@@ -123,6 +123,7 @@ model EventType {
   slug         String
   name         String
   durationMins Int             @default(15)
+  durationMinsList String       @default("[]")
   hosts        EventTypeHost[]
   bookings     Booking[]
   createdAt    DateTime        @default(now())
