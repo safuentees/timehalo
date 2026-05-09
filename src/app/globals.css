@@ -2231,31 +2231,8 @@
   border-top: 1px solid var(--oh-line-strong);
 }
 
-.dark .oh-v1 {
-  border: 0;
-  box-shadow: var(--oh-shadow-resting);
-}
-
-.dark .oh-trigger-card {
-  border: 0;
-  box-shadow: var(--oh-shadow-resting);
-}
-.dark .oh-trigger-card:hover,
-.dark .oh-trigger-card:focus-visible {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-hover);
-}
-.dark .oh-trigger-card--full {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-resting);
-}
-.dark .oh-trigger-card--full:hover,
-.dark .oh-trigger-card--full:focus-visible {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-hover);
+.oh-handle-morph-card {
+  box-shadow: var(--oh-handle-card-shadow);
 }
 
 .oh-drawer-overlay,
