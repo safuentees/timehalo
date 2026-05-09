@@ -131,27 +131,35 @@ function WebhooksForWorkspace({
         </div>
       ) : null}
 
-      <div className="mt-5">
-        {isLoading ? (
-          <p className="text-[13px] opacity-55">{t("loading")}</p>
-        ) : !subs || subs.length === 0 ? (
-          <NoSubsEmpty />
-        ) : (
-          <ul role="list" className="flex flex-col gap-2.5">
-            {subs.map((s) => (
-              <li key={s.publicUid}>
-                <WebhookRow
-                  slug={slug}
-                  publicUid={s.publicUid}
-                  subscriberUrl={s.subscriberUrl}
-                  events={s.events}
-                  active={s.active}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* List slot — skipped entirely when the user is locked AND has
+          no subscriptions. The upgrade prompt below already
+          communicates "you can't use this feature yet"; an additional
+          "No webhooks yet" empty above would stack two empty-state
+          messages. If a downgraded user still has subscriptions,
+          render them so they can delete. */}
+      {!isLocked || (subs && subs.length > 0) ? (
+        <div className="mt-5">
+          {isLoading ? (
+            <p className="text-[13px] opacity-55">{t("loading")}</p>
+          ) : !subs || subs.length === 0 ? (
+            <NoSubsEmpty />
+          ) : (
+            <ul role="list" className="flex flex-col gap-2.5">
+              {subs.map((s) => (
+                <li key={s.publicUid}>
+                  <WebhookRow
+                    slug={slug}
+                    publicUid={s.publicUid}
+                    subscriberUrl={s.subscriberUrl}
+                    events={s.events}
+                    active={s.active}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         {isLocked ? <UpgradePrompt /> : <WebhookCreateDialog slug={slug} />}
