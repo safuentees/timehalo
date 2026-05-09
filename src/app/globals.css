@@ -1664,7 +1664,7 @@
 
 .oh-v1 {
   width: 100%;
-  max-width: 520px;
+  max-width: 560px;
   margin: 0 auto;
   border: 1.5px solid var(--oh-line);
   border-radius: var(--oh-r-sm);
@@ -1828,11 +1828,16 @@
 .oh-v1-name {
   margin: 4px 0 2px;
   font-weight: 900;
-  font-size: clamp(40px, 12cqi, 64px);
+  font-size: clamp(32px, 12cqi, 60px);
   line-height: 0.92;
   letter-spacing: -0.04em;
   text-wrap: balance;
+  hyphens: auto;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .oh-v1-bio {
   margin: 0;
