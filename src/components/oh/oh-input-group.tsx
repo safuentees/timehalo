@@ -105,7 +105,6 @@ function OhInputGroupInput({
 }: React.ComponentProps<typeof InputGroupInput>) {
   return (
     <InputGroupInput
-      data-slot="brutalist-input-group-input"
       className={cn(
         "px-3 py-2.5 text-[15px] text-(color:--oh-ink) placeholder:text-(color:--oh-placeholder)",
         className,
