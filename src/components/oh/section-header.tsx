@@ -25,7 +25,9 @@ export function SectionHeader({
           </h2>
         ) : null}
         {description ? (
-          <p className="oh-description mt-3">{description}</p>
+          <p className="mt-4 text-[13px] leading-[1.5] opacity-65">
+            {description}
+          </p>
         ) : null}
       </div>
       {action ? <div className="shrink-0 self-start">{action}</div> : null}
