@@ -223,28 +223,37 @@
      to the depth feel propagates app-wide. */
   --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
-  /* Card/chip elevation tokens. Light mode uses dark drop shadows on
-     a light surface — straightforward "object floats above paper"
-     reading. Single source of truth so the dark-mode override below
-     can swap the entire vocabulary at once. Pre-tokenization, these
-     values were inlined as `shadow-[var(--oh-shadow-resting)]` in
-     14+ callsites, which made dark-mode parity impossible without
-     touching every file. */
-  --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
-  --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
+  /* Card/chip elevation tokens. Light mode pairs a dark drop shadow
+     ("object floats above paper") with an inset white rim highlight
+     on the top edge — a 1px pseudo-bevel simulating light catching
+     the upper face. Same idiom Linear / Vercel / GitHub use on
+     primary buttons in light mode; on cream paper the white
+     highlight reads as a subtle shine, not a stripe. Combined with
+     the drop shadow the surface gets a skeuomorphic emboss without
+     overdoing either side. Single source of truth so the
+     dark-mode override below can swap the entire vocabulary at
+     once. */
+  --oh-shadow-resting:
+    0 3px 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --oh-shadow-hover:
+    0 4px 16px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   /* Floated surfaces — popovers, menu popups, drawer top-edge.
      Two-layer drop (longer soft + shorter contact) so a popover
      visibly floats above the page-level shadow plane that
-     `--oh-shadow-resting` defines. Theme override below in `.dark`
-     keeps the same depth metaphor with a rim highlight + deeper
-     drop. */
+     `--oh-shadow-resting` defines. Inset rim catches the upper
+     face same as the chip tokens. */
   --oh-shadow-popup:
     0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18);
+    0 4px 12px -6px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   /* Drawer top-edge shadow — the slim band above a bottom-sheet so
      the sheet visibly lifts off the page. Light mode: dark drop
-     bleeding upward; dark mode: lighter rim + deeper drop. */
-  --oh-shadow-drawer-edge: 0 -18px 44px rgba(0, 0, 0, 0.28);
+     bleeding upward + inset rim highlight on the upper face. */
+  --oh-shadow-drawer-edge:
+    0 -18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
