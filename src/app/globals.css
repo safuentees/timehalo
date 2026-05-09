@@ -267,13 +267,16 @@
     grid-template-columns: 1fr auto 1fr;
     column-gap: 12px;
   }
-  .oh-dashboard-bar > :first-child {
+  .oh-dashboard-bar > [data-bar-slot="start"] {
+    grid-column: 1;
     justify-self: start;
   }
-  .oh-dashboard-bar > :nth-child(2) {
+  .oh-dashboard-bar > [data-bar-slot="center"] {
+    grid-column: 2;
     justify-self: center;
   }
-  .oh-dashboard-bar > :last-child {
+  .oh-dashboard-bar > [data-bar-slot="end"] {
+    grid-column: 3;
     justify-self: end;
   }
   .oh-dashboard-bar-trigger {

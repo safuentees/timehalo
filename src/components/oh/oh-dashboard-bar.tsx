@@ -73,6 +73,7 @@ export function OhDashboardBar() {
           type="button"
           aria-busy={isPending || undefined}
           data-pending={isPending || undefined}
+          data-bar-slot="center"
         >
           <span className="oh-dashboard-bar-label">{label}</span>
           {isPending ? (
@@ -165,7 +166,7 @@ export function OhDashboardBar() {
         </Menu.Portal>
       </Menu.Root>
 
-      <div className="flex items-center gap-2">
+      <div data-bar-slot="end" className="flex items-center gap-2">
         <ChromeIconLink
           href="/bookings"
           label={t("bookingsAria")}

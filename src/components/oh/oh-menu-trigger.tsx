@@ -95,6 +95,7 @@ export function OhMenuTrigger({ className }: { className?: string }) {
       onClick={toggleSidebar}
       aria-label={openMobile ? t("closeMenu") : t("openMenu")}
       aria-expanded={openMobile}
+      data-bar-slot="start"
       className={cn(
         "inline-flex size-7 items-center justify-center rounded-(--oh-r-xs)",
         "text-[color:var(--oh-ink)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh",
