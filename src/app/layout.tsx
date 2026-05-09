@@ -6,7 +6,6 @@ import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { ViewTransitionsShell } from "./view-transitions-shell";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -48,29 +47,34 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    // ViewTransitionsShell keeps the native View Transitions API on the
-    // dashboard chrome, but opts the public visitor booking surfaces out so
-    // Motion can own their shared-layout modal morphs without a root snapshot.
-    <ViewTransitionsShell>
-      <html
-        lang={locale}
-        suppressHydrationWarning
-        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
-      >
-        <body className="min-h-full flex flex-col">
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <TRPCProvider>{children}</TRPCProvider>
-              <Toaster />
-            </ThemeProvider>
-          </NextIntlClientProvider>
-        </body>
-      </html>
-    </ViewTransitionsShell>
+    // Page transitions are handled per-surface by motion (AnimatePresence
+    // + key={pathname} in OhDashboardLayout for the dashboard, shared-
+    // layout morphs inside HandleModal for the visitor booking flow).
+    // Native View Transitions API is intentionally NOT mounted here —
+    // the previous always-on `<ViewTransitions>` wrapper caused the
+    // dashboard top-bar / sidebar to cross-fade on every internal route
+    // change because their named VT groups were captured + sequenced
+    // even when their visual state was identical between routes. Motion
+    // animates only the panel content slot now, leaving the chrome
+    // visually static.
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TRPCProvider>{children}</TRPCProvider>
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeftIcon, UsersIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";

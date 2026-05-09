@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PanelLeft } from "lucide-react";
@@ -135,8 +135,8 @@ export function OhAppSidebar() {
 // positioning, no SidebarMenuButton's icon/expanded duality — at this
 // width every row is full-width with the label visible). Rendered by
 // OhDashboardLayout inside `oh-host-content-inner` when isMobile &&
-// openMobile. Same `Link` from next-view-transitions so navigation
-// runs through the existing transition machinery; the layout closes
+// openMobile. Plain Next `Link` — page-content fade is owned by
+// motion's AnimatePresence in ContentSlot; the layout closes
 // `openMobile` on pathname change so a tap drops into the new page.
 //
 // Motion (B.PT52 chisel pass):

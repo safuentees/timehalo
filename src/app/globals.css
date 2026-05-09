@@ -3468,42 +3468,27 @@
   }
 }
 
-/* ——— View Transitions API ———
-   Next 16's experimental.viewTransition flag wraps every App Router
-   navigation in `document.startViewTransition()`. The browser snapshots
-   the outgoing and incoming pages and runs the keyframes below to morph
-   between them. Apple-style: outgoing scales down + fades, incoming
-   scales up from 96% with a slight delay. Symmetric so back/forward
-   reads as a reverse of forward/forward without manual direction
-   detection (React 19 stable doesn't ship <ViewTransition>, so we can't
-   branch by transitionType anyway).
+/* ——— Page transitions ———
+   Per-route content fades are owned by motion (AnimatePresence + key=
+   pathname inside ContentSlot in `oh-dashboard-layout.tsx`). Only the
+   page-content slot animates — the sidebar, top-bar, and panel chrome
+   sit OUTSIDE the AnimatePresence subtree and never participate in
+   the fade. The previous always-on `<ViewTransitions>` wrapper +
+   named `oh-chrome-*` VT groups caused the bar/sidebar to cross-fade
+   on every navigation (the API snapshots them regardless of whether
+   their visual state changed) — exactly the artifact the user
+   flagged. Removing the wrapper means no `document.startViewTransition`
+   firing on link clicks, so no chrome snapshot, no chrome cross-fade.
 
-   Tunable bits if it ever feels off:
-   - `cubic-bezier(.2,.8,.2,1)` is Apple's "smooth out" — the easeOutExpo
-     family. Steeper start, gentle finish.
-   - 220ms / 280ms is short enough not to feel like a laggy app. Long
-     transitions on snappy user actions are the #1 chisel anti-pattern. */
+   The preview-mode chrome morph (data-oh-preview="true" toggle) below
+   uses plain CSS transitions on transform / opacity / margin / width
+   — single-property animations, compositor-friendly for the bar +
+   sidebar, one layout-affecting transition (panel margin) for the
+   panel — within the per-frame budget on desktop without VT API. */
 
-/* Root contains all persistent chrome (sidebar, topbar, body bg) plus
-   the page content. We OPT IN the page content via .oh-host-content
-   below, which lifts it out of root. Root then has animation:none, so
-   the chrome never gets snapshotted into a transition — no double
-   strokes, no ghosted icons, no edge artifacts at the topbar seam. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none !important;
-}
-
-/* Animated region — only the page-content slot inside the dashboard
-   layout. transform-origin: top center keeps the seam with the topbar
-   sharp; scaling pulls inward from the bottom and sides. Surrounding
-   1% inset shows the body bg (var(--oh-paper)), which matches the
-   page bg, so the scale reads as depth without exposing a contrasting
-   frame. */
 .oh-host-content {
   /* STATIC frame — paper bg + rounded corners + margin from the
-     surrounding --oh-frame. NOT a view-transition target so the
-     panel doesn't fade between routes; only its children do. */
+     surrounding --oh-frame. */
   background: var(--oh-paper);
   border-radius: var(--oh-r-window);
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
@@ -3540,250 +3525,76 @@
 
 .oh-host-content-inner {
   /* Sizing for the Radix ScrollArea Root. Radix sets `position: relative`
-     inline on Root (verified in node_modules/@radix-ui/react-scroll-area
-     /dist/index.mjs) — inline style beats className, so an `position:
-     absolute` override here is silently ignored. Per the Radix maintainers'
-     guidance (github.com/radix-ui/primitives/discussions/1485): set
-     explicit height/width on Root, then the Viewport's `size-full`
-     resolves and `overflow-y: scroll` kicks in when content exceeds
-     Root's height. Parent (.oh-host-content) is exactly viewport-anchored,
-     so 100% here = exactly 100svh - 24px.
-
-     B.PT65: the `view-transition-name: oh-host-content` previously here
-     moved up to `.oh-host-content` (renamed `oh-chrome-panel`). The
-     chrome morph was reworked from layout-thrashing CSS transitions to
-     View Transitions API named groups — see the chrome-morph block at
-     the bottom of this file for the full rationale. */
+     inline on Root — inline style beats className, so an absolute override
+     here is silently ignored. Per the Radix maintainers' guidance
+     (github.com/radix-ui/primitives/discussions/1485): set explicit
+     height/width on Root, then the Viewport's `size-full` resolves and
+     `overflow-y: scroll` kicks in when content exceeds Root's height.
+     Parent (.oh-host-content) is exactly viewport-anchored, so 100% here
+     = exactly 100svh - 24px - bar height. */
   width: 100%;
   height: 100%;
 }
 
-/* Fade-only, sequenced. Default View Transitions API behavior is a
-   cross-fade: old goes opacity 1→0 over the duration, new goes 0→1
-   over the same window — both visible at once, which reads as the
-   "ghost overlap" the user flagged. We sequence instead: old fully
-   fades out, then new fades in via animation-delay equal to the
-   out-duration. Total transition stays short (~220ms) but with no
-   visual overlap between the old and new content. */
-/* Chrome-morph view-transition groups (B.PT65). The previous CSS-
-   transition approach (B.PT60/B.PT63/B.PT64) animated layout-affecting
-   properties (margin, width, flex-basis, height) on multiple elements
-   simultaneously. On desktop with a visible sidebar this caused per-frame
-   layout thrash — the row's flex distribution recalculated every frame
-   while the panel's margin and the bar's flex slot also recalculated.
-   Frame budget (~16ms at 60Hz) was routinely blown, frames dropped, the
-   morph read as choppy / "snaps in between." Mobile didn't show the
-   issue because `<OhAppSidebar />` returns null at <md — only the bar
-   and panel transitioned, half the layout work.
-
-   Solution: hand the morph to the View Transitions API. Each chrome
-   element (bar, sidebar-gap, sidebar-container, panel) carries a
-   `view-transition-name`. On route change between (host)/* and
-   (host)/preview/<handle>, the API snapshots each named element at its
-   OLD bounds + visual state and at its NEW bounds + visual state, then
-   morphs between them on the GPU compositor. Zero main-thread layout
-   work during the transition — the real DOM is hidden behind the
-   snapshots and resumes at the END state when the transition ends.
-
-   The `[data-oh-preview="true"]` rules now declare ONLY the END state
-   (no `transition` declarations) — the property changes are what the
-   browser uses to compute the NEW snapshot. Reverse direction (exit
-   preview) works automatically because the API snapshots both directions.
-
-   The clip rule below targets `oh-chrome-panel` (the rounded panel) so
-   the panel snapshot stays inside the rounded corners during the
-   cross-fade (same B.PT63 fix applied to the renamed group). */
-
-::view-transition-group(oh-chrome-panel) {
-  border-radius: var(--oh-r-window);
-  overflow: hidden;
-  /* Solid paper background BEHIND the cross-fading snapshots (B.PT67).
-     The group pseudo-element is the container that morphs position +
-     size during the transition; the snapshots inside it fade in/out
-     per the sequenced keyframes. Without this bg, when the OLD
-     snapshot fades from opacity 1 → 0 (and before the NEW one fades
-     in), the panel area becomes transparent and the surrounding cream
-     frame (`--oh-frame`) shows through — reads as the panel's paper
-     bg "fading away with the content," which the user flagged as the
-     remaining choppy artifact on desktop. Painting paper on the group
-     itself means the morphing container always shows paper-colored
-     fill regardless of snapshot opacity. The snapshots' own paper bg
-     stacks on top of this; both layers are paper, so the cross-fade
-     reads as content-only swap with a stable bg — exactly the visual
-     contract the chrome morph should have. */
-  background: var(--oh-paper);
-}
-
-/* Group runs the position/size morph (the visible chrome motion). */
-::view-transition-group(oh-chrome-bar),
-::view-transition-group(oh-chrome-sidebar),
-::view-transition-group(oh-chrome-panel) {
-  animation-duration: 380ms;
-  animation-timing-function: var(--ease-oh);
-}
-
-/* Stacking order for the chrome-morph snapshots (B.PT68). Per the View
-   Transitions API spec, `::view-transition-group(name)` inherits z-stacking
-   from the captured element's original z-index. The shadcn sidebar
-   primitive ships `fixed inset-y-0 z-10` on `[data-slot="sidebar-container"]`
-   (sidebar.tsx:233) so the sidebar's snapshot lands at z=10 — ABOVE the
-   panel snapshot (z auto = 0). When the sidebar fades out during preview
-   entry, its snapshot overlays the panel during the cross-fade — visually
-   reads as the disappearing sidebar floating on top of the morph instead
-   of receding behind it. Override: send sidebar groups under the panel
-   group so the fade-out happens behind the chrome that's becoming the
-   focal point. */
-::view-transition-group(oh-chrome-sidebar) {
-  z-index: 0;
-}
-
-::view-transition-group(oh-chrome-panel) {
-  z-index: 1;
-}
-
-/* Sequenced cross-fade (B.PT66): old fully fades out, then new fades in
-   — no overlap window. The default UA cross-fade runs old AND new
-   simultaneously over the same window with `mix-blend-mode: plus-lighter`,
-   which is supposed to keep the visual sum at ~100% throughout the
-   overlap. In practice the panel snapshot (the only one whose CONTENT
-   differs between routes — bar/sidebar contents are identical so their
-   cross-fades are no-ops) showed both `BookingsList` and the new visitor
-   surface ghosting at ~50% midpoint. Sequencing replaces the overlap
-   with a sub-frame "swap moment" at 190ms — old is gone, new just
-   starting — which reads as a snap rather than a ghost. The position/size
-   morph on the group continues uninterrupted over the full 380ms so the
-   chrome motion is unaffected. Same shape we shipped in B.PT63 before
-   the B.PT65 restructure flattened it into the UA default. */
-::view-transition-old(oh-chrome-bar),
-::view-transition-old(oh-chrome-sidebar),
-::view-transition-old(oh-chrome-panel) {
-  animation: oh-vt-fade-out 190ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-::view-transition-new(oh-chrome-bar),
-::view-transition-new(oh-chrome-sidebar),
-::view-transition-new(oh-chrome-panel) {
-  animation: oh-vt-fade-in 190ms cubic-bezier(0, 0, 0.2, 1) 190ms both;
-}
-
-/* Panel snapshot aspect-ratio fix (B.PT71). Per Jake Archibald
-   (jakearchibald.com/2024/view-transitions-handling-aspect-ratio-changes/),
-   the View Transitions API default sets `width: 100%` on
-   `::view-transition-old/new` snapshots but leaves `height: auto` to
-   preserve the snapshot's intrinsic aspect ratio. When the panel morphs
-   from full-bleed (preview aspect) to dashboard-shaped bounds (different
-   aspect), the snapshot's fixed aspect doesn't match the morphing group
-   bounds — vertical gap or overflow during the morph reads as a "twitch."
-   Forcing `height: 100%` makes both snapshots fill the group's morphing
-   height; combined with the existing `overflow: hidden` on the group,
-   any aspect distortion is contained within the rounded clip. The
-   content slightly stretches but the morph reads as continuous, not
-   jittery. */
-::view-transition-old(oh-chrome-panel),
-::view-transition-new(oh-chrome-panel) {
-  height: 100%;
-}
-
-@keyframes oh-vt-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes oh-vt-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Chrome elements opt INTO named view-transition groups (B.PT65). The
-   API snapshots each at OLD bounds + visual state and at NEW bounds +
-   visual state, then morphs between them on the GPU compositor.
-   - `.oh-dashboard-bar`: top bar; in preview the snapshot shows it
-     translated up + faded out (set by [data-oh-preview="true"] rules).
-   - `[data-slot="sidebar-gap"]`: flex placeholder; snapshot shows it
-     collapsed to 0 width in preview.
-   - `[data-slot="sidebar-container"]`: the visible fixed-positioned
-     sidebar; snapshot shows it faded out in preview.
-   - `.oh-host-content`: the rounded panel; snapshot shows it pulled in
-     to uniform 12px margin in preview.
-   At <md the sidebar primitive renders with `display: none` (hidden md:block);
-   the browser doesn't capture snapshots of non-rendered elements, so
-   the sidebar VT names are no-ops on mobile — no need to scope them. */
-.oh-dashboard-bar {
-  view-transition-name: oh-chrome-bar;
-}
-[data-slot="sidebar-container"] {
-  view-transition-name: oh-chrome-sidebar;
-}
-.oh-host-content {
-  view-transition-name: oh-chrome-panel;
-}
-
-/* `[data-slot="sidebar-gap"]` was previously named `oh-chrome-sidebar-gap`
-   for the VT API, but it's a transparent flex placeholder — its width
-   morph (0 ↔ 192px) has no visual content. Snapshotting it added an
-   adjacent VT group whose right edge sat against the panel group's left
-   edge during the morph; sub-pixel rounding between the two independent
-   groups produced a 1px boundary jitter that compounded the panel's
-   aspect-ratio twitch (B.PT71). Removing the VT name lets the gap
-   width snap instantly in real DOM (no animation, no thrash because
-   it's a one-time layout change while the panel's VT snapshot covers
-   the visible area). The panel's NEW group bounds are computed AFTER
-   the DOM update so it still morphs to the correct dashboard position. */
-
-/* Mobile inline menu — opt the panel content out of its own VT group
-   while the menu is rendered. Original B.PT49-era reasoning still
-   applies: the route-change cross-fade snapshots panel content twice
-   (once with the menu, once with whatever ContentSlot renders after
-   the React commit), producing a fight with the GSAP exit animation
-   on the menu rows. With B.PT65 the VT name moved from the inner
-   ScrollArea to the panel — the opt-out follows. The bar + sidebar
-   VT names stay (they're outside the menu's content area, never
-   render the menu). */
-html:has([data-oh-mobile-menu="true"]) .oh-host-content {
-  view-transition-name: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
-
 /* ────────────────────────────────────────────────────────────────────
-   Preview-mode chrome morph (B.PT60).
+   Preview-mode chrome morph.
 
    When the dashboard wraps a `/preview/<handle>` route, the shell carries
-   `data-oh-preview="true"`. The host's view of their own public booking
-   page renders inside the panel; the chrome animates AWAY around it so
-   the host sees what a visitor would see — bar slides up, sidebar fades,
-   panel margin equalizes from `12px 12px 12px 0` to a uniform `12px`.
+   `data-oh-preview="true"`. The host sees what a visitor would see —
+   bar slides up, sidebar fades, panel margin equalizes from
+   `12px 12px 12px 0` to a uniform `12px`.
 
-   No GSAP — pure CSS transitions on the actual properties (height,
-   margin, opacity, transform). The duration (380ms) sits longer than
-   the View Transitions API fade (~220ms) that wraps the inner content
-   swap; the two animations layer cleanly because they target different
-   element trees (chrome vs. content).
+   Plain CSS transitions on the property changes that the
+   `[data-oh-preview="true"]` selector toggles. Compositor-friendly
+   for bar (transform/opacity) and sidebar (opacity); a single
+   layout-affecting transition on the panel margin + a non-animated
+   width snap on the sidebar-gap covers the layout-row redistribution
+   in one frame burst at the start, then the visible animation rides
+   transform/opacity for the rest of the duration.
+
+   No View Transitions API anywhere on the dashboard — the previous
+   always-on `<ViewTransitions>` wrapper caused the bar/sidebar to
+   cross-fade on every navigation (named VT groups got captured even
+   when their visual state was identical between routes). Removed in
+   favor of motion's `AnimatePresence` in `ContentSlot` for the
+   per-route content fade.
 
    Reverse animation (exit preview → back to dashboard) plays
    automatically when the pathname changes and the data attribute is
-   removed — same transitions, ran in the other direction.
+   removed — same transitions, ran the other direction.
 
    Reduced motion: every transition collapses to 0ms via the @media
    block at the bottom of this section.
    ──────────────────────────────────────────────────────────────────── */
 
-/* Property overrides for the preview state (B.PT65). NO `transition`
-   declarations — the View Transitions API drives the morph via GPU
-   snapshots. These rules just declare WHAT the chrome looks like in
-   preview mode; the API computes the OLD vs NEW bounds + visuals and
-   morphs between them. Real DOM is hidden behind the snapshots during
-   the transition, so the property changes are effectively instant on
-   the real DOM (transitions on layout-affecting properties were the
-   source of the desktop chop in B.PT60-B.PT64). */
+.oh-dashboard-bar {
+  /* Idle: the bar sits in place; transitions only fire when
+     [data-oh-preview="true"] flips one of these properties. Single
+     property list keeps the morph snappy on entry + exit. */
+  transition:
+    transform 380ms var(--ease-oh),
+    opacity 380ms var(--ease-oh),
+    height 380ms var(--ease-oh),
+    padding-block 380ms var(--ease-oh);
+  will-change: transform, opacity;
+}
+
+[data-slot="sidebar-container"] {
+  transition: opacity 380ms var(--ease-oh);
+  will-change: opacity;
+}
+
+[data-slot="sidebar-gap"] {
+  /* Width snap is intentionally instant — animating it would compound
+     with the panel's margin transition into per-frame flex thrash on
+     the .oh-app row. Snapping at the START of the morph means the
+     row flex distribution settles in one frame and the panel's
+     margin transition then rides on a stable layout. */
+}
+
+.oh-host-content {
+  transition: margin 380ms var(--ease-oh);
+}
 
 .oh-app-shell[data-oh-preview="true"] {
   --oh-dashboard-bar-block: 0px;
@@ -3812,58 +3623,10 @@ html:has([data-oh-mobile-menu="true"]) .oh-host-content {
   margin: 12px;
 }
 
-/* Firefox fallback (B.PT69). Firefox's same-document View Transitions
-   API (133+) has known issues with `position: fixed` element snapshots
-   (Mozilla Bugzilla #1688813; storybookjs/storybook#33631 confirmed
-   Firefox 134+ miscalculates VT snapshot coordinates when transformed
-   parents create containing blocks). Our sidebar primitive's
-   `[data-slot="sidebar-container"]` is `position: fixed; z-10` — exactly
-   the bug class. Even Firefox 144 (Oct 2025), which shipped more
-   complete VT support, still hits the corner case for our setup.
-
-   Strategy: detect Firefox at runtime (in oh-dashboard-layout via UA
-   string), tag documentElement with `.oh-firefox`. In Firefox, drop the
-   view-transition-name on the chrome elements so the API doesn't try
-   (and fail) to snapshot them, and instead run a simple CSS-transition
-   on the panel's margin. Bar/sidebar snap (no morph) — acceptable
-   degradation since they're secondary to the panel's expansion. The
-   CSS-transition is a single property on a single element so the
-   layout-thrash that motivated B.PT65's VT-API rewrite isn't an issue.
-
-   When Firefox's VT implementation fully matches Chrome/Safari (likely
-   a future release post-144), we can remove `.oh-firefox` and the
-   detection effect — every browser falls into the GPU-driven morph. */
-
-/* B.PT70 — opt the ROOT element out of VT in Firefox. The html element
-   has an implicit `view-transition-name: root` per spec. When a VT runs,
-   the root snapshot covers the page (~250ms default) and the real DOM
-   is rendered as `visibility: hidden` underneath — so any CSS transition
-   on a real DOM element runs INVISIBLY during the VT window. Our B.PT69
-   fix added `transition: margin 380ms` on `.oh-host-content`, but that
-   transition was running behind the root snapshot — by the time the
-   snapshot was removed, the CSS transition had ~130ms left, which read
-   as a "snap." Setting `view-transition-name: none` on `:root.oh-firefox`
-   excludes root from VT participation; with no participants in Firefox
-   (chrome elements + root all opted out), there's no snapshot overlay,
-   real DOM stays painted, and the CSS transition plays fully visible.
-   `!important` belt-and-suspenders against the implicit-root default. */
-:root.oh-firefox {
-  view-transition-name: none !important;
-}
-
-:root.oh-firefox .oh-dashboard-bar,
-:root.oh-firefox [data-slot="sidebar-gap"],
-:root.oh-firefox [data-slot="sidebar-container"],
-:root.oh-firefox .oh-host-content {
-  view-transition-name: none;
-}
-
-:root.oh-firefox .oh-host-content {
-  transition: margin 380ms var(--ease-oh);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  :root.oh-firefox .oh-host-content {
+  .oh-dashboard-bar,
+  [data-slot="sidebar-container"],
+  .oh-host-content {
     transition-duration: 0ms;
   }
 }

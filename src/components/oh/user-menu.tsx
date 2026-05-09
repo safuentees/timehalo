@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { Menu } from "@base-ui/react/menu";
 import { useTheme } from "next-themes";
 import { useLocale, useTranslations } from "next-intl";
