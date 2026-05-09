@@ -15,7 +15,7 @@ export const HandleMorphCard = forwardRef<HTMLElement, HandleMorphCardProps>(
         {...props}
         style={{
           ...HANDLE_CARD_RADIUS_STYLE,
-          boxShadow: "inset 0 0 15px rgba(0,0,0,0.25)",
+          boxShadow: "var(--oh-handle-card-shadow)",
           ...style,
         }}
         className={cn(
