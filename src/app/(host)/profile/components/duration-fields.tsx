@@ -5,18 +5,14 @@ import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
 import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
-import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
-
-const FALLBACK_DEFAULT_MINUTES = 30;
 
 export function DurationFields() {
   const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
   const list = me?.durations.list ?? [];
-  const defaultMinutes =
-    me?.durations.defaultMinutes ?? FALLBACK_DEFAULT_MINUTES;
+  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
 
   const setDurations = useSetDurations();
 
@@ -43,13 +39,8 @@ export function DurationFields() {
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
 
   const pickerLabels = {
-    hourLabel: t("durationsHourLabel"),
-    minuteLabel: t("durationsMinuteLabel"),
-    addAction: t("durationsAdd"),
-    saveAction: t("durationsSave"),
-    removeAction: t("durationsRemove"),
-    rangeError: t("durationsRangeError"),
-    duplicateError: t("durationsDuplicateError"),
+    minuteSuffix: t("durationsMinuteSuffix"),
+    removeAria: t("durationsRemove"),
   };
 
   return (
@@ -60,9 +51,9 @@ export function DurationFields() {
         description={t("durationsDescription")}
       />
       <div className="mt-5 flex flex-col gap-3">
-        {list.length === 0 ? (
-          <EmptyDurations />
-        ) : (
+        {list.length === 0 ? <EmptyDurations /> : null}
+
+        {list.length > 0 ? (
           <ul className="flex flex-col gap-2.5" role="list">
             {list.map((minutes) => {
               const summary = formatDurationSummary(minutes, t);
@@ -74,7 +65,6 @@ export function DurationFields() {
                     initialMinutes={minutes}
                     onCommit={(picked) => handleEditCommit(minutes, picked)}
                     onRemove={() => handleRemove(minutes)}
-                    isPending={setDurations.isPending}
                     existingMinutes={list.filter((m) => m !== minutes)}
                     labels={pickerLabels}
                     triggerAriaLabel={t("durationsEditAria", { label: summary })}
@@ -102,27 +92,17 @@ export function DurationFields() {
               );
             })}
           </ul>
-        )}
+        ) : null}
 
         <OhDurationPicker
           mode="add"
           onCommit={handleAddCommit}
-          isPending={setDurations.isPending}
           existingMinutes={list}
           labels={pickerLabels}
           disabled={!canAdd}
-          triggerClassName={cn(
-            "oh-focus-ring inline-flex items-center justify-center gap-2 rounded-(--oh-r-sm) px-4 py-2 text-[13px] font-mono font-bold tracking-[2px] uppercase transition-colors duration-150 ease-oh",
-            "w-full border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent hover:bg-[var(--oh-tint)]",
-            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
-            "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
-          )}
-          triggerContent={
-            <>
-              <PlusIcon className="size-4" />
-              {t("durationsAddLabel")}
-            </>
-          }
+          triggerAriaLabel={t("durationsAddLabel")}
+          triggerClassName="oh-focus-ring inline-flex size-9 items-center justify-center self-start rounded-(--oh-r-sm) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)]"
+          triggerContent={<PlusIcon className="size-4" strokeWidth={1.75} />}
         />
       </div>
     </section>

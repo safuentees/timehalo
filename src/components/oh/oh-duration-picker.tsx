@@ -10,36 +10,28 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
 } from "@/lib/durations";
 
-const HOUR_MAX = Math.floor(DURATION_MAX_MINUTES / 60); // 8
-const MINUTE_STEP = 5;
-const MINUTE_MAX = 55;
+const SEED_MINUTES = 30;
 
 export type OhDurationPickerProps = {
   initialMinutes?: number;
   mode: "add" | "edit";
   onCommit: (minutes: number) => Promise<void> | void;
   onRemove?: () => Promise<void> | void;
-  isPending?: boolean;
   triggerContent: ReactNode;
   triggerClassName?: string;
   triggerAriaLabel?: string;
   disabled?: boolean;
   existingMinutes?: ReadonlyArray<number>;
   labels: {
-    hourLabel: string;
-    minuteLabel: string;
-    addAction: string;
-    saveAction: string;
-    removeAction: string;
-    rangeError: string;
-    duplicateError: string;
+    minuteSuffix: string;
+    removeAria: string;
   };
 };
 
@@ -48,7 +40,6 @@ export function OhDurationPicker({
   mode,
   onCommit,
   onRemove,
-  isPending = false,
   triggerContent,
   triggerClassName,
   triggerAriaLabel,
@@ -57,43 +48,40 @@ export function OhDurationPicker({
   labels,
 }: OhDurationPickerProps) {
   const reactId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const seedMinutes = initialMinutes ?? 30;
-  const [hours, setHours] = useState(() => Math.floor(seedMinutes / 60));
-  const [minutes, setMinutes] = useState(() => seedMinutes % 60);
+  const [draft, setDraft] = useState<number>(initialMinutes ?? SEED_MINUTES);
+  const [dirty, setDirty] = useState(false);
 
-  const totalMinutes = hours * 60 + minutes;
-  const inRange =
-    totalMinutes >= DURATION_MIN_MINUTES &&
-    totalMinutes <= DURATION_MAX_MINUTES;
-  const isDuplicate = existingMinutes.includes(totalMinutes);
-  const error = !inRange
-    ? labels.rangeError
-    : isDuplicate
-      ? labels.duplicateError
-      : null;
-  const canCommit = error === null && !isPending;
+  const draftRef = useRef(draft);
+  const dirtyRef = useRef(dirty);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+  useEffect(() => {
+    dirtyRef.current = dirty;
+  }, [dirty]);
 
-  const hourRef = useRef<HTMLInputElement>(null);
-  const minuteRef = useRef<HTMLInputElement>(null);
-
-  function handleCommit() {
-    if (!canCommit) return;
-    void onCommit(totalMinutes);
-  }
-
-  function handleRemove() {
-    if (!onRemove) return;
-    void onRemove();
+  function maybeCommitOnClose() {
+    if (!dirtyRef.current) return;
+    const value = draftRef.current;
+    const inRange =
+      value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
+    if (!inRange) return;
+    if (existingMinutes.includes(value)) return;
+    if (mode === "edit" && initialMinutes === value) return;
+    void onCommit(value);
   }
 
   return (
     <Popover.Root
       onOpenChange={(next) => {
         if (next) {
-          const seed = initialMinutes ?? 30;
-          setHours(Math.floor(seed / 60));
-          setMinutes(seed % 60);
+          setDraft(initialMinutes ?? SEED_MINUTES);
+          setDirty(false);
+          requestAnimationFrame(() => inputRef.current?.focus());
+        } else {
+          maybeCommitOnClose();
         }
       }}
     >
@@ -112,81 +100,28 @@ export function OhDurationPicker({
           align="start"
           style={{ zIndex: 100 }}
         >
-          <Popover.Popup className="oh-time-picker-popup">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-end gap-2">
-                <FieldStack labelText={labels.hourLabel}>
-                  <DurationSpinner
-                    ref={hourRef}
-                    field="hours"
-                    value={hours}
-                    onChange={setHours}
-                    onRightFocus={() => minuteRef.current?.focus()}
-                  />
-                </FieldStack>
-                <span
-                  aria-hidden
-                  className="select-none self-end pb-2 text-[18px] font-black opacity-55"
-                >
-                  :
-                </span>
-                <FieldStack labelText={labels.minuteLabel}>
-                  <DurationSpinner
-                    ref={minuteRef}
-                    field="minutes"
-                    value={minutes}
-                    onChange={setMinutes}
-                    onLeftFocus={() => hourRef.current?.focus()}
-                  />
-                </FieldStack>
-              </div>
-
-              {error ? (
-                <p
-                  role="alert"
-                  className="rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-2.5 py-1.5 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-65"
-                >
-                  {error}
-                </p>
-              ) : null}
-
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  onRemove ? "justify-between" : "justify-end",
-                )}
-              >
-                {onRemove ? (
-                  <Popover.Close
-                    render={
-                      <Button
-                        type="button"
-                        variant="ohGhost"
-                        size="oh"
-                        onClick={handleRemove}
-                        disabled={isPending}
-                        className="rounded-(--oh-r-xs)"
-                      />
-                    }
-                  >
-                    {labels.removeAction}
-                  </Popover.Close>
-                ) : null}
+          <Popover.Popup className="oh-duration-picker-popup">
+            <div className="flex items-center gap-3">
+              <DurationField
+                ref={inputRef}
+                value={draft}
+                onChange={(next) => {
+                  setDraft(next);
+                  setDirty(true);
+                }}
+              />
+              <span className="oh-eyebrow opacity-55">
+                {labels.minuteSuffix}
+              </span>
+              {onRemove ? (
                 <Popover.Close
-                  render={
-                    <Button
-                      type="button"
-                      variant="oh"
-                      size="oh"
-                      onClick={handleCommit}
-                      disabled={!canCommit}
-                      className="rounded-(--oh-r-xs)"
-                    />
-                  }
+                  onClick={() => void onRemove()}
+                  aria-label={labels.removeAria}
+                  className="oh-duration-picker-remove"
                 >
-                  {mode === "add" ? labels.addAction : labels.saveAction}
+                  <Trash2 strokeWidth={1.75} className="size-4" aria-hidden />
                 </Popover.Close>
-              </div>
+              ) : null}
             </div>
           </Popover.Popup>
         </Popover.Positioner>
@@ -195,90 +130,58 @@ export function OhDurationPicker({
   );
 }
 
-function FieldStack({
-  labelText,
-  children,
-}: {
-  labelText: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <span className="oh-eyebrow opacity-55">{labelText}</span>
-      {children}
-    </div>
-  );
-}
-
-type SpinnerField = "hours" | "minutes";
-
-interface DurationSpinnerProps {
-  field: SpinnerField;
+interface DurationFieldProps {
   value: number;
   onChange: (next: number) => void;
-  onRightFocus?: () => void;
-  onLeftFocus?: () => void;
 }
 
-const DurationSpinner = forwardRef<HTMLInputElement, DurationSpinnerProps>(
-  ({ field, value, onChange, onRightFocus, onLeftFocus }, ref) => {
-    const max = field === "hours" ? HOUR_MAX : MINUTE_MAX;
-    const step = field === "hours" ? 1 : MINUTE_STEP;
-    const display = String(value).padStart(2, "0");
-
-    const [flag, setFlag] = useState(false);
-    useEffect(() => {
-      if (!flag) return;
-      const t = setTimeout(() => setFlag(false), 2000);
-      return () => clearTimeout(t);
-    }, [flag]);
-
-    function clampForField(n: number) {
-      if (Number.isNaN(n)) return 0;
-      if (n < 0) return 0;
-      if (n > max) return max;
+const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
+  ({ value, onChange }, ref) => {
+    function clamp(n: number) {
+      if (Number.isNaN(n)) return DURATION_MIN_MINUTES;
+      if (n < 0) return 0; // allow 0 mid-typing; range is enforced on commit
+      if (n > DURATION_MAX_MINUTES) return DURATION_MAX_MINUTES;
       return n;
     }
 
     function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-      if (e.key === "Tab") return;
-      e.preventDefault();
-      if (e.key === "ArrowRight") onRightFocus?.();
-      if (e.key === "ArrowLeft") onLeftFocus?.();
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
-        let next = value + step * direction;
-        if (next < 0) next = max;
-        if (next > max) next = 0;
-        if (flag) setFlag(false);
+        const next = clamp(value + 5 * direction);
         onChange(next);
-        return;
-      }
-      if (e.key >= "0" && e.key <= "9") {
-        const digit = Number(e.key);
-        const candidate = flag ? Number(display.slice(1) + e.key) : digit;
-        const clamped = clampForField(candidate);
-        const aligned =
-          field === "minutes" ? Math.round(clamped / step) * step : clamped;
-        if (flag) onRightFocus?.();
-        setFlag((prev) => !prev);
-        onChange(aligned);
       }
     }
 
     return (
       <input
         ref={ref}
-        type="tel"
+        type="number"
         inputMode="numeric"
-        value={display}
-        onChange={(e) => e.preventDefault()}
+        min={0}
+        max={DURATION_MAX_MINUTES}
+        step={5}
+        value={Number.isFinite(value) ? value : ""}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === "") {
+            onChange(0);
+            return;
+          }
+          const parsed = Number(raw);
+          if (!Number.isFinite(parsed)) return;
+          onChange(clamp(Math.round(parsed)));
+        }}
         onKeyDown={handleKeyDown}
-        aria-label={field === "hours" ? "Hours" : "Minutes"}
-        className="oh-time-picker-input"
+        aria-label="Duration in minutes"
+        className={cn(
+          "oh-time-picker-input tabular-nums",
+          "w-auto !min-w-[64px] !px-3",
+        )}
+        style={{ fieldSizing: "content" } as React.CSSProperties}
       />
     );
   },
 );
 
-DurationSpinner.displayName = "DurationSpinner";
+DurationField.displayName = "DurationField";
