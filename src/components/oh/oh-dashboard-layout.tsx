@@ -95,7 +95,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence initial={false}>
       <motion.div
         key={pathname ?? "root"}
         initial={{ opacity: 0 }}
