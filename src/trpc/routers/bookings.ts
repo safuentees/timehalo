@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { env } from "@/env";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
+import { resolveDurationChoices } from "@/lib/durations";
 import { withSpan } from "@/lib/observability";
 import { timezoneSchema } from "@/lib/timezone";
 import { isFeatureEnabled } from "@/lib/feature-flags";
@@ -144,10 +145,35 @@ export const bookings = router({
             });
           }
 
-          const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
-
           const resolvedEventType = await resolveEventTypeForHandle(
             input.handle,
+          );
+
+          let effectiveDurationMinutes: number;
+          if (!resolvedEventType) {
+            effectiveDurationMinutes =
+              input.durationMinutes ?? SLOT_MINUTES;
+          } else {
+            const choices = resolveDurationChoices(resolvedEventType);
+            if (input.durationMinutes === undefined) {
+              effectiveDurationMinutes = resolvedEventType.durationMins;
+            } else if (choices.includes(input.durationMinutes)) {
+              effectiveDurationMinutes = input.durationMinutes;
+            } else {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "That duration isn't available for this host. Pick a configured duration.",
+              });
+            }
+          }
+          span.setAttribute(
+            "durationMinutes",
+            effectiveDurationMinutes,
+          );
+
+          const slotEnd = new Date(
+            slotStart.getTime() + effectiveDurationMinutes * 60_000,
           );
           let pickedHostId = host.id;
           if (resolvedEventType && resolvedEventType.hosts.length > 1) {
@@ -249,6 +275,7 @@ export const bookings = router({
                     question: input.question ?? null,
                     slotStart: created.slotStart.toISOString(),
                     slotEnd: created.slotEnd.toISOString(),
+                    durationMinutes: effectiveDurationMinutes,
                     idempotencyKey: input.idempotencyKey,
                     referrer,
                   },
@@ -291,6 +318,7 @@ export const bookings = router({
                       publicUid: booking.publicUid,
                       slotStart: booking.slotStart.toISOString(),
                       slotEnd: booking.slotEnd.toISOString(),
+                      durationMinutes: effectiveDurationMinutes,
                       visitorName: input.visitorName,
                       visitorEmail: input.visitorEmail,
                       question: input.question ?? null,
@@ -913,9 +941,13 @@ export const bookings = router({
             });
           }
 
-          const newSlotEnd = new Date(
-            newSlotStart.getTime() + SLOT_MINUTES * 60_000,
-          );
+          const originalDurationMs =
+            original.slotEnd.getTime() - original.slotStart.getTime();
+          const durationMs =
+            originalDurationMs > 0
+              ? originalDurationMs
+              : SLOT_MINUTES * 60_000;
+          const newSlotEnd = new Date(newSlotStart.getTime() + durationMs);
 
           try {
             const created = await prisma.$transaction(async (tx) => {

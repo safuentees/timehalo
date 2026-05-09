@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { timezoneSchema } from "@/lib/timezone";
+import { durationMinutesSchema } from "@/lib/durations";
 
 export const bookingInputSchema = z.object({
   handle: z.string().min(1),
@@ -22,6 +23,7 @@ export const bookingInputSchema = z.object({
     .optional()
     .or(z.literal("").transform(() => undefined)),
   visitorTimezone: timezoneSchema.optional(),
+  durationMinutes: durationMinutesSchema.optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingInputSchema>;

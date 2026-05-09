@@ -8,6 +8,7 @@ export type ResolvedEventType = {
   slug: string;
   name: string;
   durationMins: number;
+  durationMinsList: string;
   hosts: ReadonlyArray<RoundRobinHost & { isFixed: boolean; userId: string }>;
 };
 
@@ -37,6 +38,7 @@ export async function resolveEventTypeForHandle(
       slug: true,
       name: true,
       durationMins: true,
+      durationMinsList: true,
       hosts: {
         select: {
           userId: true,
@@ -56,6 +58,7 @@ export async function resolveEventTypeForHandle(
     slug: eventType.slug,
     name: eventType.name,
     durationMins: eventType.durationMins,
+    durationMinsList: eventType.durationMinsList,
     hosts: eventType.hosts.map((h) => ({
       id: h.userId,
       userId: h.userId,

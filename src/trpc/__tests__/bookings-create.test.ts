@@ -2,7 +2,12 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter, createCaller } from "@/trpc/router";
 import { prisma } from "@/lib/prisma";
-import { createTestHost, fakeContext, tearDownTestHost } from "../../../test/fixtures";
+import {
+  createTestEventTypeHostPool,
+  createTestHost,
+  fakeContext,
+  tearDownTestHost,
+} from "../../../test/fixtures";
 
 const callRouter = createCaller(appRouter);
 
@@ -148,5 +153,113 @@ describe("bookings.create idempotency", () => {
       orderBy: { createdAt: "asc" },
     });
     expect(row.workspaceId).toBe(primary.id);
+  });
+});
+
+const DURATION_HANDLE = "vitest-host-durations";
+
+describe("bookings.create durationMinutes", () => {
+  let hostId: string;
+  let slotIso: string;
+
+  beforeAll(async () => {
+    const host = await createTestHost(DURATION_HANDLE);
+    hostId = host.id;
+    await createTestEventTypeHostPool({
+      hostHandle: DURATION_HANDLE,
+      members: [{ userId: host.id, isFixed: true }],
+    });
+    await prisma.eventType.updateMany({
+      where: { slug: DURATION_HANDLE },
+      data: { durationMinsList: JSON.stringify([15, 30, 60]) },
+    });
+    slotIso = nextMondayAt10UTC().toISOString();
+  });
+
+  beforeEach(async () => {
+    await prisma.bookingAudit.deleteMany({});
+    await prisma.task.deleteMany({});
+    await prisma.booking.deleteMany({ where: { hostId } });
+  });
+
+  afterAll(async () => {
+    await tearDownTestHost(hostId);
+  });
+
+  it("falls back to EventType.durationMins when no duration is sent", async () => {
+    const caller = callRouter(fakeContext());
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: slotIso,
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+    });
+    const row = await prisma.booking.findFirstOrThrow({
+      where: { hostId },
+      select: { slotStart: true, slotEnd: true },
+    });
+    const minutes =
+      (row.slotEnd.getTime() - row.slotStart.getTime()) / 60_000;
+    expect(minutes).toBe(15);
+  });
+
+  it("uses the visitor's pick when it sits in the configured choices", async () => {
+    const caller = callRouter(fakeContext());
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: slotIso,
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 30,
+    });
+    const row = await prisma.booking.findFirstOrThrow({
+      where: { hostId },
+      select: { slotStart: true, slotEnd: true },
+    });
+    const minutes =
+      (row.slotEnd.getTime() - row.slotStart.getTime()) / 60_000;
+    expect(minutes).toBe(30);
+  });
+
+  it("rejects a duration that isn't in the configured choices", async () => {
+    const caller = callRouter(fakeContext());
+    await expect(
+      caller.bookings.create({
+        handle: DURATION_HANDLE,
+        slotStart: slotIso,
+        idempotencyKey: crypto.randomUUID(),
+        visitorName: "Alice",
+        visitorEmail: "alice@test.local",
+        durationMinutes: 45,
+      }),
+    ).rejects.toThrow(TRPCError);
+  });
+
+  it("idempotency replay preserves the original duration", async () => {
+    const caller = callRouter(fakeContext());
+    const idempotencyKey = crypto.randomUUID();
+    const input = {
+      handle: DURATION_HANDLE,
+      slotStart: slotIso,
+      idempotencyKey,
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 60,
+    };
+    const first = await caller.bookings.create(input);
+    const second = await caller.bookings.create({
+      ...input,
+      durationMinutes: 15,
+    });
+    expect(first.publicUid).toBe(second.publicUid);
+    const row = await prisma.booking.findFirstOrThrow({
+      where: { idempotencyKey },
+      select: { slotStart: true, slotEnd: true },
+    });
+    const minutes =
+      (row.slotEnd.getTime() - row.slotStart.getTime()) / 60_000;
+    expect(minutes).toBe(60);
   });
 });
