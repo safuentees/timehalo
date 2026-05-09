@@ -17,6 +17,7 @@ type Props<T extends string> = {
   onChange: (next: T) => void;
   ariaLabel?: string;
   className?: string;
+  fullWidth?: boolean;
 };
 
 export function OhPillSwitcher<T extends string>({
@@ -25,6 +26,7 @@ export function OhPillSwitcher<T extends string>({
   onChange,
   ariaLabel,
   className,
+  fullWidth = false,
 }: Props<T>) {
   const layoutId = useId();
 
@@ -35,6 +37,7 @@ export function OhPillSwitcher<T extends string>({
         className={cn(
           "h-auto items-stretch gap-0 rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px] text-foreground",
           "[box-shadow:inset_0_3px_10px_rgba(0,0,0,0.22)]",
+          fullWidth ? "flex w-full" : null,
           className,
         )}
       >
@@ -55,7 +58,8 @@ export function OhPillSwitcher<T extends string>({
               key={opt.value}
               value={opt.value}
               className={cn(
-                "relative h-auto flex-none rounded-[3px] border-0 px-4 py-[7px]",
+                "relative h-auto rounded-[3px] border-0 px-4 py-[7px]",
+                fullWidth ? "flex-1" : "flex-none",
                 "font-sans text-[14px] leading-none",
                 "transition-colors duration-200 outline-none",
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",

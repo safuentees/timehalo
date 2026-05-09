@@ -284,55 +284,60 @@ export function BookingsList({
             onValueChange={onViewChange}
           />
         </div>
+
+        {optimisticView === "list" ? (
+          <>
+            <div className="mt-6">
+              <OhPillSwitcher
+                ariaLabel={t("tablistLabel")}
+                value={optimisticTab}
+                onChange={onTabChange}
+                fullWidth
+                options={[
+                  {
+                    value: "upcoming",
+                    label: (
+                      <BookingsTabLabel
+                        label={t("tabUpcoming")}
+                        count={data?.upcoming.length ?? 0}
+                        isActive={optimisticTab === "upcoming"}
+                      />
+                    ),
+                  },
+                  {
+                    value: "past",
+                    label: (
+                      <BookingsTabLabel
+                        label={t("tabPast")}
+                        count={data?.past.length ?? 0}
+                        isActive={optimisticTab === "past"}
+                      />
+                    ),
+                  },
+                ]}
+              />
+            </div>
+
+            <div className="mt-6">
+              {optimisticTab === "upcoming" ? (
+                <BookingsListPanel
+                  tab="upcoming"
+                  bookings={data?.upcoming ?? []}
+                  onSelect={setSelectedUid}
+                />
+              ) : (
+                <BookingsListPanel
+                  tab="past"
+                  bookings={data?.past ?? []}
+                  onSelect={setSelectedUid}
+                />
+              )}
+            </div>
+          </>
+        ) : null}
       </OhPageShell>
 
-      {optimisticView === "list" ? (
-        <OhPageShell>
-          <OhPillSwitcher
-            ariaLabel={t("tablistLabel")}
-            value={optimisticTab}
-            onChange={onTabChange}
-            options={[
-              {
-                value: "upcoming",
-                label: (
-                  <BookingsTabLabel
-                    label={t("tabUpcoming")}
-                    count={data?.upcoming.length ?? 0}
-                    isActive={optimisticTab === "upcoming"}
-                  />
-                ),
-              },
-              {
-                value: "past",
-                label: (
-                  <BookingsTabLabel
-                    label={t("tabPast")}
-                    count={data?.past.length ?? 0}
-                    isActive={optimisticTab === "past"}
-                  />
-                ),
-              },
-            ]}
-          />
-
-          <div className="mt-6">
-            {optimisticTab === "upcoming" ? (
-              <BookingsListPanel
-                tab="upcoming"
-                bookings={data?.upcoming ?? []}
-                onSelect={setSelectedUid}
-              />
-            ) : (
-              <BookingsListPanel
-                tab="past"
-                bookings={data?.past ?? []}
-                onSelect={setSelectedUid}
-              />
-            )}
-          </div>
-        </OhPageShell>
-      ) : (
+      {optimisticView !== "list" ? (
         <DndContext
           sensors={sensors}
           modifiers={[restrictToFirstScrollableAncestor]}
@@ -425,7 +430,7 @@ export function BookingsList({
           ) : null}
         </DragOverlay>
         </DndContext>
-      )}
+      ) : null}
 
       <BookingDetailModal uid={selectedUid} onUidChange={setSelectedUid} />
 
