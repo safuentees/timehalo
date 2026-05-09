@@ -20,6 +20,7 @@ export function OhSelect({
           "oh-input appearance-none pr-9",
           className,
         )}
+        suppressHydrationWarning
       >
         {children}
       </select>

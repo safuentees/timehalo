@@ -50,7 +50,10 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
   return (
     <section aria-labelledby="timezone-legend">
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          suppressHydrationWarning
+        >
           <SectionHeader
             legendId="timezone-legend"
             legend={t("timezoneLegend")}
