@@ -108,6 +108,66 @@ function useDialogDebug() {
         "[inert], [data-base-ui-inert]",
       )
       log(`inert elements in document: ${inertEls.length}`, [...inertEls])
+      // Print each inert element's identity individually so the
+      // collapsed Array dump in DevTools doesn't hide which one it
+      // is. Tag, classes, parent path — enough to pinpoint without
+      // expanding the object inspector.
+      inertEls.forEach((el, i) => {
+        const path: string[] = []
+        let cursor: Element | null = el
+        let depth = 0
+        while (cursor && depth < 6) {
+          path.unshift(
+            `${cursor.tagName.toLowerCase()}${
+              cursor.id ? `#${cursor.id}` : ""
+            }${
+              cursor.className && typeof cursor.className === "string"
+                ? `.${cursor.className.split(/\s+/).slice(0, 2).join(".")}`
+                : ""
+            }`,
+          )
+          cursor = cursor.parentElement
+          depth++
+        }
+        const containsPopup = el.contains(popup)
+        const isAncestorOfPopup = el !== popup && el.contains(popup)
+        log(
+          `  inert[${i}]: ${path.join(" > ")}${
+            isAncestorOfPopup
+              ? "  ⚠️  IS AN ANCESTOR OF THE POPUP — clicks blocked"
+              : containsPopup
+                ? "  (contains popup)"
+                : ""
+          }`,
+          el,
+        )
+      })
+
+      // Re-check the popup state after the open animation should
+      // have completed. Initial snapshot fires at first paint where
+      // `data-starting-style` keeps opacity at 0 — if the animation
+      // isn't running (tw-animate-css missing under Tailwind v4 +
+      // Turbopack, missing transition target, broken @starting-style
+      // support), the popup stays invisible and the user thinks
+      // clicks aren't working when actually the modal isn't paint-
+      // visible. A 250ms delay covers the canonical 150ms duration
+      // plus animation-frame slop.
+      window.setTimeout(() => {
+        if (!document.contains(popup)) return
+        const after = window.getComputedStyle(popup)
+        log("popup computed AFTER 250ms (post-animation)", {
+          pointerEvents: after.pointerEvents,
+          opacity: after.opacity,
+          visibility: after.visibility,
+          transform: after.transform,
+          dataStartingStyle: popup.getAttribute("data-starting-style"),
+        })
+        if (after.opacity === "0") {
+          log(
+            "⚠️  POPUP IS STILL OPACITY:0 AFTER 250ms — animation/transition didn't run, popup is invisible",
+          )
+        }
+      }, 250)
     }
 
     // Snapshot any popup that's already mounted at hook-mount time.
