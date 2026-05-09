@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { MobileNavContent } from "./oh-app-sidebar";
 import { cn } from "@/lib/utils";
@@ -12,8 +13,6 @@ const SCRIM_BASE = [
   "cursor-pointer",
   "rounded-[inherit]",
   "bg-[color:color-mix(in_srgb,var(--oh-ink)_35%,transparent)]",
-  "supports-[backdrop-filter]:backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-[0.8]",
-  "transition-opacity duration-200 ease-oh",
 ];
 
 const WRAPPER_BASE = [
@@ -52,18 +51,28 @@ export function OhMobileNavOverlay() {
 
   return (
     <>
-      <button
+      <motion.button
         type="button"
         aria-label="Close menu"
         onClick={() => setOpenMobile(false)}
-        className={cn(SCRIM_BASE, closing ? "opacity-0" : "opacity-100")}
+        className={cn(SCRIM_BASE)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: closing ? 0 : 1 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       />
-      <div className={cn(WRAPPER_BASE)}>
+      <motion.div
+        className={cn(WRAPPER_BASE, "bg-oh-paper")}
+        initial={{ clipPath: "inset(0 0 100% 0)" }}
+        animate={{
+          clipPath: closing ? "inset(0 0 100% 0)" : "inset(0 0 0 0)",
+        }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         <MobileNavContent
           closing={closing}
           onExitComplete={handleExitComplete}
         />
-      </div>
+      </motion.div>
     </>
   );
 }

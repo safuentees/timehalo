@@ -9,12 +9,13 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
 } from "@/lib/durations";
+import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 export type OhDurationPickerProps = {
   initialMinutes?: number;
@@ -55,6 +56,8 @@ export function OhDurationPicker({
     initialMinutes ?? null,
   );
 
+  const portalContainer = useResponsiveModalPortalContainer();
+
   const canSave =
     draft !== null &&
     draft >= DURATION_MIN_MINUTES &&
@@ -87,7 +90,7 @@ export function OhDurationPicker({
       >
         {triggerContent}
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal container={portalContainer ?? undefined}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}
@@ -113,7 +116,7 @@ export function OhDurationPicker({
                 aria-label={labels.saveAria}
                 className="oh-duration-picker-remove"
               >
-                <Plus strokeWidth={1.75} className="size-4" aria-hidden />
+                <Check strokeWidth={1.75} className="size-4" aria-hidden />
               </button>
               {onRemove ? (
                 <Popover.Close

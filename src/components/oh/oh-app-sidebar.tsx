@@ -117,6 +117,7 @@ export function MobileNavContent({
         );
         if (rows.length === 0) return;
 
+        const STAGGER_LEAD_IN = 0.055;
         const tl = gsap.timeline({ paused: true });
         rows.forEach((row, i) => {
           const isLabel = row.classList.contains("oh-mobile-nav-label");
@@ -129,7 +130,7 @@ export function MobileNavContent({
               duration: isLabel ? 0.22 : 0.28,
               ease: isLabel ? "power1.out" : "power3.out",
             },
-            i * 0.04,
+            STAGGER_LEAD_IN + i * 0.04,
           );
         });
         tlRef.current = tl;
@@ -153,7 +154,7 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      tl.timeScale(1.6);
+      tl.timeScale(1);
       tl.eventCallback("onReverseComplete", onExitComplete);
       tl.reverse();
     } else {
@@ -171,10 +172,7 @@ export function MobileNavContent({
       data-oh-mobile-menu="true"
       className={[
         "flex flex-col gap-6 px-4 py-6 sm:px-6",
-        "relative z-0 transform-gpu",
-        "bg-oh-paper/85 supports-backdrop-filter:bg-oh-paper/78",
-        "supports-backdrop-filter:backdrop-blur-xl",
-        "supports-backdrop-filter:backdrop-saturate-150",
+        "relative z-0",
       ].join(" ")}
     >
       {groups.map((group, index) => (
@@ -200,11 +198,10 @@ export function MobileNavContent({
                     className={[
                       "flex items-center gap-3 rounded-(--oh-r-xs) px-3 py-3 text-[15px] font-medium",
                       "transition-[background-color,color,box-shadow] duration-150 ease-oh",
-                      "hover:bg-[var(--oh-tint-hover)]",
                       "oh-focus-ring",
                       active
                         ? "bg-[color:var(--oh-paper)] font-bold shadow-[var(--oh-shadow-resting)]"
-                        : "",
+                        : "hover:bg-[var(--oh-tint-hover)]",
                     ].join(" ")}
                   >
                     <item.icon
@@ -245,8 +242,7 @@ function NavGroupRender({
             const active =
               activePath !== null &&
               (activePath === item.href ||
-                (item.href !== "/" &&
-                  activePath.startsWith(`${item.href}/`)));
+                (item.href !== "/" && activePath.startsWith(`${item.href}/`)));
             const itemLabel = t(item.labelKey);
             return (
               <SidebarMenuItem key={item.href} className="group/item">
@@ -282,7 +278,9 @@ function FooterControls() {
     <button
       type="button"
       onClick={toggleSidebar}
-      aria-label={state === "expanded" ? t("collapseSidebar") : t("expandSidebar")}
+      aria-label={
+        state === "expanded" ? t("collapseSidebar") : t("expandSidebar")
+      }
       className="oh-focus-ring inline-flex size-9 items-center justify-center text-oh-ink [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />

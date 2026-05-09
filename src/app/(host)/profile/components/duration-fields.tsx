@@ -1,39 +1,109 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
-import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
+import {
+  DURATION_LIST_MAX_LENGTH,
+  DURATION_MAX_MINUTES,
+  DURATION_MIN_MINUTES,
+} from "@/lib/durations";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
+
+const formSchema = z.object({
+  minutes: z
+    .array(
+      z
+        .number()
+        .int()
+        .min(DURATION_MIN_MINUTES)
+        .max(DURATION_MAX_MINUTES),
+    )
+    .max(DURATION_LIST_MAX_LENGTH),
+});
+type FormValues = z.infer<typeof formSchema>;
 
 export function DurationFields() {
   const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
-  const list = me?.durations.list ?? [];
-  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
+
+  const values = useMemo<FormValues>(
+    () => ({ minutes: me?.durations.list ?? [] }),
+    [me],
+  );
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    values,
+    resetOptions: { keepDirtyValues: true },
+    mode: "onChange",
+  });
 
   const setDurations = useSetDurations();
 
-  async function persist(next: number[]) {
-    await setDurations.mutateAsync({ minutes: next });
+  async function onSubmit(v: FormValues) {
+    await setDurations.mutateAsync({ minutes: v.minutes });
   }
 
-  async function handleEditCommit(original: number, picked: number) {
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <DurationFieldsBody />
+        <InlineFormSave
+          isPending={setDurations.isPending}
+          isDirty={form.formState.isDirty}
+          isInvalid={!form.formState.isValid}
+          labels={{
+            save: t("saveLabel"),
+            saving: t("savingLabel"),
+            saved: t("savedLabel"),
+          }}
+        />
+      </form>
+    </FormProvider>
+  );
+}
+
+function DurationFieldsBody() {
+  const t = useTranslations("Profile");
+  const { setValue } = useFormContext<FormValues>();
+  const list =
+    useWatch<FormValues, "minutes">({ name: "minutes" }) ?? [];
+  const { data: me } = trpc.users.me.useQuery();
+  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
+
+  function commit(next: number[]) {
+    const sorted = [...next].sort((a, b) => a - b);
+    setValue("minutes", sorted, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function handleEditCommit(original: number, picked: number) {
     if (picked === original) return;
-    const next = list.filter((m) => m !== original).concat(picked);
-    await persist(next);
+    commit(list.filter((m) => m !== original).concat(picked));
   }
 
-  async function handleAddCommit(picked: number) {
+  function handleAddCommit(picked: number) {
     if (list.includes(picked)) return;
-    await persist([...list, picked]);
+    commit([...list, picked]);
   }
 
-  async function handleRemove(value: number) {
-    const next = list.filter((m) => m !== value);
-    await persist(next);
+  function handleRemove(value: number) {
+    commit(list.filter((m) => m !== value));
   }
 
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
@@ -68,7 +138,9 @@ export function DurationFields() {
                     onRemove={() => handleRemove(minutes)}
                     existingMinutes={list.filter((m) => m !== minutes)}
                     labels={pickerLabels}
-                    triggerAriaLabel={t("durationsEditAria", { label: summary })}
+                    triggerAriaLabel={t("durationsEditAria", {
+                      label: summary,
+                    })}
                     triggerClassName="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
                     triggerContent={
                       <>

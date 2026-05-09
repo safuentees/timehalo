@@ -31,6 +31,8 @@ type ModalCtx = {
   nested: boolean;
   mobilePortalContainer: HTMLElement | null;
   setMobilePortalContainer: (el: HTMLElement | null) => void;
+  desktopPortalContainer: HTMLElement | null;
+  setDesktopPortalContainer: (el: HTMLElement | null) => void;
 };
 
 const Ctx = createContext<ModalCtx | null>(null);
@@ -48,7 +50,7 @@ function useResponsiveModal() {
 export function useResponsiveModalPortalContainer(): HTMLElement | null {
   const ctx = useContext(Ctx);
   if (!ctx) return null;
-  return ctx.isMobile ? ctx.mobilePortalContainer : null;
+  return ctx.isMobile ? ctx.mobilePortalContainer : ctx.desktopPortalContainer;
 }
 
 type RootProps = {
@@ -67,6 +69,8 @@ export function ResponsiveModal({
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [mobilePortalContainer, setMobilePortalContainer] =
     useState<HTMLElement | null>(null);
+  const [desktopPortalContainer, setDesktopPortalContainer] =
+    useState<HTMLElement | null>(null);
 
   const Root = isMobile
     ? nested
@@ -81,6 +85,8 @@ export function ResponsiveModal({
         nested,
         mobilePortalContainer,
         setMobilePortalContainer,
+        desktopPortalContainer,
+        setDesktopPortalContainer,
       }}
     >
       {isMobile && Root ? (
@@ -141,7 +147,8 @@ export function ResponsiveModalContent({
   showCloseButton = false,
   defaultClose = true,
 }: ContentProps) {
-  const { isMobile, setMobilePortalContainer } = useResponsiveModal();
+  const { isMobile, setMobilePortalContainer, setDesktopPortalContainer } =
+    useResponsiveModal();
   const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -177,6 +184,7 @@ export function ResponsiveModalContent({
 
   return (
     <DialogContent
+      ref={setDesktopPortalContainer}
       className={cn("oh-modal-content", desktopClassName)}
       style={{
         position: "fixed",
