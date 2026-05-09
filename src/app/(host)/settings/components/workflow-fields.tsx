@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -78,8 +79,15 @@ export function WorkflowFields() {
         {isLocked ? (
           <OhInlineEmpty>
             {t("upgradePrompt")}{" "}
-            <a
-              href="#billing-legend"
+            <Link
+              href="/settings/billing"
+              // Cross-route nav to the billing page. Was
+              // `href="#billing-legend"` (an in-page anchor) — but
+              // the `id="billing-legend"` only exists on
+              // /settings/billing's section, so on
+              // /settings/workflows the anchor pointed at nothing
+              // and the click was a no-op. Next.js `<Link>` does
+              // client-side route nav + prefetch.
               // Underline utilities need the `!` prefix because
               // globals.css ships an unlayered `:where(.oh-root a) {
               // text-decoration: none }` shell reset; unlayered CSS
@@ -90,7 +98,7 @@ export function WorkflowFields() {
               className="oh-focus-ring !underline !underline-offset-4 !decoration-[1.5px] !decoration-current transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("upgradeLink")}
-            </a>
+            </Link>
           </OhInlineEmpty>
         ) : (
           <WorkflowCreateDialog />
