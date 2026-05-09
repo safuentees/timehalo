@@ -3735,8 +3735,37 @@
    panel — within the per-frame budget on desktop without VT API. */
 
 .oh-host-content {
-  /* STATIC frame — paper bg + rounded corners + margin from the
-     surrounding --oh-frame. */
+  /* Panel-scoped sheen override. The global `--oh-sheen-top` is
+     calibrated for chip-scale surfaces (32-80px tall). At panel
+     scale (the full viewport's worth of paper) the same gradient
+     reads as a 240px-wide stripe across the top — exact same
+     scale-rule that made `--oh-shadow-panel` softer than
+     `--oh-shadow-resting`.
+     Two changes vs. the global token:
+       1. Tonal highlight, not pure white. `color-mix(in srgb,
+          var(--oh-paper), white X%)` keeps the highlight in the
+          paper's hue family — no warm→neutral desaturation
+          artifact at the top edge. Apple HIG / Material 3 surface
+          tint convention ("elevation overlays match the underlying
+          surface's hue").
+       2. Pixel-fixed band, not percentage. The lift terminates at
+          a hard 14px from the top regardless of the panel's
+          height — visual consistency across viewport sizes,
+          never reads as a stripe. Below 14px the gradient is
+          paper-on-paper (no transition), so the highlight
+          dissolves into the surface instead of having a faint
+          tail trailing for hundreds of pixels.
+     Light mode lifts 30% toward white (cream → lifted-cream,
+     subtle warm lift); dark mode lifts 8% (paper #1a1a1a is too
+     close to black for a heavier mix without becoming a grey
+     band). Both produce equivalent perceptual L* lifts because
+     the dark-paper has ~1/4 the available headroom of light
+     paper before it desaturates. */
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--oh-paper), white 30%) 0%,
+    var(--oh-paper) 14px
+  );
   background-color: var(--oh-paper);
   background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
@@ -3767,6 +3796,19 @@
      replaces the previous `inset 0 1px 0` rim that read as a
      stripe across the panel width. */
   box-shadow: var(--oh-shadow-panel);
+}
+
+/* Dark-mode panel sheen — paper here is `#1a1a1a`, much closer to
+   black than light-mode cream. A 30% white-mix would push the top
+   to ~`#5a5a5a` (visible grey band). 8% mix lands at ~`#2c2c2c`
+   which is one perceptual notch above paper — same "lit from
+   above" cue scaled for the dark surface's available headroom. */
+.dark .oh-host-content {
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--oh-paper), white 8%) 0%,
+    var(--oh-paper) 14px
+  );
 }
 
 /* Mobile (< 768px, matches src/hooks/use-mobile.ts MOBILE_BREAKPOINT
