@@ -2716,6 +2716,32 @@
 .dark .oh-drawer-content {
   background: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
 }
+
+/* B.PT301 — drawer constrained to the dashboard panel.
+   When ResponsiveModal portals into `[data-oh-modal-host]`
+   (the rounded paper panel), Vaul's defaults still emit
+   `position: fixed` + `inset: 0 !important` from `.oh-drawer-*`
+   above — those would render the drawer over the entire viewport
+   instead of inside the panel. These scoped rules raise specificity
+   (one extra attribute selector) AND keep `!important` so they
+   beat the document-wide rules above.
+   Selector: `[data-oh-modal-host="true"] .oh-drawer-overlay` =
+   specificity (0,2,0) vs the unscoped `.oh-drawer-overlay` at
+   (0,1,0) — scoped rule wins. */
+[data-oh-modal-host="true"] .oh-drawer-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+}
+[data-oh-modal-host="true"] .oh-drawer-content {
+  position: absolute !important;
+  top: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  /* `max-height` derives from the panel's height (the panel's
+     `overflow: hidden` clips anyway, but be explicit). */
+  max-height: 100% !important;
+}
 /* Nested drawer sits meaningfully shorter than parent so the parent's
    header strip ("SCHEDULE YOUR MEETING") stays visible behind the
    stacked sheet — canonical vaul nested peek pattern. Vaul also scales

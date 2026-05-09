@@ -89,7 +89,17 @@ export function OhDashboardLayout({
                   target. Transparent, just a wrapper for children;
                   snapshot animates only the rendered children, the
                   white panel underneath stays solid. */}
-            <div className="oh-host-content">
+            <div
+              className="oh-host-content"
+              // B.PT301 — modal host marker. ResponsiveModal queries
+              // for `[data-oh-modal-host="true"]` at open time and
+              // portals into THIS element instead of `document.body`,
+              // so drawers + dialogs visually slide up from / center
+              // within the rounded paper panel (not the full viewport).
+              // Falls back to body when no host element is found
+              // (visitor surface, auth shells, etc).
+              data-oh-modal-host="true"
+            >
               <ScrollArea className="oh-host-content-inner">
                 <ContentSlot>{children}</ContentSlot>
               </ScrollArea>

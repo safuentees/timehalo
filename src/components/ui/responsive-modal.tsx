@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ComponentProps,
   type ReactElement,
@@ -207,10 +208,32 @@ export function ResponsiveModalContent({
   defaultClose = true,
 }: ContentProps) {
   const { isMobile, setMobilePortalContainer } = useResponsiveModal();
+  // B.PT301 — find the dashboard panel element so the drawer/dialog
+  // portals INTO it instead of `document.body`. Visual effect: the
+  // drawer slides up from the panel's bottom (not the viewport's),
+  // the overlay only covers the panel area, sidebar + topbar stay
+  // visible underneath. Falls back to body when no host marker is
+  // present (visitor surface, auth shells, dialogs outside the host
+  // shell). Resolved in an effect because document is server-
+  // unavailable; `null` initial render falls through to default body
+  // portal which keeps SSR markup stable.
+  const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setModalHost(
+      document.querySelector<HTMLElement>('[data-oh-modal-host="true"]'),
+    );
+  }, []);
 
   if (isMobile) {
     return (
-      <DrawerPrimitive.Portal>
+      <DrawerPrimitive.Portal container={modalHost ?? undefined}>
+        {/* B.PT301 — `.oh-drawer-overlay` + `.oh-drawer-content`
+            in globals.css have a scoped override under
+            `[data-oh-modal-host="true"]` that swaps `position:
+            fixed → absolute` + correct insets when portaled into
+            the panel. No JSX-level class hacks needed; the global
+            scope wins via attribute-selector specificity. */}
         <DrawerPrimitive.Overlay
           className={cn("oh-drawer-overlay", overlayClassName)}
         />
