@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export type InlineFormSaveLabels = {
   save: string;
   saving: string;
-  saved: string;
+  saved?: string;
 };
 
 export function InlineFormSave({
@@ -22,13 +22,7 @@ export function InlineFormSave({
 }) {
   const mounted = useMounted();
   const disabled = mounted ? isPending || !isDirty : true;
-  const label = !mounted
-    ? labels.saved
-    : isPending
-      ? labels.saving
-      : isDirty
-        ? labels.save
-        : labels.saved;
+  const label = mounted && isPending ? labels.saving : labels.save;
 
   return (
     <div
@@ -41,7 +35,7 @@ export function InlineFormSave({
         variant="oh"
         size="oh"
         disabled={disabled}
-        className="min-w-[160px]"
+        className="min-w-[100px]"
       >
         {label}
       </Button>

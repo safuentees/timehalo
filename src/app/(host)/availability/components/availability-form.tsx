@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/field";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
-import { InlineFormSave } from "@/components/oh/inline-form-save";
 import {
   AvailabilityFields,
   availabilitySchema,
@@ -50,15 +49,9 @@ export default function AvailabilityForm() {
 
   const saveSchedule = useScheduleSave();
 
-  async function onSubmit(v: FormValues) {
-    await saveSchedule.mutateAsync(v.availability);
-  }
-
-  const seededFromDefault = (rows?.length ?? 0) === 0;
-
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form noValidate>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8">
@@ -71,20 +64,16 @@ export default function AvailabilityForm() {
                   {t("weeklyDescription")}
                 </FieldDescription>
                 <FieldGroup>
-                  <AvailabilityFields />
+                  <AvailabilityFields
+                    onPersist={(schedule) =>
+                      saveSchedule.mutateAsync(schedule)
+                    }
+                    isPersisting={saveSchedule.isPending}
+                  />
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
           </div>
-          <InlineFormSave
-            isPending={saveSchedule.isPending}
-            isDirty={form.formState.isDirty || seededFromDefault}
-            labels={{
-              save: t("saveLabel"),
-              saving: t("savingLabel"),
-              saved: t("savedLabel"),
-            }}
-          />
         </OhPageShell>
       </form>
     </FormProvider>

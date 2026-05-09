@@ -56,7 +56,13 @@ type EditorState =
 
 type FormShape = { availability: ScheduleValues };
 
-export function AvailabilityFields() {
+export function AvailabilityFields({
+  onPersist,
+  isPersisting,
+}: {
+  onPersist: (next: ScheduleValues) => Promise<unknown>;
+  isPersisting: boolean;
+}) {
   const t = useTranslations("Availability");
   const { setValue } = useFormContext<FormShape>();
   const watchedAvailability = useWatch<FormShape, "availability">({
@@ -69,7 +75,7 @@ export function AvailabilityFields() {
   const commit = useCallback(
     (next: Block[]) => {
       setValue("availability", blocksToSchedule(next), {
-        shouldDirty: true,
+        shouldDirty: false,
         shouldTouch: true,
         shouldValidate: true,
       });
@@ -77,7 +83,7 @@ export function AvailabilityFields() {
     [setValue],
   );
 
-  function handleSave(draft: BlockDraft) {
+  async function handleSave(draft: BlockDraft) {
     if (!editor) return;
     const withoutEditing =
       editor.mode === "edit"
@@ -87,14 +93,23 @@ export function AvailabilityFields() {
       ...withoutEditing,
       { id: `block-${Date.now()}`, ...draft },
     ];
-    commit(committed);
-    setEditor(null);
+    try {
+      await onPersist(blocksToSchedule(committed));
+      commit(committed);
+      setEditor(null);
+    } catch {
+    }
   }
 
-  function handleRemove() {
+  async function handleRemove() {
     if (!editor || editor.mode !== "edit") return;
-    commit(blocks.filter((b) => b.id !== editor.originalId));
-    setEditor(null);
+    const next = blocks.filter((b) => b.id !== editor.originalId);
+    try {
+      await onPersist(blocksToSchedule(next));
+      commit(next);
+      setEditor(null);
+    } catch {
+    }
   }
 
   return (
@@ -147,6 +162,7 @@ export function AvailabilityFields() {
         onClose={() => setEditor(null)}
         onSave={handleSave}
         onRemove={editor?.mode === "edit" ? handleRemove : undefined}
+        isPending={isPersisting}
       />
     </>
   );
@@ -204,17 +220,23 @@ function BlockEditorDrawer({
   onClose,
   onSave,
   onRemove,
+  isPending,
 }: {
   state: EditorState | null;
   otherBlocks: Block[];
   onClose: () => void;
-  onSave: (draft: BlockDraft) => void;
-  onRemove?: () => void;
+  onSave: (draft: BlockDraft) => Promise<void> | void;
+  onRemove?: () => Promise<void> | void;
+  isPending: boolean;
 }) {
   return (
     <ResponsiveModal
       open={state !== null}
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open) => {
+        if (open) return;
+        if (isPending) return; // don't close mid-save
+        onClose();
+      }}
     >
       <ResponsiveModalContent defaultClose={false}>
         {state ? (
@@ -225,6 +247,7 @@ function BlockEditorDrawer({
             onClose={onClose}
             onSave={onSave}
             onRemove={onRemove}
+            isPending={isPending}
           />
         ) : null}
       </ResponsiveModalContent>
@@ -238,12 +261,14 @@ function BlockEditorContent({
   onClose,
   onSave,
   onRemove,
+  isPending,
 }: {
   state: EditorState;
   otherBlocks: Block[];
   onClose: () => void;
-  onSave: (draft: BlockDraft) => void;
-  onRemove?: () => void;
+  onSave: (draft: BlockDraft) => Promise<void> | void;
+  onRemove?: () => Promise<void> | void;
+  isPending: boolean;
 }) {
   const t = useTranslations("Availability");
   const labelStrings = useDayLabelStrings();
@@ -338,6 +363,7 @@ function BlockEditorContent({
               variant="ohGhost"
               size="oh"
               onClick={onRemove}
+              disabled={isPending}
               className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
             >
               <Trash2Icon /> {t("remove")}
@@ -348,10 +374,15 @@ function BlockEditorContent({
             variant="oh"
             size="oh"
             onClick={() => onSave(draft)}
-            disabled={!canSave}
+            disabled={!canSave || isPending}
             className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
           >
-            <CheckIcon /> {state.mode === "edit" ? t("save") : t("add")}
+            <CheckIcon />{" "}
+            {isPending
+              ? t("savingLabel")
+              : state.mode === "edit"
+                ? t("save")
+                : t("add")}
           </Button>
         </div>
       </div>

@@ -566,7 +566,7 @@
     "pageTitle": "Hours",
     "weeklyLegend": "Weekly availability",
     "weeklyDescription": "The hours visitors can book from on your public page.",
-    "saveLabel": "Save changes",
+    "saveLabel": "Save",
     "savingLabel": "Saving…",
     "savedLabel": "Saved"
   },
@@ -575,7 +575,7 @@
     "handleLegend": "Public handle",
     "handleDescription": "The slug visitors use to reach your booking page — officehours.app/h/'<handle>'.",
     "handlePlaceholder": "alex",
-    "saveLabel": "Save changes",
+    "saveLabel": "Save",
     "savingLabel": "Saving…",
     "savedLabel": "Saved"
   },
