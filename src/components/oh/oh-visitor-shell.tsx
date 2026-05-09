@@ -97,7 +97,15 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
           previously). */}
       <div
         className={[
-          "relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
+          // `oh-visitor-panel` carries the depth chrome (drop + 1px
+          // tonal rim) via a CSS class — NOT inline style — so
+          // motion's `layoutId` projection on descendant elements
+          // (HandleMorphCard, identity phantoms) can't accidentally
+          // strip it during the morph animation. Inline styles are
+          // the layer motion writes to per-frame; class-applied
+          // declarations are owned by the cascade and stay
+          // continuous through the FLIP.
+          "oh-visitor-panel relative min-h-0 flex-1 overflow-hidden rounded-[25px] bg-oh-bg text-oh-content",
           className,
         ]
           .filter(Boolean)

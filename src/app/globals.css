@@ -3053,6 +3053,21 @@
   box-shadow: var(--oh-handle-card-shadow);
 }
 
+/* Visitor surface inner panel — `OhVisitorShell`'s rounded paper
+   panel that wraps the booking flow. Its visible boundary against
+   the outer muted-paper chrome was previously a pure color-
+   difference cue (~8% delta in light mode, less in dark). In dark
+   mode the contrast was so subtle the user reported "the outer
+   container is fully gone" — `#1a1a1a` panel against
+   `#262626`-ish chrome is hard to see.
+   Same depth recipe the dashboard panel uses (`--oh-shadow-panel`
+   = soft ambient drop + tight contact + 1px tonal rim, theme-
+   aware via the token's :root + .dark definitions). Class-applied
+   so motion's layoutId projection on descendants can't strip it. */
+.oh-visitor-panel {
+  box-shadow: var(--oh-shadow-panel);
+}
+
 /* ============================================================
    AVAILABILITY DRAWER (Vaul) — bottom sheet with vertical months
    ============================================================ */
