@@ -470,6 +470,13 @@
   "HostProfile": {
     "openNow": "Open now",
     "closedToday": "Closed today",
+    "slotDurationCompactMinutes": "{minutes} min",
+    "slotDurationCompactHours": "{count, plural, one {1 hr} other {# hrs}}",
+    "slotDurationCompactHoursMinutes": "{hours, plural, one {1 hr} other {# hrs}} {minutes} min",
+    "slotDurationFullMinutes": "{minutes} minutes",
+    "slotDurationFullHours": "{count, plural, one {1 hour} other {# hours}}",
+    "slotDurationFullHoursMinutes": "{hours, plural, one {1 hour} other {# hours}} {minutes} minutes",
+    "chromeRowSlotTitle": "{duration} on {date} at {time}",
     "rescheduling": "Rescheduling — pick a new slot",
     "cancel": "Cancel",
     "defaultBio": "Book a short conversation — pick a time that works.",

@@ -129,16 +129,27 @@ function SlotChip({
   });
 
   if (isTakenSlot(slot)) {
-    // B.PT234 — taken slots use a real <button disabled> instead of
-    // a non-interactive <div>. Native HTML `disabled` + ARIA both
-    // communicate "not selectable" to assistive tech and keyboard
-    // users, and CSS can target `:disabled` for state styling. The
-    // visible "TAKEN" badge stays as the human-readable cue.
+    // B.PT234 — taken slots are visually disabled but stay event-
+    // permeable. The HTML `disabled` attribute on <button> renders
+    // the element completely inert in modern browsers — it doesn't
+    // fire pointer / touch / pointerdown events at all. That breaks
+    // Embla's drag capture on the parent carousel: a touch starting
+    // on a taken chip never reaches the viewport's pointer
+    // listeners, so horizontal scroll over a row of taken chips
+    // freezes. (Reported by the user as: "the ones that are
+    // blocked also block the scrolling".)
+    //
+    // Fix: keep `aria-disabled="true"` for assistive tech +
+    // `tabIndex={-1}` to skip the chip in keyboard nav, drop the
+    // HTML `disabled`. No `onClick` means a tap is a no-op (still
+    // "blocked" semantically), but the button remains pointer-
+    // permeable so Embla's drag listeners fire on touchmove and
+    // the carousel scrolls normally.
     return (
       <button
         type="button"
-        disabled
         aria-disabled="true"
+        tabIndex={-1}
         className="oh-slot-chip oh-slot-chip--taken"
         aria-label={t("slotTakenAria", { time: timeLabel })}
       >

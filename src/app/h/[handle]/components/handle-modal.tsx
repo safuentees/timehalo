@@ -131,6 +131,7 @@ export function HandleModal({
   durationMinutes,
 }: Props) {
   const t = useTranslations("BookingCalendar");
+  const tHost = useTranslations("HostProfile");
   const format = useFormatter();
   const dayOfSlots = selectedDate ? slotsOn(slots, selectedDate) : [];
   const monthBarDate = selectedDate ?? startOfToday();
@@ -169,7 +170,20 @@ export function HandleModal({
         hour: "numeric",
         minute: "2-digit",
       });
-      return `${durationLabel} on ${datePart} at ${timePart}`;
+      // 2026-05-09 — was `${durationLabel} on ${datePart} at
+      // ${timePart}`; user reported es-locale rendering as "15
+      // minutes on 9 de mayo at 9:34" — date+time localized via
+      // `format.dateTime` (locale-aware) but the duration label
+      // and the "on / at" connectors stayed in English. ICU template
+      // here gives each locale its own preposition order ("el {date}
+      // a las {time}" in es); duration string itself is now built
+      // via `minutesToSlotOption(t)` in host-profile.tsx, so the
+      // whole sentence reads in the visitor's locale.
+      return tHost("chromeRowSlotTitle", {
+        duration: durationLabel,
+        date: datePart,
+        time: timePart,
+      });
     }
     return durationLabel;
   })();

@@ -73,36 +73,55 @@ export type SlotOption = {
   minutes: number;
 };
 
-// B.PT276 — minutes → chip label. Replaces the hardcoded `SLOT_OPTIONS`
-// constant from B.PT155: hosts now configure their `durationMinsList`
-// on /profile (B.PT274), and `users.getByHandle` returns the resolved
-// list as `durationChoices` (B.PT158). When a host hasn't configured
-// anything, `durationChoices` collapses to `[durationMins]` (single
-// chip — same single-duration UX as today's hardcoded list pre-B.PT158).
-export function minutesToSlotOption(minutes: number): SlotOption {
+// Translator shape for the chip-label builder. Narrows to the
+// `HostProfile` namespace so callers can pass a `useTranslations
+// ("HostProfile")` instance directly. Hand-rolled rather than
+// `Pick<...>` so consumers don't need to know the exact shape — a
+// callable that takes (key, args?) and returns string is enough.
+type SlotOptionT = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string;
+
+// B.PT276 — minutes → chip label, localized via next-intl. Replaces
+// the hardcoded `SLOT_OPTIONS` constant from B.PT155: hosts now
+// configure their `durationMinsList` on /profile (B.PT274), and
+// `users.getByHandle` returns the resolved list as `durationChoices`
+// (B.PT158). When a host hasn't configured anything, `durationChoices`
+// collapses to `[durationMins]` (single chip — same single-duration
+// UX as today's hardcoded list pre-B.PT158).
+//
+// 2026-05-09 — `t` parameter added for full localization. Previously
+// the labels were hardcoded English ("15 minutes", "1 hour"); the
+// chrome-row title surfaces the `fullLabel` as part of "{duration}
+// on {date} at {time}", which an es-locale visitor saw as "15 minutes
+// on 9 de mayo at 9:34" — date+time localized, duration + connectors
+// stuck in English. Threading `t` through here closes the gap; the
+// chrome row's title template gets its own `chromeRowSlotTitle` key
+// to localize the "on / at" connectors.
+export function minutesToSlotOption(
+  minutes: number,
+  t: SlotOptionT,
+): SlotOption {
   if (minutes < 60) {
     return {
-      label: `${minutes} min`,
-      fullLabel: `${minutes} minutes`,
+      label: t("slotDurationCompactMinutes", { minutes }),
+      fullLabel: t("slotDurationFullMinutes", { minutes }),
       minutes,
     };
   }
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
   if (rem === 0) {
-    const hourWord = hours === 1 ? "hour" : "hours";
-    const hourCompact = hours === 1 ? "hr" : "hrs";
     return {
-      label: `${hours} ${hourCompact}`,
-      fullLabel: `${hours} ${hourWord}`,
+      label: t("slotDurationCompactHours", { count: hours }),
+      fullLabel: t("slotDurationFullHours", { count: hours }),
       minutes,
     };
   }
-  const hourWord = hours === 1 ? "hour" : "hours";
-  const hourCompact = hours === 1 ? "hr" : "hrs";
   return {
-    label: `${hours} ${hourCompact} ${rem} min`,
-    fullLabel: `${hours} ${hourWord} ${rem} minutes`,
+    label: t("slotDurationCompactHoursMinutes", { hours, minutes: rem }),
+    fullLabel: t("slotDurationFullHoursMinutes", { hours, minutes: rem }),
     minutes,
   };
 }
@@ -111,8 +130,16 @@ export function minutesToSlotOption(minutes: number): SlotOption {
 // is somehow empty (defensive — `resolveDurationChoices` already
 // collapses to `[durationMins]` so the empty path shouldn't fire in
 // production, but keeps the chip strip from rendering 0 rows).
+//
+// Stays English-only because it's defensive infrastructure, not a
+// rendered surface in steady state. If it ever DOES render, the
+// caller can swap it for `[minutesToSlotOption(15, t)]` to localize.
 export const FALLBACK_SLOT_OPTIONS: ReadonlyArray<SlotOption> = [
-  minutesToSlotOption(15),
+  {
+    label: "15 min",
+    fullLabel: "15 minutes",
+    minutes: 15,
+  },
 ];
 
 type SlotRowMotionProps = {

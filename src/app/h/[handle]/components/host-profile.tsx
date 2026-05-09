@@ -232,7 +232,7 @@ export default function HostProfile({
   // rendering 0 rows in production.
   const slotOptions: ReadonlyArray<SlotOption> =
     initialUser.durationChoices.length > 0
-      ? initialUser.durationChoices.map(minutesToSlotOption)
+      ? initialUser.durationChoices.map((m) => minutesToSlotOption(m, t))
       : FALLBACK_SLOT_OPTIONS;
   const receiptRouteActive = pathname.includes(`/h/${handle}/booked/`);
   const receiptOverlayActive = receiptRouteActive || receiptTransitionPending;
