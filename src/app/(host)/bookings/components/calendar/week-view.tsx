@@ -63,7 +63,7 @@ export function WeekView({
   onEventClick,
   getHref,
   maxBodyHeight = "calc(100dvh - 280px)",
-  minBodyWidthPx = 1100,
+  minBodyWidthPx = 0,
   nowOverride,
 }: WeekViewProps) {
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
