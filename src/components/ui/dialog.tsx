@@ -85,6 +85,53 @@ function useDialogDebug() {
         "[inert], [data-base-ui-inert]",
       )
       log(`inert elements in document: ${inertEls.length}`, [...inertEls])
+      inertEls.forEach((el, i) => {
+        const path: string[] = []
+        let cursor: Element | null = el
+        let depth = 0
+        while (cursor && depth < 6) {
+          path.unshift(
+            `${cursor.tagName.toLowerCase()}${
+              cursor.id ? `#${cursor.id}` : ""
+            }${
+              cursor.className && typeof cursor.className === "string"
+                ? `.${cursor.className.split(/\s+/).slice(0, 2).join(".")}`
+                : ""
+            }`,
+          )
+          cursor = cursor.parentElement
+          depth++
+        }
+        const containsPopup = el.contains(popup)
+        const isAncestorOfPopup = el !== popup && el.contains(popup)
+        log(
+          `  inert[${i}]: ${path.join(" > ")}${
+            isAncestorOfPopup
+              ? "  ⚠️  IS AN ANCESTOR OF THE POPUP — clicks blocked"
+              : containsPopup
+                ? "  (contains popup)"
+                : ""
+          }`,
+          el,
+        )
+      })
+
+      window.setTimeout(() => {
+        if (!document.contains(popup)) return
+        const after = window.getComputedStyle(popup)
+        log("popup computed AFTER 250ms (post-animation)", {
+          pointerEvents: after.pointerEvents,
+          opacity: after.opacity,
+          visibility: after.visibility,
+          transform: after.transform,
+          dataStartingStyle: popup.getAttribute("data-starting-style"),
+        })
+        if (after.opacity === "0") {
+          log(
+            "⚠️  POPUP IS STILL OPACITY:0 AFTER 250ms — animation/transition didn't run, popup is invisible",
+          )
+        }
+      }, 250)
     }
 
     const existing = getPopup()
