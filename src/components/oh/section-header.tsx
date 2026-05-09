@@ -48,19 +48,25 @@ export function SectionHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
       <div className="min-w-0 flex-1">
-        {/* `font-medium` (weight 500) matches what `<FieldLegend>` ships
-            on availability + profile. `.oh-legend` declares
-            `font-weight: 800` in `@layer components`, but `<FieldLegend>`
-            also carries the Tailwind `font-medium` utility — utilities
-            sit in `@layer utilities` (higher than components per
-            Tailwind's layer order), so the FieldLegend version
-            actually renders at 500. SectionHeader's plain `<p>` had
-            no utility competing with `.oh-legend`, so it rendered at
-            800 — visibly heavier than "PUBLIC HANDLE" / "WEEKLY
-            AVAILABILITY". Match by adding `font-medium` here. */}
+        {/* Two Tailwind utilities are needed here to match what
+            `<FieldLegend>` ships on availability + profile. Both
+            survive a cascade-layers gotcha — `.oh-legend` lives in
+            `@layer components` while Tailwind utilities live in
+            `@layer utilities` (utilities win), so FieldLegend's
+            built-in `font-medium` + `data-[variant=legend]:text-base`
+            silently override `.oh-legend`'s `font-weight: 800` and
+            `font-size: 11px`. Effective FieldLegend rendering:
+            weight 500, size 16px. SectionHeader's plain `<p>` had
+            no utilities competing → rendered at 800/11px (heavier
+            AND smaller than "PUBLIC HANDLE" / "WEEKLY AVAILABILITY").
+            Match by adding both utilities here so the visible
+            output is identical. Field-label consumers of
+            `.oh-legend` (form labels in dialogs) don't ship these
+            utilities, so they keep the 800/11px treatment that's
+            load-bearing for tertiary chrome. */}
         <p
           id={legendId}
-          className="oh-legend font-medium opacity-100"
+          className="oh-legend text-base font-medium opacity-100"
         >
           {legend}
         </p>
