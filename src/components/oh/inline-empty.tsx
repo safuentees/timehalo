@@ -11,7 +11,7 @@ export function OhInlineEmpty({
   return (
     <p
       className={cn(
-        "rounded-(--oh-r-xs) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] p-4 text-[13px] opacity-55",
+        "oh-empty-surface rounded-(--oh-r-sm) px-4 py-3.5 text-[13px] opacity-65",
         className,
       )}
     >

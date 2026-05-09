@@ -171,7 +171,7 @@ export function AvailabilityFields({
 function EmptyBlocks() {
   const t = useTranslations("Availability");
   return (
-    <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
+    <div className="oh-empty-surface rounded-(--oh-r-sm) px-5 py-7 text-left">
       <p className="oh-eyebrow">{t("noHoursSet")}</p>
       <p className="oh-description mt-2">
         {t("addBlockHint")}
