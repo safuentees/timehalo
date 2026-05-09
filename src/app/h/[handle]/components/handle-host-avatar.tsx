@@ -65,7 +65,11 @@ export function HandleHostAvatarBody({
       </Avatar>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+        // `#E5E5E5` = subtle light-grey ring that defines the avatar
+        // edge against the cream paper. Dark counterpart `#3a3a3a`
+        // is dark paper (#1a1a1a) +12% L* — same edge-definition
+        // role over the dark surface.
+        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5] dark:ring-[#3a3a3a]"
       />
     </>
   );

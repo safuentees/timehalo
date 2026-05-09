@@ -152,7 +152,10 @@ export function BookingReceiptModal({
                 ...HANDLE_SLOT_LIST_RADIUS_STYLE,
                 boxShadow: "inset 0 0 4px rgba(0,0,0,0.25)",
               }}
-              className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
+              // `#F5EFDF` = light paper +5% L*. `#272727` = dark
+              // paper +5% L*. Same lifted-card relationship across
+              // themes — receipt body stays readable on either.
+              className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF] dark:bg-[#272727]"
             >
               <BookingReceiptContent booking={booking} />
             </motion.div>

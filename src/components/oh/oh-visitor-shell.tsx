@@ -71,20 +71,20 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
     // the scrollbar gutter the global `html { scrollbar-gutter:
     // stable }` rule otherwise reserves on the right edge of the
     // viewport. Visible as a thin sliver of html bg without this.
-    // B.PT219 — pin `--oh-paper` + `--oh-ink` to LIGHT mode values
-    // regardless of the html `.dark` class. The visitor surface is
-    // a public landing/booking flow that should always read as the
-    // brand's Athens-White / Sisal palette; in dark mode the system
-    // tokens flip to near-black paper + cream ink, which renders
-    // `bg-oh-bg-muted` as a dark muted color. Setting these two
-    // base tokens here makes the entire derived token system
-    // (`--oh-frame`, `--oh-content-muted`, `--oh-line-default`,
-    // `--oh-tint`, etc.) recompute via cascade for this subtree —
-    // see Tailwind docs `[--var:value]` arbitrary properties +
-    // CSS custom properties resolving at use-site. Doesn't touch
-    // the global next-themes ThemeProvider; dashboard + auth still
-    // honor system preference.
-    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]">
+    // Pin `--oh-paper` + `--oh-ink` per theme. Originally (B.PT219)
+    // the visitor surface locked LIGHT-only — the entire derived
+    // token system (`--oh-frame`, `--oh-content-muted`, `--oh-tint`,
+    // etc.) recomputes via cascade once the base pair is set. The
+    // dark-mode pair was added on 2026-05-09 — the public visitor
+    // surface now honors the html `.dark` class same as the
+    // dashboard, so a viewer hitting `/h/<handle>` from a dark-
+    // mode device gets the dark Athens-Slate palette instead of
+    // the cream surface flashing white. Light values are unchanged
+    // (`#0a0a0a` ink / `#eee7d5` paper); dark values mirror the
+    // global `.dark` block (`#ede4cf` ink / `#1a1a1a` paper).
+    // See Tailwind docs `[--var:value]` arbitrary properties + CSS
+    // custom properties resolving at use-site.
+    <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]">
       {/* B.PT218 — Inner panel switches from flex column to
           `relative` so children can absolute-position. Per Tailwind
           docs (tailwindcss.com/docs/position): "absolute … neighboring

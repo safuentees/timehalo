@@ -414,7 +414,7 @@ export default function HostProfile({
 
   return (
     <OhVisitorShell
-      className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]"
+      className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       header={
         <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
@@ -649,7 +649,13 @@ export default function HostProfile({
                     // cleanly to modal's slot-stack motion.div).
                     // Single source of truth for the cream gutter.
                     "flex flex-col gap-2.5",
-                    "bg-[#F5EFDF]",
+                    // `#F5EFDF` is paper (`#EEE7D5`) lifted ~5% L*.
+                    // Dark counterpart `#272727` is dark-paper
+                    // (`#1a1a1a`) lifted ~5% L* — same elevation
+                    // relationship over the dark surface so the
+                    // slot-list reads as the same "lifted card"
+                    // on either theme.
+                    "bg-[#F5EFDF] dark:bg-[#272727]",
                   )}
                 >
                   {slotOptions.length === 0 ? (

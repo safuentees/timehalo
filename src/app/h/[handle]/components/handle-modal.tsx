@@ -607,9 +607,13 @@ export function HandleModal({
               zIndex: zStyle(zL2?.slotList),
             }}
             className={
+              // `#F5EFDF` = light paper +5% L*. `#272727` = dark
+              // paper (#1a1a1a) +5% L*. Same lifted-card relationship
+              // on either theme so the slot list reads as one
+              // surface across light + dark.
               stretchesSlotList
-                ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
-                : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF]"
+                ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF] dark:bg-[#272727]"
+                : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF] dark:bg-[#272727]"
             }
           >
             {phantomLabels ? (
