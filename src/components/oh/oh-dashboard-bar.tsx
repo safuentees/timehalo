@@ -18,6 +18,7 @@ import { trpc } from "@/trpc/hooks";
 import { setActiveWorkspace } from "@/lib/active-workspace-actions";
 import { nextHrefAfterWorkspaceSwitch } from "@/lib/active-workspace";
 import { WorkspaceCreateDialog } from "@/app/(host)/workspaces/components/workspace-create-dialog";
+import { DashboardTransitionLink } from "./dashboard-route-transition";
 import { OhMenuTrigger } from "./oh-menu-trigger";
 import { OhTopProgressBar } from "./oh-top-progress-bar";
 import { OhUserMenu } from "./user-menu";
@@ -196,12 +197,12 @@ function ChromeIconLink({
   icon: typeof Settings;
 }) {
   return (
-    <Link
+    <DashboardTransitionLink
       href={href}
       aria-label={label}
       className="oh-focus-ring group/chrome inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-colors duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] [&_svg]:opacity-[0.55] [&_svg]:transition-opacity [&_svg]:duration-150 [&_svg]:ease-oh group-hover/chrome:[&_svg]:opacity-100 hover:[&_svg]:opacity-100"
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
-    </Link>
+    </DashboardTransitionLink>
   );
 }

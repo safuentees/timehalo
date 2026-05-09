@@ -21,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
+import { DashboardTransitionLink } from "./dashboard-route-transition";
 
 gsap.registerPlugin(useGSAP);
 
@@ -249,14 +250,14 @@ function NavGroupRender({
                   tooltip={itemLabel}
                   className={menuButtonClass}
                   render={
-                    <Link href={item.href}>
+                    <DashboardTransitionLink href={item.href}>
                       <item.icon
                         aria-hidden
                         strokeWidth={1.5}
                         className="size-4 shrink-0"
                       />
                       <span>{itemLabel}</span>
-                    </Link>
+                    </DashboardTransitionLink>
                   }
                 />
               </SidebarMenuItem>
