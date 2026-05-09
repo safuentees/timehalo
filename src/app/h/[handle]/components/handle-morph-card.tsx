@@ -15,20 +15,23 @@ export const HandleMorphCard = forwardRef<HTMLElement, HandleMorphCardProps>(
         {...props}
         style={{
           ...HANDLE_CARD_RADIUS_STYLE,
-          // Theme-aware via `--oh-handle-card-shadow` — light mode
-          // resolves to `inset 0 0 15px rgba(0,0,0,0.25)` (the
-          // original concave-paper feel against cream); dark mode
-          // resolves to `--oh-shadow-popup` (drop + 1px tonal rim)
-          // because the darkening inset on `#1a1a1a` paper fades into
-          // the panel and stops carrying any depth cue. CSS-variable
-          // resolution at paint time means the swap happens without
-          // re-rendering the morph element, so the layoutId animation
-          // doesn't restart on theme flip.
-          boxShadow: "var(--oh-handle-card-shadow)",
           ...style,
         }}
+        // Box-shadow is applied via the `oh-handle-morph-card` CSS class
+        // (NOT inline style) so motion's `layoutId` projection system
+        // can't touch it during the FLIP morph. Motion writes inline
+        // `transform` + `transformOrigin` onto the active morph element
+        // throughout the animation; in some configurations it also
+        // re-evaluates / strips other inline styles mid-flight, which
+        // visibly clears the box-shadow during the open/close morph
+        // (the bug the user reported as "depth is lost when the
+        // animation is playing"). A CSS-class-applied shadow is owned
+        // by the cascade, not by the React-element style attribute, so
+        // it survives the projection lifecycle. The shadow value itself
+        // (`var(--oh-handle-card-shadow)`) is theme-aware via the token
+        // so light → dark still swaps without a re-render.
         className={cn(
-          "flex w-full flex-col bg-[color:var(--oh-paper)]",
+          "oh-handle-morph-card flex w-full flex-col bg-[color:var(--oh-paper)]",
           className,
         )}
       />

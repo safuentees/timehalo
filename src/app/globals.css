@@ -3025,51 +3025,32 @@
 }
 
 /* ============================================================
-   VISITOR SURFACE — DARK-MODE DEPTH OVERRIDES
-   Light mode keeps the brutalist 1.5px ink-bordered cards as
-   ground-truth chrome — `/h/[handle]` is the public face and the
-   ink frame is part of the brand personality. In dark mode those
-   same borders become hairline whispers against `#1a1a1a` paper
-   that fight the depth shadows instead of cooperating with them
-   (a visible border + a subtle shadow read as redundant; the eye
-   picks up the line and ignores the lift). Drop the borders and
-   let `--oh-shadow-resting` (drop + 1px tonal rim, theme-aware)
-   carry the elevation cue — same recipe the dashboard's chip /
-   card / button surfaces already use.
-   ============================================================ */
-.dark .oh-v1 {
-  border: 0;
-  box-shadow: var(--oh-shadow-resting);
-}
+   VISITOR SURFACE — depth chrome for the morphing card
 
-/* TriggerCard — the floating "PICK A DATE" CTA on /h/[handle].
-   Same logic as `.oh-v1`: drop the 1.5px ink border, lean on the
-   depth shadow + 1px tonal rim. Hover state keeps shadow lift
-   (`--oh-shadow-hover`) but suppresses the bg→ink color flip — in
-   dark mode `--oh-ink` flips to cream, so the flip would paint a
-   cream-blob CTA on the dark page (same "white-blob hover" issue
-   the dashboard primary button had a few commits back; matched
-   policy here so the visitor surface stays consistent). */
-.dark .oh-trigger-card {
-  border: 0;
-  box-shadow: var(--oh-shadow-resting);
-}
-.dark .oh-trigger-card:hover,
-.dark .oh-trigger-card:focus-visible {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-hover);
-}
-.dark .oh-trigger-card--full {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-resting);
-}
-.dark .oh-trigger-card--full:hover,
-.dark .oh-trigger-card--full:focus-visible {
-  background: var(--oh-paper);
-  color: var(--oh-ink);
-  box-shadow: var(--oh-shadow-hover);
+   `HandleMorphCard` is the shared shell for both the landing
+   profile card (`/h/[handle]`) and the booking-form modal that
+   morphs out of it (`layoutId="handle-card"`). Same DOM element
+   wears two visual contexts via motion's FLIP technique.
+
+   Box-shadow lives on a CSS class — NOT on motion.article's
+   inline style — because motion's `layoutId` projection writes
+   inline `transform` + `transformOrigin` onto the active morph
+   element on every frame, and in some configurations re-evaluates
+   / strips other inline styles mid-flight. A CSS-class shadow is
+   owned by the cascade, not by React's `style` prop, so it
+   survives the projection lifecycle continuously through
+   open / close. (The bug the user reported as "depth effect is
+   lost when the animation is playing" — fixed by moving the
+   shadow declaration here.)
+
+   Theme-aware via `--oh-handle-card-shadow`:
+     - light: `inset 0 0 15px rgba(0,0,0,0.25)` — original concave
+       paper feel against cream
+     - dark:  `var(--oh-shadow-popup)` — drop + tonal rim because
+       the darkening inset on `#1a1a1a` paper fades into the panel
+   ============================================================ */
+.oh-handle-morph-card {
+  box-shadow: var(--oh-handle-card-shadow);
 }
 
 /* ============================================================
