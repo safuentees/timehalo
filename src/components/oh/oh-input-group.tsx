@@ -54,22 +54,24 @@ function OhInputGroupAddon({
   align,
   ...props
 }: React.ComponentProps<typeof InputGroupAddon>) {
-  // Quieter prefix label: paper bg matches the input surface, the
-  // separation between addon and input comes from a 1.5px ink rule
-  // (right edge for inline-start, left edge for inline-end) instead
-  // of an inverted ink block. Reads as one continuous paper input
-  // with a typographically distinct prefix — matches the rest-of-app
-  // input vocabulary (`.oh-input` is paper-on-ink throughout).
+  // Quieter prefix label: paper bg matches the input recess, the
+  // separation between addon and input is a 1px paper-soft hairline
+  // (`--oh-line-default`, ~22% ink) — softened in B.PT303 from the
+  // earlier 1.5px ink rule, which read as a brutalist hard wall
+  // against the borderless-depth chrome the rest of the app shifted
+  // to in B.PT284. The hairline gives just enough typographic
+  // separation between the prefix and the value without re-introducing
+  // a contrasting border on a recessed paper surface.
   const sideRule =
     align === "inline-end"
-      ? "border-l-[1.5px] border-(--oh-ink)"
-      : "border-r-[1.5px] border-(--oh-ink)";
+      ? "border-l border-[color:var(--oh-line-default)]"
+      : "border-r border-[color:var(--oh-line-default)]";
   return (
     <InputGroupAddon
       data-slot="brutalist-input-group-addon"
       align={align}
       className={cn(
-        "rounded-none bg-(--oh-paper) px-3 py-0",
+        "rounded-none bg-transparent px-3 py-0",
         sideRule,
         className,
       )}

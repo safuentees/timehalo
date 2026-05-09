@@ -2513,6 +2513,22 @@
   box-shadow: var(--oh-focus-shadow-input) !important;
   outline: 0 !important;
 }
+/* B.PT303 — invalid-state cue, mirrors `.oh-input[aria-invalid="true"]`.
+   `<has-[…]>` selector lights up when ANY descendant carries
+   aria-invalid=true, so the wrapper paints the destructive recess
+   regardless of whether the inner input or a sibling sets the attr. */
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+    var(--oh-input-shadow-rest) !important;
+}
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
+}
 /* Inner input matches the email field's font + horizontal padding.
    Vertical centering is automatic (wrapper is `flex items-center`).
    Right-padding stays controlled by shadcn's

@@ -44,17 +44,26 @@ export type InlineFormSaveLabels = {
 export function InlineFormSave({
   isPending,
   isDirty,
+  isInvalid = false,
   labels,
   ariaLabel,
 }: {
   isPending: boolean;
   isDirty: boolean;
+  /**
+   * Optional. When true, the button is disabled regardless of `isDirty`.
+   * Use for forms where a field has a live async-validation step
+   * whose result must gate save (e.g. profile handle "taken" check) —
+   * the parent passes `!form.formState.isValid` so server-detected
+   * errors surfaced via `setError()` short-circuit submit.
+   */
+  isInvalid?: boolean;
   labels: InlineFormSaveLabels;
   /** Optional override; defaults to the localized save label so SR announces in-language. */
   ariaLabel?: string;
 }) {
   const mounted = useMounted();
-  const disabled = mounted ? isPending || !isDirty : true;
+  const disabled = mounted ? isPending || !isDirty || isInvalid : true;
   // B.PT299 — simplified to two labels. `saving` while pending,
   // `save` otherwise (covers idle/dirty AND idle/clean — disabled
   // state communicates "no changes" without a separate label).
