@@ -184,13 +184,39 @@ function useDialogDebug() {
     // Document-level capture listeners — log every pointer event so
     // the routing is visible. Look up the popup at log time (not
     // closure-captured) so we always have the live element.
+    function describe(target: Element | null) {
+      if (!target) return null
+      // Closest interactive ancestor — that's what the user was
+      // trying to "click" even when the literal target was a
+      // non-interactive child span/icon. If this is null, the
+      // user is clicking a label/decoration with no handler
+      // attached.
+      const interactive = target.closest(
+        "button, a, input, textarea, select, [role='button'], [tabindex]:not([tabindex='-1']), [onclick]",
+      ) as HTMLElement | null
+      return {
+        target,
+        targetTag: target.tagName.toLowerCase(),
+        interactive,
+        interactiveTag: interactive?.tagName.toLowerCase() ?? null,
+        interactiveDisabled:
+          interactive != null &&
+          (interactive.hasAttribute("disabled") ||
+            interactive.getAttribute("aria-disabled") === "true"),
+        interactiveType: interactive?.getAttribute("type") ?? null,
+        interactiveText: interactive?.textContent
+          ?.trim()
+          .slice(0, 40),
+      }
+    }
+
     function logPointerDown(event: Event) {
       const popup = getPopup()
       const target = event.target as Element | null
       const insidePopup =
         popup !== null && target !== null && popup.contains(target)
       log("pointerdown", {
-        target,
+        ...describe(target),
         insidePopup,
         defaultPrevented: event.defaultPrevented,
       })
@@ -200,11 +226,21 @@ function useDialogDebug() {
       const target = event.target as Element | null
       const insidePopup =
         popup !== null && target !== null && popup.contains(target)
+      const desc = describe(target)
       log("click", {
-        target,
+        ...desc,
         insidePopup,
         defaultPrevented: event.defaultPrevented,
       })
+      if (desc?.interactive == null && insidePopup) {
+        log(
+          "  ⚠️  CLICK ON NON-INTERACTIVE TARGET inside popup — no button/link/input ancestor",
+        )
+      } else if (desc?.interactiveDisabled) {
+        log(
+          `  ⚠️  CLICK ON DISABLED ${desc.interactiveTag?.toUpperCase()} — handler won't fire`,
+        )
+      }
     }
     document.addEventListener("pointerdown", logPointerDown, true)
     document.addEventListener("click", logClick, true)
