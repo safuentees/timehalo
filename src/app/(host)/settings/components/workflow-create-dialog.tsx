@@ -212,12 +212,15 @@ function CreateForm({ onDone }: { onDone: () => void }) {
                   name={field.name}
                   ref={field.ref}
                   onBlur={field.onBlur}
-                  value={field.value}
-                  // Empty input collapses to NaN; coerce so the zod
-                  // resolver doesn't trip on it before submit.
+                  value={
+                    Number.isFinite(field.value) ? field.value : ""
+                  }
+                  // Empty input → emit NaN; the field reads as truly
+                  // empty instead of snapping to "0". Zod resolver
+                  // catches NaN at submit-time via the `min(0)` rule.
                   onChange={(e) => {
                     const next = e.target.valueAsNumber;
-                    field.onChange(Number.isFinite(next) ? next : 0);
+                    field.onChange(next);
                   }}
                   type="number"
                   min={0}

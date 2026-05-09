@@ -40,7 +40,12 @@ import {
 // extend the field naturally. Falls back to a fixed width on older
 // browsers via the explicit `min-w` floor.
 
-const SEED_MINUTES = 30;
+// No SEED_MINUTES default — when the picker opens for "Add" with no
+// initial value, the field starts EMPTY (draft = null) so the user
+// types the duration they want without a placeholder number to
+// delete first. Same for the edit path: clearing the field leaves
+// draft = null, which fails the commit-on-close range check, so the
+// existing chip value stays.
 
 export type OhDurationPickerProps = {
   initialMinutes?: number;
@@ -77,8 +82,14 @@ export function OhDurationPicker({
 
   // Draft state — only mutated by user input. Re-seeded on every
   // OPEN event in onOpenChange so the field reflects the chip's
-  // current saved value at the moment the user clicks.
-  const [draft, setDraft] = useState<number>(initialMinutes ?? SEED_MINUTES);
+  // current saved value at the moment the user clicks. `null`
+  // represents "field is empty" — the user has cleared the input
+  // mid-typing OR the picker just opened in Add mode with no seed.
+  // Empty draft fails the range check in maybeCommitOnClose, which
+  // is the desired no-op behavior.
+  const [draft, setDraft] = useState<number | null>(
+    initialMinutes ?? null,
+  );
   const [dirty, setDirty] = useState(false);
 
   // Latest draft mirrored into refs so the close handler can read
@@ -99,6 +110,7 @@ export function OhDurationPicker({
   function maybeCommitOnClose() {
     if (!dirtyRef.current) return;
     const value = draftRef.current;
+    if (value === null) return;
     const inRange =
       value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
     if (!inRange) return;
@@ -113,7 +125,9 @@ export function OhDurationPicker({
         if (next) {
           // Re-seed on open. Event-handler form (not effect) so
           // React 19's `set-state-in-effect` rule doesn't fire.
-          setDraft(initialMinutes ?? SEED_MINUTES);
+          // `null` → empty field on Add mode; in Edit mode the
+          // current chip value seeds the input.
+          setDraft(initialMinutes ?? null);
           setDirty(false);
           // Auto-focus the input on open so the user can immediately
           // type a new value.
@@ -176,8 +190,8 @@ export function OhDurationPicker({
 // in Chrome 124+, Safari 17.4+, Firefox 123+.
 
 interface DurationFieldProps {
-  value: number;
-  onChange: (next: number) => void;
+  value: number | null;
+  onChange: (next: number | null) => void;
 }
 
 const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
@@ -193,7 +207,11 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
-        const next = clamp(value + 5 * direction);
+        // Empty field — arrow up starts at MIN, arrow down stays empty
+        // (down from nothing is a no-op).
+        const baseline = value ?? (direction === 1 ? 0 : null);
+        if (baseline === null) return;
+        const next = clamp(baseline + 5 * direction);
         onChange(next);
       }
     }
@@ -206,11 +224,16 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         min={0}
         max={DURATION_MAX_MINUTES}
         step={5}
-        value={Number.isFinite(value) ? value : ""}
+        value={value !== null && Number.isFinite(value) ? value : ""}
         onChange={(e) => {
           const raw = e.target.value;
+          // Empty input stays empty — `null` is the "user is mid-typing
+          // / has cleared the field" sentinel. Previously this branch
+          // wrote `0`, which forced a literal "0" placeholder into the
+          // input the user then had to delete before typing the real
+          // value. Now the field reads as truly empty.
           if (raw === "") {
-            onChange(0);
+            onChange(null);
             return;
           }
           const parsed = Number(raw);
