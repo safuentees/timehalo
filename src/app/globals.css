@@ -2129,6 +2129,7 @@
   right: 0 !important;
   bottom: 0 !important;
   max-height: 100% !important;
+  border-radius: var(--oh-r-window) var(--oh-r-window) 0 0 !important;
 }
 .oh-drawer-content-nested {
   max-height: 94%;
