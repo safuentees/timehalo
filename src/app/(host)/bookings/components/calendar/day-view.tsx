@@ -98,7 +98,7 @@ export function DayView({
       aria-label={`Day view for ${dayLabel}`}
       tabIndex={isCapped ? 0 : undefined}
       className={cn(
-        "oh-sheen flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
       )}

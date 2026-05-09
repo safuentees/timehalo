@@ -73,7 +73,7 @@ export function OhPillSwitcher<T extends string>({
                 <motion.span
                   layoutId={layoutId}
                   aria-hidden
-                  className="oh-sheen absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting)]"
+                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

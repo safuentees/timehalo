@@ -58,7 +58,7 @@ export function DayStrip({
       role="tablist"
       aria-label="Day picker"
       className={cn(
-        "oh-sheen flex w-full items-stretch gap-0 overflow-x-auto",
+        "flex w-full items-stretch gap-0 overflow-x-auto",
         "rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px]",
         "shadow-[var(--oh-shadow-resting)]",
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",

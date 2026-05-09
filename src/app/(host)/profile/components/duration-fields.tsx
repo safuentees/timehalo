@@ -68,7 +68,7 @@ export function DurationFields() {
                     existingMinutes={list.filter((m) => m !== minutes)}
                     labels={pickerLabels}
                     triggerAriaLabel={t("durationsEditAria", { label: summary })}
-                    triggerClassName="oh-sheen group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
+                    triggerClassName="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
                     triggerContent={
                       <>
                         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
