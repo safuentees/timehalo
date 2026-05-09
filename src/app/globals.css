@@ -2741,6 +2741,14 @@
   /* `max-height` derives from the panel's height (the panel's
      `overflow: hidden` clips anyway, but be explicit). */
   max-height: 100% !important;
+  /* B.PT302 — match the parent panel's corner radius
+     (`--oh-r-window` = 18px) so the drawer's top corners share
+     the same curvature as `.oh-host-content`. The bottom corners
+     stay 0; the panel's `overflow: hidden` + `border-radius:
+     var(--oh-r-window)` clips the drawer's bottom edge to the
+     panel's rounded curve automatically — no need for explicit
+     bottom-corner rounding on the drawer itself. */
+  border-radius: var(--oh-r-window) var(--oh-r-window) 0 0 !important;
 }
 /* Nested drawer sits meaningfully shorter than parent so the parent's
    header strip ("SCHEDULE YOUR MEETING") stays visible behind the
