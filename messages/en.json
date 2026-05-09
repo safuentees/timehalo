@@ -170,6 +170,7 @@
     "upgradeToPro": "Upgrade to PRO",
     "upgradeTo": "Switch to {tier}",
     "manageBilling": "Manage billing",
+    "everythingInPlus": "Everything in {tier}, plus",
     "tier": {
       "FREE": "Free",
       "PRO": "Pro",
