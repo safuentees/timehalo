@@ -48,7 +48,20 @@ export function SectionHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
       <div className="min-w-0 flex-1">
-        <p id={legendId} className="oh-legend opacity-100">
+        {/* `font-medium` (weight 500) matches what `<FieldLegend>` ships
+            on availability + profile. `.oh-legend` declares
+            `font-weight: 800` in `@layer components`, but `<FieldLegend>`
+            also carries the Tailwind `font-medium` utility — utilities
+            sit in `@layer utilities` (higher than components per
+            Tailwind's layer order), so the FieldLegend version
+            actually renders at 500. SectionHeader's plain `<p>` had
+            no utility competing with `.oh-legend`, so it rendered at
+            800 — visibly heavier than "PUBLIC HANDLE" / "WEEKLY
+            AVAILABILITY". Match by adding `font-medium` here. */}
+        <p
+          id={legendId}
+          className="oh-legend font-medium opacity-100"
+        >
           {legend}
         </p>
         {title ? (
