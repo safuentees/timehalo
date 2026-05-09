@@ -30,7 +30,7 @@ export function HandleHostAvatarBody({
       </Avatar>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5]"
+        className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-[#E5E5E5] dark:ring-[#3a3a3a]"
       />
     </>
   );

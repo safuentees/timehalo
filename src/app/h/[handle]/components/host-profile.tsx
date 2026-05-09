@@ -226,7 +226,7 @@ export default function HostProfile({
 
   return (
     <OhVisitorShell
-      className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]"
+      className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       header={
         <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
           <span className="oh-eyebrow tabular-nums opacity-100">
@@ -377,7 +377,7 @@ export default function HostProfile({
                   }}
                   className={cn(
                     "flex flex-col gap-2.5",
-                    "bg-[#F5EFDF]",
+                    "bg-[#F5EFDF] dark:bg-[#272727]",
                   )}
                 >
                   {slotOptions.length === 0 ? (

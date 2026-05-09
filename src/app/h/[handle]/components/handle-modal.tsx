@@ -430,8 +430,8 @@ export function HandleModal({
             }}
             className={
               stretchesSlotList
-                ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF]"
-                : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF]"
+                ? "relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F5EFDF] dark:bg-[#272727]"
+                : "relative z-10 flex min-h-0 shrink-0 flex-col overflow-hidden bg-[#F5EFDF] dark:bg-[#272727]"
             }
           >
             {phantomLabels ? (
