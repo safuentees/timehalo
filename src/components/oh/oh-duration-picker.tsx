@@ -2,7 +2,6 @@
 
 import {
   forwardRef,
-  useEffect,
   useId,
   useRef,
   useState,
@@ -10,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
@@ -20,18 +19,28 @@ import {
 // Popover-based duration picker — minimal layout.
 //
 // Single minutes field (no hour split — easier to type "120" than to
-// pick "2hr 0min"). Auto-commits on close so there's no Save button
-// crowding the popover. Remove is a small trash icon in the corner.
-// The trigger is whatever the caller supplies — a chip for an
-// existing duration, a `+` icon button for the add affordance.
+// pick "2hr 0min"). Save is explicit via a Plus icon button to the
+// right of the MIN suffix; the popover does NOT auto-commit on close
+// (clicking outside or pressing Escape discards the draft, same as
+// any modal-edit form).
+//
+// Trigger is whatever the caller supplies — a chip for an existing
+// duration, a `+` icon button for the add affordance.
 //
 // Lifecycle:
 //   • Open    — popover anchors to trigger; field re-seeds from
-//               initialMinutes (or 30 default for add).
-//   • Type    — field updates draft state, sets dirty flag.
-//   • Close   — outside-click / Escape / Remove icon. If dirty AND
-//               value is in [5, 480] AND not a duplicate, fire
-//               onCommit. Otherwise discard.
+//               initialMinutes. Add-mode draft = null (empty), but
+//               the input renders `placeholder="0"` so the user sees
+//               a faded zero hint that disappears on the first
+//               keystroke (native browser behavior). Edit-mode
+//               draft = current chip value.
+//   • Type    — field updates draft state.
+//   • Save    — Plus icon click OR Enter key. Both call onCommit
+//               with the validated value, then close the popover.
+//               Disabled when value is empty / out of range /
+//               duplicate / unchanged-from-edit.
+//   • Cancel  — outside-click / Escape. Discards draft. The user
+//               must press Plus (or Enter) to persist.
 //   • Remove  — trash icon (edit mode only). Wraps `<Popover.Close>`
 //               so the click auto-dismisses; calls onRemove async.
 //
@@ -39,13 +48,6 @@ import {
 // in Chrome/Edge 124+, Safari 17.4+, Firefox 123+) so values >99
 // extend the field naturally. Falls back to a fixed width on older
 // browsers via the explicit `min-w` floor.
-
-// No SEED_MINUTES default — when the picker opens for "Add" with no
-// initial value, the field starts EMPTY (draft = null) so the user
-// types the duration they want without a placeholder number to
-// delete first. Same for the edit path: clearing the field leaves
-// draft = null, which fails the commit-on-close range check, so the
-// existing chip value stays.
 
 export type OhDurationPickerProps = {
   initialMinutes?: number;
@@ -57,10 +59,11 @@ export type OhDurationPickerProps = {
   triggerAriaLabel?: string;
   disabled?: boolean;
   /** Existing minutes values (excluding the chip being edited).
-   *  Used to silently skip commit on duplicate. */
+   *  Used to disable the Save button on duplicate. */
   existingMinutes?: ReadonlyArray<number>;
   labels: {
     minuteSuffix: string;
+    saveAria: string;
     removeAria: string;
   };
 };
@@ -79,62 +82,58 @@ export function OhDurationPicker({
 }: OhDurationPickerProps) {
   const reactId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const saveBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Controlled open state so the Enter-key handler in the input can
+  // close the popover after committing. Uncontrolled would force us
+  // to programmatically click the save button via ref to trigger
+  // Popover.Close — controlled is the cleaner shape.
+  const [open, setOpen] = useState(false);
 
   // Draft state — only mutated by user input. Re-seeded on every
   // OPEN event in onOpenChange so the field reflects the chip's
   // current saved value at the moment the user clicks. `null`
-  // represents "field is empty" — the user has cleared the input
-  // mid-typing OR the picker just opened in Add mode with no seed.
-  // Empty draft fails the range check in maybeCommitOnClose, which
-  // is the desired no-op behavior.
+  // represents "field is empty" — Add mode initial OR user cleared
+  // the input mid-typing.
   const [draft, setDraft] = useState<number | null>(
     initialMinutes ?? null,
   );
-  const [dirty, setDirty] = useState(false);
 
-  // Latest draft mirrored into refs so the close handler can read
-  // the freshest value. Without this, `onOpenChange(false)` would
-  // see the stale closure of `draft` captured at the last render
-  // and commit the OLD value when the user types then clicks
-  // outside. Effects (not render-time assignment) per React 19's
-  // "no ref writes during render" rule.
-  const draftRef = useRef(draft);
-  const dirtyRef = useRef(dirty);
-  useEffect(() => {
-    draftRef.current = draft;
-  }, [draft]);
-  useEffect(() => {
-    dirtyRef.current = dirty;
-  }, [dirty]);
+  // Save-button enabled when draft is a valid, non-duplicate, actual
+  // change. Same gate the Enter-key handler reads.
+  const canSave =
+    draft !== null &&
+    draft >= DURATION_MIN_MINUTES &&
+    draft <= DURATION_MAX_MINUTES &&
+    !existingMinutes.includes(draft) &&
+    !(mode === "edit" && initialMinutes === draft);
 
-  function maybeCommitOnClose() {
-    if (!dirtyRef.current) return;
-    const value = draftRef.current;
-    if (value === null) return;
-    const inRange =
-      value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
-    if (!inRange) return;
-    if (existingMinutes.includes(value)) return;
-    if (mode === "edit" && initialMinutes === value) return;
-    void onCommit(value);
+  function handleSave() {
+    if (!canSave || draft === null) return;
+    void onCommit(draft);
+    setOpen(false);
   }
 
   return (
     <Popover.Root
+      open={open}
       onOpenChange={(next) => {
+        setOpen(next);
         if (next) {
           // Re-seed on open. Event-handler form (not effect) so
           // React 19's `set-state-in-effect` rule doesn't fire.
-          // `null` → empty field on Add mode; in Edit mode the
-          // current chip value seeds the input.
+          // `null` → empty field with `placeholder="0"` on Add mode;
+          // in Edit mode the current chip value seeds the input.
           setDraft(initialMinutes ?? null);
-          setDirty(false);
           // Auto-focus the input on open so the user can immediately
-          // type a new value.
+          // type. Native `<input type="number">` placeholder shows
+          // until the first keystroke, then disappears (browser
+          // default — no JS needed).
           requestAnimationFrame(() => inputRef.current?.focus());
-        } else {
-          maybeCommitOnClose();
         }
+        // Close path is intentionally a no-op for committing — explicit
+        // save via the Plus button (or Enter key) is the only path
+        // that persists the draft.
       }}
     >
       <Popover.Trigger
@@ -157,14 +156,22 @@ export function OhDurationPicker({
               <DurationField
                 ref={inputRef}
                 value={draft}
-                onChange={(next) => {
-                  setDraft(next);
-                  setDirty(true);
-                }}
+                onChange={(next) => setDraft(next)}
+                onSubmit={() => saveBtnRef.current?.click()}
               />
               <span className="oh-eyebrow opacity-55">
                 {labels.minuteSuffix}
               </span>
+              <button
+                ref={saveBtnRef}
+                type="button"
+                onClick={handleSave}
+                disabled={!canSave}
+                aria-label={labels.saveAria}
+                className="oh-duration-picker-remove"
+              >
+                <Plus strokeWidth={1.75} className="size-4" aria-hidden />
+              </button>
               {onRemove ? (
                 <Popover.Close
                   onClick={() => void onRemove()}
@@ -192,10 +199,14 @@ export function OhDurationPicker({
 interface DurationFieldProps {
   value: number | null;
   onChange: (next: number | null) => void;
+  /** Fired on Enter — the parent dispatches a click on the save
+   *  button so the same code path persists the draft and closes
+   *  the popover. */
+  onSubmit: () => void;
 }
 
 const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
-  ({ value, onChange }, ref) => {
+  ({ value, onChange, onSubmit }, ref) => {
     function clamp(n: number) {
       if (Number.isNaN(n)) return DURATION_MIN_MINUTES;
       if (n < 0) return 0; // allow 0 mid-typing; range is enforced on commit
@@ -204,6 +215,11 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
     }
 
     function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmit();
+        return;
+      }
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
@@ -225,13 +241,14 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         max={DURATION_MAX_MINUTES}
         step={5}
         value={value !== null && Number.isFinite(value) ? value : ""}
+        // Single "0" placeholder rather than "00" — minutes are
+        // variable-width (5, 30, 120 are all valid) so a 2-digit
+        // hint would lie about the format. Native browser placeholder
+        // behavior: shows until the first keystroke, disappears as
+        // the user types — no JS clearing needed.
+        placeholder="0"
         onChange={(e) => {
           const raw = e.target.value;
-          // Empty input stays empty — `null` is the "user is mid-typing
-          // / has cleared the field" sentinel. Previously this branch
-          // wrote `0`, which forced a literal "0" placeholder into the
-          // input the user then had to delete before typing the real
-          // value. Now the field reads as truly empty.
           if (raw === "") {
             onChange(null);
             return;

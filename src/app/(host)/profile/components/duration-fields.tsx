@@ -50,6 +50,7 @@ export function DurationFields() {
 
   const pickerLabels = {
     minuteSuffix: t("durationsMinuteSuffix"),
+    saveAria: t("durationsSave"),
     removeAria: t("durationsRemove"),
   };
 
