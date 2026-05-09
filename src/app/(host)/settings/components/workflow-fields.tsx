@@ -62,7 +62,7 @@ export function WorkflowFields() {
             {t("upgradePrompt")}{" "}
             <a
               href="#billing-legend"
-              className="underline decoration-dotted underline-offset-2 transition-opacity duration-150 ease-oh hover:opacity-100"
+              className="oh-focus-ring !underline !underline-offset-4 !decoration-[1.5px] !decoration-current transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("upgradeLink")}
             </a>
