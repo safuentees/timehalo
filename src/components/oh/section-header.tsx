@@ -77,7 +77,16 @@ export function SectionHeader({
           <h2 className="text-[20px] font-black tracking-tight">{title}</h2>
         ) : null}
         {description ? (
-          <p className="-mt-1.5 text-[13px] leading-[1.5] opacity-65">
+          // Replicates FieldDescription's full effective style stack
+          // verbatim: `text-left text-[13px] leading-[1.5] font-normal
+          // text-muted-foreground opacity-65` plus `-mt-1.5` for the
+          // post-legend adjacency tightening. The earlier version
+          // dropped `text-muted-foreground` and inherited the parent's
+          // ink color — at opacity-65 that rendered measurably darker
+          // than profile/availability's `oklch(0.556 0 0)` gray at
+          // the same opacity. Same opacity number, different base
+          // color, different visible contrast.
+          <p className="-mt-1.5 text-left text-[13px] leading-[1.5] font-normal text-muted-foreground opacity-65">
             {description}
           </p>
         ) : null}
