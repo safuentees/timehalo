@@ -21,6 +21,7 @@ import {
   handleFieldSchema,
   defaultHandle,
 } from "./handle-fields";
+import { DurationFields } from "./duration-fields";
 
 const schema = z.object({
   handle: handleFieldSchema,
@@ -62,9 +63,9 @@ export default function ProfileForm() {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <OhPageShell>
-          <OhPageHeader title={t("pageTitle")} />
+      <OhPageShell>
+        <OhPageHeader title={t("pageTitle")} />
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
@@ -90,8 +91,11 @@ export default function ProfileForm() {
               saved: t("savedLabel"),
             }}
           />
-        </OhPageShell>
-      </form>
+        </form>
+        <div className="mt-12">
+          <DurationFields />
+        </div>
+      </OhPageShell>
     </FormProvider>
   );
 }

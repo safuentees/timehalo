@@ -133,7 +133,7 @@ function findViolations(
       }
     }
 
-    const textRegex = />\s*([^<>{}\n]+?)\s*</g;
+    const textRegex = /(?<!=)>\s*([^<>{}\n]+?)\s*</g;
     let m: RegExpExecArray | null;
     while ((m = textRegex.exec(line)) !== null) {
       const text = m[1].trim();
