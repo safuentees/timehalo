@@ -167,6 +167,7 @@
     "renewsOn": "Renews {date}",
     "cancelsOn": "Cancels {date}",
     "redirecting": "Redirecting…",
+    "processingCheckout": "Updating plan…",
     "upgradeToPro": "Upgrade to PRO",
     "upgradeTo": "Switch to {tier}",
     "manageBilling": "Manage billing",

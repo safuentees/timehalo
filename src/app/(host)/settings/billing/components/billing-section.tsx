@@ -80,7 +80,13 @@ function CheckoutReturnSync() {
     sessionStartedRef.current = true;
 
     const POLL_INTERVAL_MS = 2_000;
-    const POLL_BUDGET_MS = 10_000;
+    // 30s ceiling — Stripe webhooks for `customer.subscription.created`
+    // can take 10–25s in slow-path conditions (Connect chains, Radar
+    // review, async-payment methods like Klarna / SEPA). 10s was too
+    // tight; the user's screen would flash a "still processing" toast
+    // even when the webhook landed seconds later. Cal.com / dub.co
+    // both budget ~30s for the same reason.
+    const POLL_BUDGET_MS = 30_000;
     const startedAt = Date.now();
 
     let active = true;
