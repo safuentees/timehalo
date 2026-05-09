@@ -117,7 +117,7 @@ export function MonthView({
         // 7-col weekday header, day-cell borders, week separators)
         // are STRUCTURAL — they communicate "month grid" not "card
         // edge" — kept verbatim.
-        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "oh-sheen flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
       )}

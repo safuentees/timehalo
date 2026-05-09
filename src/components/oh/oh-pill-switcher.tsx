@@ -157,7 +157,7 @@ export function OhPillSwitcher<T extends string>({
                   // TabsTrigger's `rounded-[3px]` above so the pill
                   // and its containing button share bounds + radius
                   // exactly.
-                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting)]"
+                  className="oh-sheen absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

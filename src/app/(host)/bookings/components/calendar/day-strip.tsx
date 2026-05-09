@@ -92,7 +92,7 @@ export function DayStrip({
         // strip now reads as one segmented control rather than 7
         // floating buttons; siblings the Day/Week/Month/List
         // switcher above with identical chrome.
-        "flex w-full items-stretch gap-0 overflow-x-auto",
+        "oh-sheen flex w-full items-stretch gap-0 overflow-x-auto",
         "rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px]",
         "shadow-[var(--oh-shadow-resting)]",
         // Hide native scrollbar; the buttons themselves communicate

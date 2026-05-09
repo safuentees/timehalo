@@ -1022,7 +1022,7 @@ function BookingsListPanel({
 }) {
   if (bookings.length === 0) return <EmptyBookings tab={tab} />;
   return (
-    <div className="overflow-hidden rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] shadow-[var(--oh-shadow-resting)]">
+    <div className="oh-sheen overflow-hidden rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] shadow-[var(--oh-shadow-resting)]">
       <ul role="list" className="divide-y divide-oh-line">
         {bookings.map((b) => (
           <li key={b.id}>

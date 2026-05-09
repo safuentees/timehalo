@@ -179,7 +179,7 @@ export function WeekView({
         // column borders, day-header bottom rule) kept as STRUCTURAL
         // separators because they communicate "7-column grid" not
         // "card edge."
-        "rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
+        "oh-sheen rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",

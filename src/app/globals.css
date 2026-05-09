@@ -224,52 +224,72 @@
   --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
   /* Card/chip elevation tokens. Light mode pairs a dark drop shadow
-     ("object floats above paper") with an inset white rim highlight
-     on the top edge — a 1px pseudo-bevel simulating light catching
-     the upper face. Same idiom Linear / Vercel / GitHub use on
-     primary buttons in light mode; on cream paper the white
-     highlight reads as a subtle shine, not a stripe. Combined with
-     the drop shadow the surface gets a skeuomorphic emboss without
-     overdoing either side. Single source of truth so the
-     dark-mode override below can swap the entire vocabulary at
-     once. */
-  --oh-shadow-resting:
-    0 3px 12px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --oh-shadow-hover:
-    0 4px 16px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+     ("object floats above paper") with a separate gradient sheen
+     overlay (`--oh-sheen-top`, applied via `background-image` on
+     each surface) — the depth feel is split into two cooperating
+     pieces.
+       Old recipe: `inset 0 1px 0 rgba(255,255,255,X)` did the rim
+       highlight inside the shadow token. The 1px line had no
+       falloff; the eye picked up the terminator and read the rim
+       as a stripe across the surface.
+       New recipe: drop shadow lives in the shadow token; the
+       brightening lives in `--oh-sheen-top` (a vertical gradient
+       in the background image stack). Falloff is continuous over
+       the top 6-8px instead of quantized to 1px, so the highlight
+       reads as a soft specular catch (Linear / Vercel / Material 3
+       "surface tint" / Apple HIG "specular highlight" pattern).
+       Each surface that uses these tokens also applies
+       `background-image: var(--oh-sheen-top)` (or the `.oh-sheen`
+       utility class on Tailwind callsites). */
+  --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
+  --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
   /* Floated surfaces — popovers, menu popups, drawer top-edge.
      Two-layer drop (longer soft + shorter contact) so a popover
      visibly floats above the page-level shadow plane that
-     `--oh-shadow-resting` defines. Inset rim catches the upper
-     face same as the chip tokens. */
+     `--oh-shadow-resting` defines. Sheen highlight comes from the
+     surface's own `--oh-sheen-top` overlay, same as chip surfaces. */
   --oh-shadow-popup:
     0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 4px 12px -6px rgb(0 0 0 / 0.18);
   /* Drawer top-edge shadow — the slim band above a bottom-sheet so
      the sheet visibly lifts off the page. Light mode: dark drop
-     bleeding upward + inset rim highlight on the upper face. */
-  --oh-shadow-drawer-edge:
-    0 -18px 44px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+     bleeding upward; sheen overlay on the drawer surface itself. */
+  --oh-shadow-drawer-edge: 0 -18px 44px rgba(0, 0, 0, 0.28);
   /* Main content panel — the rounded paper window where every
      dashboard page lives. Deliberately softer than the chip / popup
      tokens because the panel fills most of the viewport: a chip-
      strength shadow at panel scale reads as a heavy frame, not as
-     elevation. Three layers per Linear's / Notion's pattern:
+     elevation. Two layers per Linear's / Notion's pattern:
        1. Soft ambient drop (`32px` blur, `-16px` spread) — bleeds
           outward, defines the panel's depth without hard edges.
        2. Tight 1-2px contact shadow — anchors the bottom edge so
           the panel doesn't appear to float.
-       3. Inset top rim (lower opacity than chip rim — same idea,
-          gentler so it doesn't read as a stripe across the panel
-          width). */
+     Sheen overlay (`--oh-sheen-top`) supplies the upper-edge
+     brightening as a smooth gradient — replaces the previous
+     `inset 0 1px 0` rim that read as a stripe across the panel
+     width. */
   --oh-shadow-panel:
     0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 12px 32px -16px rgba(0, 0, 0, 0.12);
+  /* Specular sheen — gradient brightening at the top edge.
+     Applied as `background-image` on every surface that previously
+     wore an `inset 0 1px 0 rgba(255,255,255,X)` rim. The gradient
+     transitions continuously over the top 8-10px so the eye
+     can't pick up a terminating line — the issue with the old
+     1px rim was that a 1px-thick highlight has no falloff by
+     definition (pixel-quantized). Reference: Linear's button
+     bg, Vercel's nav surface, GitHub Primer button-resting,
+     Apple HIG specular highlight, Material 3 surface tint.
+     Light-mode opacity is meaningful (white@45 on cream paper
+     visible as a ~8% L* lift); dark-mode opacity stays low so
+     it doesn't fight the lighter dark-paper surface. */
+  --oh-sheen-top:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.12) 30%,
+      rgba(255, 255, 255, 0) 65%
+    );
   /* Recessed "well" — empty placeholders inside the panel. The
      inverse cue of the resting/hover/popup tokens: instead of
      reading as a raised surface above the page, the well reads as
@@ -394,18 +414,14 @@
   --oh-frame: #0a0a0a;
 
   /* Shadow tokens swap for dark mode: deeper drop (visible against
-     the lighter panel + against the near-black outer chrome) plus a
-     1px rim highlight (`inset 0 1px 0 rgba(255,255,255,0.05)`) for
-     the "light catches the top edge" metaphor — the same emboss cue
-     macOS dark-mode cards use. The combination reads as depth
-     without the "fluorescent neumorphism" trap of pure white halos.
+     the lighter panel + against the near-black outer chrome).
+     Brightening is supplied by `--oh-sheen-top` as a separate bg
+     overlay — same gradient pattern as light mode but at much
+     lower alpha. macOS dark-mode cards use the same idiom; ours
+     follow Material 3's "surface tint" elevation overlay model.
      Reference: m3.material.io/styles/elevation/applying-elevation. */
-  --oh-shadow-resting:
-    0 4px 14px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --oh-shadow-hover:
-    0 6px 20px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --oh-shadow-resting: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --oh-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.65);
 
   /* Input recess shadows deepen so the recessed-paper metaphor
      survives on the lighter dark-mode panel. */
@@ -413,27 +429,34 @@
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.6);
 
   /* Popover / menu / drawer-edge shadows. Same surface-elevation
-     metaphor as resting/hover but stronger — popups floats higher
-     than chips. Rim highlight on the popup itself (the `inset 0 1px
-     0` line) catches the eye on the upper edge so the surface
-     reads as elevated paper, not as a black hole over a darker
-     bg. */
+     metaphor as resting/hover but stronger — popups float higher
+     than chips. The gradient sheen on the popup surface itself
+     supplies the upper-edge catch; the inset rim line is gone. */
   --oh-shadow-popup:
     0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --oh-shadow-drawer-edge:
-    0 -20px 48px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  /* Panel elevation in dark mode — same three-layer recipe but
-     each layer scaled for the lighter-gray panel against near-black
-     chrome. Drop shadow has more contrast to fall onto so it can
-     stay as soft as the chip-scale shadows; rim highlight is faint
-     so it reads as edge-glint, not a band. */
+    0 6px 16px -6px rgba(0, 0, 0, 0.5);
+  --oh-shadow-drawer-edge: 0 -20px 48px rgba(0, 0, 0, 0.55);
+  /* Panel elevation in dark mode — two-layer recipe scaled for the
+     lighter-gray panel against near-black chrome. Drop shadow
+     stays soft (chip-scale); brightening is the gradient sheen on
+     the panel's own bg, not an inset line. */
   --oh-shadow-panel:
     0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 12px 32px -16px rgba(0, 0, 0, 0.55);
+  /* Sheen override — much lower opacity than light mode because
+     the dark-paper surface (`#1a1a1a`) is closer to black; white
+     at 0.45 there would read as a grey stripe, not a highlight.
+     0.06 → 0 over 8-12px gives a faint specular catch consistent
+     with macOS dark-mode card elevation. Falloff is wider (80%
+     vs 65%) because dark surfaces tolerate longer light gradients
+     before they read as banding. */
+  --oh-sheen-top:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.02) 40%,
+      rgba(255, 255, 255, 0) 80%
+    );
   /* Well token in dark mode — deeper inset shadow because the
      lighter dark-paper panel eats subtle shadows. The 1px inner
      ring uses near-black so the well's perimeter resolves against
@@ -702,14 +725,18 @@
      because color-mix toward white brightens in both light and
      dark mode (frame is darker in light, lighter in dark — the
      mix nudges one notch farther from the surrounding chrome). */
-  background: color-mix(in srgb, var(--oh-frame), white 8%);
+  background-color: color-mix(in srgb, var(--oh-frame), white 8%);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   /* Two-layer drop: longer soft shadow for distance from the bar,
      tighter low-blur layer for contact / lift definition. Replaces
      the visual job a hard 2px border was doing. Token-driven so
      dark-mode swaps the depth vocabulary in lockstep with chip
-     shadows. */
+     shadows. The upper-edge specular catch lives in
+     `--oh-sheen-top` (gradient bg overlay) — softer than the prior
+     1px `inset 0 1px 0` rim and free of the visible terminator
+     line. */
   box-shadow: var(--oh-shadow-popup);
   outline: none;
   font-family: var(--font-grotesk), "Neue Haas Grotesk", Helvetica, sans-serif;
@@ -933,14 +960,18 @@
   gap: 12px;
   padding: 16px 20px;
   text-align: left;
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   cursor: pointer;
   /* B.PT295 — borderless drop-shadow vocabulary matching the
      `oh` button + the BlockChip + DayPickerTrigger above. Hover
      bumps the shadow for tactile feedback. Token-driven so dark
-     mode swaps the depth vocabulary uniformly. */
+     mode swaps the depth vocabulary uniformly. The upper-edge
+     specular catch lives in `--oh-sheen-top` (gradient bg overlay)
+     so the brightening fades softly over 8-10px instead of
+     terminating in a 1px rim line. */
   box-shadow: var(--oh-shadow-resting);
   transition:
     box-shadow 150ms var(--ease-oh, ease),
@@ -968,9 +999,13 @@
 .oh-time-picker-popup {
   /* B.PT295 — borderless. The popup chrome leans on its drop shadow
      to define the elevated surface against the page. Theme-aware
-     via `--oh-shadow-popup` so dark mode picks up rim-highlight +
-     deeper drop without a separate dark-mode override here. */
-  background: var(--oh-paper);
+     via `--oh-shadow-popup` so dark mode picks up the deeper drop
+     without a separate override here; specular brightening on the
+     upper face comes from `--oh-sheen-top` as a gradient bg overlay,
+     so the falloff stays smooth instead of terminating in a 1px
+     rim line. */
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 14px 16px;
@@ -1044,7 +1079,8 @@
    optional remove icon). Same paper bg + drop-shadow vocabulary,
    tighter padding so the popover doesn't dwarf its trigger. */
 .oh-duration-picker-popup {
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 10px 12px;
@@ -1919,6 +1955,19 @@
   .oh-empty-surface {
     background-color: var(--oh-frame);
     box-shadow: var(--oh-shadow-well);
+  }
+  /* Specular sheen overlay — apply to any surface that previously
+     wore the `inset 0 1px 0 rgba(255,255,255,X)` rim highlight as
+     part of `--oh-shadow-resting/-hover/-popup/-drawer-edge/-panel`.
+     The sheen lives in the bg image stack so the surface keeps its
+     own bg color underneath. Existing `bg-*` Tailwind utilities
+     compose cleanly because Tailwind's `bg-<color>` writes to
+     `background-color`, leaving `background-image` free for the
+     gradient. Theme-aware via `--oh-sheen-top` — light mode pushes
+     a visible white@45 falloff, dark mode stays at white@06 so the
+     specular catch reads as edge-glint not stripe. */
+  .oh-sheen {
+    background-image: var(--oh-sheen-top);
   }
 }
 
@@ -2928,7 +2977,8 @@
   flex-direction: column;
   height: 100%;
   max-height: 96%;
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   /* Top corners only — mobile bottom-sheet convention. */
   border-radius: var(--oh-r-sm) var(--oh-r-sm) 0 0;
@@ -2937,7 +2987,8 @@
   box-shadow: var(--oh-shadow-drawer-edge);
 }
 .dark .oh-drawer-content {
-  background: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
+  background-color: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
+  background-image: var(--oh-sheen-top);
 }
 
 /* B.PT301 — drawer constrained to the dashboard panel.
@@ -3686,7 +3737,8 @@
 .oh-host-content {
   /* STATIC frame — paper bg + rounded corners + margin from the
      surrounding --oh-frame. */
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
   /* Top + right + bottom gap; left side hugs the sidebar. Mobile
      adds margin-left below. */
@@ -3707,13 +3759,13 @@
      the percentage chain. */
   position: relative;
   overflow: hidden;
-  /* Panel elevation. Three-layer recipe (soft ambient drop + tight
-     1-2px contact + inset top rim) defined as a single token so
-     dark mode swaps the depth vocabulary in lockstep with chips +
-     popovers. `overflow: hidden` clips child overflow but does NOT
-     clip box-shadow inset rims — those paint at the border-box
-     level, not on children, so the rim catches the upper edge
-     correctly even with the cookie-cutter behavior. */
+  /* Panel elevation. Two-layer recipe (soft ambient drop + tight
+     1-2px contact) defined as a single token so dark mode swaps
+     the depth vocabulary in lockstep with chips + popovers. The
+     upper-edge specular catch comes from `--oh-sheen-top` as a
+     gradient bg overlay (continuous falloff, no terminator line) —
+     replaces the previous `inset 0 1px 0` rim that read as a
+     stripe across the panel width. */
   box-shadow: var(--oh-shadow-panel);
 }
 
