@@ -187,7 +187,7 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         aria-label="Duration in minutes"
         className={cn(
           "oh-time-picker-input tabular-nums",
-          "w-auto !min-w-[64px] !px-3",
+          "!w-auto !min-w-[64px] !pl-3 !pr-6 !text-left",
         )}
         style={{ fieldSizing: "content" } as React.CSSProperties}
       />
