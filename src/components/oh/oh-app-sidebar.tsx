@@ -197,7 +197,7 @@ export function MobileNavContent({
                       "hover:bg-[var(--oh-tint-hover)]",
                       "oh-focus-ring",
                       active
-                        ? "bg-[color:var(--oh-paper)] font-bold shadow-[var(--oh-shadow-resting)]"
+                        ? "oh-sheen bg-[color:var(--oh-paper)] font-bold shadow-[var(--oh-shadow-resting)]"
                         : "",
                     ].join(" ")}
                   >

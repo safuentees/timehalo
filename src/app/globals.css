@@ -141,23 +141,22 @@
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.32);
   --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
-  --oh-shadow-resting:
-    0 3px 12px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --oh-shadow-hover:
-    0 4px 16px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
+  --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
   --oh-shadow-popup:
     0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  --oh-shadow-drawer-edge:
-    0 -18px 44px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 4px 12px -6px rgb(0 0 0 / 0.18);
+  --oh-shadow-drawer-edge: 0 -18px 44px rgba(0, 0, 0, 0.28);
   --oh-shadow-panel:
     0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 12px 32px -16px rgba(0, 0, 0, 0.12);
+  --oh-sheen-top:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.12) 30%,
+      rgba(255, 255, 255, 0) 65%
+    );
   --oh-shadow-well:
     inset 0 2px 5px rgba(0, 0, 0, 0.05),
     inset 0 0 0 1px rgba(0, 0, 0, 0.04);
@@ -218,27 +217,26 @@
   --oh-ink: #ede4cf;
   --oh-frame: #0a0a0a;
 
-  --oh-shadow-resting:
-    0 4px 14px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --oh-shadow-hover:
-    0 6px 20px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --oh-shadow-resting: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --oh-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.65);
 
   --oh-input-shadow-rest: inset 0 0 6px rgba(0, 0, 0, 0.45);
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.6);
 
   --oh-shadow-popup:
     0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --oh-shadow-drawer-edge:
-    0 -20px 48px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 6px 16px -6px rgba(0, 0, 0, 0.5);
+  --oh-shadow-drawer-edge: 0 -20px 48px rgba(0, 0, 0, 0.55);
   --oh-shadow-panel:
     0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 12px 32px -16px rgba(0, 0, 0, 0.55);
+  --oh-sheen-top:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.02) 40%,
+      rgba(255, 255, 255, 0) 80%
+    );
   --oh-shadow-well:
     inset 0 2px 6px rgba(0, 0, 0, 0.45),
     inset 0 0 0 1px rgba(0, 0, 0, 0.3);
@@ -376,7 +374,8 @@
 .oh-menu-popup {
   min-width: 240px;
   padding: 6px 6px 10px;
-  background: color-mix(in srgb, var(--oh-frame), white 8%);
+  background-color: color-mix(in srgb, var(--oh-frame), white 8%);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   box-shadow: var(--oh-shadow-popup);
@@ -564,7 +563,8 @@
   gap: 12px;
   padding: 16px 20px;
   text-align: left;
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   cursor: pointer;
@@ -593,7 +593,8 @@
   outline: none;
 }
 .oh-time-picker-popup {
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 14px 16px;
@@ -646,7 +647,8 @@
 }
 
 .oh-duration-picker-popup {
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm);
   padding: 10px 12px;
@@ -1418,6 +1420,9 @@
   .oh-empty-surface {
     background-color: var(--oh-frame);
     box-shadow: var(--oh-shadow-well);
+  }
+  .oh-sheen {
+    background-image: var(--oh-sheen-top);
   }
 }
 
@@ -2212,7 +2217,8 @@
   flex-direction: column;
   height: 100%;
   max-height: 96%;
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   color: var(--oh-ink);
   border-radius: var(--oh-r-sm) var(--oh-r-sm) 0 0;
   outline: none;
@@ -2220,7 +2226,8 @@
   box-shadow: var(--oh-shadow-drawer-edge);
 }
 .dark .oh-drawer-content {
-  background: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
+  background-color: color-mix(in srgb, var(--oh-paper) 94%, var(--oh-ink));
+  background-image: var(--oh-sheen-top);
 }
 
 [data-oh-modal-host="true"] .oh-drawer-overlay {
@@ -2803,7 +2810,8 @@
 }
 
 .oh-host-content {
-  background: var(--oh-paper);
+  background-color: var(--oh-paper);
+  background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
   margin: 12px 12px 12px 0;
   height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
