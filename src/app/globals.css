@@ -3083,7 +3083,20 @@
 [data-slot="dialog-overlay"] {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 50;
+  /* Dialog/drawer overlay z-index bumped 50 → 200 (2026-05-09).
+     The desktop modal kept rendering BEHIND parts of the dashboard
+     chrome — the panel + sidebar wrappers establish their own
+     stacking contexts; the dialog at z-50 sat under them, so
+     clicks landed on the chrome instead of reaching the popup
+     content. 200 lifts the entire dialog stack above every
+     dashboard layer (the menu popup at z-100 is the tallest
+     non-modal element). The popup itself sits at z-[202] and the
+     viewport at z-[201] (per dialog.tsx) so the inner stack stays
+     consistent. The drawer's content (inside the panel via the
+     [data-oh-modal-host] portal) keeps the higher value too —
+     harmless on mobile because vaul's own z-management handles
+     the bottom-sheet layering. */
+  z-index: 200;
   background: transparent !important;
   backdrop-filter: blur(8px) saturate(80%);
   -webkit-backdrop-filter: blur(8px) saturate(80%);
@@ -3094,7 +3107,11 @@
   right: 0;
   bottom: 0;
   margin-top: 6rem;
-  z-index: 51;
+  /* 201 — sits one above the overlay's 200 so the bottom-sheet
+     content paints above its scrim. Overlay + content moved up
+     together (50/51 → 200/201) when the dialog stack was lifted
+     above the dashboard chrome. */
+  z-index: 201;
   display: flex;
   flex-direction: column;
   height: 100%;
