@@ -1952,6 +1952,7 @@
   [data-slot="input-group-control"],
 [data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"])
   [data-slot="input-group-control"] {
+  height: 100% !important;
   padding-left: 16px !important;
   font-size: 15px !important;
   background: transparent !important;
