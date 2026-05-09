@@ -306,11 +306,11 @@
      elevated. References: macOS dark-mode primary buttons
      (NSAccentColor "dark variant"), Linear / dub.co dark CTAs.
      Light-mode values delegate to the existing ink/paper tokens
-     so the classic dark-on-cream CTA stays untouched. */
+     so the classic dark-on-cream CTA stays untouched. No `-hover`
+     siblings: hover state on `oh` variants is shadow-only — the
+     color flip was retired across light + dark mode. */
   --oh-button-primary-bg: var(--oh-ink);
   --oh-button-primary-text: var(--oh-paper);
-  --oh-button-primary-bg-hover: var(--oh-paper);
-  --oh-button-primary-text-hover: var(--oh-ink);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
@@ -479,20 +479,14 @@
      read as a cream-light-theme blob against the dark panel.
      Cream text (`--oh-ink`) on this gray bg stays readable
      (~9.4:1 contrast — well above WCAG AA's 4.5:1).
-     Hover values match rest values — preserves the existing
-     "no color flip in dark mode" policy applied to the `oh` /
-     `ohGhost` variants (the user flagged jarring contrast
-     direction reversal in dark mode a few commits back). Shadow
-     lift on hover is suppressed via the variant's explicit
-     `dark:hover:shadow-[var(--oh-shadow-resting)]` override. */
+     No `-hover` siblings: hover on `oh` variants is shadow-only
+     across both modes (the color flip was retired). Shadow lift
+     IS allowed in dark mode now — the previous
+     `dark:hover:shadow-[var(--oh-shadow-resting)]` suppression
+     existed because the color flip was felt jarring; with no
+     color change, the lift reads as a clean tactile cue. */
   --oh-button-primary-bg: color-mix(in srgb, var(--oh-paper), white 12%);
   --oh-button-primary-text: var(--oh-ink);
-  --oh-button-primary-bg-hover: color-mix(
-    in srgb,
-    var(--oh-paper),
-    white 12%
-  );
-  --oh-button-primary-text-hover: var(--oh-ink);
 }
 
 @layer base {
