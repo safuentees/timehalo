@@ -29,7 +29,7 @@ const eslintConfig = defineConfig([
           selector:
             'JSXOpeningElement[name.name="Button"] JSXAttribute[name.name="variant"][value.value=/^(default|outline|secondary|ghost|destructive|link)$/]',
           message:
-            "<Button variant=\"…\"> must use an `oh` variant in the dashboard surface. Use `oh` for primary actions, `ohGhost` for secondary / cancel / icon-only. Stock shadcn variants (outline, secondary, ghost, default, destructive, link) read as foreign against the oh chrome.",
+            "<Button variant=\"…\"> must use an `oh` variant in the dashboard surface. Use `oh` for primary actions, `ohGhost` for secondary / cancel / icon-only, and `ohDanger` for destructive triggers. Stock shadcn variants (outline, secondary, ghost, default, destructive, link) read as foreign against the oh chrome.",
         },
       ],
     },

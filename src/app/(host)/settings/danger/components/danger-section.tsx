@@ -14,8 +14,7 @@ export function DangerSection() {
       <OhPageHeader title={t("subnavDanger")} />
       <section className="mt-8">
         <SectionHeader
-          legend={tDanger("label")}
-          title={tDanger("deleteAccountTitle")}
+          legend={tDanger("deleteAccountTitle")}
           description={tDanger("deleteAccountDescription")}
         />
         <div className="mt-5">
