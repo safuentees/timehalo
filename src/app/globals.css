@@ -141,12 +141,19 @@
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.32);
   --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
-  --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
-  --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
+  --oh-shadow-resting:
+    0 3px 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --oh-shadow-hover:
+    0 4px 16px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   --oh-shadow-popup:
     0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18);
-  --oh-shadow-drawer-edge: 0 -18px 44px rgba(0, 0, 0, 0.28);
+    0 4px 12px -6px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --oh-shadow-drawer-edge:
+    0 -18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
   --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
   --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
