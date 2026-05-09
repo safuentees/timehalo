@@ -7,6 +7,9 @@ import {
   fetchHostBusyTimes,
   subtractBusyTimes,
 } from "@/lib/calendar";
+import { resolveDurationChoices } from "@/lib/durations";
+import { resolveEventTypeForHandle } from "@/lib/event-types";
+import { durationMinutesSchema } from "@/lib/durations";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 const DAY_KEY_TO_ENUM = {
@@ -89,6 +92,7 @@ export const schedule = router({
       z.object({
         handle: z.string(),
         days: z.number().int().min(1).max(14).default(7),
+        durationMinutes: durationMinutesSchema.optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -97,6 +101,24 @@ export const schedule = router({
         select: { id: true, timezone: true },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const eventType = await resolveEventTypeForHandle(input.handle);
+      const choices = eventType ? resolveDurationChoices(eventType) : [];
+      let effectiveDurationMinutes: number;
+      if (!eventType) {
+        effectiveDurationMinutes = input.durationMinutes ?? 15;
+      } else if (choices.length === 0) {
+        return [];
+      } else if (input.durationMinutes === undefined) {
+        effectiveDurationMinutes = eventType.durationMins;
+      } else if (choices.includes(input.durationMinutes)) {
+        effectiveDurationMinutes = input.durationMinutes;
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That duration isn't available for this host.",
+        });
+      }
 
       const ranges = await prisma.availabilityRange.findMany({
         where: { userId: user.id },
@@ -109,6 +131,7 @@ export const schedule = router({
         from: new Date(),
         days: input.days,
         stepMinutes: 15,
+        eventDurationMinutes: effectiveDurationMinutes,
         hostTimezone: user.timezone,
       });
 
@@ -133,26 +156,27 @@ export const schedule = router({
         where: {
           hostId: user.id,
           deleted: false,
-          slotStart: {
-            gte: new Date(slots[0].start),
-            lte: new Date(slots[slots.length - 1].end),
-          },
+          slotStart: { lte: new Date(slots[slots.length - 1].end) },
+          slotEnd: { gte: new Date(slots[0].start) },
         },
         select: {
           slotStart: true,
+          slotEnd: true,
         },
       });
 
-      const takenStarts = new Set(
-        bookings.map((booking) => booking.slotStart.getTime()),
-      );
+      const bookingRanges = bookings.map((b) => ({
+        start: b.slotStart.getTime(),
+        end: b.slotEnd.getTime(),
+      }));
 
       return slots.map((slot) => {
-        const status: "open" | "taken" = takenStarts.has(
-          new Date(slot.start).getTime(),
-        )
-          ? "taken"
-          : "open";
+        const slotStartMs = new Date(slot.start).getTime();
+        const slotEndMs = new Date(slot.end).getTime();
+        const taken = bookingRanges.some(
+          (b) => slotStartMs < b.end && slotEndMs > b.start,
+        );
+        const status: "open" | "taken" = taken ? "taken" : "open";
 
         return {
           ...slot,

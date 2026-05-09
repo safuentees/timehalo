@@ -80,12 +80,24 @@ export default function HostProfile({
     { handle },
     { initialData: initialUser },
   );
-  const { data: fetchedSlots } = trpc.schedule.getUpcomingSlots.useQuery(
-    { handle },
-    { initialData: initialSlots },
+  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
+    string | undefined
+  >(undefined);
+  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
+    number | undefined
+  >(undefined);
+  const fetchedSlotsResult = trpc.schedule.getUpcomingSlots.useQuery(
+    {
+      handle,
+      durationMinutes: selectedDurationMinutes,
+    },
+    {
+      initialData:
+        selectedDurationMinutes === undefined ? initialSlots : undefined,
+    },
   );
   const user = fetchedUser ?? initialUser;
-  const slots = fetchedSlots ?? initialSlots;
+  const slots = fetchedSlotsResult.data ?? initialSlots;
   const now = new Date(renderedAt);
   const availableSlots = slots.filter(isOpenSlot);
   const nextSlot = availableSlots[0];
@@ -106,12 +118,6 @@ export default function HostProfile({
     if (drawerOpen && !next) exitInFlightRef.current = true;
     setDrawerOpenRaw(next);
   };
-  const [selectedDurationLabel, setSelectedDurationLabel] = useState<
-    string | undefined
-  >(undefined);
-  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<
-    number | undefined
-  >(undefined);
 
   const slotOptions: ReadonlyArray<SlotOption> =
     initialUser.durationChoices.length > 0

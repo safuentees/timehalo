@@ -150,12 +150,14 @@ export function generateUpcomingSlots({
   from,
   days,
   stepMinutes,
+  eventDurationMinutes,
   hostTimezone = DEFAULT_TIMEZONE,
 }: {
   ranges: DbRow[];
   from: Date;
   days: number;
   stepMinutes: number;
+  eventDurationMinutes?: number;
   hostTimezone?: string;
 }): UpcomingSlot[] {
   const byDay = new Map<DayOfWeek, DbRow[]>();
@@ -166,6 +168,7 @@ export function generateUpcomingSlots({
   }
 
   const stepMs = stepMinutes * 60_000;
+  const eventMs = (eventDurationMinutes ?? stepMinutes) * 60_000;
   const nowMs = from.getTime();
   const seen = new Map<number, UpcomingSlot>();
 
@@ -188,11 +191,11 @@ export function generateUpcomingSlots({
       const rangeStartMs = fromZonedTime(wallStart, hostTimezone).getTime();
       const rangeEndMs = fromZonedTime(wallEnd, hostTimezone).getTime();
 
-      for (let t = rangeStartMs; t + stepMs <= rangeEndMs; t += stepMs) {
+      for (let t = rangeStartMs; t + eventMs <= rangeEndMs; t += stepMs) {
         if (t > nowMs && !seen.has(t)) {
           seen.set(t, {
             start: new Date(t).toISOString(),
-            end: new Date(t + stepMs).toISOString(),
+            end: new Date(t + eventMs).toISOString(),
           });
         }
       }

@@ -240,7 +240,12 @@ export const bookings = router({
               }
 
               const slotCollision = await tx.booking.findFirst({
-                where: { hostId: pickedHostId, slotStart, deleted: false },
+                where: {
+                  hostId: pickedHostId,
+                  deleted: false,
+                  slotStart: { lt: slotEnd },
+                  slotEnd: { gt: slotStart },
+                },
                 select: { id: true },
               });
               if (slotCollision) {
@@ -977,8 +982,10 @@ export const bookings = router({
               const slotCollision = await tx.booking.findFirst({
                 where: {
                   hostId: host.id,
-                  slotStart: newSlotStart,
                   deleted: false,
+                  slotStart: { lt: newSlotEnd },
+                  slotEnd: { gt: newSlotStart },
+                  id: { not: original.id },
                 },
                 select: { id: true },
               });

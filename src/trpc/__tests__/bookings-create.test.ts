@@ -237,6 +237,54 @@ describe("bookings.create durationMinutes", () => {
     ).rejects.toThrow(TRPCError);
   });
 
+  it("rejects with CONFLICT when a longer existing booking overlaps the new slot", async () => {
+    const caller = callRouter(fakeContext());
+    const baseStart = nextMondayAt10UTC();
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: baseStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 60,
+    });
+
+    const overlapStart = new Date(baseStart.getTime() + 15 * 60_000);
+    await expect(
+      caller.bookings.create({
+        handle: DURATION_HANDLE,
+        slotStart: overlapStart.toISOString(),
+        idempotencyKey: crypto.randomUUID(),
+        visitorName: "Bob",
+        visitorEmail: "bob@test.local",
+        durationMinutes: 15,
+      }),
+    ).rejects.toThrow(TRPCError);
+  });
+
+  it("permits a back-to-back booking (existing 10:00–10:30 + new 10:30–10:45)", async () => {
+    const caller = callRouter(fakeContext());
+    const baseStart = nextMondayAt10UTC();
+    await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: baseStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Alice",
+      visitorEmail: "alice@test.local",
+      durationMinutes: 30,
+    });
+    const adjacentStart = new Date(baseStart.getTime() + 30 * 60_000);
+    const second = await caller.bookings.create({
+      handle: DURATION_HANDLE,
+      slotStart: adjacentStart.toISOString(),
+      idempotencyKey: crypto.randomUUID(),
+      visitorName: "Bob",
+      visitorEmail: "bob@test.local",
+      durationMinutes: 15,
+    });
+    expect(second.publicUid).toBeDefined();
+  });
+
   it("rejects with BAD_REQUEST when the host has cleared their durations list", async () => {
     await prisma.eventType.updateMany({
       where: { slug: DURATION_HANDLE },
