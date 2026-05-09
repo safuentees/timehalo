@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -13,23 +14,19 @@ import { MobileNavContent, OhAppSidebar } from "./oh-app-sidebar";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
 
+const PAGE_FADE_DURATION = 0.22;
+const PAGE_FADE_EASE = [0.16, 1, 0.3, 1] as const; // matches --ease-oh
+
 export function OhDashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const { typeface, density, motion } = useOhPrefs();
+  const { typeface, density, motion: motionPref } = useOhPrefs();
   const pathname = usePathname();
   const isPreview = pathname?.startsWith("/preview/") ?? false;
 
-  useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    if (/firefox/i.test(navigator.userAgent)) {
-      document.documentElement.classList.add("oh-firefox");
-    }
-  }, []);
-
-  const insetClass = ["oh-root", motion ? "oh-motion" : ""]
+  const insetClass = ["oh-root", motionPref ? "oh-motion" : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -96,5 +93,18 @@ function ContentSlot({ children }: { children: ReactNode }) {
       />
     );
   }
-  return <>{children}</>;
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pathname ?? "root"}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: PAGE_FADE_DURATION, ease: PAGE_FADE_EASE }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
 }

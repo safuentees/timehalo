@@ -6,7 +6,6 @@ import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { ViewTransitionsShell } from "./view-transitions-shell";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -43,26 +42,24 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <ViewTransitionsShell>
-      <html
-        lang={locale}
-        suppressHydrationWarning
-        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
-      >
-        <body className="min-h-full flex flex-col">
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <TRPCProvider>{children}</TRPCProvider>
-              <Toaster />
-            </ThemeProvider>
-          </NextIntlClientProvider>
-        </body>
-      </html>
-    </ViewTransitionsShell>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TRPCProvider>{children}</TRPCProvider>
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

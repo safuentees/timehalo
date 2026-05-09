@@ -9,7 +9,7 @@ import {
   useTransition,
 } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarIcon, MailIcon } from "lucide-react";
