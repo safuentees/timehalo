@@ -12,7 +12,6 @@ import {
 import { Popover } from "@base-ui/react/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
@@ -58,9 +57,6 @@ export function OhDurationPicker({
   labels,
 }: OhDurationPickerProps) {
   const reactId = useId();
-  const portalContainer = useResponsiveModalPortalContainer();
-
-  const actionsRef = useRef<Popover.Root.Actions | null>(null);
 
   const seedMinutes = initialMinutes ?? 30;
   const [hours, setHours] = useState(() => Math.floor(seedMinutes / 60));
@@ -81,27 +77,18 @@ export function OhDurationPicker({
   const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
 
-  async function handleCommit() {
+  function handleCommit() {
     if (!canCommit) return;
-    try {
-      await onCommit(totalMinutes);
-      actionsRef.current?.close();
-    } catch {
-    }
+    void onCommit(totalMinutes);
   }
 
-  async function handleRemove() {
-    if (!onRemove || isPending) return;
-    try {
-      await onRemove();
-      actionsRef.current?.close();
-    } catch {
-    }
+  function handleRemove() {
+    if (!onRemove) return;
+    void onRemove();
   }
 
   return (
     <Popover.Root
-      actionsRef={actionsRef}
       onOpenChange={(next) => {
         if (next) {
           const seed = initialMinutes ?? 30;
@@ -118,7 +105,7 @@ export function OhDurationPicker({
       >
         {triggerContent}
       </Popover.Trigger>
-      <Popover.Portal container={portalContainer}>
+      <Popover.Portal>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}
@@ -170,27 +157,35 @@ export function OhDurationPicker({
                 )}
               >
                 {onRemove ? (
-                  <Button
-                    type="button"
-                    variant="ohGhost"
-                    size="oh"
-                    onClick={handleRemove}
-                    disabled={isPending}
-                    className="rounded-(--oh-r-xs)"
+                  <Popover.Close
+                    render={
+                      <Button
+                        type="button"
+                        variant="ohGhost"
+                        size="oh"
+                        onClick={handleRemove}
+                        disabled={isPending}
+                        className="rounded-(--oh-r-xs)"
+                      />
+                    }
                   >
                     {labels.removeAction}
-                  </Button>
+                  </Popover.Close>
                 ) : null}
-                <Button
-                  type="button"
-                  variant="oh"
-                  size="oh"
-                  onClick={handleCommit}
-                  disabled={!canCommit}
-                  className="rounded-(--oh-r-xs)"
+                <Popover.Close
+                  render={
+                    <Button
+                      type="button"
+                      variant="oh"
+                      size="oh"
+                      onClick={handleCommit}
+                      disabled={!canCommit}
+                      className="rounded-(--oh-r-xs)"
+                    />
+                  }
                 >
                   {mode === "add" ? labels.addAction : labels.saveAction}
-                </Button>
+                </Popover.Close>
               </div>
             </div>
           </Popover.Popup>
