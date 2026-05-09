@@ -60,7 +60,7 @@ export function OhDurationPicker({
   const reactId = useId();
   const portalContainer = useResponsiveModalPortalContainer();
 
-  const [open, setOpen] = useState(false);
+  const actionsRef = useRef<Popover.Root.Actions | null>(null);
 
   const seedMinutes = initialMinutes ?? 30;
   const [hours, setHours] = useState(() => Math.floor(seedMinutes / 60));
@@ -85,7 +85,7 @@ export function OhDurationPicker({
     if (!canCommit) return;
     try {
       await onCommit(totalMinutes);
-      setOpen(false);
+      actionsRef.current?.close();
     } catch {
     }
   }
@@ -94,22 +94,20 @@ export function OhDurationPicker({
     if (!onRemove || isPending) return;
     try {
       await onRemove();
-      setOpen(false);
+      actionsRef.current?.close();
     } catch {
     }
   }
 
   return (
     <Popover.Root
-      open={open}
+      actionsRef={actionsRef}
       onOpenChange={(next) => {
-        if (!next && isPending) return;
         if (next) {
           const seed = initialMinutes ?? 30;
           setHours(Math.floor(seed / 60));
           setMinutes(seed % 60);
         }
-        setOpen(next);
       }}
     >
       <Popover.Trigger
