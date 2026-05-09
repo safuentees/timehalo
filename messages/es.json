@@ -528,16 +528,7 @@
     "magicLinkSubmitPending": "Enviando…",
     "magicLinkError": "No se pudo enviar el enlace mágico. Vuelve a intentarlo.",
     "magicLinkSentTo": "Revisa tu correo — enlace enviado a {email}",
-    "magicLinkUseDifferent": "Usar otro correo",
-    "handleAvailabilityFree": "libre",
-    "handleAvailabilityTaken": "ocupado",
-    "handleAvailabilityInvalid": "3+",
-    "handleAvailabilityError": "!",
-    "handleHelpDefault": "Letras minúsculas, números, guiones.",
-    "handleHelpTaken": "Ese ya no está. Prueba otro.",
-    "handleHelpInvalid": "Mínimo 3 caracteres. Solo letras, números y guiones.",
-    "handleHelpError": "No se pudo verificar este nombre. Vuelve a intentarlo.",
-    "handleHelpAvailable": "Disponible. Puedes cambiarlo más tarde."
+    "magicLinkUseDifferent": "Usar otro correo"
   },
   "Availability": {
     "editHours": "Editar horas",
@@ -573,8 +564,19 @@
   "Profile": {
     "pageTitle": "Perfil público",
     "handleLegend": "Nombre público",
-    "handleDescription": "El identificador que los visitantes usan para llegar a tu página de reservas — officehours.app/h/'<nombre>'.",
+    "handleDescription": "El identificador que los visitantes escriben para llegar a tu página de reservas.",
     "handlePlaceholder": "alex",
+    "handleAvailabilityFree": "libre",
+    "handleAvailabilityTaken": "ocupado",
+    "handleAvailabilityInvalid": "3+",
+    "handleAvailabilityError": "!",
+    "handleAvailabilityCurrent": "tuyo",
+    "handleHelpDefault": "Letras minúsculas, números, guiones.",
+    "handleHelpTaken": "Ese ya no está. Prueba otro.",
+    "handleHelpInvalid": "Mínimo 3 caracteres. Solo letras, números y guiones.",
+    "handleHelpError": "No se pudo verificar este nombre. Vuelve a intentarlo.",
+    "handleHelpAvailable": "Disponible — al guardar, tu página de reservas se moverá aquí.",
+    "handleHelpCurrent": "Este es tu nombre actual.",
     "saveLabel": "Guardar",
     "savingLabel": "Guardando…",
     "savedLabel": "Guardado"

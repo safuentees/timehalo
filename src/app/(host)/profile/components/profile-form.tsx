@@ -75,7 +75,7 @@ export default function ProfileForm() {
                   {t("handleDescription")}
                 </FieldDescription>
                 <FieldGroup>
-                  <HandleFields />
+                  <HandleFields currentHandle={me?.handle ?? undefined} />
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
@@ -83,6 +83,7 @@ export default function ProfileForm() {
           <InlineFormSave
             isPending={saveHandle.isPending}
             isDirty={form.formState.isDirty}
+            isInvalid={!form.formState.isValid}
             labels={{
               save: t("saveLabel"),
               saving: t("savingLabel"),

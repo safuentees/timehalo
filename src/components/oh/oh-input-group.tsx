@@ -35,14 +35,14 @@ function OhInputGroupAddon({
 }: React.ComponentProps<typeof InputGroupAddon>) {
   const sideRule =
     align === "inline-end"
-      ? "border-l-[1.5px] border-(--oh-ink)"
-      : "border-r-[1.5px] border-(--oh-ink)";
+      ? "border-l border-[color:var(--oh-line-default)]"
+      : "border-r border-[color:var(--oh-line-default)]";
   return (
     <InputGroupAddon
       data-slot="brutalist-input-group-addon"
       align={align}
       className={cn(
-        "rounded-none bg-(--oh-paper) px-3 py-0",
+        "rounded-none bg-transparent px-3 py-0",
         sideRule,
         className,
       )}

@@ -1936,6 +1936,18 @@
   box-shadow: var(--oh-focus-shadow-input) !important;
   outline: 0 !important;
 }
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+    var(--oh-input-shadow-rest) !important;
+}
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
+}
 [data-slot="input-group"]:not([data-oh-input-skip="true"])
   [data-slot="input-group-control"],
 [data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"])

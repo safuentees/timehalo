@@ -12,16 +12,18 @@ export type InlineFormSaveLabels = {
 export function InlineFormSave({
   isPending,
   isDirty,
+  isInvalid = false,
   labels,
   ariaLabel,
 }: {
   isPending: boolean;
   isDirty: boolean;
+  isInvalid?: boolean;
   labels: InlineFormSaveLabels;
   ariaLabel?: string;
 }) {
   const mounted = useMounted();
-  const disabled = mounted ? isPending || !isDirty : true;
+  const disabled = mounted ? isPending || !isDirty || isInvalid : true;
   const label = mounted && isPending ? labels.saving : labels.save;
 
   return (

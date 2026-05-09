@@ -528,16 +528,7 @@
     "magicLinkSubmitPending": "Sending…",
     "magicLinkError": "Could not send magic link. Try again.",
     "magicLinkSentTo": "Check your email — link sent to {email}",
-    "magicLinkUseDifferent": "Use a different email",
-    "handleAvailabilityFree": "free",
-    "handleAvailabilityTaken": "taken",
-    "handleAvailabilityInvalid": "3+",
-    "handleAvailabilityError": "!",
-    "handleHelpDefault": "Lowercase letters, numbers, hyphens.",
-    "handleHelpTaken": "That one's gone. Try another.",
-    "handleHelpInvalid": "Minimum 3 characters. Letters, numbers, hyphens only.",
-    "handleHelpError": "Could not check this handle. Try again.",
-    "handleHelpAvailable": "Available. You can change it later."
+    "magicLinkUseDifferent": "Use a different email"
   },
   "Availability": {
     "editHours": "Edit hours",
@@ -573,8 +564,19 @@
   "Profile": {
     "pageTitle": "Public profile",
     "handleLegend": "Public handle",
-    "handleDescription": "The slug visitors use to reach your booking page — officehours.app/h/'<handle>'.",
+    "handleDescription": "The slug visitors type to reach your booking page.",
     "handlePlaceholder": "alex",
+    "handleAvailabilityFree": "free",
+    "handleAvailabilityTaken": "taken",
+    "handleAvailabilityInvalid": "3+",
+    "handleAvailabilityError": "!",
+    "handleAvailabilityCurrent": "yours",
+    "handleHelpDefault": "Lowercase letters, numbers, hyphens.",
+    "handleHelpTaken": "That one's gone. Try another.",
+    "handleHelpInvalid": "Minimum 3 characters. Letters, numbers, hyphens only.",
+    "handleHelpError": "Could not check this handle. Try again.",
+    "handleHelpAvailable": "Available — saving will move your booking page here.",
+    "handleHelpCurrent": "This is your current handle.",
     "saveLabel": "Save",
     "savingLabel": "Saving…",
     "savedLabel": "Saved"
