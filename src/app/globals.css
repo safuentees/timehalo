@@ -254,6 +254,22 @@
   --oh-shadow-drawer-edge:
     0 -18px 44px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  /* Main content panel — the rounded paper window where every
+     dashboard page lives. Deliberately softer than the chip / popup
+     tokens because the panel fills most of the viewport: a chip-
+     strength shadow at panel scale reads as a heavy frame, not as
+     elevation. Three layers per Linear's / Notion's pattern:
+       1. Soft ambient drop (`32px` blur, `-16px` spread) — bleeds
+          outward, defines the panel's depth without hard edges.
+       2. Tight 1-2px contact shadow — anchors the bottom edge so
+          the panel doesn't appear to float.
+       3. Inset top rim (lower opacity than chip rim — same idea,
+          gentler so it doesn't read as a stripe across the panel
+          width). */
+  --oh-shadow-panel:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 12px 32px -16px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
@@ -392,6 +408,15 @@
   --oh-shadow-drawer-edge:
     0 -20px 48px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Panel elevation in dark mode — same three-layer recipe but
+     each layer scaled for the lighter-gray panel against near-black
+     chrome. Drop shadow has more contrast to fall onto so it can
+     stay as soft as the chip-scale shadows; rim highlight is faint
+     so it reads as edge-glint, not a band. */
+  --oh-shadow-panel:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 12px 32px -16px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 @layer base {
@@ -3645,6 +3670,14 @@
      the percentage chain. */
   position: relative;
   overflow: hidden;
+  /* Panel elevation. Three-layer recipe (soft ambient drop + tight
+     1-2px contact + inset top rim) defined as a single token so
+     dark mode swaps the depth vocabulary in lockstep with chips +
+     popovers. `overflow: hidden` clips child overflow but does NOT
+     clip box-shadow inset rims — those paint at the border-box
+     level, not on children, so the rim catches the upper edge
+     correctly even with the cookie-cutter behavior. */
+  box-shadow: var(--oh-shadow-panel);
 }
 
 /* Mobile (< 768px, matches src/hooks/use-mobile.ts MOBILE_BREAKPOINT
