@@ -143,13 +143,34 @@ function useDialogDebug() {
     })
     observer.observe(document.body, { childList: true, subtree: true })
 
+    function describe(target: Element | null) {
+      if (!target) return null
+      const interactive = target.closest(
+        "button, a, input, textarea, select, [role='button'], [tabindex]:not([tabindex='-1']), [onclick]",
+      ) as HTMLElement | null
+      return {
+        target,
+        targetTag: target.tagName.toLowerCase(),
+        interactive,
+        interactiveTag: interactive?.tagName.toLowerCase() ?? null,
+        interactiveDisabled:
+          interactive != null &&
+          (interactive.hasAttribute("disabled") ||
+            interactive.getAttribute("aria-disabled") === "true"),
+        interactiveType: interactive?.getAttribute("type") ?? null,
+        interactiveText: interactive?.textContent
+          ?.trim()
+          .slice(0, 40),
+      }
+    }
+
     function logPointerDown(event: Event) {
       const popup = getPopup()
       const target = event.target as Element | null
       const insidePopup =
         popup !== null && target !== null && popup.contains(target)
       log("pointerdown", {
-        target,
+        ...describe(target),
         insidePopup,
         defaultPrevented: event.defaultPrevented,
       })
@@ -159,11 +180,21 @@ function useDialogDebug() {
       const target = event.target as Element | null
       const insidePopup =
         popup !== null && target !== null && popup.contains(target)
+      const desc = describe(target)
       log("click", {
-        target,
+        ...desc,
         insidePopup,
         defaultPrevented: event.defaultPrevented,
       })
+      if (desc?.interactive == null && insidePopup) {
+        log(
+          "  ⚠️  CLICK ON NON-INTERACTIVE TARGET inside popup — no button/link/input ancestor",
+        )
+      } else if (desc?.interactiveDisabled) {
+        log(
+          `  ⚠️  CLICK ON DISABLED ${desc.interactiveTag?.toUpperCase()} — handler won't fire`,
+        )
+      }
     }
     document.addEventListener("pointerdown", logPointerDown, true)
     document.addEventListener("click", logClick, true)
