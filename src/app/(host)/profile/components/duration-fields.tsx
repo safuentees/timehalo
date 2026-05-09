@@ -1,81 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 import { useTranslations } from "next-intl";
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  Trash2Icon,
-} from "lucide-react";
-import {
-  ResponsiveModal,
-  ResponsiveModalClose,
-  ResponsiveModalContent,
-  ResponsiveModalDescription,
-  ResponsiveModalTitle,
-} from "@/components/ui/responsive-modal";
+import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
-import {
-  DURATION_LIST_MAX_LENGTH,
-  DURATION_MAX_MINUTES,
-  DURATION_MIN_MINUTES,
-} from "@/lib/durations";
+import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/oh/section-header";
+import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
 
 const FALLBACK_DEFAULT_MINUTES = 30;
-
-type EditorState =
-  | { mode: "new"; value: number | "" }
-  | { mode: "edit"; original: number; value: number | "" };
 
 export function DurationFields() {
   const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
   const list = me?.durations.list ?? [];
-  const defaultMinutes = me?.durations.defaultMinutes ?? FALLBACK_DEFAULT_MINUTES;
-  const [editor, setEditor] = useState<EditorState | null>(null);
+  const defaultMinutes =
+    me?.durations.defaultMinutes ?? FALLBACK_DEFAULT_MINUTES;
 
-  const setDurations = useSetDurations({
-    onSuccess: () => {
-      setEditor(null);
-    },
-  });
+  const setDurations = useSetDurations();
 
   async function persist(next: number[]) {
     await setDurations.mutateAsync({ minutes: next });
   }
 
-  async function handleSave(minutes: number) {
-    if (!editor) return;
-    const withoutEditing =
-      editor.mode === "edit"
-        ? list.filter((m) => m !== editor.original)
-        : list;
-    if (withoutEditing.includes(minutes)) {
-      throw new Error(t("durationsDuplicateError"));
-    }
-    const next = [...withoutEditing, minutes];
-    try {
-      await persist(next);
-    } catch {
-      throw new Error("persist-failed");
-    }
+  async function handleEditCommit(original: number, picked: number) {
+    if (picked === original) return; // no-op
+    const next = list.filter((m) => m !== original).concat(picked);
+    await persist(next);
   }
 
-  async function handleRemove() {
-    if (!editor || editor.mode !== "edit") return;
-    const next = list.filter((m) => m !== editor.original);
-    try {
-      await persist(next);
-    } catch {
-    }
+  async function handleAddCommit(picked: number) {
+    if (list.includes(picked)) return; // duplicate guard already in popover
+    await persist([...list, picked]);
+  }
+
+  async function handleRemove(value: number) {
+    const next = list.filter((m) => m !== value);
+    await persist(next);
   }
 
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
+
+  const pickerLabels = {
+    hourLabel: t("durationsHourLabel"),
+    minuteLabel: t("durationsMinuteLabel"),
+    addAction: t("durationsAdd"),
+    saveAction: t("durationsSave"),
+    removeAction: t("durationsRemove"),
+    rangeError: t("durationsRangeError"),
+    duplicateError: t("durationsDuplicateError"),
+  };
 
   return (
     <section aria-labelledby="durations-legend">
@@ -91,45 +68,39 @@ export function DurationFields() {
           <ul className="flex flex-col gap-2.5" role="list">
             {list.map((minutes) => (
               <li key={minutes}>
-                <DurationChip
-                  minutes={minutes}
-                  isDefault={minutes === defaultMinutes}
-                  onEdit={() =>
-                    setEditor({ mode: "edit", original: minutes, value: minutes })
-                  }
-                />
+                <OhDurationPicker
+                  mode="edit"
+                  initialMinutes={minutes}
+                  onCommit={(picked) => handleEditCommit(minutes, picked)}
+                  onRemove={() => handleRemove(minutes)}
+                  isPending={setDurations.isPending}
+                  existingMinutes={list.filter((m) => m !== minutes)}
+                  labels={pickerLabels}
+                >
+                  <DurationChipTrigger
+                    minutes={minutes}
+                    isDefault={minutes === defaultMinutes}
+                  />
+                </OhDurationPicker>
               </li>
             ))}
           </ul>
         )}
 
-        <Button
-          type="button"
-          variant="ohGhost"
-          size="oh"
+        <OhDurationPicker
+          mode="add"
+          onCommit={handleAddCommit}
+          isPending={setDurations.isPending}
+          existingMinutes={list}
+          labels={pickerLabels}
           disabled={!canAdd}
-          onClick={() => setEditor({ mode: "new", value: "" })}
-          className={cn(
-            "w-full justify-center border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent",
-            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
-          )}
         >
-          <PlusIcon /> {t("durationsAddLabel")}
-        </Button>
+          <AddDurationTrigger
+            label={t("durationsAddLabel")}
+            disabled={!canAdd}
+          />
+        </OhDurationPicker>
       </div>
-
-      <DurationEditorDrawer
-        state={editor}
-        existing={
-          editor?.mode === "edit"
-            ? list.filter((m) => m !== editor.original)
-            : list
-        }
-        onClose={() => setEditor(null)}
-        onSave={handleSave}
-        onRemove={editor?.mode === "edit" ? handleRemove : undefined}
-        isPending={setDurations.isPending}
-      />
     </section>
   );
 }
@@ -139,30 +110,33 @@ function EmptyDurations() {
   return (
     <div className="rounded-(--oh-r-sm) border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] px-5 py-7 text-left">
       <p className="oh-eyebrow">{t("durationsEmpty")}</p>
-      <p className="oh-description mt-2">
-        {t("durationsEmptyHint")}
-      </p>
+      <p className="oh-description mt-2">{t("durationsEmptyHint")}</p>
     </div>
   );
 }
 
-function DurationChip({
-  minutes,
-  isDefault,
-  onEdit,
-}: {
-  minutes: number;
-  isDefault: boolean;
-  onEdit: () => void;
-}) {
+const DurationChipTrigger = forwardRef<
+  HTMLButtonElement,
+  ComponentPropsWithoutRef<"button"> & {
+    minutes: number;
+    isDefault: boolean;
+  }
+>(function DurationChipTrigger(
+  { minutes, isDefault, className, ...rest },
+  ref,
+) {
   const t = useTranslations("Profile");
   const summary = formatDurationSummary(minutes, t);
   return (
     <button
+      ref={ref}
       type="button"
-      onClick={onEdit}
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      {...rest}
       aria-label={t("durationsEditAria", { label: summary })}
+      className={cn(
+        "group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[0_4px_16px_rgba(0,0,0,0.28)]",
+        className,
+      )}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="oh-eyebrow">
@@ -173,208 +147,41 @@ function DurationChip({
         </span>
       </span>
       <ChevronRightIcon
-        className="size-4 shrink-0 opacity-45 transition-opacity group-hover:opacity-100"
+        className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover:opacity-100 group-data-[popup-open]:rotate-90 group-data-[popup-open]:opacity-100"
         aria-hidden
       />
     </button>
   );
-}
+});
 
-function DurationEditorDrawer({
-  state,
-  existing,
-  onClose,
-  onSave,
-  onRemove,
-  isPending,
-}: {
-  state: EditorState | null;
-  existing: number[];
-  onClose: () => void;
-  onSave: (minutes: number) => Promise<void>;
-  onRemove?: () => Promise<void> | void;
-  isPending: boolean;
-}) {
+const AddDurationTrigger = forwardRef<
+  HTMLButtonElement,
+  ComponentPropsWithoutRef<"button"> & {
+    label: string;
+    disabled?: boolean;
+  }
+>(function AddDurationTrigger(
+  { label, disabled, className, ...rest },
+  ref,
+) {
   return (
-    <ResponsiveModal
-      open={state !== null}
-      onOpenChange={(open) => {
-        if (open) return;
-        if (isPending) return;
-        onClose();
-      }}
+    <Button
+      ref={ref}
+      type="button"
+      variant="ohGhost"
+      size="oh"
+      disabled={disabled}
+      {...rest}
+      className={cn(
+        "w-full justify-center border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent",
+        "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
+        className,
+      )}
     >
-      <ResponsiveModalContent defaultClose={false}>
-        {state ? (
-          <DurationEditorContent
-            key={state.mode === "edit" ? `edit-${state.original}` : "new"}
-            state={state}
-            existing={existing}
-            onSave={onSave}
-            onRemove={onRemove}
-            isPending={isPending}
-          />
-        ) : null}
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+      <PlusIcon /> {label}
+    </Button>
   );
-}
-
-function DurationEditorContent({
-  state,
-  existing,
-  onSave,
-  onRemove,
-  isPending,
-}: {
-  state: EditorState;
-  existing: number[];
-  onSave: (minutes: number) => Promise<void>;
-  onRemove?: () => Promise<void> | void;
-  isPending: boolean;
-}) {
-  const t = useTranslations("Profile");
-  const [value, setValue] = useState<number | "">(state.value);
-  useEffect(() => {
-    setValue(state.value);
-  }, [state]);
-
-  const error = validateDurationDraft(value, existing, t);
-  const canSave = error === null;
-  const summary =
-    typeof value === "number"
-      ? formatDurationSummary(value, t)
-      : t("durationsValueLabel");
-
-  async function handleSave() {
-    if (typeof value !== "number") return;
-    try {
-      await onSave(value);
-    } catch {
-    }
-  }
-
-  return (
-    <>
-      <div className="border-b border-[var(--oh-line-firm)] px-5 pt-4 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <ResponsiveModalTitle className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2.5px] uppercase opacity-65">
-              {state.mode === "edit"
-                ? t("durationsEditTitle")
-                : t("durationsNewTitle")}
-            </ResponsiveModalTitle>
-            <p className="mt-2 text-[22px] leading-[1.05] font-black uppercase tabular-nums">
-              {summary}
-            </p>
-            <ResponsiveModalDescription className="sr-only">
-              {t("durationsValueAria")}
-            </ResponsiveModalDescription>
-          </div>
-          <ResponsiveModalClose />
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-        <div className="flex flex-col gap-3">
-          <label className="flex flex-col gap-2">
-            <span className="oh-eyebrow">{t("durationsValueLegend")}</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={DURATION_MIN_MINUTES}
-              max={DURATION_MAX_MINUTES}
-              step={5}
-              value={value === "" ? "" : value}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === "") {
-                  setValue("");
-                  return;
-                }
-                const parsed = Number(raw);
-                if (!Number.isFinite(parsed)) return;
-                setValue(Math.round(parsed));
-              }}
-              aria-label={t("durationsValueAria")}
-              aria-invalid={error !== null}
-              className="oh-input text-[18px] tabular-nums"
-              autoFocus
-            />
-          </label>
-        </div>
-
-        {error ? (
-          <p
-            role="alert"
-            className="mt-5 rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
-          >
-            {error}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="oh-rule h-0" aria-hidden />
-      <div className="bg-[color-mix(in_srgb,var(--oh-ink)_4%,var(--oh-paper))] p-4">
-        <div
-          className={`flex flex-col-reverse gap-3 md:flex-row md:items-center ${
-            onRemove ? "md:justify-between" : "md:justify-end"
-          }`}
-        >
-          {onRemove ? (
-            <Button
-              type="button"
-              variant="ohGhost"
-              size="oh"
-              onClick={onRemove}
-              disabled={isPending}
-              className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
-            >
-              <Trash2Icon /> {t("durationsRemove")}
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="oh"
-            size="oh"
-            onClick={handleSave}
-            disabled={!canSave || isPending}
-            className="w-full justify-center rounded-(--oh-r-xs) md:w-auto"
-          >
-            <CheckIcon />{" "}
-            {isPending
-              ? t("durationsSaving")
-              : state.mode === "edit"
-                ? t("durationsSave")
-                : t("durationsAdd")}
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function validateDurationDraft(
-  value: number | "",
-  existing: number[],
-  t: ReturnType<typeof useTranslations<"Profile">>,
-): string | null {
-  if (value === "") return t("durationsRangeError");
-  if (
-    !Number.isInteger(value) ||
-    value < DURATION_MIN_MINUTES ||
-    value > DURATION_MAX_MINUTES
-  ) {
-    return t("durationsRangeError");
-  }
-  if (existing.length >= DURATION_LIST_MAX_LENGTH) {
-    return t("durationsCapError");
-  }
-  if (existing.includes(value)) {
-    return t("durationsDuplicateError");
-  }
-  return null;
-}
+});
 
 function formatDurationSummary(
   minutes: number,
