@@ -27,7 +27,7 @@ export function SectionHeader({
           <h2 className="text-[20px] font-black tracking-tight">{title}</h2>
         ) : null}
         {description ? (
-          <p className="-mt-1.5 text-[13px] leading-[1.5] opacity-65">
+          <p className="-mt-1.5 text-left text-[13px] leading-[1.5] font-normal text-muted-foreground opacity-65">
             {description}
           </p>
         ) : null}
