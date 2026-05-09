@@ -169,7 +169,13 @@ export function MobileNavContent({
       ref={container}
       aria-label={t("mainNavAria")}
       data-oh-mobile-menu="true"
-      className="flex flex-col gap-6 px-4 py-6 sm:px-6"
+      className={[
+        "flex flex-col gap-6 px-4 py-6 sm:px-6",
+        "relative z-0 transform-gpu",
+        "bg-oh-paper/85 supports-backdrop-filter:bg-oh-paper/78",
+        "supports-backdrop-filter:backdrop-blur-xl",
+        "supports-backdrop-filter:backdrop-saturate-150",
+      ].join(" ")}
     >
       {groups.map((group, index) => (
         <div key={group.labelKey ?? `mobile-group-${index}`}>
