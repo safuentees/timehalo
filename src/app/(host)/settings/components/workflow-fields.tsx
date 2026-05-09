@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
@@ -60,12 +61,12 @@ export function WorkflowFields() {
         {isLocked ? (
           <OhInlineEmpty>
             {t("upgradePrompt")}{" "}
-            <a
-              href="#billing-legend"
+            <Link
+              href="/settings/billing"
               className="oh-focus-ring !underline !underline-offset-4 !decoration-[1.5px] !decoration-current transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("upgradeLink")}
-            </a>
+            </Link>
           </OhInlineEmpty>
         ) : (
           <WorkflowCreateDialog />

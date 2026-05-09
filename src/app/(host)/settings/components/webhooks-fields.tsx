@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
@@ -142,12 +143,12 @@ function UpgradePrompt() {
   return (
     <OhInlineEmpty>
       {t("upgradePrompt")}{" "}
-      <a
-        href="#billing-legend"
+      <Link
+        href="/settings/billing"
         className="oh-focus-ring !underline !underline-offset-4 !decoration-[1.5px] !decoration-current transition-opacity duration-150 ease-oh hover:opacity-100"
       >
         {t("upgradeLink")}
-      </a>
+      </Link>
     </OhInlineEmpty>
   );
 }
