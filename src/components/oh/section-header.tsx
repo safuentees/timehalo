@@ -15,6 +15,15 @@ import type { ReactNode } from "react";
 // Typography roles use .oh-legend / .oh-description from globals.css
 // rather than inlining the mono+size+tracking+opacity strings — keeps
 // the eight-class repetition out of every callsite.
+//
+// Legend overrides `.oh-legend`'s default 55% opacity to 100% to match
+// the availability + profile single-form pattern
+// (`availability-form.tsx` + `profile-form.tsx` render
+// `<FieldLegend className="oh-legend opacity-100">`). Without the
+// override, hub pages (workspaces, settings/general, members, danger
+// zones) read at 55% — visibly dimmer than the single-form pages,
+// which the user flagged as inconsistent. Bumping it here propagates
+// to every SectionHeader callsite at once.
 
 export function SectionHeader({
   legendId,
@@ -33,7 +42,7 @@ export function SectionHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
       <div className="min-w-0 flex-1">
-        <p id={legendId} className="oh-legend">
+        <p id={legendId} className="oh-legend opacity-100">
           {legend}
         </p>
         {title ? (
