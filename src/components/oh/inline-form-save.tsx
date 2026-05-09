@@ -23,6 +23,10 @@ export function InlineFormSave({
   ariaLabel?: string;
 }) {
   const mounted = useMounted();
+
+  const settled = mounted && !isPending && !isDirty;
+  if (settled) return null;
+
   const disabled = mounted ? isPending || !isDirty || isInvalid : true;
   const label = mounted && isPending ? labels.saving : labels.save;
 
