@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -13,27 +13,31 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MobileNavContent, OhAppSidebar } from "./oh-app-sidebar";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
+import {
+  DashboardRouteTransitionProvider,
+  useDashboardRouteTransition,
+} from "./dashboard-route-transition";
 
-// Per-route content fade. `<AnimatePresence initial={false}>` skips
-// the entrance animation on first mount (so the SSR-rendered HTML
-// doesn't flash from "fully visible" to opacity 0 to opacity 1 on
-// hydration) and runs enter+exit on subsequent navigations when the
-// motion.div's `key={pathname}` changes. Default sync mode means new
-// mounts simultaneously while old fades out — no `mode="wait"`
-// state-machine that triggered the "Rendered more hooks than during
-// the previous render" error on /settings → /settings/general (the
-// redirect-driven double commit confused mode="wait"'s stale-snapshot
-// path).
+// Per-route content fade. The dashboard deliberately does NOT key the
+// page wrapper by `pathname`: in the App Router, the server `children`
+// prop can already contain the destination page by the time a keyed
+// client wrapper captures its exiting child, so the destination clone
+// fades out and then fades back in.
 //
-// Cal.com uses AnimatePresence locally inside surfaces like Booker
-// for view-swaps (form → confirmation), not at the route level —
-// our visitor `/h/[handle]` modal follows the same shape. The
-// dashboard route fade IS at the route level, but `initial={false}`
-// + default sync mode keeps it light enough to behave like a local
-// transition.
-const PAGE_FADE_DURATION = 0.22;
-const PAGE_FADE_EASE = [0.16, 1, 0.3, 1] as const; // matches --ease-oh
-
+// Instead, dashboard links ask the persistent content wrapper to fade
+// the current route out first. Only after that animation completes do
+// we call `router.push`; while the route payload swaps, the wrapper is
+// already at opacity 0, and it fades the new page in when `usePathname`
+// reports the destination. This matches the intended flow:
+// click route -> old content fades out -> new content fades in.
+const PAGE_FADE_EXIT_TRANSITION = {
+  duration: 0.14,
+  ease: [0.4, 0, 1, 1],
+} as const;
+const PAGE_FADE_ENTER_TRANSITION = {
+  duration: 0.2,
+  ease: [0, 0, 0.2, 1],
+} as const;
 
 // SidebarProvider is the OUTER wrapper — it owns the sidebar context
 // (open/openMobile/toggleSidebar) and used to own a sheet-portal for
@@ -73,40 +77,41 @@ export function OhDashboardLayout({
 
   return (
     <TooltipProvider delay={200}>
-      <SidebarProvider
-        className="oh-app-shell"
-        data-typeface={typeface}
-        data-density={density}
-        data-oh-preview={isPreview ? "true" : undefined}
-      >
-        <OhDashboardBar />
-        <div className="oh-app flex min-h-0 flex-1">
-          <OhAppSidebar />
-          <SidebarInset className={insetClass}>
-            {/* The panel owns the static visual frame (paper bg, rounded
-                corners, margin from the cream frame); the inner ScrollArea
-                wraps the page content. The motion AnimatePresence inside
-                ContentSlot animates ONLY the page content on route change
-                — chrome (sidebar, top-bar) sits outside the AnimatePresence
-                and never participates in the fade. */}
-            <div
-              className="oh-host-content"
-              // B.PT301 — modal host marker. ResponsiveModal queries
-              // for `[data-oh-modal-host="true"]` at open time and
-              // portals into THIS element instead of `document.body`,
-              // so drawers + dialogs visually slide up from / center
-              // within the rounded paper panel (not the full viewport).
-              // Falls back to body when no host element is found
-              // (visitor surface, auth shells, etc).
-              data-oh-modal-host="true"
-            >
-              <ScrollArea className="oh-host-content-inner">
-                <ContentSlot>{children}</ContentSlot>
-              </ScrollArea>
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+      <DashboardRouteTransitionProvider>
+        <SidebarProvider
+          className="oh-app-shell"
+          data-typeface={typeface}
+          data-density={density}
+          data-oh-preview={isPreview ? "true" : undefined}
+        >
+          <OhDashboardBar />
+          <div className="oh-app flex min-h-0 flex-1">
+            <OhAppSidebar />
+            <SidebarInset className={insetClass}>
+              {/* The panel owns the static visual frame (paper bg, rounded
+                  corners, margin from the cream frame); the inner ScrollArea
+                  wraps the page content. ContentSlot animates ONLY the page
+                  content on route change — chrome (sidebar, top-bar) sits
+                  outside the route fade and never participates. */}
+              <div
+                className="oh-host-content"
+                // B.PT301 — modal host marker. ResponsiveModal queries
+                // for `[data-oh-modal-host="true"]` at open time and
+                // portals into THIS element instead of `document.body`,
+                // so drawers + dialogs visually slide up from / center
+                // within the rounded paper panel (not the full viewport).
+                // Falls back to body when no host element is found
+                // (visitor surface, auth shells, etc).
+                data-oh-modal-host="true"
+              >
+                <ScrollArea className="oh-host-content-inner">
+                  <ContentSlot>{children}</ContentSlot>
+                </ScrollArea>
+              </div>
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+      </DashboardRouteTransitionProvider>
     </TooltipProvider>
   );
 }
@@ -123,6 +128,8 @@ export function OhDashboardLayout({
 // killing the exit animation mid-flight.
 function ContentSlot({ children }: { children: ReactNode }) {
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const { phase, commitNavigation, finishEnter } =
+    useDashboardRouteTransition();
   const pathname = usePathname();
   const [navMounted, setNavMounted] = useState(false);
 
@@ -175,19 +182,35 @@ function ContentSlot({ children }: { children: ReactNode }) {
     );
   }
 
-  // Per-route content fade — see top-of-file comment for the why
-  // behind `initial={false}` + default sync mode.
+  const routeOpacity =
+    phase === "exiting" || phase === "navigating" ? 0 : 1;
+
+  function handleRouteAnimationComplete() {
+    if (phase === "exiting") {
+      commitNavigation();
+      return;
+    }
+
+    if (phase === "entering") {
+      finishEnter();
+    }
+  }
+
+  // Per-route content fade — see top-of-file comment for the sequencing.
   return (
-    <AnimatePresence initial={false}>
-      <motion.div
-        key={pathname ?? "root"}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: PAGE_FADE_DURATION, ease: PAGE_FADE_EASE }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      className="min-h-full"
+      initial={false}
+      animate={{
+        opacity: routeOpacity,
+        transition:
+          phase === "exiting"
+            ? PAGE_FADE_EXIT_TRANSITION
+            : PAGE_FADE_ENTER_TRANSITION,
+      }}
+      onAnimationComplete={handleRouteAnimationComplete}
+    >
+      {children}
+    </motion.div>
   );
 }

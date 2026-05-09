@@ -21,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { navGroupsForPath, type NavGroup } from "@/lib/brutalist";
+import { DashboardTransitionLink } from "./dashboard-route-transition";
 
 gsap.registerPlugin(useGSAP);
 
@@ -135,9 +136,9 @@ export function OhAppSidebar() {
 // positioning, no SidebarMenuButton's icon/expanded duality — at this
 // width every row is full-width with the label visible). Rendered by
 // OhDashboardLayout inside `oh-host-content-inner` when isMobile &&
-// openMobile. Plain Next `Link` — page-content fade is owned by
-// motion's AnimatePresence in ContentSlot; the layout closes
-// `openMobile` on pathname change so a tap drops into the new page.
+// openMobile. Plain Next `Link` here keeps the mobile menu's own GSAP
+// exit as the only transition for that mode; desktop page-content fade
+// is handled by DashboardTransitionLink in the persistent chrome.
 //
 // Motion (B.PT52 chisel pass):
 // • Single `gsap.timeline({ paused: true })` built once on mount.
@@ -392,14 +393,14 @@ function NavGroupRender({
                   tooltip={itemLabel}
                   className={menuButtonClass}
                   render={
-                    <Link href={item.href}>
+                    <DashboardTransitionLink href={item.href}>
                       <item.icon
                         aria-hidden
                         strokeWidth={1.5}
                         className="size-4 shrink-0"
                       />
                       <span>{itemLabel}</span>
-                    </Link>
+                    </DashboardTransitionLink>
                   }
                 />
               </SidebarMenuItem>
