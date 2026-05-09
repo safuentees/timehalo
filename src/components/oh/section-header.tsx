@@ -15,20 +15,19 @@ export function SectionHeader({
 }) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         <p
           id={legendId}
-          className="oh-legend text-base font-medium opacity-100"
+          className="oh-legend mb-1.5 text-base font-medium opacity-100"
+          data-variant="legend"
         >
           {legend}
         </p>
         {title ? (
-          <h2 className="mt-3 text-[20px] font-black tracking-tight">
-            {title}
-          </h2>
+          <h2 className="text-[20px] font-black tracking-tight">{title}</h2>
         ) : null}
         {description ? (
-          <p className="mt-4 text-[13px] leading-[1.5] opacity-65">
+          <p className="-mt-1.5 text-[13px] leading-[1.5] opacity-65">
             {description}
           </p>
         ) : null}
