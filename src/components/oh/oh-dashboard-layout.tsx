@@ -14,12 +14,23 @@ import { MobileNavContent, OhAppSidebar } from "./oh-app-sidebar";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
 
-// Per-route content fade. Matches the local-AnimatePresence vocabulary
-// the visitor `/h/[handle]` modal already uses for its view-swap (form
-// → receipt) so the dashboard reads the same way: only the content
-// changes; the chrome (sidebar, top-bar) stays put. Duration is short
-// — one frame past the perceived "did anything happen" floor — because
-// long page-transition fades on snappy actions read as latency.
+// Per-route content fade. `<AnimatePresence initial={false}>` skips
+// the entrance animation on first mount (so the SSR-rendered HTML
+// doesn't flash from "fully visible" to opacity 0 to opacity 1 on
+// hydration) and runs enter+exit on subsequent navigations when the
+// motion.div's `key={pathname}` changes. Default sync mode means new
+// mounts simultaneously while old fades out — no `mode="wait"`
+// state-machine that triggered the "Rendered more hooks than during
+// the previous render" error on /settings → /settings/general (the
+// redirect-driven double commit confused mode="wait"'s stale-snapshot
+// path).
+//
+// Cal.com uses AnimatePresence locally inside surfaces like Booker
+// for view-swaps (form → confirmation), not at the route level —
+// our visitor `/h/[handle]` modal follows the same shape. The
+// dashboard route fade IS at the route level, but `initial={false}`
+// + default sync mode keeps it light enough to behave like a local
+// transition.
 const PAGE_FADE_DURATION = 0.22;
 const PAGE_FADE_EASE = [0.16, 1, 0.3, 1] as const; // matches --ease-oh
 
@@ -164,16 +175,10 @@ function ContentSlot({ children }: { children: ReactNode }) {
     );
   }
 
-  // Per-route content fade. AnimatePresence with `mode="wait"` cycles
-  // the outgoing page through its exit before mounting the new one,
-  // and the `key={pathname}` makes Next's `{children}` swap visible
-  // to motion. Only this content slot animates — the sidebar +
-  // top-bar (rendered by the parent OhDashboardLayout) sit OUTSIDE
-  // this AnimatePresence so they never participate in the fade. The
-  // approach mirrors the visitor `/h/[handle]` modal: outer chrome
-  // stays put, AnimatePresence runs locally on the swap-in / swap-out.
+  // Per-route content fade — see top-of-file comment for the why
+  // behind `initial={false}` + default sync mode.
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence initial={false}>
       <motion.div
         key={pathname ?? "root"}
         initial={{ opacity: 0 }}
