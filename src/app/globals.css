@@ -3035,13 +3035,16 @@
 
   background: var(--oh-paper) !important;
   color: var(--oh-ink) !important;
-  border: 2px solid var(--oh-ink) !important;
+  /* Borderless. The 2px ink frame the modal previously wore was the
+     last brutalist artifact in the dialog chrome — every other
+     surface (chips, popovers, panel, cards) had already moved to
+     depth-via-shadow. The popup elevation token (`--oh-shadow-popup`)
+     handles the float cue + 1px tonal rim that wraps the rounded
+     corners. Override the Tailwind `border border-border` base
+     utility on `<DialogContent>` so this class wins the cascade. */
+  border: 0 !important;
   border-radius: var(--oh-r-sm) !important;
-  /* No shadow — symmetric by absence. The 2px ink border + paper bg
-     ground the modal against the blurred backdrop, and the uniform
-     border on all four sides reads cleaner than the offset brutalist
-     shadow that biased weight to the bottom-right. */
-  box-shadow: none !important;
+  box-shadow: var(--oh-shadow-popup) !important;
 }
 .oh-drawer-handle {
   width: 72px;
