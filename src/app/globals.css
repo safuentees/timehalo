@@ -294,6 +294,24 @@
   --oh-shadow-well:
     inset 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 
+  /* Primary-button surface tokens. In light mode the primary `oh`
+     button is dark-on-paper (high contrast, classic CTA). In dark
+     mode the equivalent semantic — "high-contrast button against
+     the panel" — is NOT cream-on-dark (which a naive `bg-oh-ink`
+     gives, since `--oh-ink` flips to cream); a cream-bg button in
+     dark mode loses depth + reads as a "light theme leak" against
+     the dark panel. Instead, dark-mode primary buttons sit on a
+     gray surface slightly lighter than the panel paper so the
+     drop shadow has contrast to fall onto and the button reads as
+     elevated. References: macOS dark-mode primary buttons
+     (NSAccentColor "dark variant"), Linear / dub.co dark CTAs.
+     Light-mode values delegate to the existing ink/paper tokens
+     so the classic dark-on-cream CTA stays untouched. */
+  --oh-button-primary-bg: var(--oh-ink);
+  --oh-button-primary-text: var(--oh-paper);
+  --oh-button-primary-bg-hover: var(--oh-paper);
+  --oh-button-primary-text-hover: var(--oh-ink);
+
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
      at pure paper so the brutalist DNA is preserved. */
@@ -453,6 +471,28 @@
      #1a1a1a paper hosting #0a0a0a well bg. */
   --oh-shadow-well:
     inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+
+  /* Dark-mode primary button — gray surface (paper +12% white) ≈
+     `#363636` instead of cream. Sits one perceptual notch above
+     the panel paper (`#1a1a1a`) so the drop shadow + tonal rim
+     both have contrast to do their job, AND so the button doesn't
+     read as a cream-light-theme blob against the dark panel.
+     Cream text (`--oh-ink`) on this gray bg stays readable
+     (~9.4:1 contrast — well above WCAG AA's 4.5:1).
+     Hover values match rest values — preserves the existing
+     "no color flip in dark mode" policy applied to the `oh` /
+     `ohGhost` variants (the user flagged jarring contrast
+     direction reversal in dark mode a few commits back). Shadow
+     lift on hover is suppressed via the variant's explicit
+     `dark:hover:shadow-[var(--oh-shadow-resting)]` override. */
+  --oh-button-primary-bg: color-mix(in srgb, var(--oh-paper), white 12%);
+  --oh-button-primary-text: var(--oh-ink);
+  --oh-button-primary-bg-hover: color-mix(
+    in srgb,
+    var(--oh-paper),
+    white 12%
+  );
+  --oh-button-primary-text-hover: var(--oh-ink);
 }
 
 @layer base {
