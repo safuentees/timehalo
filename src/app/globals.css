@@ -144,25 +144,29 @@
   --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
   --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
   --oh-shadow-popup:
-    0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18);
+    0 16px 32px -12px rgb(0 0 0 / 0.28), 0 4px 12px -6px rgb(0 0 0 / 0.18);
   --oh-shadow-drawer-edge: 0 -18px 44px rgba(0, 0, 0, 0.28);
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12);
-  --oh-sheen-top:
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.12) 30%,
-      rgba(255, 255, 255, 0) 65%
-    );
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.12);
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0) 65%
+  );
   --oh-shadow-well:
-    inset 0 2px 5px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    inset 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 
-  --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
-  --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
+  --oh-input-bg-hover: color-mix(
+    in srgb,
+    var(--oh-paper) 96%,
+    var(--oh-ink) 4%
+  );
+  --oh-input-bg-focus: color-mix(
+    in srgb,
+    var(--oh-paper) 92%,
+    var(--oh-ink) 8%
+  );
 
   --oh-r-xs: 2px;
   --oh-r-sm: 6px;
@@ -224,22 +228,18 @@
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.6);
 
   --oh-shadow-popup:
-    0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5);
+    0 18px 36px -12px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.5);
   --oh-shadow-drawer-edge: 0 -20px 48px rgba(0, 0, 0, 0.55);
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55);
-  --oh-sheen-top:
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.06) 0%,
-      rgba(255, 255, 255, 0.02) 40%,
-      rgba(255, 255, 255, 0) 80%
-    );
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.55);
+  --oh-sheen-top: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 40%,
+    rgba(255, 255, 255, 0) 80%
+  );
   --oh-shadow-well:
-    inset 0 2px 6px rgba(0, 0, 0, 0.45),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+    inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 @layer base {
@@ -720,7 +720,9 @@
 }
 .oh-time-picker-period-cell:focus-visible {
   outline: 0;
-  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 2px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  box-shadow:
+    inset var(--oh-focus-halo),
+    inset 0 0 0 2px color-mix(in srgb, var(--oh-ink) 18%, transparent);
   opacity: 1;
 }
 .oh-time-picker-period-cell.is-active {
@@ -1457,13 +1459,16 @@
 }
 
 .oh-input[aria-invalid="true"] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
     var(--oh-input-shadow-rest);
 }
 .oh-input[aria-invalid="true"]:focus,
 .oh-input[aria-invalid="true"]:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--destructive),
-    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
+  box-shadow:
+    inset 0 0 0 1px var(--destructive),
+    inset 0 3px 10px
+      color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22));
 }
 
 .oh-input:disabled,
@@ -1525,7 +1530,9 @@
 }
 .oh-post:focus-visible {
   outline: 0;
-  box-shadow: inset var(--oh-focus-halo), inset 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
+  box-shadow:
+    inset var(--oh-focus-halo),
+    inset 0 0 0 3px color-mix(in srgb, var(--oh-ink) 18%, transparent);
 }
 .oh-post-delete:focus-visible {
   opacity: 1;
@@ -2028,22 +2035,33 @@
     box-shadow var(--oh-t-fast);
 }
 [data-slot="input-group"]:not([data-oh-input-skip="true"]):focus-within,
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):focus-within {
+[data-slot="brutalist-input-group"]:not(
+    [data-oh-input-skip="true"]
+  ):focus-within {
   background: var(--oh-input-bg-focus) !important;
   box-shadow: var(--oh-focus-shadow-input) !important;
   outline: 0 !important;
 }
-[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]),
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]) {
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ),
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ) {
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--destructive) 40%, transparent),
     var(--oh-input-shadow-rest) !important;
 }
-[data-slot="input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within,
-[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has([aria-invalid="true"]):focus-within {
+[data-slot="input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ):focus-within,
+[data-slot="brutalist-input-group"]:not([data-oh-input-skip="true"]):has(
+    [aria-invalid="true"]
+  ):focus-within {
   box-shadow:
     inset 0 0 0 1px var(--destructive),
-    inset 0 3px 10px color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
+    inset 0 3px 10px
+      color-mix(in srgb, var(--destructive) 18%, rgba(0, 0, 0, 0.22)) !important;
 }
 [data-slot="input-group"]:not([data-oh-input-skip="true"])
   [data-slot="input-group-control"],
@@ -2810,27 +2828,21 @@
 }
 
 .oh-host-content {
-  --oh-sheen-top: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--oh-paper), white 30%) 0%,
-    var(--oh-paper) 14px
-  );
   background-color: var(--oh-paper);
-  background-image: var(--oh-sheen-top);
   border-radius: var(--oh-r-window);
   margin: 12px 12px 12px 0;
   height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
   position: relative;
   overflow: hidden;
-  box-shadow: var(--oh-shadow-panel);
+  box-shadow:
+    var(--oh-shadow-panel),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 30%);
 }
 
 .dark .oh-host-content {
-  --oh-sheen-top: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--oh-paper), white 8%) 0%,
-    var(--oh-paper) 14px
-  );
+  box-shadow:
+    var(--oh-shadow-panel),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
 }
 
 @media (max-width: 767px) {
@@ -3081,7 +3093,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms var(--ease-oh), border-color 120ms var(--ease-oh);
+  transition:
+    background 120ms var(--ease-oh),
+    border-color 120ms var(--ease-oh);
 }
 .oh-dev-checklist-box:hover {
   background: color-mix(in srgb, var(--oh-ink) 6%, var(--oh-paper));
