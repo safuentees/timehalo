@@ -10,78 +10,53 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
 } from "@/lib/durations";
 
-// Popover-based duration picker. Mirrors `<OhTimePicker>`'s shape
-// (popover anchored to a chip-style trigger, recessed-paper spinner
-// inputs side-by-side) but operates on a single integer (minutes),
-// not a Date. Two spinners — hours (0..8) and minutes (0..55, step 5)
-// — let the host express "1 hr 15 min" or "30 min" naturally without
-// imposing a 12-hour-clock mental model.
+// Popover-based duration picker — minimal layout.
 //
-// Replaces the prior ResponsiveModal drawer pattern in
-// `<DurationFields>`. Click closes-on-outside (Base UI Popover
-// default) so the chip itself is the trigger; a primary button in
-// the popover footer commits the change. Edit mode also surfaces a
-// Remove ghost button in the same footer row.
+// Single minutes field (no hour split — easier to type "120" than to
+// pick "2hr 0min"). Auto-commits on close so there's no Save button
+// crowding the popover. Remove is a small trash icon in the corner.
+// The trigger is whatever the caller supplies — a chip for an
+// existing duration, a `+` icon button for the add affordance.
 //
-// Shared CSS classes pulled from `oh-time-picker-*` so the popover
-// chrome + spinner vocabulary is a single source of truth across
-// the dashboard's two pickers.
+// Lifecycle:
+//   • Open    — popover anchors to trigger; field re-seeds from
+//               initialMinutes (or 30 default for add).
+//   • Type    — field updates draft state, sets dirty flag.
+//   • Close   — outside-click / Escape / Remove icon. If dirty AND
+//               value is in [5, 480] AND not a duplicate, fire
+//               onCommit. Otherwise discard.
+//   • Remove  — trash icon (edit mode only). Wraps `<Popover.Close>`
+//               so the click auto-dismisses; calls onRemove async.
+//
+// Width: input uses `field-sizing: content` (modern CSS, supported
+// in Chrome/Edge 124+, Safari 17.4+, Firefox 123+) so values >99
+// extend the field naturally. Falls back to a fixed width on older
+// browsers via the explicit `min-w` floor.
 
-const HOUR_MAX = Math.floor(DURATION_MAX_MINUTES / 60); // 8
-const MINUTE_STEP = 5;
-const MINUTE_MAX = 55;
+const SEED_MINUTES = 30;
 
 export type OhDurationPickerProps = {
-  /**
-   * Initial minutes value. For edit mode pass the chip's current
-   * value; for add mode pass undefined and the picker opens at
-   * 30min as a sensible starting point.
-   */
   initialMinutes?: number;
-  /**
-   * Picker mode — drives the footer's primary button label and the
-   * presence of the Remove button.
-   */
   mode: "add" | "edit";
-  /** Async commit. Returning a rejected promise leaves the popover open. */
   onCommit: (minutes: number) => Promise<void> | void;
-  /** Optional remove handler (edit mode only). */
   onRemove?: () => Promise<void> | void;
-  /** True while a parent mutation is in flight — disables footer buttons + close. */
-  isPending?: boolean;
-  /**
-   * Trigger content — rendered INSIDE `<Popover.Trigger>` (which
-   * itself is a `<button>`). Mirrors `<OhTimePicker>`'s pattern of
-   * letting the caller compose the trigger's inner spans + icons
-   * while Base UI owns the button element + click/keyboard wiring.
-   */
   triggerContent: ReactNode;
-  /** Class names applied to the `<button>` rendered by Popover.Trigger. */
   triggerClassName?: string;
-  /** Optional aria-label for the trigger button. */
   triggerAriaLabel?: string;
-  /** Disabled state on the trigger. */
   disabled?: boolean;
-  /** Set of existing minutes values (excluding the one being edited)
-   *  used for client-side duplicate detection before commit. */
+  /** Existing minutes values (excluding the chip being edited).
+   *  Used to silently skip commit on duplicate. */
   existingMinutes?: ReadonlyArray<number>;
-  /** Localized strings — caller passes them so the picker stays
-   *  i18n-agnostic. */
   labels: {
-    hourLabel: string;
-    minuteLabel: string;
-    addAction: string;
-    saveAction: string;
-    removeAction: string;
-    rangeError: string;
-    duplicateError: string;
+    minuteSuffix: string;
+    removeAria: string;
   };
 };
 
@@ -90,7 +65,6 @@ export function OhDurationPicker({
   mode,
   onCommit,
   onRemove,
-  isPending = false,
   triggerContent,
   triggerClassName,
   triggerAriaLabel,
@@ -99,69 +73,53 @@ export function OhDurationPicker({
   labels,
 }: OhDurationPickerProps) {
   const reactId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // `<Popover.Root>` runs FULLY UNCONTROLLED — no `open`,
-  // `onOpenChange`, or `actionsRef`. Each prop subtly changes the
-  // mount/unmount lifecycle in Base UI v1.4 (`actionsRef` swaps to
-  // keep-mounted-on-close; controlled `open` requires the parent to
-  // mirror Base UI's internal store, which dropped a frame in this
-  // setup). The working `<OhTimePicker>` runs bare-Root for exactly
-  // the same reason.
-  //
-  // The Save / Remove buttons in the popup are wrapped in
-  // `<Popover.Close>` so the click auto-dismisses; the async commit
-  // fires onClick and resolves in the background. Outside-click and
-  // Escape close on their own (Base UI default).
-  // Picker draft is kept LOCAL to the popover so closing without
-  // committing discards any unsaved changes. Lazy initializer seeds
-  // from initialMinutes (or 30 default) on first mount; the
-  // onOpenChange handler below re-seeds on every subsequent open
-  // event so the values reflect the chip's current saved state at
-  // the moment the user clicks (event-driven, not effect-driven —
-  // dodges React 19's `react-hooks/set-state-in-effect` rule).
-  const seedMinutes = initialMinutes ?? 30;
-  const [hours, setHours] = useState(() => Math.floor(seedMinutes / 60));
-  const [minutes, setMinutes] = useState(() => seedMinutes % 60);
+  // Draft state — only mutated by user input. Re-seeded on every
+  // OPEN event in onOpenChange so the field reflects the chip's
+  // current saved value at the moment the user clicks.
+  const [draft, setDraft] = useState<number>(initialMinutes ?? SEED_MINUTES);
+  const [dirty, setDirty] = useState(false);
 
-  const totalMinutes = hours * 60 + minutes;
-  const inRange =
-    totalMinutes >= DURATION_MIN_MINUTES &&
-    totalMinutes <= DURATION_MAX_MINUTES;
-  const isDuplicate = existingMinutes.includes(totalMinutes);
-  const error = !inRange
-    ? labels.rangeError
-    : isDuplicate
-      ? labels.duplicateError
-      : null;
-  const canCommit = error === null && !isPending;
+  // Latest draft mirrored into refs so the close handler can read
+  // the freshest value. Without this, `onOpenChange(false)` would
+  // see the stale closure of `draft` captured at the last render
+  // and commit the OLD value when the user types then clicks
+  // outside. Effects (not render-time assignment) per React 19's
+  // "no ref writes during render" rule.
+  const draftRef = useRef(draft);
+  const dirtyRef = useRef(dirty);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+  useEffect(() => {
+    dirtyRef.current = dirty;
+  }, [dirty]);
 
-  const hourRef = useRef<HTMLInputElement>(null);
-  const minuteRef = useRef<HTMLInputElement>(null);
-
-  function handleCommit() {
-    if (!canCommit) return;
-    // Fire-and-forget: Popover.Close auto-dismisses on click. The
-    // async mutation resolves in the background; the wrapping
-    // `useSetDurations` hook surfaces errors via toast. Trade-off:
-    // on error the popover is already gone — user re-opens to retry.
-    void onCommit(totalMinutes);
-  }
-
-  function handleRemove() {
-    if (!onRemove) return;
-    void onRemove();
+  function maybeCommitOnClose() {
+    if (!dirtyRef.current) return;
+    const value = draftRef.current;
+    const inRange =
+      value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
+    if (!inRange) return;
+    if (existingMinutes.includes(value)) return;
+    if (mode === "edit" && initialMinutes === value) return;
+    void onCommit(value);
   }
 
   return (
     <Popover.Root
       onOpenChange={(next) => {
-        // Re-seed draft on open so the picker reflects the chip's
-        // current saved state. Event-handler form so React 19's
-        // `react-hooks/set-state-in-effect` rule doesn't fire.
         if (next) {
-          const seed = initialMinutes ?? 30;
-          setHours(Math.floor(seed / 60));
-          setMinutes(seed % 60);
+          // Re-seed on open. Event-handler form (not effect) so
+          // React 19's `set-state-in-effect` rule doesn't fire.
+          setDraft(initialMinutes ?? SEED_MINUTES);
+          setDirty(false);
+          // Auto-focus the input on open so the user can immediately
+          // type a new value.
+          requestAnimationFrame(() => inputRef.current?.focus());
+        } else {
+          maybeCommitOnClose();
         }
       }}
     >
@@ -180,81 +138,28 @@ export function OhDurationPicker({
           align="start"
           style={{ zIndex: 100 }}
         >
-          <Popover.Popup className="oh-time-picker-popup">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-end gap-2">
-                <FieldStack labelText={labels.hourLabel}>
-                  <DurationSpinner
-                    ref={hourRef}
-                    field="hours"
-                    value={hours}
-                    onChange={setHours}
-                    onRightFocus={() => minuteRef.current?.focus()}
-                  />
-                </FieldStack>
-                <span
-                  aria-hidden
-                  className="select-none self-end pb-2 text-[18px] font-black opacity-55"
-                >
-                  :
-                </span>
-                <FieldStack labelText={labels.minuteLabel}>
-                  <DurationSpinner
-                    ref={minuteRef}
-                    field="minutes"
-                    value={minutes}
-                    onChange={setMinutes}
-                    onLeftFocus={() => hourRef.current?.focus()}
-                  />
-                </FieldStack>
-              </div>
-
-              {error ? (
-                <p
-                  role="alert"
-                  className="rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-2.5 py-1.5 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase opacity-65"
-                >
-                  {error}
-                </p>
-              ) : null}
-
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  onRemove ? "justify-between" : "justify-end",
-                )}
-              >
-                {onRemove ? (
-                  <Popover.Close
-                    render={
-                      <Button
-                        type="button"
-                        variant="ohGhost"
-                        size="oh"
-                        onClick={handleRemove}
-                        disabled={isPending}
-                        className="rounded-(--oh-r-xs)"
-                      />
-                    }
-                  >
-                    {labels.removeAction}
-                  </Popover.Close>
-                ) : null}
+          <Popover.Popup className="oh-duration-picker-popup">
+            <div className="flex items-center gap-3">
+              <DurationField
+                ref={inputRef}
+                value={draft}
+                onChange={(next) => {
+                  setDraft(next);
+                  setDirty(true);
+                }}
+              />
+              <span className="oh-eyebrow opacity-55">
+                {labels.minuteSuffix}
+              </span>
+              {onRemove ? (
                 <Popover.Close
-                  render={
-                    <Button
-                      type="button"
-                      variant="oh"
-                      size="oh"
-                      onClick={handleCommit}
-                      disabled={!canCommit}
-                      className="rounded-(--oh-r-xs)"
-                    />
-                  }
+                  onClick={() => void onRemove()}
+                  aria-label={labels.removeAria}
+                  className="oh-duration-picker-remove"
                 >
-                  {mode === "add" ? labels.addAction : labels.saveAction}
+                  <Trash2 strokeWidth={1.75} className="size-4" aria-hidden />
                 </Popover.Close>
-              </div>
+              ) : null}
             </div>
           </Popover.Popup>
         </Popover.Positioner>
@@ -263,107 +168,69 @@ export function OhDurationPicker({
   );
 }
 
-// ─── Field wrapper (mirrors OhTimePicker.FieldStack) ────────────────
+// ─── Number field ──────────────────────────────────────────────────
+// Native `<input type="number">` styled like the time picker's
+// spinner inputs. Arrow up/down step by 5 (covers the typical
+// 5/15/30/60/90 cadence). field-sizing: content auto-grows the
+// width as the visitor types past 99 — modern CSS spec, supported
+// in Chrome 124+, Safari 17.4+, Firefox 123+.
 
-function FieldStack({
-  labelText,
-  children,
-}: {
-  labelText: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <span className="oh-eyebrow opacity-55">{labelText}</span>
-      {children}
-    </div>
-  );
-}
-
-// ─── Number-based spinner (simpler than OhTimePicker's Date-based one)
-//
-// One field role per instance — "hours" steps by 1 and clamps at 0..8,
-// "minutes" steps by MINUTE_STEP (5) and clamps at 0..55. Two-digit
-// flag matches OhTimePicker's grace window — type the first digit,
-// type the second within 2s to land at a 2-digit value, otherwise
-// the next digit press starts a fresh value.
-
-type SpinnerField = "hours" | "minutes";
-
-interface DurationSpinnerProps {
-  field: SpinnerField;
+interface DurationFieldProps {
   value: number;
   onChange: (next: number) => void;
-  onRightFocus?: () => void;
-  onLeftFocus?: () => void;
 }
 
-const DurationSpinner = forwardRef<HTMLInputElement, DurationSpinnerProps>(
-  ({ field, value, onChange, onRightFocus, onLeftFocus }, ref) => {
-    const max = field === "hours" ? HOUR_MAX : MINUTE_MAX;
-    const step = field === "hours" ? 1 : MINUTE_STEP;
-    const display = String(value).padStart(2, "0");
-
-    const [flag, setFlag] = useState(false);
-    useEffect(() => {
-      if (!flag) return;
-      const t = setTimeout(() => setFlag(false), 2000);
-      return () => clearTimeout(t);
-    }, [flag]);
-
-    function clampForField(n: number) {
-      if (Number.isNaN(n)) return 0;
-      if (n < 0) return 0;
-      if (n > max) return max;
+const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
+  ({ value, onChange }, ref) => {
+    function clamp(n: number) {
+      if (Number.isNaN(n)) return DURATION_MIN_MINUTES;
+      if (n < 0) return 0; // allow 0 mid-typing; range is enforced on commit
+      if (n > DURATION_MAX_MINUTES) return DURATION_MAX_MINUTES;
       return n;
     }
 
     function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-      if (e.key === "Tab") return;
-      e.preventDefault();
-      if (e.key === "ArrowRight") onRightFocus?.();
-      if (e.key === "ArrowLeft") onLeftFocus?.();
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
-        let next = value + step * direction;
-        // Loop at boundaries — same vibe as OhTimePicker: tap up at
-        // max wraps to 0, tap down at 0 wraps to max.
-        if (next < 0) next = max;
-        if (next > max) next = 0;
-        if (flag) setFlag(false);
+        const next = clamp(value + 5 * direction);
         onChange(next);
-        return;
-      }
-      if (e.key >= "0" && e.key <= "9") {
-        // Two-digit grace window: first digit replaces, second digit
-        // appends within the 2s flag window. After the window the
-        // next press starts a fresh single-digit value.
-        const digit = Number(e.key);
-        const candidate = flag ? Number(display.slice(1) + e.key) : digit;
-        const clamped = clampForField(candidate);
-        // Snap minutes to the step grid on direct entry too — keeps
-        // the value parseable by `bookings.create` without surprises.
-        const aligned =
-          field === "minutes" ? Math.round(clamped / step) * step : clamped;
-        if (flag) onRightFocus?.();
-        setFlag((prev) => !prev);
-        onChange(aligned);
       }
     }
 
     return (
       <input
         ref={ref}
-        type="tel"
+        type="number"
         inputMode="numeric"
-        value={display}
-        onChange={(e) => e.preventDefault()}
+        min={0}
+        max={DURATION_MAX_MINUTES}
+        step={5}
+        value={Number.isFinite(value) ? value : ""}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === "") {
+            onChange(0);
+            return;
+          }
+          const parsed = Number(raw);
+          if (!Number.isFinite(parsed)) return;
+          onChange(clamp(Math.round(parsed)));
+        }}
         onKeyDown={handleKeyDown}
-        aria-label={field === "hours" ? "Hours" : "Minutes"}
-        className="oh-time-picker-input"
+        aria-label="Duration in minutes"
+        className={cn(
+          "oh-time-picker-input tabular-nums",
+          // Override the time-picker-input's fixed 48px width — single-
+          // field duration picker auto-grows with the digit count via
+          // CSS field-sizing. min width keeps a comfortable tap target
+          // even on a one-digit value.
+          "w-auto !min-w-[64px] !px-3",
+        )}
+        style={{ fieldSizing: "content" } as React.CSSProperties}
       />
     );
   },
 );
 
-DurationSpinner.displayName = "DurationSpinner";
+DurationField.displayName = "DurationField";

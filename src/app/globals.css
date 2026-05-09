@@ -914,6 +914,58 @@
   margin: 0;
 }
 
+/* Duration picker popup — slimmer chrome than the time picker's,
+   reflecting the simpler single-field layout (input + "min" suffix +
+   optional remove icon). Same paper bg + drop-shadow vocabulary,
+   tighter padding so the popover doesn't dwarf its trigger. */
+.oh-duration-picker-popup {
+  background: var(--oh-paper);
+  color: var(--oh-ink);
+  border-radius: var(--oh-r-sm);
+  padding: 10px 12px;
+  box-shadow:
+    0 16px 32px -12px rgb(0 0 0 / 0.28),
+    0 4px 12px -6px rgb(0 0 0 / 0.18);
+  outline: none;
+  transform-origin: top left;
+  transition:
+    transform 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.oh-duration-picker-popup[data-starting-style],
+.oh-duration-picker-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96) translateY(-4px);
+}
+
+/* Trash icon button inside the duration popover. Subtle — gray at
+   rest, ink-on-tint on hover. Sits inline with the input + suffix
+   so it reads as part of the same control row, not a competing
+   destructive zone. */
+.oh-duration-picker-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--oh-content-muted);
+  border-radius: var(--oh-r-xs);
+  cursor: pointer;
+  transition:
+    color 120ms var(--ease-oh, ease),
+    background-color 120ms var(--ease-oh, ease);
+}
+.oh-duration-picker-remove:hover {
+  color: var(--oh-ink);
+  background: var(--oh-tint);
+}
+.oh-duration-picker-remove:focus-visible {
+  outline: 0;
+  box-shadow: var(--oh-focus-shadow);
+}
+
 /* AM/PM segmented toggle. Borderless paper "well" with the same
    inset shadow vocabulary the OhPillSwitcher track uses (B.PT295)
    so the AM/PM control reads as a sibling segmented pill of the

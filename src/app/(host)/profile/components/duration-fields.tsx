@@ -5,28 +5,24 @@ import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
 import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
-import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
 
-// Profile durations editor (popup variant).
+// Profile durations editor (popup variant, minimal).
 //
-// Each chip / "Add duration" button is the trigger of its own
-// `<Popover>` whose inner content reuses the hour/minute spinner
-// vocabulary `<OhTimePicker>` ships. Outside-click discards; Save /
-// Add commits via the footer button.
-//
-// Server-truth via `users.me`; mutation persists the FULL list in one
-// call (server schema dedup+sorts via the transform).
-
-const FALLBACK_DEFAULT_MINUTES = 30;
+// Each chip is the trigger of its own popover (single minutes field
+// + optional trash icon, auto-commits on close). The "Add duration"
+// affordance is a small `+` icon button at the end of the chip
+// stack — same popover, no chip yet, the new value lands as a fresh
+// chip on close. The icon-only add button keeps the section's
+// visual weight on the existing chips, not on the affordance to
+// add more.
 
 export function DurationFields() {
   const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
   const list = me?.durations.list ?? [];
-  const defaultMinutes =
-    me?.durations.defaultMinutes ?? FALLBACK_DEFAULT_MINUTES;
+  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
 
   const setDurations = useSetDurations();
 
@@ -53,13 +49,8 @@ export function DurationFields() {
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
 
   const pickerLabels = {
-    hourLabel: t("durationsHourLabel"),
-    minuteLabel: t("durationsMinuteLabel"),
-    addAction: t("durationsAdd"),
-    saveAction: t("durationsSave"),
-    removeAction: t("durationsRemove"),
-    rangeError: t("durationsRangeError"),
-    duplicateError: t("durationsDuplicateError"),
+    minuteSuffix: t("durationsMinuteSuffix"),
+    removeAria: t("durationsRemove"),
   };
 
   return (
@@ -70,9 +61,9 @@ export function DurationFields() {
         description={t("durationsDescription")}
       />
       <div className="mt-5 flex flex-col gap-3">
-        {list.length === 0 ? (
-          <EmptyDurations />
-        ) : (
+        {list.length === 0 ? <EmptyDurations /> : null}
+
+        {list.length > 0 ? (
           <ul className="flex flex-col gap-2.5" role="list">
             {list.map((minutes) => {
               const summary = formatDurationSummary(minutes, t);
@@ -84,7 +75,6 @@ export function DurationFields() {
                     initialMinutes={minutes}
                     onCommit={(picked) => handleEditCommit(minutes, picked)}
                     onRemove={() => handleRemove(minutes)}
-                    isPending={setDurations.isPending}
                     existingMinutes={list.filter((m) => m !== minutes)}
                     labels={pickerLabels}
                     triggerAriaLabel={t("durationsEditAria", { label: summary })}
@@ -112,30 +102,21 @@ export function DurationFields() {
               );
             })}
           </ul>
-        )}
+        ) : null}
 
+        {/* Icon-only add trigger. Sits below the chip stack as a
+            small ghost button — keeps the section's visual weight
+            on the existing chips while still surfacing the affordance.
+            Disabled state cues the 8-cap from the schema. */}
         <OhDurationPicker
           mode="add"
           onCommit={handleAddCommit}
-          isPending={setDurations.isPending}
           existingMinutes={list}
           labels={pickerLabels}
           disabled={!canAdd}
-          triggerClassName={cn(
-            // Mirrors the ohGhost variant's chrome on /availability's
-            // "Add more hours" CTA: mobile dotted full-width + desktop
-            // content-sized link-style.
-            "oh-focus-ring inline-flex items-center justify-center gap-2 rounded-(--oh-r-sm) px-4 py-2 text-[13px] font-mono font-bold tracking-[2px] uppercase transition-colors duration-150 ease-oh",
-            "w-full border-[1.5px] border-dotted border-[var(--oh-line-placeholder)] hover:border-transparent hover:bg-[var(--oh-tint)]",
-            "md:w-auto md:self-start md:border-0 md:bg-transparent md:hover:bg-[var(--oh-tint)] md:hover:text-[var(--oh-ink)]",
-            "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
-          )}
-          triggerContent={
-            <>
-              <PlusIcon className="size-4" />
-              {t("durationsAddLabel")}
-            </>
-          }
+          triggerAriaLabel={t("durationsAddLabel")}
+          triggerClassName="oh-focus-ring inline-flex size-9 items-center justify-center self-start rounded-(--oh-r-sm) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)]"
+          triggerContent={<PlusIcon className="size-4" strokeWidth={1.75} />}
         />
       </div>
     </section>
@@ -152,7 +133,7 @@ function EmptyDurations() {
   );
 }
 
-// "75 min" → "1 hr 15 min", "60" → "1 hr", "30" → "30 min".
+// "75" → "1 hr 15 min", "60" → "1 hr", "30" → "30 min".
 function formatDurationSummary(
   minutes: number,
   t: ReturnType<typeof useTranslations<"Profile">>,
