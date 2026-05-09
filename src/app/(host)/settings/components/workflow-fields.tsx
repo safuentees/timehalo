@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useDeleteWorkflow } from "@/lib/mutations/use-delete-workflow";
 import { useUpdateWorkflow } from "@/lib/mutations/use-update-workflow";
 import { WorkflowCreateDialog } from "./workflow-create-dialog";
@@ -12,6 +11,7 @@ import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { OhCard } from "@/components/oh/oh-card";
+import { OhPillSwitch } from "@/components/oh/oh-pill-switch";
 
 export function WorkflowFields() {
   const t = useTranslations("Workflows");
@@ -127,11 +127,11 @@ function WorkflowRow({
       </header>
       <p className="oh-eyebrow mt-2">{subtitle}</p>
       <div className="mt-3 flex items-center justify-between gap-2">
-        <Switch
+        <OhPillSwitch
           checked={active}
           onCheckedChange={(next) => update.mutate({ id, active: next })}
           disabled={isUpdating}
-          aria-label={t("toggleAria", { name })}
+          ariaLabel={t("toggleAria", { name })}
         />
         <ConfirmDialog
           trigger={
