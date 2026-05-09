@@ -154,6 +154,10 @@
   --oh-shadow-drawer-edge:
     0 -18px 44px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --oh-shadow-panel:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 12px 32px -16px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 
   --oh-input-bg-hover: color-mix(in srgb, var(--oh-paper) 96%, var(--oh-ink) 4%);
   --oh-input-bg-focus: color-mix(in srgb, var(--oh-paper) 92%, var(--oh-ink) 8%);
@@ -228,6 +232,10 @@
   --oh-shadow-drawer-edge:
     0 -20px 48px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --oh-shadow-panel:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 12px 32px -16px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 @layer base {
@@ -2791,6 +2799,7 @@
   height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
   position: relative;
   overflow: hidden;
+  box-shadow: var(--oh-shadow-panel);
 }
 
 @media (max-width: 767px) {
