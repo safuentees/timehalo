@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { CheckIcon } from "lucide-react";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { Field } from "@/components/ui/field";
@@ -122,9 +123,11 @@ export function HandleFields({ currentHandle }: { currentHandle?: string }) {
               <OhInputGroupAddon align="inline-start">
                 <OhInputGroupText>officehours.app/h/</OhInputGroupText>
               </OhInputGroupAddon>
-              <OhInputGroupAddon align="inline-end">
-                <AvailabilityBadge state={availability} />
-              </OhInputGroupAddon>
+              {availability !== "current" ? (
+                <OhInputGroupAddon align="inline-end">
+                  <AvailabilityBadge state={availability} />
+                </OhInputGroupAddon>
+              ) : null}
             </OhInputGroup>
             <HandleHelp state={availability} />
           </Field>
@@ -147,12 +150,6 @@ function AvailabilityBadge({ state }: { state: Availability }) {
       return (
         <OhInputGroupText className="text-emerald-600 dark:text-emerald-400 opacity-100">
           {t("handleAvailabilityFree")}
-        </OhInputGroupText>
-      );
-    case "current":
-      return (
-        <OhInputGroupText className="opacity-55">
-          {t("handleAvailabilityCurrent")}
         </OhInputGroupText>
       );
     case "taken":
@@ -195,10 +192,21 @@ function HandleHelp({ state }: { state: Availability }) {
   const tone =
     state === "taken" || state === "error"
       ? "text-[color:var(--destructive)]"
-      : state === "available"
+      : state === "available" || state === "current"
         ? "text-emerald-600 dark:text-emerald-400"
         : "text-[color:var(--oh-content-muted)]";
   return (
-    <p className={`mt-1 text-[12px] leading-[1.5] ${tone}`}>{text}</p>
+    <p
+      className={`mt-1 inline-flex items-center gap-1.5 text-[12px] leading-[1.5] ${tone}`}
+    >
+      {state === "current" ? (
+        <CheckIcon
+          className="size-3.5 shrink-0"
+          strokeWidth={2.5}
+          aria-hidden
+        />
+      ) : null}
+      <span>{text}</span>
+    </p>
   );
 }
