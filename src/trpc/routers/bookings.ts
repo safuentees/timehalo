@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { env } from "@/env";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
+import { resolveDurationChoices } from "@/lib/durations";
 import { withSpan } from "@/lib/observability";
 import { timezoneSchema } from "@/lib/timezone";
 import { isFeatureEnabled } from "@/lib/feature-flags";
@@ -183,8 +184,6 @@ export const bookings = router({
             });
           }
 
-          const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60_000);
-
           // Round-robin pick (B2). Resolve the EventType for the
           // handle, run selectHost across its host pool. For the
           // singleton-fixed case (every backfilled user) this returns
@@ -196,8 +195,49 @@ export const bookings = router({
           // but we exclude them up front to give a different host a
           // chance instead of throwing a useless CONFLICT for a
           // multi-host pool).
+          //
+          // B.PT275 — resolve EventType BEFORE slotEnd so we can
+          // compute the effective duration from the visitor's pick.
+          // Legacy hosts without an EventType row fall back to
+          // SLOT_MINUTES (today's behaviour); modern hosts use
+          // `EventType.durationMins` as the singleton default and
+          // accept any duration in `durationMinsList`.
           const resolvedEventType = await resolveEventTypeForHandle(
             input.handle,
+          );
+
+          // B.PT275 — compute the effective booking duration.
+          //   • No EventType (legacy / pre-backfill) → SLOT_MINUTES.
+          //   • EventType present, no input duration → durationMins.
+          //   • EventType present, input duration in choices → use it.
+          //   • EventType present, input duration NOT in choices →
+          //     BAD_REQUEST. Belt-and-suspenders against a stale chip
+          //     UI or a hand-rolled curl request.
+          let effectiveDurationMinutes: number;
+          if (!resolvedEventType) {
+            effectiveDurationMinutes =
+              input.durationMinutes ?? SLOT_MINUTES;
+          } else {
+            const choices = resolveDurationChoices(resolvedEventType);
+            if (input.durationMinutes === undefined) {
+              effectiveDurationMinutes = resolvedEventType.durationMins;
+            } else if (choices.includes(input.durationMinutes)) {
+              effectiveDurationMinutes = input.durationMinutes;
+            } else {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "That duration isn't available for this host. Pick a configured duration.",
+              });
+            }
+          }
+          span.setAttribute(
+            "durationMinutes",
+            effectiveDurationMinutes,
+          );
+
+          const slotEnd = new Date(
+            slotStart.getTime() + effectiveDurationMinutes * 60_000,
           );
           let pickedHostId = host.id;
           if (resolvedEventType && resolvedEventType.hosts.length > 1) {
@@ -353,6 +393,12 @@ export const bookings = router({
                     question: input.question ?? null,
                     slotStart: created.slotStart.toISOString(),
                     slotEnd: created.slotEnd.toISOString(),
+                    // B.PT275 — durationMinutes survives in the audit
+                    // payload so downstream consumers (admin audit
+                    // viewer, webhook delivery debug, future analytics)
+                    // see exactly what the visitor picked even after
+                    // the booking row is cleanup-cron-deleted.
+                    durationMinutes: effectiveDurationMinutes,
                     idempotencyKey: input.idempotencyKey,
                     referrer,
                   },
@@ -408,6 +454,10 @@ export const bookings = router({
                       publicUid: booking.publicUid,
                       slotStart: booking.slotStart.toISOString(),
                       slotEnd: booking.slotEnd.toISOString(),
+                      // B.PT275 — picked duration on the wire so
+                      // webhook consumers don't have to recompute
+                      // (slotEnd - slotStart) themselves.
+                      durationMinutes: effectiveDurationMinutes,
                       visitorName: input.visitorName,
                       visitorEmail: input.visitorEmail,
                       question: input.question ?? null,
@@ -1173,9 +1223,18 @@ export const bookings = router({
             });
           }
 
-          const newSlotEnd = new Date(
-            newSlotStart.getTime() + SLOT_MINUTES * 60_000,
-          );
+          // B.PT275 — preserve the original booking's duration on
+          // reschedule. The visitor picks a new slot but keeps the same
+          // length — same as cal.com's reschedule semantics. Falls back
+          // to SLOT_MINUTES if the original somehow has a degenerate
+          // (non-positive) range.
+          const originalDurationMs =
+            original.slotEnd.getTime() - original.slotStart.getTime();
+          const durationMs =
+            originalDurationMs > 0
+              ? originalDurationMs
+              : SLOT_MINUTES * 60_000;
+          const newSlotEnd = new Date(newSlotStart.getTime() + durationMs);
 
           try {
             const created = await prisma.$transaction(async (tx) => {

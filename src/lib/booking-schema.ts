@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { timezoneSchema } from "@/lib/timezone";
+import { durationMinutesSchema } from "@/lib/durations";
 
 /**
  * Shared booking input schema — used by both the tRPC `bookings.create`
@@ -36,6 +37,15 @@ export const bookingInputSchema = z.object({
   // present we validate + store; when absent the booking row's
   // visitorTimezone stays null.
   visitorTimezone: timezoneSchema.optional(),
+  // B.PT275 — visitor's chosen duration, in minutes. Optional: when
+  // omitted, the procedure falls back to the host's
+  // `EventType.durationMins` default. When present, the procedure
+  // validates the value sits in `resolveDurationChoices(eventType)`
+  // (i.e. either the configured `durationMinsList` or the singleton
+  // default). 5..480 floor/ceiling matches `durationsListSchema` so
+  // the chip strip on /h/[handle] can't surface values the back end
+  // would refuse.
+  durationMinutes: durationMinutesSchema.optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingInputSchema>;
