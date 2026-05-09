@@ -36,11 +36,30 @@ export type WeekViewProps = {
    *  (viewport-relative). Pass `"none"` to opt out. (B.PT143 —
    *  was a fixed 640px.) */
   maxBodyHeight?: string;
-  /** Min body width. Below this the body horizontally scrolls
-   *  inside the wrapper so chips stay readable on narrow viewports
-   *  (cal.com pattern: their inner is `width: 165%` to force the
-   *  same scroll). Default 1100px (B.PT143 — bumped from 980 to
-   *  give 7 columns ~157px each, much more comfortable). */
+  /** Min body width. When > 0, the inner grid is pinned to that
+   *  width and the body horizontally scrolls inside the wrapper —
+   *  cal.com pattern (`width: 165%`) for keeping chips readable on
+   *  narrow viewports.
+   *
+   *  Default 0 — the 7 day columns flex to the panel's actual
+   *  width via `flex-1 basis-0`, so a 900px panel gives ~120px per
+   *  cell and a 1440px panel gives ~198px (after the 56px hour
+   *  axis). Both are readable; no scroll, no overflow.
+   *
+   *  Why the previous 1100px default broke (2026-05-09): Radix
+   *  ScrollArea's Viewport renders its content inside a
+   *  `<div style="min-width:100%; display:table">` (per
+   *  `node_modules/@radix-ui/react-scroll-area/dist/index.mjs` —
+   *  the table sizes to content's max-content width). When the
+   *  WeekView's 1100px-min-width inner pushed motion.div's
+   *  max-content past the Viewport width, that table grew past
+   *  the Viewport, the centered `<OhPageShell>` (760px max-w +
+   *  mx-auto) drifted right inside the wider table, and the
+   *  calendar bled past the panel's right edge.
+   *
+   *  Opting in with a non-zero value re-enables the scroll path
+   *  for callers who want cal.com-style "always show ≥ X px wide"
+   *  behavior; default 0 keeps the panel layout contract intact. */
   minBodyWidthPx?: number;
   nowOverride?: Date;
 };
@@ -86,7 +105,7 @@ export function WeekView({
   onEventClick,
   getHref,
   maxBodyHeight = "calc(100dvh - 280px)",
-  minBodyWidthPx = 1100,
+  minBodyWidthPx = 0,
   nowOverride,
 }: WeekViewProps) {
   const monday = useMemo(() => startOfWeekMonday(date), [date]);
