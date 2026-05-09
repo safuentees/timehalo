@@ -467,13 +467,18 @@ export async function createTestEventTypeHostPool(opts: {
   }
 
   const slug = opts.slug ?? opts.hostHandle;
+  const durationMins = opts.durationMins ?? 15;
   const eventType = await prisma.eventType.upsert({
     where: { workspaceId_slug: { workspaceId, slug } },
     create: {
       workspaceId,
       slug,
       name: slug,
-      durationMins: opts.durationMins ?? 15,
+      durationMins,
+      // B.PT278 — fixture seeds the list with the singleton default
+      // so tests start from the same on-disk shape that bootstrap
+      // (setHandle) writes for new hosts.
+      durationMinsList: JSON.stringify([durationMins]),
     },
     update: {},
     select: { id: true },

@@ -278,6 +278,32 @@ describe("bookings.create durationMinutes", () => {
     ).rejects.toThrow(TRPCError);
   });
 
+  it("rejects with BAD_REQUEST when the host has cleared their durations list", async () => {
+    // B.PT278 — empty list semantically means "host isn't accepting
+    // bookings". Programmatic callers (the chip strip already wouldn't
+    // surface a duration in this state) get refused.
+    await prisma.eventType.updateMany({
+      where: { slug: DURATION_HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const caller = callRouter(fakeContext());
+    await expect(
+      caller.bookings.create({
+        handle: DURATION_HANDLE,
+        slotStart: slotIso,
+        idempotencyKey: crypto.randomUUID(),
+        visitorName: "Alice",
+        visitorEmail: "alice@test.local",
+      }),
+    ).rejects.toThrow(TRPCError);
+    // Restore the multi-duration list so the rest of the suite's
+    // tests start from the same shape.
+    await prisma.eventType.updateMany({
+      where: { slug: DURATION_HANDLE },
+      data: { durationMinsList: JSON.stringify([15, 30, 60]) },
+    });
+  });
+
   it("idempotency replay preserves the original duration", async () => {
     const caller = callRouter(fakeContext());
     const idempotencyKey = crypto.randomUUID();

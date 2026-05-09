@@ -206,19 +206,33 @@ export const bookings = router({
             input.handle,
           );
 
-          // B.PT275 — compute the effective booking duration.
+          // B.PT275 / B.PT278 — compute the effective booking duration.
           //   • No EventType (legacy / pre-backfill) → SLOT_MINUTES.
-          //   • EventType present, no input duration → durationMins.
-          //   • EventType present, input duration in choices → use it.
-          //   • EventType present, input duration NOT in choices →
+          //   • EventType + non-empty choices + no input → durationMins
+          //     (programmatic-call fallback; the chip strip on
+          //     /h/[handle] always sends a duration).
+          //   • EventType + non-empty choices + input in choices → use it.
+          //   • EventType + non-empty choices + input NOT in choices →
           //     BAD_REQUEST. Belt-and-suspenders against a stale chip
           //     UI or a hand-rolled curl request.
+          //   • EventType + EMPTY choices → host has no bookable
+          //     durations (B.PT278). Refuse to mint the booking.
+          //     Visitor's chip strip already renders the placeholder
+          //     in this state, so the only way to reach here is a
+          //     programmatic call.
           let effectiveDurationMinutes: number;
           if (!resolvedEventType) {
             effectiveDurationMinutes =
               input.durationMinutes ?? SLOT_MINUTES;
           } else {
             const choices = resolveDurationChoices(resolvedEventType);
+            if (choices.length === 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "This host isn't accepting bookings right now.",
+              });
+            }
             if (input.durationMinutes === undefined) {
               effectiveDurationMinutes = resolvedEventType.durationMins;
             } else if (choices.includes(input.durationMinutes)) {

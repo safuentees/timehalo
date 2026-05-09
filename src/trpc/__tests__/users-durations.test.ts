@@ -30,13 +30,12 @@ describe("users.setDurationsList + me.durations", () => {
 
   beforeEach(async () => {
     await wipeTransientState(host.id);
-    // Reset the durations list so each test starts from the empty
-    // default. The pool fixture seeded `durationMinsList: "[]"` via
-    // the schema default; explicit reset belt-and-suspenders against
-    // a prior test leaving the row mid-state.
+    // B.PT278 — reset to the post-backfill seed (`[durationMins]`)
+    // so each test starts from the same shape new hosts ship with.
+    // Tests that need an empty list set it explicitly.
     await prisma.eventType.updateMany({
       where: { slug: HANDLE },
-      data: { durationMinsList: "[]" },
+      data: { durationMinsList: JSON.stringify([15]) },
     });
   });
 
@@ -44,10 +43,25 @@ describe("users.setDurationsList + me.durations", () => {
     await tearDownTestHost(host.id);
   });
 
-  it("me.durations is empty + defaults to 15 when host has not configured", async () => {
+  it("me.durations exposes the seeded default list ([durationMins]) for new hosts", async () => {
+    // B.PT278 — bootstrap seeds the list with the singleton default
+    // so editor + visitor start from the same on-disk shape.
     const caller = callRouter(fakeContext({ userId: host.id }));
     const me = await caller.users.me();
-    expect(me.durations).toEqual({ defaultMinutes: 15, list: [] });
+    expect(me.durations).toEqual({ defaultMinutes: 15, list: [15] });
+  });
+
+  it("me.durations.list is empty when the host has explicitly cleared it", async () => {
+    // The host's editor allows clearing the list (last-chip removal).
+    // The on-disk shape is then truly empty; visitor sees the
+    // placeholder.
+    await prisma.eventType.updateMany({
+      where: { slug: HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const caller = callRouter(fakeContext({ userId: host.id }));
+    const me = await caller.users.me();
+    expect(me.durations.list).toEqual([]);
   });
 
   it("setDurationsList writes a sorted, deduped list and reads back via me", async () => {
@@ -104,11 +118,24 @@ describe("users.setDurationsList + me.durations", () => {
     expect(profile.defaultDurationMinutes).toBe(15);
   });
 
-  it("getByHandle falls back to [durationMins] when host has not configured a list", async () => {
+  it("getByHandle returns the seeded default for new hosts", async () => {
     const anon = callRouter(fakeContext());
     const profile = await anon.users.getByHandle({ handle: HANDLE });
     expect(profile.durationChoices).toEqual([15]);
     expect(profile.defaultDurationMinutes).toBe(15);
+  });
+
+  it("getByHandle returns an empty durationChoices when the host has cleared the list", async () => {
+    // B.PT278 — empty list semantically means "host isn't accepting
+    // bookings". Visitor view renders a placeholder; the chip strip
+    // never mounts.
+    await prisma.eventType.updateMany({
+      where: { slug: HANDLE },
+      data: { durationMinsList: "[]" },
+    });
+    const anon = callRouter(fakeContext());
+    const profile = await anon.users.getByHandle({ handle: HANDLE });
+    expect(profile.durationChoices).toEqual([]);
   });
 
   it("PRECONDITION_FAILED when the caller has no handle yet", async () => {

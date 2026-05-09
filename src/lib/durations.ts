@@ -61,19 +61,28 @@ export function parseDurationsList(raw: string): number[] {
   }
 }
 
-// Resolve the visitor's effective duration choice list given the
-// EventType's stored configuration. When the host hasn't configured
-// any durations, the singleton default is the only choice. When
-// configured, the configured list is canonical (the default is
-// implicitly included only if the host added it).
+// Resolve the visitor's effective duration choice list from the
+// EventType's `durationMinsList` column. The list is the single source
+// of truth: bootstrap (setHandle) seeds new EventType rows with
+// `[durationMins]`, and B.PT278's backfill migration converts every
+// pre-existing `[]` → `[durationMins]` so on-disk rows reflect the
+// host's actual bookable durations.
+//
+// Empty result means "host has no bookable durations" — the visitor
+// page renders a placeholder and `bookings.create` refuses. Don't
+// re-introduce the fallback to `durationMins`: it makes the editor
+// (`/profile`) show fewer chips than the visitor view because adding
+// a first chip overwrites the implicit fallback rather than appending
+// to it. Pre-seeding at write time keeps editor + visitor in lockstep.
+//
+// `durationMins` stays on `ResolvedEventType` because it remains the
+// no-input default for `bookings.create` when the visitor omits a
+// duration AND the list contains it (the chip strip wires only to
+// `durationChoices` so this is purely a programmatic-call fallback).
 export function resolveDurationChoices({
-  durationMins,
   durationMinsList,
 }: {
-  durationMins: number;
   durationMinsList: string;
 }): number[] {
-  const parsed = parseDurationsList(durationMinsList);
-  if (parsed.length === 0) return [durationMins];
-  return parsed;
+  return parseDurationsList(durationMinsList);
 }

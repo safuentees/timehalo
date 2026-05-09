@@ -218,6 +218,12 @@ export const users = router({
                   slug: input.handle,
                   name: input.handle,
                   durationMins: 15,
+                  // B.PT278 — seed the list with the singleton default
+                  // so the visitor's chip strip + the host's /profile
+                  // editor agree on day-1 data. Empty list means "no
+                  // bookable durations" post-B.PT278; we don't want
+                  // brand-new hosts to ship as un-bookable.
+                  durationMinsList: JSON.stringify([15]),
                 },
                 select: { id: true },
               });

@@ -632,7 +632,20 @@ export default function HostProfile({
                     "bg-[#F5EFDF]",
                   )}
                 >
-                  {hasOpenSlots ? (
+                  {slotOptions.length === 0 ? (
+                    // B.PT278 — host has no bookable durations
+                    // configured (the editor's chip list is empty).
+                    // Visitor sees a polite "not accepting bookings"
+                    // line instead of the chip strip + a stray
+                    // "no slots" empty state. Supersedes the slot
+                    // checks below — without a duration the visitor
+                    // can't pick a slot anyway.
+                    <p className="oh-description py-6 text-center">
+                      {t("emptyNoDurationsDescription", {
+                        name: displayName,
+                      })}
+                    </p>
+                  ) : hasOpenSlots ? (
                     <motion.ul
                       layoutId={landingLayoutId("oh-slot-stack")}
                       transition={{
