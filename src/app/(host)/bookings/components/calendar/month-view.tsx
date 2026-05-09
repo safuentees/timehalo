@@ -118,7 +118,7 @@ export function MonthView({
         // are STRUCTURAL — they communicate "month grid" not "card
         // edge" — kept verbatim.
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
-        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+        "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
       )}
       style={wrapperStyle}

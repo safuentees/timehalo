@@ -79,7 +79,7 @@ function WorkspaceRow({
   return (
     <Link
       href={`/workspaces/${slug}/members`}
-      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)]"
+      className="group flex items-center justify-between gap-3 rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)]"
     >
       <div className="flex min-w-0 flex-col gap-1.5">
         <span className="oh-eyebrow tabular-nums">{t(`role_${role}`)}</span>

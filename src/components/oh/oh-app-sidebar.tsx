@@ -336,7 +336,7 @@ export function MobileNavContent({
                       // the active pill chip carries — one design
                       // vocabulary across switchers + nav rows.
                       active
-                        ? "bg-[color:var(--oh-paper)] font-bold shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
+                        ? "bg-[color:var(--oh-paper)] font-bold shadow-[var(--oh-shadow-resting)]"
                         : "",
                     ].join(" ")}
                   >

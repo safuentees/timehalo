@@ -223,6 +223,16 @@
      to the depth feel propagates app-wide. */
   --oh-input-shadow-rest: inset 0 0 4px rgba(0, 0, 0, 0.15);
 
+  /* Card/chip elevation tokens. Light mode uses dark drop shadows on
+     a light surface — straightforward "object floats above paper"
+     reading. Single source of truth so the dark-mode override below
+     can swap the entire vocabulary at once. Pre-tokenization, these
+     values were inlined as `shadow-[var(--oh-shadow-resting)]` in
+     14+ callsites, which made dark-mode parity impossible without
+     touching every file. */
+  --oh-shadow-resting: 0 3px 12px rgba(0, 0, 0, 0.22);
+  --oh-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.28);
+
   /* Input-state background tints. Subtle warm lift signals
      interactivity (hover) and active engagement (focus). Rest stays
      at pure paper so the brutalist DNA is preserved. */
@@ -314,8 +324,38 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
-  --oh-paper: #0a0a0a;
+  /* Surface swap (Material 3 "elevated surface" pattern, adapted).
+     The content panel (paper) sits LIGHTER than the outer chrome
+     (frame) so a dark drop-shadow has contrast to fall onto. In
+     light mode the panel is paper-cream and the outer chrome is a
+     slightly-darker sisal — same elevation rhythm, opposite
+     polarity. */
+  --oh-paper: #1a1a1a;
   --oh-ink: #ede4cf;
+  /* Override the paper-derived frame formula so the outer chrome
+     reads as the "page bg" beneath the panel, not as a tinted
+     extension of it. Near-black flush against the lighter panel
+     gives the elevation cue the eye reads first. */
+  --oh-frame: #0a0a0a;
+
+  /* Shadow tokens swap for dark mode: deeper drop (visible against
+     the lighter panel + against the near-black outer chrome) plus a
+     1px rim highlight (`inset 0 1px 0 rgba(255,255,255,0.05)`) for
+     the "light catches the top edge" metaphor — the same emboss cue
+     macOS dark-mode cards use. The combination reads as depth
+     without the "fluorescent neumorphism" trap of pure white halos.
+     Reference: m3.material.io/styles/elevation/applying-elevation. */
+  --oh-shadow-resting:
+    0 4px 14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --oh-shadow-hover:
+    0 6px 20px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* Input recess shadows deepen so the recessed-paper metaphor
+     survives on the lighter dark-mode panel. */
+  --oh-input-shadow-rest: inset 0 0 6px rgba(0, 0, 0, 0.45);
+  --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 @layer base {

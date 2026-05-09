@@ -251,7 +251,7 @@ function BlockChip({
       // pattern (`0 4px 16px rgba(0,0,0,0.28)`). Replaces the prior
       // 1.5px ink border + hover-darken with the app-wide depth-via-
       // shadow vocabulary.
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editBlockAria", {
         days: dayLabel,
         time: formatTimeRange(block.from, block.to),
@@ -417,7 +417,7 @@ function BlockEditorContent({
             role="alert"
             // B.PT295 — borderless. Tinted bg + drop shadow keeps the
             // alert visible without a contrasting ink frame.
-            className="mt-5 rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
+            className="mt-5 rounded-(--oh-r-xs) bg-[color-mix(in_srgb,var(--oh-ink)_8%,var(--oh-paper))] px-3 py-2.5 font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[1.5px] uppercase shadow-[var(--oh-shadow-resting)]"
           >
             {error}
           </p>
@@ -516,7 +516,7 @@ function DaysRowButton({
       // B.PT295 — same chrome as BlockChip. Borderless paper card +
       // canonical drop shadow + hover lift. Single drawer-trigger
       // vocabulary across the availability surface.
-      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
+      className="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)]"
       aria-label={t("editDaysAria", { label })}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -559,10 +559,10 @@ function DayToggle({
       // works on both bg colors. Hover bumps the shadow on
       // unselected only (selected is "locked in" — no need for an
       // affordance bump).
-      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-[box-shadow,background-color,color,opacity] duration-150 ease-oh focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] shadow-[0_3px_12px_rgba(0,0,0,0.22)] ${
+      className={`relative flex w-full items-center justify-between gap-3 rounded-(--oh-r-xs) px-4 py-3 text-left font-[family-name:var(--oh-mono)] text-[12px] font-black tracking-[1.5px] uppercase transition-[box-shadow,background-color,color,opacity] duration-150 ease-oh focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] shadow-[var(--oh-shadow-resting)] ${
         selected
           ? "bg-oh-ink text-oh-paper"
-          : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100 hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)]"
+          : "bg-oh-paper text-oh-ink opacity-65 hover:opacity-100 hover:shadow-[var(--oh-shadow-hover)]"
       }`}
     >
       <span>{label}</span>

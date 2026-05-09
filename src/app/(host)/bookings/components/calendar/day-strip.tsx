@@ -94,7 +94,7 @@ export function DayStrip({
         // switcher above with identical chrome.
         "flex w-full items-stretch gap-0 overflow-x-auto",
         "rounded-(--oh-r-sm) bg-oh-bg-muted p-[3px]",
-        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+        "shadow-[var(--oh-shadow-resting)]",
         // Hide native scrollbar; the buttons themselves communicate
         // scrollability via overflow (only engages on viewports
         // narrower than 7 × 52px + gap, ~370px).

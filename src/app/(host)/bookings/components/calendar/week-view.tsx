@@ -180,7 +180,7 @@ export function WeekView({
         // separators because they communicate "7-column grid" not
         // "card edge."
         "rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
-        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+        "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
       )}
