@@ -221,6 +221,16 @@ export function MobileNavContent({
         );
         if (rows.length === 0) return;
 
+        // Sync to the wrapper's clip-path reveal in oh-mobile-nav-
+        // overlay.tsx (0.55s top-down reveal). GSAP timeline holds
+        // a 0.055s lead-in (~10% of the bg reveal) before the first
+        // item starts so items don't appear behind a still-rolling
+        // curtain — they begin staggering in once the bg has just
+        // begun covering the top portion. Reverse plays the same
+        // lead-in as a tail at the end (no visible effect —
+        // wrapper's clip-path has already shrunk past the rows by
+        // then).
+        const STAGGER_LEAD_IN = 0.055;
         const tl = gsap.timeline({ paused: true });
         rows.forEach((row, i) => {
           const isLabel = row.classList.contains("oh-mobile-nav-label");
@@ -233,10 +243,11 @@ export function MobileNavContent({
               duration: isLabel ? 0.22 : 0.28,
               ease: isLabel ? "power1.out" : "power3.out",
             },
-            // Position parameter: each row starts at i * 0.04s into
-            // the timeline. Document-order stagger; reverse plays
-            // them out in reverse order automatically.
-            i * 0.04,
+            // Position parameter: each row starts at
+            // STAGGER_LEAD_IN + i * 0.04s into the timeline.
+            // Document-order stagger; reverse plays them out in
+            // reverse order automatically.
+            STAGGER_LEAD_IN + i * 0.04,
           );
         });
         tlRef.current = tl;
@@ -272,7 +283,13 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      tl.timeScale(1.6);
+      // Same timeScale as forward (1.0). Earlier 1.6 speed-up
+      // ("leave faster than you arrived") rushed the items out
+      // before the bg finished sliding up — items briefly hung
+      // against the transparent panel. Matched-speed reverse +
+      // a longer bg close (0.55s vs 0.32s open) keeps the
+      // exit choreography legible.
+      tl.timeScale(1);
       tl.eventCallback("onReverseComplete", onExitComplete);
       tl.reverse();
     } else {
@@ -333,10 +350,18 @@ export function MobileNavContent({
       // visitor shell's sticky header.
       className={[
         "flex flex-col gap-6 px-4 py-6 sm:px-6",
-        "relative z-0 transform-gpu",
-        "bg-oh-paper/85 supports-backdrop-filter:bg-oh-paper/78",
-        "supports-backdrop-filter:backdrop-blur-xl",
-        "supports-backdrop-filter:backdrop-saturate-150",
+        // `relative` lifts content above the absolute bg layer
+        // sibling in the overlay wrapper (oh-mobile-nav-overlay
+        // .tsx). DOM order alone would suffice, but explicit
+        // positioning prevents any cascade weirdness if the
+        // wrapper gains another absolute child.
+        "relative z-0",
+        // No bg here — the overlay wrapper paints a solid
+        // `bg-oh-paper` layer behind the nav as a SLIDING
+        // motion.div (slides down on open, up on close). Content
+        // itself stays static in its final position; only the
+        // background animates. Two-layer split is the canonical
+        // "background reveals, content stays" pattern.
       ].join(" ")}
     >
       {groups.map((group, index) => (
@@ -366,8 +391,12 @@ export function MobileNavContent({
                       // changes via route navigation. ease-oh matches
                       // the rest of the dashboard's motion vocabulary.
                       "transition-[background-color,color,box-shadow] duration-150 ease-oh",
-                      "hover:bg-[var(--oh-tint-hover)]",
                       "oh-focus-ring",
+                      // Hover tint only on inactive rows. The active
+                      // row already carries paper-on-paper + drop
+                      // shadow; layering hover-tint on top would
+                      // wash the chip into the surround on pointer
+                      // entry. Gate keeps the active state stable.
                       // Active = paper-on-paper chip with drop shadow
                       // (B.PT289 — match OhPillSwitcher's active pill
                       // vocabulary). Replaces the prior bg-tint-active
@@ -380,7 +409,7 @@ export function MobileNavContent({
                       // vocabulary across switchers + nav rows.
                       active
                         ? "bg-[color:var(--oh-paper)] font-bold shadow-[var(--oh-shadow-resting)]"
-                        : "",
+                        : "hover:bg-[var(--oh-tint-hover)]",
                     ].join(" ")}
                   >
                     <item.icon
@@ -425,8 +454,7 @@ function NavGroupRender({
             const active =
               activePath !== null &&
               (activePath === item.href ||
-                (item.href !== "/" &&
-                  activePath.startsWith(`${item.href}/`)));
+                (item.href !== "/" && activePath.startsWith(`${item.href}/`)));
             const itemLabel = t(item.labelKey);
             return (
               <SidebarMenuItem key={item.href} className="group/item">
@@ -464,7 +492,9 @@ function FooterControls() {
     <button
       type="button"
       onClick={toggleSidebar}
-      aria-label={state === "expanded" ? t("collapseSidebar") : t("expandSidebar")}
+      aria-label={
+        state === "expanded" ? t("collapseSidebar") : t("expandSidebar")
+      }
       className="oh-focus-ring inline-flex size-9 items-center justify-center text-oh-ink [&_svg]:size-4"
     >
       <PanelLeft strokeWidth={1.5} />

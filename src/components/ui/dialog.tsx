@@ -286,12 +286,25 @@ function DialogOverlay({
 }
 
 function DialogContent({
+  ref,
   className,
   children,
   showCloseButton = true,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  /**
+   * Forwarded to Base UI's `Dialog.Popup`. ResponsiveModal uses
+   * this to capture the popup element so nested popovers/menus
+   * (time picker, duration picker, etc.) can portal INTO the
+   * popup rather than to `document.body`. Body-portal popovers
+   * become inert siblings of the dialog's `FloatingFocusManager`
+   * modal=true scope and clicks stop registering — confirmed
+   * against Base UI dialog source: `dialog/popup/DialogPopup.js`
+   * passes `modal: true` to FloatingFocusManager which marks
+   * outside-tree elements as inert.
+   */
+  ref?: React.Ref<HTMLDivElement>
 }) {
   // Debug instrumentation — always on in development, no flag.
   // Watches the DOM for the dialog-content popup and logs paint-
@@ -337,6 +350,7 @@ function DialogContent({
         className="fixed inset-0 z-[201]"
       >
         <DialogPrimitive.Popup
+          ref={ref}
           data-slot="dialog-content"
           className={cn(
             "fixed top-1/2 left-1/2 z-[202] grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--oh-r-sm) border border-border bg-background p-6 text-sm text-foreground duration-150 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",

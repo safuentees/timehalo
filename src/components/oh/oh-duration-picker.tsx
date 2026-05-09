@@ -9,20 +9,28 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
 } from "@/lib/durations";
+import { useResponsiveModalPortalContainer } from "@/components/ui/responsive-modal";
 
 // Popover-based duration picker — minimal layout.
 //
 // Single minutes field (no hour split — easier to type "120" than to
-// pick "2hr 0min"). Save is explicit via a Plus icon button to the
+// pick "2hr 0min"). Save is explicit via a Check icon button to the
 // right of the MIN suffix; the popover does NOT auto-commit on close
 // (clicking outside or pressing Escape discards the draft, same as
 // any modal-edit form).
+//
+// Why Check instead of Plus on the save button: when the trigger is
+// also a `+` icon (the section's add affordance), having BOTH the
+// open-trigger and the save action use Plus reads as "two redundant
+// add buttons" to the user. Check splits the semantics — `+` opens
+// the editor, ✓ confirms the entry. Same icon works for edit mode
+// (chip click → popover) where Plus would be doubly confusing.
 //
 // Trigger is whatever the caller supplies — a chip for an existing
 // duration, a `+` icon button for the add affordance.
@@ -99,6 +107,17 @@ export function OhDurationPicker({
     initialMinutes ?? null,
   );
 
+  // When the picker is rendered inside a ResponsiveModal (mobile
+  // drawer or desktop dialog), the popover must portal INTO the
+  // modal's content so it stays inside the focus-trap / inert
+  // scope. Body-portaled popovers become inert siblings of the
+  // dialog's FloatingFocusManager modal=true scope and clicks
+  // no-op (verified against `@base-ui/react/dialog/popup/
+  // DialogPopup.js:117`). Returns null outside a ResponsiveModal,
+  // which falls through to Base UI's default body portal —
+  // correct behavior outside a modal.
+  const portalContainer = useResponsiveModalPortalContainer();
+
   // Save-button enabled when draft is a valid, non-duplicate, actual
   // change. Same gate the Enter-key handler reads.
   const canSave =
@@ -144,7 +163,7 @@ export function OhDurationPicker({
       >
         {triggerContent}
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal container={portalContainer ?? undefined}>
         <Popover.Positioner
           className="oh-time-picker-positioner"
           sideOffset={8}
@@ -170,7 +189,7 @@ export function OhDurationPicker({
                 aria-label={labels.saveAria}
                 className="oh-duration-picker-remove"
               >
-                <Plus strokeWidth={1.75} className="size-4" aria-hidden />
+                <Check strokeWidth={1.75} className="size-4" aria-hidden />
               </button>
               {onRemove ? (
                 <Popover.Close

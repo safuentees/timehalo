@@ -74,14 +74,29 @@ export function OhTimePicker({
   const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
 
-  // When the picker is rendered inside a Vaul drawer (mobile), the
-  // popover must portal INTO the drawer's content. Vaul applies
-  // `pointer-events: none` to body siblings while the drawer is
-  // open — a popover portaled to body becomes unclickable, and
-  // taps register as outside-clicks that the drawer eats and
-  // dismiss the picker. Returns null on desktop / outside a
-  // ResponsiveModal — Base UI defaults to body, which is fine
-  // there since Dialog doesn't suppress sibling pointer-events.
+  // When the picker is rendered inside a ResponsiveModal (mobile
+  // drawer or desktop dialog), the popover must portal INTO the
+  // modal's content so it stays inside the focus-trap / inert
+  // scope. Two distinct mechanisms make a body-portaled popover
+  // unclickable, both fixed by the same target-into-modal portal:
+  //
+  //   - Mobile (vaul Drawer): `pointer-events: none` is applied
+  //     to body siblings while the drawer is open. Body-portaled
+  //     popover registers as an outside-click; drawer eats it.
+  //
+  //   - Desktop (Base UI Dialog with modal=true, the default):
+  //     Dialog wraps its popup in `FloatingFocusManager` from
+  //     `@floating-ui/react` which marks every element OUTSIDE
+  //     the floating tree with `inert`. Verified in
+  //     `@base-ui/react/dialog/popup/DialogPopup.js:117`
+  //     (`modal: modal !== false`). Body-portaled popover is a
+  //     sibling of the dialog's portal → gets inert'd → clicks
+  //     no-op, popup never opens. (Earlier code assumed desktop
+  //     was fine; user reported the chip-click bug on /settings
+  //     availability dialog and the source check confirmed.)
+  //
+  // Returns null outside a ResponsiveModal, falling through to
+  // Base UI's default body portal — correct behavior there.
   const portalContainer = useResponsiveModalPortalContainer();
 
   return (

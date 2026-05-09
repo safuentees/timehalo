@@ -1,49 +1,148 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
-import { DURATION_LIST_MAX_LENGTH } from "@/lib/durations";
+import {
+  DURATION_LIST_MAX_LENGTH,
+  DURATION_MAX_MINUTES,
+  DURATION_MIN_MINUTES,
+} from "@/lib/durations";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 
-// Profile durations editor (popup variant, minimal).
+// Profile durations editor (popup variant, dirty-save shape).
 //
 // Each chip is the trigger of its own popover (single minutes field
-// + optional trash icon, auto-commits on close). The "Add duration"
+// + save Check + trash icon for remove). The "Add duration"
 // affordance is a small `+` icon button at the end of the chip
 // stack — same popover, no chip yet, the new value lands as a fresh
-// chip on close. The icon-only add button keeps the section's
-// visual weight on the existing chips, not on the affordance to
-// add more.
+// chip on close.
+//
+// Save semantics — matches the handle/bio sections above. Picker
+// commits update LOCAL form state via `setValue(... shouldDirty: true)`;
+// the section's <InlineFormSave> appears when the form is dirty and
+// commits the whole list via `users.setDurationsList`. No more
+// auto-save per chip change. (Previous implementation called the
+// mutation immediately from each picker handler — confusing because
+// changes hit the server invisibly + couldn't be batched / undone.)
+//
+// Two-+-button cleanup: the inside-popover save button switched
+// from a Plus icon to a Check icon (in oh-duration-picker.tsx).
+// The outside trigger keeps Plus — universal "add" affordance.
+// Inside Check = "confirm this value." Different icons, different
+// semantics, no more visual redundancy.
+//
+// Future-proof shape: form value is `number[]` today, but the
+// handlers below operate on `next: number[]` arrays so a later
+// migration to `Array<{ minutes: number; description?: string;
+// title?: string }>` is mostly a schema + type swap. The picker's
+// API (`initialMinutes` → `onCommit(minutes)`) becomes
+// (`initialItem` → `onCommit(item)`) at that point — no surrounding
+// section logic needs to change.
+
+const formSchema = z.object({
+  minutes: z
+    .array(
+      z
+        .number()
+        .int()
+        .min(DURATION_MIN_MINUTES)
+        .max(DURATION_MAX_MINUTES),
+    )
+    .max(DURATION_LIST_MAX_LENGTH),
+});
+type FormValues = z.infer<typeof formSchema>;
 
 export function DurationFields() {
   const t = useTranslations("Profile");
   const { data: me } = trpc.users.me.useQuery();
-  const list = me?.durations.list ?? [];
-  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
+
+  const values = useMemo<FormValues>(
+    () => ({ minutes: me?.durations.list ?? [] }),
+    [me],
+  );
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    values,
+    resetOptions: { keepDirtyValues: true },
+    mode: "onChange",
+  });
 
   const setDurations = useSetDurations();
 
-  async function persist(next: number[]) {
-    await setDurations.mutateAsync({ minutes: next });
+  async function onSubmit(v: FormValues) {
+    await setDurations.mutateAsync({ minutes: v.minutes });
   }
 
-  async function handleEditCommit(original: number, picked: number) {
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <DurationFieldsBody />
+        <InlineFormSave
+          isPending={setDurations.isPending}
+          isDirty={form.formState.isDirty}
+          isInvalid={!form.formState.isValid}
+          labels={{
+            save: t("saveLabel"),
+            saving: t("savingLabel"),
+            saved: t("savedLabel"),
+          }}
+        />
+      </form>
+    </FormProvider>
+  );
+}
+
+// Inner body — separate component so it can read the form value via
+// `useWatch` without re-rendering the outer Save button on every
+// chip edit.
+function DurationFieldsBody() {
+  const t = useTranslations("Profile");
+  const { setValue } = useFormContext<FormValues>();
+  // useWatch's typing returns the union of all watched field types
+  // when given just a name. Two-generic form narrows to the exact
+  // field type (`number[]` here).
+  const list =
+    useWatch<FormValues, "minutes">({ name: "minutes" }) ?? [];
+  const { data: me } = trpc.users.me.useQuery();
+  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
+
+  function commit(next: number[]) {
+    // Sort ascending so "30 → 60 → 90 → 120" reads as a duration
+    // ladder regardless of insertion order. shouldDirty fires the
+    // form's dirty flag → InlineFormSave appears.
+    const sorted = [...next].sort((a, b) => a - b);
+    setValue("minutes", sorted, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function handleEditCommit(original: number, picked: number) {
     if (picked === original) return;
-    const next = list.filter((m) => m !== original).concat(picked);
-    await persist(next);
+    commit(list.filter((m) => m !== original).concat(picked));
   }
 
-  async function handleAddCommit(picked: number) {
+  function handleAddCommit(picked: number) {
     if (list.includes(picked)) return;
-    await persist([...list, picked]);
+    commit([...list, picked]);
   }
 
-  async function handleRemove(value: number) {
-    const next = list.filter((m) => m !== value);
-    await persist(next);
+  function handleRemove(value: number) {
+    commit(list.filter((m) => m !== value));
   }
 
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
@@ -78,7 +177,9 @@ export function DurationFields() {
                     onRemove={() => handleRemove(minutes)}
                     existingMinutes={list.filter((m) => m !== minutes)}
                     labels={pickerLabels}
-                    triggerAriaLabel={t("durationsEditAria", { label: summary })}
+                    triggerAriaLabel={t("durationsEditAria", {
+                      label: summary,
+                    })}
                     triggerClassName="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
                     triggerContent={
                       <>
@@ -91,6 +192,11 @@ export function DurationFields() {
                           <span className="text-[18px] leading-[1.1] font-black tabular-nums">
                             {summary}
                           </span>
+                          {/* Future per-chip metadata renders here.
+                              When `description` / `title` join the
+                              chip schema, render them as additional
+                              sibling spans inside this column —
+                              picker reads/writes the same shape. */}
                         </span>
                         <ChevronRightIcon
                           className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover:opacity-100 group-data-[popup-open]:rotate-90 group-data-[popup-open]:opacity-100"
@@ -108,7 +214,9 @@ export function DurationFields() {
         {/* Icon-only add trigger. Sits below the chip stack as a
             small ghost button — keeps the section's visual weight
             on the existing chips while still surfacing the affordance.
-            Disabled state cues the 8-cap from the schema. */}
+            Disabled state cues the 8-cap from the schema. The save
+            action inside the popover uses a Check icon so this `+`
+            and the in-popover button don't read as redundant. */}
         <OhDurationPicker
           mode="add"
           onCommit={handleAddCommit}

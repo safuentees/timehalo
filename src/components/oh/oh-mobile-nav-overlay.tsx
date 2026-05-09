@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { MobileNavContent } from "./oh-app-sidebar";
 import { cn } from "@/lib/utils";
@@ -65,15 +66,12 @@ const SCRIM_BASE = [
   // Match the panel's outer corner radius so the scrim doesn't
   // bleed past the panel's rounded edge.
   "rounded-[inherit]",
-  // Translucent ink wash. supports-[] gates the blur so browsers
-  // without backdrop-filter see the bg-color directly. Color is
-  // `--oh-ink` at 35% via color-mix — same wash as the bottom-
-  // sheet drawer overlay's scrim.
+  // Translucent ink wash. backdrop-filter / blur removed per
+  // request — scrim is a flat dim layer, not a frosted one.
+  // Mostly hidden by the full-fill solid nav above it; remains
+  // as the click-to-dismiss target. Opacity tween owned by
+  // motion (animate prop on the JSX <motion.button>).
   "bg-[color:color-mix(in_srgb,var(--oh-ink)_35%,transparent)]",
-  "supports-[backdrop-filter]:backdrop-blur-md supports-[backdrop-filter]:backdrop-saturate-[0.8]",
-  // CSS opacity transition between open (1) and closing (0).
-  // 200ms matches the GSAP stagger's perceived rhythm.
-  "transition-opacity duration-200 ease-oh",
 ];
 
 const WRAPPER_BASE = [
@@ -91,13 +89,33 @@ const WRAPPER_BASE = [
   // Clip the inner <nav>'s frosted-glass surface to the rounded
   // wrapper.
   "overflow-hidden",
-  // Make the inner <nav> stretch to fill the wrapper's full
-  // height — by default `flex flex-col` + a flex-item with no
-  // explicit grow gives content-height, so the nav would only
-  // be tall enough for its groups. flex-1 (= flex: 1 1 0%) tells
-  // it to absorb remaining vertical space, matching the original
-  // content-replace footprint where the nav filled the entire
-  // panel.
+  // NO frosted-glass on the wrapper itself — moved entirely to
+  // the inner <nav> in oh-app-sidebar.tsx.
+  //
+  // Why: per MDN's `backdrop-filter` spec, an element with
+  // `backdrop-filter ≠ none` becomes a "backdrop root" — its
+  // descendants' own `backdrop-filter` queries are scoped to
+  // BLUR ONLY content between the root and the descendant, not
+  // anything outside the root. So when the wrapper had
+  // `backdrop-blur-[48px]`, the inner <nav>'s identical
+  // `backdrop-blur-[48px]` only saw the wrapper's bg as its
+  // backdrop — NOT the page underneath. Net effect: two stacked
+  // 78% paper layers (~95% opaque), zero visible blur of the
+  // page, and in dark mode (where `--oh-paper` is `#0a0a0a`)
+  // the user perceived a "fully black" surface.
+  //
+  // Fix per spec: keep `backdrop-filter` on ONE layer only. The
+  // inner <nav> is the right home — its frosted-glass classes
+  // pre-date this overlay refactor (B.PT49 era). With the
+  // wrapper transparent and not a backdrop root, the nav's
+  // `backdrop-filter` walks up to the next backdrop root
+  // (effectively `<html>`) and blurs everything in between:
+  // scrim wash + page content. That's the iOS-style frosted
+  // glass the user wants.
+  //
+  // The `[&>nav]:flex-1` below stretches MobileNavContent's
+  // <nav> to full panel height; the nav's own bg + blur paint
+  // the visible drawer surface.
   "[&>nav]:flex-1",
 ];
 
@@ -143,25 +161,44 @@ export function OhMobileNavOverlay() {
 
   return (
     <>
-      {/* Scrim — translucent ink wash above the page. Fades in
-          on open, fades out on close via the `closing`
-          conditional class. Tap anywhere on the scrim closes
-          the menu (the nav above it covers most of the panel,
-          but during the GSAP stagger the scrim is briefly
-          visible at the edges and gives a clear backdrop wash).
-          <button> for native keyboard / SR dismiss semantics. */}
-      <button
+      {/* Scrim — translucent ink wash. Fades in on open, fades
+          out on close. <button> for native keyboard / SR
+          dismiss semantics. */}
+      <motion.button
         type="button"
         aria-label="Close menu"
         onClick={() => setOpenMobile(false)}
-        className={cn(SCRIM_BASE, closing ? "opacity-0" : "opacity-100")}
+        className={cn(SCRIM_BASE)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: closing ? 0 : 1 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       />
-      <div className={cn(WRAPPER_BASE)}>
+      {/* Wrapper — animates `clip-path` to reveal/hide the
+          panel top-down. Bg and content are STATIC children:
+          the wrapper's clip rect grows from height 0 (top edge)
+          to full height on open, shrinks back on close. Items
+          inside stay locked at their final positions — they
+          only become visible as the clip rect reaches them.
+          Solves the "items visible outside the bg" issue: clip
+          rect masks bg + items together.
+          Per CSS-Tricks "Animating with clip-path": inset
+          animations affect only what's rendered, never layout —
+          item positions don't shift mid-animation. */}
+      <motion.div
+        className={cn(WRAPPER_BASE, "bg-oh-paper")}
+        initial={{ clipPath: "inset(0 0 100% 0)" }}
+        animate={{
+          clipPath: closing ? "inset(0 0 100% 0)" : "inset(0 0 0 0)",
+        }}
+        // Symmetric 0.55s both directions per request — same
+        // leisurely pace open and close. Ease matches `--ease-oh`.
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         <MobileNavContent
           closing={closing}
           onExitComplete={handleExitComplete}
         />
-      </div>
+      </motion.div>
     </>
   );
 }

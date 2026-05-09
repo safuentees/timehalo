@@ -57,6 +57,27 @@ type ModalCtx = {
    */
   mobilePortalContainer: HTMLElement | null;
   setMobilePortalContainer: (el: HTMLElement | null) => void;
+  /**
+   * On desktop, the `<Dialog.Popup>` DOM element once it mounts.
+   * Same role as `mobilePortalContainer`, different culprit: Base
+   * UI Dialog with `modal=true` (default) wraps its popup in
+   * `FloatingFocusManager` from `@floating-ui/react`, which marks
+   * every element OUTSIDE the floating tree with `inert` —
+   * including popovers portaled to `document.body`. Verified
+   * against `node_modules/@base-ui/react/dialog/popup/DialogPopup.js`
+   * line 117 (`modal: modal !== false`).
+   *
+   * Symptom: chip click inside the dialog's avail editor doesn't
+   * open the time picker popover (the popover renders as a body
+   * sibling, gets inert'd, clicks no-op). Mobile drawer worked
+   * because the existing fix portaled into the drawer's content.
+   * Desktop needed the same shape.
+   *
+   * Null before the dialog's popup ref settles + when no dialog
+   * is open.
+   */
+  desktopPortalContainer: HTMLElement | null;
+  setDesktopPortalContainer: (el: HTMLElement | null) => void;
 };
 
 const Ctx = createContext<ModalCtx | null>(null);
@@ -73,15 +94,24 @@ function useResponsiveModal() {
 
 /**
  * Returns the element nested popovers/menus should portal into when
- * inside a mobile drawer, or null otherwise (desktop dialogs portal
- * to body fine — Base UI Dialog doesn't suppress pointer-events on
- * siblings the way Vaul does). Safe to call outside a ResponsiveModal
- * — returns null instead of throwing.
+ * inside a ResponsiveModal — the active form factor's content
+ * element (drawer content on mobile, dialog popup on desktop). Safe
+ * to call outside a ResponsiveModal — returns null instead of
+ * throwing, which falls through to Base UI's default body portal.
+ *
+ * Why both form factors need it (counter to the prior comment):
+ * mobile drawer suppresses sibling pointer-events via vaul's
+ * `pointer-events: none` body styling; desktop dialog marks siblings
+ * inert via Base UI's `FloatingFocusManager` `modal=true` scope
+ * (verified in `@base-ui/react/dialog/popup/DialogPopup.js:117`).
+ * Different mechanisms, same outcome — popovers portaled to body
+ * become non-interactive when a modal is open. Portal into the
+ * modal's own content tree on both form factors and clicks land.
  */
 export function useResponsiveModalPortalContainer(): HTMLElement | null {
   const ctx = useContext(Ctx);
   if (!ctx) return null;
-  return ctx.isMobile ? ctx.mobilePortalContainer : null;
+  return ctx.isMobile ? ctx.mobilePortalContainer : ctx.desktopPortalContainer;
 }
 
 type RootProps = {
@@ -114,6 +144,8 @@ export function ResponsiveModal({
   // the re-render that re-portals the popup.
   const [mobilePortalContainer, setMobilePortalContainer] =
     useState<HTMLElement | null>(null);
+  const [desktopPortalContainer, setDesktopPortalContainer] =
+    useState<HTMLElement | null>(null);
 
   const Root = isMobile
     ? nested
@@ -128,6 +160,8 @@ export function ResponsiveModal({
         nested,
         mobilePortalContainer,
         setMobilePortalContainer,
+        desktopPortalContainer,
+        setDesktopPortalContainer,
       }}
     >
       {isMobile && Root ? (
@@ -207,7 +241,8 @@ export function ResponsiveModalContent({
   showCloseButton = false,
   defaultClose = true,
 }: ContentProps) {
-  const { isMobile, setMobilePortalContainer } = useResponsiveModal();
+  const { isMobile, setMobilePortalContainer, setDesktopPortalContainer } =
+    useResponsiveModal();
   // B.PT301 — find the dashboard panel element so the drawer/dialog
   // portals INTO it instead of `document.body`. Visual effect: the
   // drawer slides up from the panel's bottom (not the viewport's),
@@ -271,6 +306,14 @@ export function ResponsiveModalContent({
   // animation still plays.
   return (
     <DialogContent
+      // Callback ref publishes the popup element to the modal
+      // context so nested popovers/menus can portal into it
+      // instead of body. Mirrors the mobile drawer ref capture
+      // above; without this, Base UI's FloatingFocusManager
+      // modal=true scope marks body-portaled popovers as inert
+      // and clicks no-op (verified against
+      // `@base-ui/react/dialog/popup/DialogPopup.js:117`).
+      ref={setDesktopPortalContainer}
       className={cn("oh-modal-content", desktopClassName)}
       style={{
         position: "fixed",
