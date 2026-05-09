@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
+import { OhCard } from "@/components/oh/oh-card";
 
 // Workspace billing section (B3-UI). Closes the surface gap left by
 // `e76402d` — backend procedures shipped, this is the operator-facing
@@ -238,7 +239,7 @@ function CurrentPlanBanner({
       : null;
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-oh hover:border-oh-line-strong sm:p-6">
+    <OhCard className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0 flex-1">
           <p className="oh-eyebrow">{t("currentPlanLabel")}</p>
@@ -287,7 +288,7 @@ function CurrentPlanBanner({
           )}
         </div>
       </div>
-    </article>
+    </OhCard>
   );
 }
 
@@ -308,13 +309,9 @@ function PlanCard({
   const featureLabels = display.featureKeys.map((k) => t(`feature.${k}`));
 
   return (
-    <article
-      className={[
-        "flex h-full flex-col rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-5 transition-colors duration-150 ease-oh sm:p-6",
-        isCurrent
-          ? "border-oh-line-strong"
-          : "hover:border-oh-line-strong",
-      ].join(" ")}
+    <OhCard
+      active={isCurrent}
+      className="flex h-full flex-col p-5 sm:p-6"
     >
       <header>
         <p className="oh-eyebrow">{t(`tier.${tier}`)}</p>
@@ -356,7 +353,7 @@ function PlanCard({
           </Button>
         )}
       </div>
-    </article>
+    </OhCard>
   );
 }
 

@@ -9,6 +9,7 @@ import { WorkflowCreateDialog } from "./workflow-create-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { OhCard } from "@/components/oh/oh-card";
 
 // Settings → Workflows section. Lists user-scoped workflow rules
 // (trigger × action × offset) and exposes the create dialog.
@@ -126,7 +127,7 @@ function WorkflowRow({
   const isDeleting = remove.isPending;
 
   return (
-    <article className="rounded-(--oh-r-sm) border-[1.5px] border-oh-line bg-oh-bg p-4 transition-colors duration-150 ease-oh hover:border-oh-line-strong">
+    <OhCard className="p-4">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-[16px] leading-[1.2] font-black truncate">
           {name}
@@ -168,7 +169,7 @@ function WorkflowRow({
           onConfirm={() => remove.mutateAsync({ id })}
         />
       </div>
-    </article>
+    </OhCard>
   );
 }
 
