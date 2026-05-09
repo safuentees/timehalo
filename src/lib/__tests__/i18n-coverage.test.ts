@@ -225,7 +225,15 @@ function findViolations(
 
     // Pass 2 — JSX text nodes ON THE SAME LINE, e.g.
     // `<span>Hello</span>`.
-    const textRegex = />\s*([^<>{}\n]+?)\s*</g;
+    // The negative-look-behind `(?<!=)>` excludes TypeScript arrow-
+    // function return types (`(x: T) => Generic<U>`) — without it,
+    // every `=>\s*Identifier<` shape (Promise<void>, Map<K,V>, etc.)
+    // surfaces as a false-positive "JSX text node". The pre-existing
+    // 5 violations on availability-fields.tsx (line 88 / 285 / 286 /
+    // 330 / 331 — all `=> Promise<…>` returns) cleared with this
+    // tweak, freeing the gate for net-new files using the same TS
+    // shape.
+    const textRegex = /(?<!=)>\s*([^<>{}\n]+?)\s*</g;
     let m: RegExpExecArray | null;
     while ((m = textRegex.exec(line)) !== null) {
       const text = m[1].trim();

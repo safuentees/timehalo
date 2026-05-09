@@ -21,9 +21,16 @@ import {
   handleFieldSchema,
   defaultHandle,
 } from "./handle-fields";
+import { DurationFields } from "./duration-fields";
 
-// Public-profile editor. For now: handle only. Phase 2 will add bio +
-// FAQ cards (per the OFFICEHOURS-PROJECT-GUIDE user stories).
+// Public-profile editor. Hub page (B.PT274) — each section owns its
+// own commit affordance, matching /settings/general's pattern from
+// `dashboard-forms.md` *Hub-page sub-section chrome*.
+// • Handle: single-form shape, Save via `<InlineFormSave>`.
+// • Durations: server-state per chip, drawer-based commit owned by
+//   `<DurationFields>` (no shared form Save).
+// Future sections (bio, FAQ cards per OFFICEHOURS-PROJECT-GUIDE) plug
+// in below as independent siblings.
 
 const schema = z.object({
   handle: handleFieldSchema,
@@ -67,9 +74,9 @@ export default function ProfileForm() {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <OhPageShell>
-          <OhPageHeader title={t("pageTitle")} />
+      <OhPageShell>
+        <OhPageHeader title={t("pageTitle")} />
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="mt-8">
             <FieldGroup>
               <FieldSet>
@@ -95,8 +102,11 @@ export default function ProfileForm() {
               saved: t("savedLabel"),
             }}
           />
-        </OhPageShell>
-      </form>
+        </form>
+        <div className="mt-12">
+          <DurationFields />
+        </div>
+      </OhPageShell>
     </FormProvider>
   );
 }
