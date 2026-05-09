@@ -42,6 +42,7 @@ export const users = router({
         email: true,
         name: true,
         image: true,
+        bio: true,
         onboardingDismissed: true,
         onboardingManualSteps: true,
       },
@@ -109,6 +110,7 @@ export const users = router({
           handle: true,
           image: true,
           timezone: true,
+          bio: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
@@ -206,6 +208,28 @@ export const users = router({
         data: { timezone: input.timezone },
       });
       return { timezone: input.timezone };
+    }),
+
+  setBio: privateProcedure
+    .input(
+      z.object({
+        bio: z
+          .string()
+          .max(500, "500 characters max")
+          .nullable()
+          .transform((v) => {
+            if (v === null) return null;
+            const trimmed = v.trim();
+            return trimmed.length === 0 ? null : trimmed;
+          }),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { bio: input.bio },
+      });
+      return { bio: input.bio };
     }),
 
   setDurationsList: privateProcedure

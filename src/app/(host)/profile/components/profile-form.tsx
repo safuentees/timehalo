@@ -22,6 +22,7 @@ import {
   defaultHandle,
 } from "./handle-fields";
 import { DurationFields } from "./duration-fields";
+import { BioFields } from "./bio-fields";
 
 const schema = z.object({
   handle: handleFieldSchema,
@@ -92,6 +93,9 @@ export default function ProfileForm() {
             }}
           />
         </form>
+        <div className="mt-12">
+          <BioFields />
+        </div>
         <div className="mt-12">
           <DurationFields />
         </div>

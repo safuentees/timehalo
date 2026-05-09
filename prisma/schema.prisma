@@ -16,6 +16,7 @@ model User {
   passwordHash         String?
   invalidLoginAttempts Int                 @default(0)
   handle               String?             @unique
+  bio                  String?
   timezone             String              @default("UTC")
   onboardingDismissed  Boolean             @default(false)
   onboardingManualSteps String             @default("[]")
