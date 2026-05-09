@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import {
   SidebarInset,
   SidebarProvider,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MobileNavContent, OhAppSidebar } from "./oh-app-sidebar";
+import { OhAppSidebar } from "./oh-app-sidebar";
+import { OhMobileNavOverlay } from "./oh-mobile-nav-overlay";
 import { OhDashboardBar } from "./oh-dashboard-bar";
 import { useOhPrefs } from "./prefs-context";
 import {
@@ -60,6 +60,7 @@ export function OhDashboardLayout({
                 <ScrollArea className="oh-host-content-inner">
                   <ContentSlot>{children}</ContentSlot>
                 </ScrollArea>
+                <OhMobileNavOverlay />
               </div>
             </SidebarInset>
           </div>
@@ -70,43 +71,8 @@ export function OhDashboardLayout({
 }
 
 function ContentSlot({ children }: { children: ReactNode }) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const { phase, commitNavigation, finishEnter } =
     useDashboardRouteTransition();
-  const pathname = usePathname();
-  const [navMounted, setNavMounted] = useState(false);
-
-  useEffect(() => {
-    if (isMobile && openMobile) {
-      setNavMounted(true);
-    }
-  }, [isMobile, openMobile]);
-
-  useEffect(() => {
-    if (!isMobile && navMounted) {
-      setNavMounted(false);
-    }
-  }, [isMobile, navMounted]);
-
-  useEffect(() => {
-    if (openMobile) {
-      setOpenMobile(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
-
-  const handleExitComplete = useCallback(() => {
-    setNavMounted(false);
-  }, []);
-
-  if (isMobile && navMounted) {
-    return (
-      <MobileNavContent
-        closing={!openMobile}
-        onExitComplete={handleExitComplete}
-      />
-    );
-  }
 
   const routeOpacity =
     phase === "exiting" || phase === "navigating" ? 0 : 1;
