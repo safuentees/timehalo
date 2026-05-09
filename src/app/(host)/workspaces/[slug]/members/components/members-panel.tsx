@@ -164,7 +164,7 @@ function MemberRow({
     : ROLE_OPTIONS.filter((r) => r === "MEMBER" || r === "VIEWER");
 
   return (
-    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)]">
+    <article className="rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)]">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h3 className="text-[15px] leading-[1.2] font-black truncate">{name}</h3>
@@ -263,10 +263,10 @@ function InvitationRow({
   return (
     <article
       className={[
-        "rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[0_3px_12px_rgba(0,0,0,0.22)] transition-[box-shadow,background-color,opacity] duration-150 ease-oh",
+        "rounded-(--oh-r-sm) bg-oh-bg p-4 shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color,opacity] duration-150 ease-oh",
         accepted || expired
           ? "opacity-60"
-          : "hover:shadow-[0_4px_16px_rgba(0,0,0,0.28)]",
+          : "hover:shadow-[var(--oh-shadow-hover)]",
       ].join(" ")}
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">

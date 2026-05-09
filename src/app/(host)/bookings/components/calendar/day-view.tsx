@@ -99,7 +99,7 @@ export function DayView({
       tabIndex={isCapped ? 0 : undefined}
       className={cn(
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
-        "shadow-[0_3px_12px_rgba(0,0,0,0.22)]",
+        "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
       )}
       style={bodyStyle}
