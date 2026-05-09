@@ -2,7 +2,6 @@
 
 import {
   forwardRef,
-  useEffect,
   useId,
   useRef,
   useState,
@@ -10,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DURATION_MAX_MINUTES,
@@ -29,6 +28,7 @@ export type OhDurationPickerProps = {
   existingMinutes?: ReadonlyArray<number>;
   labels: {
     minuteSuffix: string;
+    saveAria: string;
     removeAria: string;
   };
 };
@@ -47,42 +47,35 @@ export function OhDurationPicker({
 }: OhDurationPickerProps) {
   const reactId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const saveBtnRef = useRef<HTMLButtonElement>(null);
+
+  const [open, setOpen] = useState(false);
 
   const [draft, setDraft] = useState<number | null>(
     initialMinutes ?? null,
   );
-  const [dirty, setDirty] = useState(false);
 
-  const draftRef = useRef(draft);
-  const dirtyRef = useRef(dirty);
-  useEffect(() => {
-    draftRef.current = draft;
-  }, [draft]);
-  useEffect(() => {
-    dirtyRef.current = dirty;
-  }, [dirty]);
+  const canSave =
+    draft !== null &&
+    draft >= DURATION_MIN_MINUTES &&
+    draft <= DURATION_MAX_MINUTES &&
+    !existingMinutes.includes(draft) &&
+    !(mode === "edit" && initialMinutes === draft);
 
-  function maybeCommitOnClose() {
-    if (!dirtyRef.current) return;
-    const value = draftRef.current;
-    if (value === null) return;
-    const inRange =
-      value >= DURATION_MIN_MINUTES && value <= DURATION_MAX_MINUTES;
-    if (!inRange) return;
-    if (existingMinutes.includes(value)) return;
-    if (mode === "edit" && initialMinutes === value) return;
-    void onCommit(value);
+  function handleSave() {
+    if (!canSave || draft === null) return;
+    void onCommit(draft);
+    setOpen(false);
   }
 
   return (
     <Popover.Root
+      open={open}
       onOpenChange={(next) => {
+        setOpen(next);
         if (next) {
           setDraft(initialMinutes ?? null);
-          setDirty(false);
           requestAnimationFrame(() => inputRef.current?.focus());
-        } else {
-          maybeCommitOnClose();
         }
       }}
     >
@@ -106,14 +99,22 @@ export function OhDurationPicker({
               <DurationField
                 ref={inputRef}
                 value={draft}
-                onChange={(next) => {
-                  setDraft(next);
-                  setDirty(true);
-                }}
+                onChange={(next) => setDraft(next)}
+                onSubmit={() => saveBtnRef.current?.click()}
               />
               <span className="oh-eyebrow opacity-55">
                 {labels.minuteSuffix}
               </span>
+              <button
+                ref={saveBtnRef}
+                type="button"
+                onClick={handleSave}
+                disabled={!canSave}
+                aria-label={labels.saveAria}
+                className="oh-duration-picker-remove"
+              >
+                <Plus strokeWidth={1.75} className="size-4" aria-hidden />
+              </button>
               {onRemove ? (
                 <Popover.Close
                   onClick={() => void onRemove()}
@@ -134,10 +135,11 @@ export function OhDurationPicker({
 interface DurationFieldProps {
   value: number | null;
   onChange: (next: number | null) => void;
+  onSubmit: () => void;
 }
 
 const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
-  ({ value, onChange }, ref) => {
+  ({ value, onChange, onSubmit }, ref) => {
     function clamp(n: number) {
       if (Number.isNaN(n)) return DURATION_MIN_MINUTES;
       if (n < 0) return 0; // allow 0 mid-typing; range is enforced on commit
@@ -146,6 +148,11 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
     }
 
     function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onSubmit();
+        return;
+      }
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
         const direction = e.key === "ArrowUp" ? 1 : -1;
@@ -165,6 +172,7 @@ const DurationField = forwardRef<HTMLInputElement, DurationFieldProps>(
         max={DURATION_MAX_MINUTES}
         step={5}
         value={value !== null && Number.isFinite(value) ? value : ""}
+        placeholder="0"
         onChange={(e) => {
           const raw = e.target.value;
           if (raw === "") {
