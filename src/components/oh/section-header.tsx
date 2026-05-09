@@ -18,7 +18,7 @@ export function SectionHeader({
       <div className="min-w-0 flex-1">
         <p
           id={legendId}
-          className="oh-legend font-medium opacity-100"
+          className="oh-legend text-base font-medium opacity-100"
         >
           {legend}
         </p>
