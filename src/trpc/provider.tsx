@@ -24,6 +24,19 @@ function makeQueryClient() {
         // re-entry post-5-min idle. 10min covers normal nav rhythm
         // without holding stale data forever.
         gcTime: 10 * 60 * 1000,
+        // Tab-back refetch defaults to TRUE in TanStack Query — every
+        // time the user alt-tabs into the dashboard, every mounted
+        // query refires. Dashboard data is invalidated explicitly on
+        // mutations (custom mutation hooks + `utils.invalidate()`) and
+        // on workspace switch; we don't need the focus heuristic on
+        // top of that. The /h/[handle] visitor surface set this
+        // per-query and the snappy feel is the result. Promote to a
+        // global default so every dashboard surface inherits the same
+        // behavior without each callsite re-declaring it.
+        refetchOnWindowFocus: false,
+        // Same logic for reconnect — explicit invalidation is the
+        // contract; no implicit refetch on transient network blips.
+        refetchOnReconnect: false,
       },
     },
   });

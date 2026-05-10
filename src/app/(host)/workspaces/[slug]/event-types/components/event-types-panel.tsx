@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeftIcon, Trash2, UsersIcon } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteEventType } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
@@ -28,10 +29,14 @@ import { HostPoolDialog } from "./host-pool-dialog";
 
 export default function EventTypesPanel({ slug }: { slug: string }) {
   const t = useTranslations("EventTypes");
-  const { data: workspace } = trpc.workspaces.get.useQuery({ slug });
-  const { data: eventTypes, isLoading } = trpc.eventTypes.list.useQuery({
-    slug,
-  });
+  const { data: workspace } = trpc.workspaces.get.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
+  const { data: eventTypes, isLoading } = trpc.eventTypes.list.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
 
   const callerScopes = workspace?.callerScopes ?? [];
   const canWrite = callerScopes.includes("workspace.write");

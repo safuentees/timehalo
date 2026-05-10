@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useTransferOwnership } from "@/lib/mutations/use-transfer-ownership";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,10 @@ import { OhSelect } from "@/components/oh/oh-select";
 
 export function TransferOwnershipSection({ slug }: { slug: string }) {
   const t = useTranslations("WorkspaceSettings");
-  const { data: members } = trpc.workspaces.listMembers.useQuery({ slug });
+  const { data: members } = trpc.workspaces.listMembers.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
   const [pickedUserId, setPickedUserId] = useState<string>("");
 
   const eligible = useMemo(

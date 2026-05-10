@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useFormatter } from "next-intl";
 import { Loader2 } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useBillingCheckout } from "@/lib/mutations/use-billing-checkout";
 import { useBillingPortal } from "@/lib/mutations/use-billing-portal";
@@ -134,8 +135,10 @@ function BillingForWorkspace({
   onSlugChange: (slug: string) => void;
 }) {
   const t = useTranslations("Billing");
-  const { data: current, isLoading } =
-    trpc.billing.currentPlan.useQuery({ slug });
+  const { data: current, isLoading } = trpc.billing.currentPlan.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
   // Plan-change + portal actions require workspace.write on the
   // server (B.PT284 split). Non-OWNERs viewing the billing
   // dashboard read the plan but can't action upgrade/downgrade —

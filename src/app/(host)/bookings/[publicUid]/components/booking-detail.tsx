@@ -17,6 +17,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
@@ -112,7 +113,10 @@ export default function BookingDetail({
       year: "numeric",
     });
   const utils = trpc.useUtils();
-  const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
+  const { data } = trpc.bookings.getDetail.useQuery(
+    { publicUid },
+    { placeholderData: keepPreviousData },
+  );
   const [tab, setTab] = useState<Tab>("info");
   const isModal = variant === "modal";
 

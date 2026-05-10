@@ -174,7 +174,7 @@ export const DashboardTransitionLink = forwardRef<
   HTMLAnchorElement,
   DashboardTransitionLinkProps
 >(function DashboardTransitionLink(
-  { href, onClick, replace, target, download, ...props },
+  { href, onClick, replace, target, download, prefetch, ...props },
   ref,
 ) {
   const { beginNavigation } = useDashboardRouteTransition();
@@ -198,6 +198,20 @@ export const DashboardTransitionLink = forwardRef<
     [beginNavigation, download, href, onClick, replace, target],
   );
 
+  // `prefetch={true}` forces a FULL data prefetch even for dynamic
+  // routes — without it, Next 16's `<Link>` only prefetches the
+  // `loading.js` shell for auth-gated pages, so the server still has
+  // to run the page's tRPC prefetches on click. Combined with
+  // `experimental.staleTimes.dynamic: 30` in `next.config.ts`, this
+  // gives the dashboard the same "data already there on click" feel
+  // the /h/[handle] surface has after its eager prefetch pass.
+  // Per the Next 16 docs (`nextjs.org/docs/app/api-reference/
+  // components/link#prefetch`): explicit `true` upgrades dynamic
+  // routes from shell-only to full RSC payload, holds for ~5 min
+  // (`staleTimes.static`) instead of the default 0s for dynamic.
+  // Callers can still opt out by passing `prefetch={false}`.
+  const prefetchProp = prefetch ?? true;
+
   return (
     <Link
       ref={ref}
@@ -206,6 +220,7 @@ export const DashboardTransitionLink = forwardRef<
       replace={replace}
       target={target}
       download={download}
+      prefetch={prefetchProp}
       {...props}
     />
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
@@ -28,7 +29,10 @@ import { WorkspaceDetailNav } from "../../components/workspace-detail-nav";
 
 export default function SettingsPanel({ slug }: { slug: string }) {
   const t = useTranslations("WorkspaceSettings");
-  const { data: workspace } = trpc.workspaces.get.useQuery({ slug });
+  const { data: workspace } = trpc.workspaces.get.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
 
   const callerScopes = workspace?.callerScopes ?? [];
   const canWriteWorkspace = callerScopes.includes("workspace.write");

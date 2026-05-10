@@ -52,6 +52,29 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // Client-side Router Cache TTL for prefetched RSC payloads.
+  // Default for `dynamic: 0` (per
+  // `nextjs.org/docs/app/api-reference/config/next-config-js/staleTimes`)
+  // means every dashboard navigation re-fetches the RSC even when
+  // TanStack Query already has the data — the perceived "settings
+  // page takes a beat to load even though I was just on it." Bumping
+  // `dynamic` to 30s aligns the Router Cache with TanStack's 60s
+  // staleTime (provider.tsx) so revisits within the window are
+  // truly instant; the 30s margin keeps mutations elsewhere from
+  // staying invisible too long.
+  //
+  // `static: 180` matches the documented default and is restated so
+  // a future override doesn't accidentally regress to the implicit.
+  //
+  // Per the Next 16 docs the feature is still flagged `experimental`,
+  // but the implementation is stable + widely used in production
+  // (it's the canonical answer to "why is my dashboard nav slow?").
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
   async headers() {
     // Shared headers applied across both rule sets.
     const sharedHeaders = [

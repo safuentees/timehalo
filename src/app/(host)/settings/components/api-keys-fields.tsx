@@ -129,7 +129,10 @@ function ApiKeysForWorkspace({
   // `currentPlan` returns `callerRole` + `owner` (B.PT284) so the
   // upgrade prompt + create gate render member-aware copy without
   // a second query.
-  const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
+  const { data: plan } = trpc.billing.currentPlan.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
   const isLocked = plan?.plan === "FREE";
   const isOwner = plan?.callerRole === "OWNER";
 

@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import { useSetMemberRole } from "@/lib/mutations/use-set-member-role";
 import { useRemoveMember } from "@/lib/mutations/use-remove-member";
@@ -40,11 +41,20 @@ const ROLE_OPTIONS = ["OWNER", "ADMIN", "MEMBER", "VIEWER"] as const;
 
 export default function MembersPanel({ slug }: { slug: string }) {
   const t = useTranslations("Members");
-  const { data: workspace } = trpc.workspaces.get.useQuery({ slug });
+  const { data: workspace } = trpc.workspaces.get.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
   const { data: members, isLoading: membersLoading } =
-    trpc.workspaces.listMembers.useQuery({ slug });
+    trpc.workspaces.listMembers.useQuery(
+      { slug },
+      { placeholderData: keepPreviousData },
+    );
   const { data: invitations, isLoading: invitationsLoading } =
-    trpc.workspaces.listInvitations.useQuery({ slug });
+    trpc.workspaces.listInvitations.useQuery(
+      { slug },
+      { placeholderData: keepPreviousData },
+    );
 
   const callerScopes = workspace?.callerScopes ?? [];
   const canWriteMembers = callerScopes.includes("members.write");

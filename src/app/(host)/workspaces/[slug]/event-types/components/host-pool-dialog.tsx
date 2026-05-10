@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import {
   useAddEventTypeHost,
@@ -77,11 +78,14 @@ function HostPoolBody({
   canWrite: boolean;
 }) {
   const t = useTranslations("EventTypes");
-  const { data: hosts, isLoading } = trpc.eventTypes.listHosts.useQuery({
-    slug,
-    eventTypeId,
-  });
-  const { data: members } = trpc.workspaces.listMembers.useQuery({ slug });
+  const { data: hosts, isLoading } = trpc.eventTypes.listHosts.useQuery(
+    { slug, eventTypeId },
+    { placeholderData: keepPreviousData },
+  );
+  const { data: members } = trpc.workspaces.listMembers.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
 
   return (
     <div className="flex flex-col gap-5 px-5 pb-6 sm:px-6">
