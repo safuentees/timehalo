@@ -53,6 +53,7 @@ import {
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -269,76 +270,77 @@ export function BookingsList({
     }
   })();
 
+  usePageTitle(t("title"));
+  const isCalendarView = optimisticView !== "list";
+
   return (
     <>
-      <OhPageShell>
-        <OhPageHeader
-          title={t("title")}
-          aside={liveQueueEnabled ? <LiveQueue /> : null}
-        />
-
-        <OnboardingChecklist />
-
-        <div className="mt-8">
-          <BookingsViewSwitcher
-            value={optimisticView}
-            onValueChange={onViewChange}
+      {!isCalendarView ? (
+        <OhPageShell>
+          <OhPageHeader
+            title={t("title")}
+            aside={liveQueueEnabled ? <LiveQueue /> : null}
           />
-        </div>
 
-        {optimisticView === "list" ? (
-          <>
-            <div className="mt-6">
-              <OhPillSwitcher
-                ariaLabel={t("tablistLabel")}
-                value={optimisticTab}
-                onChange={onTabChange}
-                fullWidth
-                options={[
-                  {
-                    value: "upcoming",
-                    label: (
-                      <BookingsTabLabel
-                        label={t("tabUpcoming")}
-                        count={data?.upcoming.length ?? 0}
-                        isActive={optimisticTab === "upcoming"}
-                      />
-                    ),
-                  },
-                  {
-                    value: "past",
-                    label: (
-                      <BookingsTabLabel
-                        label={t("tabPast")}
-                        count={data?.past.length ?? 0}
-                        isActive={optimisticTab === "past"}
-                      />
-                    ),
-                  },
-                ]}
+          <OnboardingChecklist />
+
+          <div className="mt-8">
+            <BookingsViewSwitcher
+              value={optimisticView}
+              onValueChange={onViewChange}
+            />
+          </div>
+
+          <div className="mt-6">
+            <OhPillSwitcher
+              ariaLabel={t("tablistLabel")}
+              value={optimisticTab}
+              onChange={onTabChange}
+              fullWidth
+              options={[
+                {
+                  value: "upcoming",
+                  label: (
+                    <BookingsTabLabel
+                      label={t("tabUpcoming")}
+                      count={data?.upcoming.length ?? 0}
+                      isActive={optimisticTab === "upcoming"}
+                    />
+                  ),
+                },
+                {
+                  value: "past",
+                  label: (
+                    <BookingsTabLabel
+                      label={t("tabPast")}
+                      count={data?.past.length ?? 0}
+                      isActive={optimisticTab === "past"}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </div>
+
+          <div className="mt-6">
+            {optimisticTab === "upcoming" ? (
+              <BookingsListPanel
+                tab="upcoming"
+                bookings={data?.upcoming ?? []}
+                onSelect={setSelectedUid}
               />
-            </div>
+            ) : (
+              <BookingsListPanel
+                tab="past"
+                bookings={data?.past ?? []}
+                onSelect={setSelectedUid}
+              />
+            )}
+          </div>
+        </OhPageShell>
+      ) : null}
 
-            <div className="mt-6">
-              {optimisticTab === "upcoming" ? (
-                <BookingsListPanel
-                  tab="upcoming"
-                  bookings={data?.upcoming ?? []}
-                  onSelect={setSelectedUid}
-                />
-              ) : (
-                <BookingsListPanel
-                  tab="past"
-                  bookings={data?.past ?? []}
-                  onSelect={setSelectedUid}
-                />
-              )}
-            </div>
-          </>
-        ) : null}
-      </OhPageShell>
-
-      {optimisticView !== "list" ? (
+      {isCalendarView ? (
         <DndContext
           sensors={sensors}
           modifiers={[restrictToFirstScrollableAncestor]}
@@ -348,13 +350,18 @@ export function BookingsList({
         >
         <div
           aria-busy={isPending || undefined}
+          data-fit-viewport
           className={cn(
-            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-4 px-4 pb-8 sm:px-6 sm:pb-10",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
           )}
         >
+          <BookingsViewSwitcher
+            value={optimisticView}
+            onValueChange={onViewChange}
+          />
           <BookingsCursorControls
             view={optimisticView}
             cursorDate={optimisticCursor}

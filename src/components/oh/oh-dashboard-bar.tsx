@@ -22,6 +22,8 @@ import { DashboardTransitionLink } from "./dashboard-route-transition";
 import { OhMenuTrigger } from "./oh-menu-trigger";
 import { OhTopProgressBar } from "./oh-top-progress-bar";
 import { OhUserMenu } from "./user-menu";
+import { usePageTitleValue } from "./page-title-context";
+import { motion, AnimatePresence } from "motion/react";
 
 export function OhDashboardBar() {
   const t = useTranslations("Chrome");
@@ -167,6 +169,8 @@ export function OhDashboardBar() {
         </Menu.Portal>
       </Menu.Root>
 
+      <OhPageTitleSlot />
+
       <div data-bar-slot="end" className="flex items-center gap-2">
         <ChromeIconLink
           href="/bookings"
@@ -204,5 +208,30 @@ function ChromeIconLink({
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
     </DashboardTransitionLink>
+  );
+}
+
+function OhPageTitleSlot() {
+  const title = usePageTitleValue();
+  return (
+    <div
+      data-bar-slot="title"
+      className="hidden min-w-0 flex-1 items-center justify-start pl-3 md:flex"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {title ? (
+          <motion.span
+            key={title}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+            className="oh-eyebrow truncate text-[color:var(--oh-content-muted)]"
+          >
+            {title}
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }

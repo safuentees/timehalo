@@ -17,6 +17,7 @@ import {
   DashboardRouteTransitionProvider,
   useDashboardRouteTransition,
 } from "./dashboard-route-transition";
+import { PageTitleProvider } from "./page-title-context";
 
 const PAGE_FADE_EXIT_TRANSITION = {
   duration: 0.14,
@@ -38,6 +39,7 @@ export function OhDashboardLayout({
 
   return (
     <TooltipProvider delay={200}>
+      <PageTitleProvider>
       <DashboardRouteTransitionProvider>
         <SidebarProvider
           className="oh-app-shell"
@@ -62,6 +64,7 @@ export function OhDashboardLayout({
           </div>
         </SidebarProvider>
       </DashboardRouteTransitionProvider>
+      </PageTitleProvider>
     </TooltipProvider>
   );
 }
@@ -86,7 +89,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="flex min-h-full flex-col"
+      className="flex flex-col min-h-full [&:has([data-fit-viewport])]:h-full [&:has([data-fit-viewport])]:min-h-0"
       initial={false}
       animate={{
         opacity: routeOpacity,
