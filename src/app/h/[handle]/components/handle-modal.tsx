@@ -186,8 +186,16 @@ export function HandleModal({
       // from form/strip card to receipt cleanly. Without the
       // transition, the modal would unmount before /booked/[uid]'s
       // RSC payload arrives, breaking the shared-layout handoff.
+      //
+      // B.PT306 — `router.replace` (not push) so the `?reschedule=…`
+      // URL is STRIPPED from history. Without this, the new receipt
+      // sits on top of [/h/[handle]?reschedule=<oldUid>] in history;
+      // hitting X (which calls `router.back()`) drops the visitor
+      // straight back into reschedule mode. Replace rewrites the
+      // history entry so back goes to the prior receipt (or earlier),
+      // not to the picker mid-flow.
       startRescheduleTransition(() => {
-        router.push(`/h/${handle}/booked/${result.publicUid}`);
+        router.replace(`/h/${handle}/booked/${result.publicUid}`);
         onBookingComplete?.();
       });
     },
@@ -262,6 +270,12 @@ export function HandleModal({
         ? formTitleId
         : detailTitleId;
   function handlePickSlot(slot: Slot) {
+    // B.PT306 — once a reschedule mutation is in flight, ignore
+    // additional slot clicks. Prevents a second slot picked mid-
+    // flight from queueing a duplicate mutate (which would conflict
+    // on idempotencyKey, but still adds noise) and stops the chip
+    // chrome from changing under the loader.
+    if (isReschedulePending) return;
     onPickSlot(slot);
     // B.PT305 — reschedule mode skips the form view entirely. The
     // visitor's name/email/question are already on the original
@@ -282,6 +296,11 @@ export function HandleModal({
   }
 
   function handleSelectDate(nextDate: Date | undefined) {
+    // B.PT306 — same gate as the slot click. Day-strip / calendar
+    // changes shouldn't reshape the picker while a mutation is in
+    // flight — the user will see the new date but the slot they
+    // last clicked is the one being committed.
+    if (isReschedulePending) return;
     // If the user changes date while in form view, drop back to
     // strip view so they can re-select a slot in the new date.
     if (
@@ -299,6 +318,7 @@ export function HandleModal({
   // view (showing slots for that day). Per user flow: month →
   // strip-with-selected-day → slots → form.
   function handleMonthPick(nextDate: Date) {
+    if (isReschedulePending) return;
     onSelectDate(nextDate);
     setView("strip");
   }
@@ -315,13 +335,22 @@ export function HandleModal({
       <div className="relative z-30 grid h-7 shrink-0 grid-cols-3 items-center">
         <button
           type="button"
-          onClick={() =>
-            view === "strip" ? onOpenChange(false) : setView("strip")
-          }
+          onClick={() => {
+            // B.PT306 — chrome back / close is disabled while the
+            // reschedule mutation is in flight. The visitor committed
+            // to a slot; letting them dismiss mid-mutation creates
+            // unclear receipt-page state (they'd land somewhere with
+            // the mutation still resolving in the background).
+            if (isReschedulePending) return;
+            if (view === "strip") onOpenChange(false);
+            else setView("strip");
+          }}
           aria-label={
             view === "strip" ? t("closeDrawerAria") : t("backToPickerAria")
           }
-          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+          disabled={isReschedulePending}
+          aria-disabled={isReschedulePending}
+          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeftIcon
             className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-active:scale-95 group-active:opacity-100"
@@ -395,9 +424,14 @@ export function HandleModal({
         </motion.span>
         <button
           type="button"
-          onClick={() => onOpenChange(false)}
+          onClick={() => {
+            if (isReschedulePending) return;
+            onOpenChange(false);
+          }}
           aria-label={t("closeDrawerAria")}
-          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+          disabled={isReschedulePending}
+          aria-disabled={isReschedulePending}
+          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
         >
           <XIcon
             className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-active:scale-95 group-active:opacity-100"
@@ -768,8 +802,13 @@ export function HandleModal({
           <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
           <button
             type="button"
-            onClick={() => setView("month")}
-            className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+            onClick={() => {
+              if (isReschedulePending) return;
+              setView("month");
+            }}
+            disabled={isReschedulePending}
+            aria-disabled={isReschedulePending}
+            className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
             aria-label={t("openMonthViewAria")}
           >
             <CalendarIcon
@@ -852,8 +891,18 @@ export function HandleModal({
   return (
     <FocusOn
       enabled={open}
-      onEscapeKey={() => onOpenChange(false)}
-      onClickOutside={() => onOpenChange(false)}
+      // B.PT306 — Escape + click-outside dismissal disabled while a
+      // reschedule mutation is in flight. Mirrors the chrome buttons
+      // — once the visitor commits a slot, the modal stays put until
+      // the navigation lands on the new receipt.
+      onEscapeKey={() => {
+        if (isReschedulePending) return;
+        onOpenChange(false);
+      }}
+      onClickOutside={() => {
+        if (isReschedulePending) return;
+        onOpenChange(false);
+      }}
       // Returns focus to the previously-focused element (the slot row
       // that opened the modal) on close. Standard a11y contract Radix
       // Dialog gave us before; FocusOn restores it.

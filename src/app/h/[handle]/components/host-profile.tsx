@@ -604,25 +604,40 @@ export default function HostProfile({
         </div>
       }
     >
-      {/* A9 — reschedule banner. Surfaces when `?reschedule=<uid>` is in
-          the URL so the visitor knows they're picking a NEW slot to swap
-          into, not booking fresh. Subtle tint (oh-tint, ~6% ink) reads as
-          a status strip without competing with the page's content. Sits
-          ABOVE the centered card so it doesn't compete with the card's
-          white space. */}
+      {/* B.PT306 — reschedule banner. Pinned to the TOP of the visitor
+          panel via `absolute inset-x-0 top-0 z-20` so it sits ABOVE
+          the centered `<main>` (which is `absolute inset-0 flex
+          items-center justify-center` in `OhVisitorShell`) instead of
+          becoming a flex SIBLING of the landing card — the prior
+          inline-strip rendering got centered alongside the card,
+          pushing the card off-center to the right.
+          Compact one-row chrome: 2px live-indicator dot + eyebrow
+          status text + Cancel link. Tight padding so the strip
+          reads as ambient chrome on every viewport. Cancel routes
+          back to the original receipt so the visitor can abandon
+          the swap; the receipt's catch-all clears it as a no-op
+          if they navigate elsewhere instead. */}
       {rescheduleFromUid ? (
         <div
           role="status"
-          className="border-b border-oh-line bg-[color:var(--oh-tint)]"
+          className="absolute inset-x-0 top-0 z-20 border-b border-oh-line bg-[color:var(--oh-tint)] backdrop-blur"
         >
-          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
-            <span className="oh-eyebrow opacity-100">{t("rescheduling")}</span>
-            <a
+          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0 rounded-full bg-amber-500"
+              />
+              <span className="oh-eyebrow truncate opacity-100">
+                {t("rescheduling")}
+              </span>
+            </div>
+            <Link
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="oh-focus-ring oh-eyebrow rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
+              className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
             >
               {t("cancel")}
-            </a>
+            </Link>
           </div>
         </div>
       ) : null}

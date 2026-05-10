@@ -56,7 +56,21 @@ export function BookingReceiptModal({
   });
 
   function close() {
-    router.back();
+    // B.PT306 — always navigate to the canonical landing page for the
+    // host, NEVER `router.back()`. After a reschedule, the prior
+    // history entry is the now-deleted `/booked/<oldUid>`; back would
+    // land on a 404 (the procedure filters `deleted: false`). Even in
+    // the simple "open receipt → close" case, back goes to /h/[handle]
+    // anyway, so the explicit push is the same destination minus the
+    // edge case. Pairs with the `@receipt` catch-all that returns null
+    // for any non-matching URL, so motion's `AnimatePresence` still
+    // morphs the receipt card via `layoutId="handle-card"` back to the
+    // landing card on this push.
+    if (booking.host.handle) {
+      router.push(`/h/${booking.host.handle}`);
+    } else {
+      router.back();
+    }
   }
 
   return (
