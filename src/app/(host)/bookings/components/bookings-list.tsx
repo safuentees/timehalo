@@ -349,7 +349,7 @@ export function BookingsList({
         <div
           aria-busy={isPending || undefined}
           className={cn(
-            "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-4 px-4 pb-8 sm:px-6 sm:pb-10",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -379,38 +379,43 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
+              maxBodyHeight="100%"
             />
           ) : null}
 
           {optimisticView === "week" ? (
             <>
-              <div className="hidden md:block">
+              <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
                 <WeekView
                   date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
+                  maxBodyHeight="100%"
                 />
               </div>
-              <div className="md:hidden flex flex-col gap-3">
+              <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
                 <DayStrip
                   cursorDate={optimisticCursor}
                   onDateChange={onDateChange}
                 />
-                <DayView
-                  date={optimisticCursor}
-                  events={calendarEvents}
-                  selectedRefId={selectedUid}
-                  onEventClick={onEventClick}
-                  getHref={getEventHref}
-                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <DayView
+                    date={optimisticCursor}
+                    events={calendarEvents}
+                    selectedRefId={selectedUid}
+                    onEventClick={onEventClick}
+                    getHref={getEventHref}
+                    maxBodyHeight="100%"
+                  />
+                </div>
               </div>
             </>
           ) : null}
 
           {optimisticView === "month" ? (
-            <div className="hidden md:block">
+            <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
               <MonthView
                 date={optimisticCursor}
                 events={calendarEvents}
@@ -419,6 +424,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
+                maxBodyHeight="100%"
               />
             </div>
           ) : null}
