@@ -102,6 +102,8 @@ export function BookingsList({
   const { data: scheduleRanges } = trpc.schedule.get.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
+  useBookingsLiveSync();
+
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   const [activeDrag, setActiveDrag] = useState<CalendarEvent | null>(null);
@@ -762,9 +764,23 @@ function BookingRow({
   );
 }
 
-function LiveQueue() {
+function useBookingsLiveSync() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
+  trpc.bookings.queue.useSubscription(undefined, {
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(t("toastNewBooking", { name: event.visitorName }));
+      } else {
+        toast(t("toastCancelled", { name: event.visitorName }));
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
+}
+
+function LiveQueue() {
+  const t = useTranslations("Bookings");
   const [status, setStatus] = useState<
     "connecting" | "live" | "off"
   >("connecting");
@@ -773,13 +789,7 @@ function LiveQueue() {
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
     onError: () => setStatus("off"),
-    onData: ({ data: event }) => {
-      if (event.type === "created") {
-        toast.success(t("toastNewBooking", { name: event.visitorName }));
-      } else {
-        toast(t("toastCancelled", { name: event.visitorName }));
-      }
-      utils.bookings.listForHost.invalidate();
+    onData: () => {
       setPulseKey((k) => k + 1);
     },
   });
