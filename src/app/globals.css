@@ -2891,6 +2891,10 @@
   transition: margin 380ms var(--ease-oh);
 }
 
+.oh-content-slot {
+  height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
+}
+
 .oh-app-shell[data-oh-preview="true"] {
   --oh-dashboard-bar-block: 0px;
 }

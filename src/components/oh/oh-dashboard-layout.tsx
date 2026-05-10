@@ -88,7 +88,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="flex h-full flex-col"
+      className="oh-content-slot flex flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
