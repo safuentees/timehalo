@@ -127,11 +127,15 @@ export function minutesToSlotOption(
       fullLabel = t("slotDurationFullHoursMinutes", { hours, minutes: rem });
     }
   }
-  // B.PT303 — host-customized title overrides the chip caption.
-  // `fullLabel` keeps the duration form so the modal can render
-  // "{title} for {fullLabel}" as a richer chrome-row title.
+  // B.PT303 — `label` is ALWAYS the compact duration form ("15
+  // min" / "1 hr"). It's also used by host-profile as the
+  // right-side time display on the chip (`durationLabel={opt.
+  // label}`). The host-customized title overrides the LEFT caption
+  // separately via the SlotRow `title=` prop — never substitute
+  // here, otherwise the right-side time display also gets replaced
+  // by the title.
   return {
-    label: title ?? label,
+    label,
     fullLabel,
     minutes,
     title,
