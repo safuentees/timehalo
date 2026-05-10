@@ -72,6 +72,7 @@ export function GeneralSection({
     if (v.slug !== slug) patch.newSlug = v.slug;
     if (patch.name === undefined && patch.newSlug === undefined) return;
     await updateWorkspace.mutateAsync(patch);
+    form.reset(v);
   }
 
   const isPending = updateWorkspace.isPending;
