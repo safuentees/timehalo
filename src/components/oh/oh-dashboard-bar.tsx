@@ -12,6 +12,7 @@ import {
   Loader2,
   Plus,
   Settings,
+  Slash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
@@ -330,31 +331,50 @@ function ChromeIconLink({
   );
 }
 
-// Page title slot — reads from PageTitleProvider, hidden &lt;md.
-// `flex-1 min-w-0` so it grows to fill the gap between switcher
-// and end-slot but truncates rather than pushing icons off-screen.
-// AnimatePresence with wait mode crossfades the title text on
-// route change with a tight 180ms tween (chrome-fast, not the
-// content-spring used for the calendar / handle morphs).
+// Page title slot — reads from PageTitleProvider, hidden <md.
+// Style matches `.oh-dashboard-bar-label` exactly (mono 11px /
+// weight 800 / tracking 2px / uppercase / full ink) so the page
+// title and workspace switcher read as a single chrome cluster
+// rather than two competing typographies. A small slash separator
+// (lucide `Slash`) sits between them to telegraph "workspace /
+// route" — the bar reads like a breadcrumb. AnimatePresence
+// wait-mode crossfade on the title text only (not the slash) so
+// the separator stays anchored as titles swap on route change.
 function OhPageTitleSlot() {
   const title = usePageTitleValue();
   return (
     <div
       data-bar-slot="title"
-      className="hidden min-w-0 flex-1 items-center justify-start pl-3 md:flex"
+      className="hidden min-w-0 flex-1 items-center justify-start gap-2 pl-2 md:flex"
     >
       <AnimatePresence mode="wait" initial={false}>
         {title ? (
-          <motion.span
-            key={title}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+          <motion.div
+            key="title-cluster"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-            className="oh-eyebrow truncate text-[color:var(--oh-content-muted)]"
+            className="flex min-w-0 items-center gap-2"
           >
-            {title}
-          </motion.span>
+            <Slash
+              aria-hidden
+              strokeWidth={2}
+              className="size-3 shrink-0 opacity-35"
+            />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={title}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                className="oh-dashboard-bar-label truncate"
+              >
+                {title}
+              </motion.span>
+            </AnimatePresence>
+          </motion.div>
         ) : null}
       </AnimatePresence>
     </div>
