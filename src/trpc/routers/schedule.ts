@@ -111,7 +111,7 @@ export const schedule = router({
         return [];
       } else if (input.durationMinutes === undefined) {
         effectiveDurationMinutes = eventType.durationMins;
-      } else if (choices.includes(input.durationMinutes)) {
+      } else if (choices.some((c) => c.minutes === input.durationMinutes)) {
         effectiveDurationMinutes = input.durationMinutes;
       } else {
         throw new TRPCError({

@@ -635,7 +635,17 @@
     "durationsValueSummaryHoursMinutes": "{hours} h {minutes} min",
     "durationsEditAria": "Editar {label}",
     "durationsRemoveAria": "Quitar {label}",
-    "durationsSavedToast": "Duraciones actualizadas."
+    "durationsSavedToast": "Duraciones actualizadas.",
+    "durationsTitleLabel": "Título",
+    "durationsTitleHint": "Reemplaza la etiqueta de duración en el chip cuando lo configuras. Déjalo vacío para mostrar solo la duración.",
+    "durationsTitlePlaceholder": "Charla rápida",
+    "durationsDescriptionLabel": "Subtítulo",
+    "durationsDescriptionHint": "Una línea corta debajo del título en el chip del visitante.",
+    "durationsDescriptionPlaceholder": "Solo voz, llamada rápida.",
+    "durationsMinutesHint": "Entre 5 y 480 minutos.",
+    "durationsAddTitle": "Nueva duración",
+    "durationsCancelLabel": "Cancelar",
+    "durationsDoneLabel": "Listo"
   },
   "HostError": {
     "title": "Algo salió mal",

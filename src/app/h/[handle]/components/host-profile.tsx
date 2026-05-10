@@ -269,6 +269,7 @@ export default function HostProfile({
               <HandleMorphCard
                 key="landing-card"
                 layoutId={landingLayoutId("handle-card")}
+                layoutCrossfade={false}
                 transition={{
                   type: "spring",
                   ...(drawerOpen ? openSpring : closeSpring),
@@ -464,8 +465,8 @@ export default function HostProfile({
                                 ),
                               }}
                               figmaLayer={`landing-slot-${i}`}
-                              title="intro"
-                              description="quick chat, voice only"
+                              title={opt.title ?? opt.fullLabel}
+                              description={opt.description ?? ""}
                               durationLabel={opt.label}
                               onClick={() => {
                                 setSelectedDurationLabel(opt.fullLabel);
