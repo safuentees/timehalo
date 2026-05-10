@@ -201,21 +201,24 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // `h-full` (not `min-h-full`) is the canonical Tailwind class
-      // that lets `flex-1 min-h-0` children fill remaining space
-      // INSIDE motion.div. `min-h-full` doesn't give a definite
-      // height — it just floors the auto-computed height — so
-      // `flex-1` children would have 0 to claim. With Radix
-      // ScrollArea gone (its `display: table` wrapper was the
-      // chain-breaker), motion.div's parent is now a plain block
-      // div with `height: 100%`, so `h-full` here resolves to the
-      // panel's explicit `calc(100svh - 24px - bar)` cleanly.
+      // `.oh-content-slot` (globals.css) emits explicit
+      // `height: calc(100svh - 24px - var(--oh-dashboard-bar-block))`
+      // — same calc as `oh-host-content`. Bypasses every
+      // parent-chain height resolution (shadcn SidebarProvider's
+      // `min-h-svh` in @layer utilities was overriding `.oh-app-
+      // shell { height: 100svh }`, leaving ancestors at
+      // `min-height: 100svh + height: auto` — and percentage
+      // children of an auto-height parent resolve to 0).
+      //
+      // With explicit calc here, motion.div is deterministically
+      // the panel size, descendants with `flex-1 min-h-0` claim a
+      // real bounded slot, and the calendar grids' overflow-y-auto
+      // scrolls INSIDE the panel — page never scrolls.
       //
       // List mode (long content): children overflow motion.div
-      // bounds; the parent `oh-host-content-inner overflow-y-auto`
-      // scrolls. Calendar mode: child is `flex-1 min-h-0`,
-      // claims remaining height; internal scroll inside the view.
-      className="flex h-full flex-col"
+      // bounds; parent oh-host-content-inner's overflow-y-auto
+      // catches the overflow → page-style scroll.
+      className="oh-content-slot flex flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,

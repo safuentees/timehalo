@@ -3989,6 +3989,21 @@
   transition: margin 380ms var(--ease-oh);
 }
 
+/* B.PT304 — explicit viewport-relative height on the dashboard
+   ContentSlot's motion.div. Bypasses every parent-chain height
+   resolution (Radix/shadcn/min-h cascade conflicts) by anchoring
+   directly to viewport units. Mirrors `.oh-host-content`'s own
+   height calc so motion.div is exactly the panel's bounds.
+   `h-full` alone proved unreliable: shadcn's SidebarProvider sets
+   `min-h-svh` on its outer div, which is in `@layer utilities`
+   and lands AFTER unlayered `.oh-app-shell { height: 100svh }`,
+   leaving the ancestor chain as `min-height: 100svh + height:
+   auto`. Auto height + percentage children = 0. Explicit calc
+   here breaks the cycle. */
+.oh-content-slot {
+  height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
+}
+
 .oh-app-shell[data-oh-preview="true"] {
   --oh-dashboard-bar-block: 0px;
 }
