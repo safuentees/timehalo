@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 // Visitor surface shell — `/h/<handle>`, `/h/<handle>/booked/<uid>`,
 // `/w/<slug>`, `/w/<slug>/<eventTypeSlug>`, `/w/<slug>/<eventTypeSlug>/
@@ -51,6 +51,16 @@ type Props = {
    * Cancel affordance must remain clickable.
    */
   headerClassName?: string;
+  /**
+   * Optional ref attached to the header wrapper div. Lets callers
+   * pass the header element to `react-focus-on`'s `shards` prop so
+   * the buttons inside the header stay interactive while the picker
+   * modal's focus-trap is engaged. Without this, FocusOn marks the
+   * header as aria-hidden/inert (it's a sibling of the modal's
+   * subtree), and clicks on Cancel / Back to dashboard / etc. are
+   * swallowed even when the header sits visually above the modal.
+   */
+  headerRef?: RefObject<HTMLDivElement | null>;
 };
 
 export function OhVisitorShell({
@@ -59,6 +69,7 @@ export function OhVisitorShell({
   footer,
   className,
   headerClassName,
+  headerRef,
 }: Props) {
   return (
     // B.PT216 — Two-layer shell, viewport-fit (no scroll).
@@ -128,6 +139,7 @@ export function OhVisitorShell({
       >
         {header ? (
           <div
+            ref={headerRef}
             className={[
               "absolute inset-x-0 top-0 z-10",
               headerClassName,

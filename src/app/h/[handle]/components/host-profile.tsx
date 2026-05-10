@@ -257,6 +257,16 @@ export default function HostProfile({
   const [, startTransition] = useTransition();
   const router = useRouter();
 
+  // B.PT306e — ref to the visitor-shell header wrapper. Passed into
+  // the picker modal's `<FocusOn shards>` array so the header (which
+  // sits OUTSIDE the modal's focus-trap subtree) stays interactive
+  // while the modal is open. Without this shard, react-focus-on
+  // marks every sibling of the modal as aria-hidden / inert as part
+  // of its a11y focus-trap, and the Cancel / Back to dashboard
+  // buttons inside the header become non-interactive even though
+  // they paint visually above the modal at `z-[60]`.
+  const visitorHeaderRef = useRef<HTMLDivElement>(null);
+
   // Eager prefetch — warm the React Query cache for EVERY duration
   // the host offers, in parallel, right after mount. Visitors usually
   // click a duration chip within the first ~1-2s of landing; by the
@@ -565,6 +575,10 @@ export default function HostProfile({
       // 60 ONLY when reschedule mode is active. Default header z-10
       // preserved for the normal flow.
       headerClassName={rescheduleFromUid ? "z-[60]" : undefined}
+      // B.PT306e — pass the header ref through to the picker modal
+      // via shards so react-focus-on doesn't make the header inert
+      // while the modal's focus trap is active.
+      headerRef={visitorHeaderRef}
       header={
         <div className="flex w-full flex-col gap-3">
           <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
@@ -1138,6 +1152,11 @@ export default function HostProfile({
                 handle={handle}
                 slots={slots}
                 open
+                // B.PT306e — visitor-header ref forwarded as a
+                // focus-trap shard so the Cancel + Back to dashboard
+                // affordances in the header stay clickable while the
+                // picker is open.
+                extraShards={[visitorHeaderRef]}
                 onOpenChange={(next) => {
                   // B.PT306b — dismissing the picker (X / Escape /
                   // click-outside / chrome back) while in reschedule

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { FocusOn } from "react-focus-on";
@@ -120,6 +120,12 @@ type Props = {
    *  flow / single-duration host) the procedure falls back to
    *  `EventType.durationMins`. */
   durationMinutes?: number;
+  /** B.PT306e — additional refs to keep interactive while the modal's
+   *  focus-trap is engaged. Passed straight to react-focus-on's
+   *  `shards` prop alongside the existing debug-panel shard. Use for
+   *  out-of-tree chrome (visitor header banner / Back-to-dashboard)
+   *  that must remain clickable when the picker is open. */
+  extraShards?: ReadonlyArray<RefObject<HTMLElement | null>>;
 };
 
 export function HandleModal({
@@ -137,6 +143,7 @@ export function HandleModal({
   identityContent,
   durationLabel,
   durationMinutes,
+  extraShards,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const tHost = useTranslations("HostProfile");
@@ -920,14 +927,23 @@ export function HandleModal({
       // Radix ScrollArea works in isolation; the modal-only break
       // pointed at FocusOn's RemoveScroll wrapper.
       scrollLock={false}
-      // B.PT165 — when the Leva debug panel is mounted (?debug=1 in
-      // dev), pass its container ref as a shard so clicks/focus on
-      // the panel are treated as "inside" the modal: no
-      // onClickOutside fires when sliding a control, focus trap
-      // doesn't pull tab back from the panel, scroll-lock doesn't
-      // disable wheel events on the panel. Production (no debug):
-      // `panelShardRef` is null → empty array → no-op.
-      shards={panelShardRef ? [panelShardRef] : undefined}
+      // B.PT165 / B.PT306e — `shards` is react-focus-on's escape
+      // hatch for "this element is OUTSIDE the focused subtree but
+      // should still be treated as interactive." Two shards:
+      //   1. `panelShardRef` — Leva debug panel container in dev
+      //      (B.PT165). Production: null → contributes nothing.
+      //   2. `extraShards` — out-of-tree visitor-shell chrome refs
+      //      passed by the parent (B.PT306e). Today: the visitor
+      //      header wrapper, so Cancel + Back to dashboard buttons
+      //      remain clickable while the modal's focus-trap engages.
+      // Without shards, FocusOn marks every sibling outside the
+      // focused subtree as aria-hidden / inert; clicks and hovers on
+      // those elements are silently dropped even when they sit
+      // visually above the modal via z-index.
+      shards={[
+        ...(panelShardRef ? [panelShardRef] : []),
+        ...(extraShards ?? []),
+      ]}
     >
       {/* Backdrop — fades in/out with the modal. Outside the
           motion.article so it doesn't participate in the layoutId
