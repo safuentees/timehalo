@@ -11,7 +11,7 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 import { trpc } from "@/trpc/hooks";
@@ -240,8 +240,28 @@ function EmptyDurations() {
 }
 
 // Single row — collapsed shows summary; expanded shows in-place
-// editor. Outer wrapper carries `layout` so its height tweens when
-// the form mounts/unmounts via the inner AnimatePresence.
+// editor.
+//
+// Why grid-template-rows + overflow:hidden instead of motion's
+// `layout` prop: motion's layout animation drives parent size with
+// `transform: scale()`, which propagates to children. The form's
+// inputs visibly stretch during open / shrink during close — the
+// stretch the user reported. The shadcn / Radix Accordion primitive
+// solves this with pure-CSS height interpolation (`overflow:hidden`
+// + animated `height` from 0 to `--radix-accordion-content-height`),
+// and the framer-motion canonical pattern is the equivalent
+// `gridTemplateRows: "0fr" → "1fr"` trick — the grid track grows /
+// shrinks and the inner div clips. NO transform, NO scaling, content
+// stays at its intrinsic size. Spring physics still apply via
+// motion's `animate` prop, with directional springs (`openSpring`
+// when expanding, `closeSpring` when collapsing) so the close
+// animation matches the open animation's feel — same physics field-
+// tested on the /h/[handle] chip morph.
+//
+// Reference: `src/components/ui/accordion.tsx` (shadcn) uses the
+// same pure-CSS height pattern; we adapt it to keep motion's spring
+// tuning so the editor reads as part of the same motion vocabulary
+// as the visitor surface.
 function DurationRow({
   index,
   isOpen,
@@ -271,11 +291,10 @@ function DurationRow({
 
   const summary = formatDurationSummary(minutes, t);
   const caption = title && title.trim().length > 0 ? title : summary;
+  const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
 
   return (
-    <motion.article
-      layout
-      transition={isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION}
+    <article
       className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[open=true]:shadow-[var(--oh-shadow-hover)]"
       data-open={isOpen}
     >
@@ -302,112 +321,121 @@ function DurationRow({
         />
       </button>
 
-      <AnimatePresence initial={false}>
-        {isOpen ? (
-          <motion.div
-            // `layout` on the parent already animates height; the
-            // inner div fades the form contents while the parent's
-            // bounds tween via the spring above.
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-            className="border-t border-oh-line"
-          >
-            <div className="flex flex-col gap-4 px-5 py-5">
-              <FieldBlock
-                legendId={`duration-${index}-title`}
-                legend={t("durationsTitleLabel")}
-                description={t("durationsTitleHint")}
-              >
-                <input
-                  {...register(`list.${index}.title`, {
-                    setValueAs: (v: string) => {
-                      const trimmed = (v ?? "").trim();
-                      return trimmed.length === 0 ? null : trimmed;
-                    },
-                  })}
-                  type="text"
-                  maxLength={DURATION_TITLE_MAX_LENGTH}
-                  placeholder={t("durationsTitlePlaceholder")}
-                  defaultValue={title ?? ""}
-                  className="oh-input"
-                  aria-labelledby={`duration-${index}-title`}
-                />
-              </FieldBlock>
+      {/* Grid-template-rows trick: the outer grid track grows from
+          0fr to 1fr (or shrinks back) under spring physics; the
+          inner div's `min-h-0 + overflow-hidden` lets the track
+          actually go to 0 (without min-h-0 the intrinsic content
+          height pushes through). Content keeps its intrinsic size
+          throughout — no transform, no scaling, no text stretch. */}
+      <motion.div
+        initial={false}
+        animate={{
+          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          opacity: isOpen ? 1 : 0,
+        }}
+        transition={transition}
+        style={{ display: "grid" }}
+        aria-hidden={!isOpen}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
+            <FieldBlock
+              legendId={`duration-${index}-title`}
+              legend={t("durationsTitleLabel")}
+              description={t("durationsTitleHint")}
+            >
+              <input
+                {...register(`list.${index}.title`, {
+                  setValueAs: (v: string) => {
+                    const trimmed = (v ?? "").trim();
+                    return trimmed.length === 0 ? null : trimmed;
+                  },
+                })}
+                type="text"
+                maxLength={DURATION_TITLE_MAX_LENGTH}
+                placeholder={t("durationsTitlePlaceholder")}
+                defaultValue={title ?? ""}
+                className="oh-input"
+                aria-labelledby={`duration-${index}-title`}
+                tabIndex={isOpen ? 0 : -1}
+              />
+            </FieldBlock>
 
-              <FieldBlock
-                legendId={`duration-${index}-minutes`}
-                legend={t("durationsValueLegend")}
-                description={t("durationsMinutesHint")}
-              >
-                <MinutesInput
-                  initial={minutes}
-                  otherMinutes={otherMinutes}
-                  onCommit={(picked) => {
-                    if (picked === minutes) return;
-                    if (!onCommitMinutes(picked)) return;
-                    // The parent's update call is the source of
-                    // truth; the input's own value rebinds on the
-                    // next render via useWatch.
-                  }}
-                />
-              </FieldBlock>
+            <FieldBlock
+              legendId={`duration-${index}-minutes`}
+              legend={t("durationsValueLegend")}
+              description={t("durationsMinutesHint")}
+            >
+              <MinutesInput
+                initial={minutes}
+                otherMinutes={otherMinutes}
+                disabled={!isOpen}
+                onCommit={(picked) => {
+                  if (picked === minutes) return;
+                  if (!onCommitMinutes(picked)) return;
+                  // The parent's update call is the source of
+                  // truth; the input's own value rebinds on the
+                  // next render via useWatch.
+                }}
+              />
+            </FieldBlock>
 
-              <FieldBlock
-                legendId={`duration-${index}-desc`}
-                legend={t("durationsDescriptionLabel")}
-                description={t("durationsDescriptionHint")}
-              >
-                <textarea
-                  {...register(`list.${index}.description`, {
-                    setValueAs: (v: string) => {
-                      const trimmed = (v ?? "").trim();
-                      return trimmed.length === 0 ? null : trimmed;
-                    },
-                  })}
-                  rows={3}
-                  maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
-                  placeholder={t("durationsDescriptionPlaceholder")}
-                  defaultValue={row?.description ?? ""}
-                  className="oh-input min-h-[80px] resize-y"
-                  aria-labelledby={`duration-${index}-desc`}
-                />
-              </FieldBlock>
+            <FieldBlock
+              legendId={`duration-${index}-desc`}
+              legend={t("durationsDescriptionLabel")}
+              description={t("durationsDescriptionHint")}
+            >
+              <textarea
+                {...register(`list.${index}.description`, {
+                  setValueAs: (v: string) => {
+                    const trimmed = (v ?? "").trim();
+                    return trimmed.length === 0 ? null : trimmed;
+                  },
+                })}
+                rows={3}
+                maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
+                placeholder={t("durationsDescriptionPlaceholder")}
+                defaultValue={row?.description ?? ""}
+                className="oh-input min-h-[80px] resize-y"
+                aria-labelledby={`duration-${index}-desc`}
+                tabIndex={isOpen ? 0 : -1}
+              />
+            </FieldBlock>
 
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={onRemove}
-                  className="oh-focus-ring inline-flex items-center gap-1.5 rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
-                >
-                  <Trash2Icon className="size-3.5" strokeWidth={1.75} />
-                  {t("durationsRemove")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // The form is the source of truth; collapse just
-                    // closes the editor. Parent's `setValue` calls
-                    // through register already wrote the trimmed
-                    // values back into the list.
-                    setValue(`list.${index}`, {
-                      minutes,
-                      title,
-                      description: row?.description ?? null,
-                    });
-                    onToggle();
-                  }}
-                  className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-semibold text-[var(--oh-ink)] transition-colors duration-150 ease-oh hover:underline"
-                >
-                  {t("durationsDoneLabel")}
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <button
+                type="button"
+                onClick={onRemove}
+                tabIndex={isOpen ? 0 : -1}
+                className="oh-focus-ring inline-flex items-center gap-1.5 rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
+              >
+                <Trash2Icon className="size-3.5" strokeWidth={1.75} />
+                {t("durationsRemove")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // The form is the source of truth; collapse just
+                  // closes the editor. Parent's `setValue` calls
+                  // through register already wrote the trimmed
+                  // values back into the list.
+                  setValue(`list.${index}`, {
+                    minutes,
+                    title,
+                    description: row?.description ?? null,
+                  });
+                  onToggle();
+                }}
+                tabIndex={isOpen ? 0 : -1}
+                className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-semibold text-[var(--oh-ink)] transition-colors duration-150 ease-oh hover:underline"
+              >
+                {t("durationsDoneLabel")}
+              </button>
             </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </motion.article>
+          </div>
+        </div>
+      </motion.div>
+    </article>
   );
 }
 
@@ -460,109 +488,132 @@ function AddRow({
     reset();
   }
 
-  if (!isOpen) {
-    return (
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={disabled}
-        aria-label={t("durationsAddLabel")}
-        className="oh-focus-ring inline-flex items-center gap-2 self-start rounded-(--oh-r-sm) px-3 py-2 text-[13px] font-medium text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)]"
-      >
-        <PlusIcon className="size-4" strokeWidth={1.75} />
-        {t("durationsAddLabel")}
-      </button>
-    );
-  }
-
   const canSave =
     draftMinutes !== null &&
     draftMinutes >= DURATION_MIN_MINUTES &&
     draftMinutes <= DURATION_MAX_MINUTES &&
     !existingMinutes.includes(draftMinutes);
 
+  const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
+
+  // Add row keeps the trigger ALWAYS mounted (collapsed = small "+
+  // Add duration" pill) — same grid-template-rows trick as
+  // DurationRow above. Trigger sits in the row's header band; the
+  // form panel below grows / shrinks via the grid track.
   return (
-    <motion.article
-      layout
-      transition={ROW_TRANSITION}
-      className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-hover)]"
+    <article
+      className="self-start rounded-(--oh-r-sm) transition-shadow duration-150 ease-oh data-[open=true]:bg-[var(--oh-paper)] data-[open=true]:self-stretch data-[open=true]:shadow-[var(--oh-shadow-hover)]"
+      data-open={isOpen}
     >
-      <div className="border-b border-oh-line px-5 py-3">
-        <p className="oh-eyebrow">{t("durationsAddTitle")}</p>
-      </div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-        className="flex flex-col gap-4 px-5 py-5"
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={disabled && !isOpen}
+        aria-expanded={isOpen}
+        aria-label={t("durationsAddLabel")}
+        className="oh-focus-ring inline-flex w-full items-center gap-2 rounded-(--oh-r-sm) px-3 py-2 text-[13px] font-medium text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)] data-[open=true]:bg-transparent data-[open=true]:px-5 data-[open=true]:py-3 data-[open=true]:text-[var(--oh-ink)] data-[open=true]:hover:bg-transparent"
+        data-open={isOpen}
       >
-        <FieldBlock
-          legendId="duration-add-title"
-          legend={t("durationsTitleLabel")}
-          description={t("durationsTitleHint")}
-        >
-          <input
-            type="text"
-            value={draftTitle}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            maxLength={DURATION_TITLE_MAX_LENGTH}
-            placeholder={t("durationsTitlePlaceholder")}
-            className="oh-input"
-            aria-labelledby="duration-add-title"
-          />
-        </FieldBlock>
+        <PlusIcon
+          className="size-4 transition-transform duration-150 ease-oh data-[open=true]:rotate-45"
+          strokeWidth={1.75}
+          aria-hidden
+          data-open={isOpen}
+        />
+        <span className="data-[open=true]:oh-eyebrow data-[open=true]:tracking-[2.5px]" data-open={isOpen}>
+          {isOpen ? t("durationsAddTitle") : t("durationsAddLabel")}
+        </span>
+      </button>
 
-        <FieldBlock
-          legendId="duration-add-minutes"
-          legend={t("durationsValueLegend")}
-          description={t("durationsMinutesHint")}
-        >
-          <MinutesInput
-            initial={null}
-            otherMinutes={existingMinutes}
-            onCommit={(picked) => setDraftMinutes(picked)}
-            autoFocus
-          />
-        </FieldBlock>
+      {/* Same grid-template-rows trick as DurationRow — pure CSS
+          height tween, no transform, content keeps its intrinsic
+          size. Spring physics direction-aware so close eases out
+          with the same feel as open. */}
+      <motion.div
+        initial={false}
+        animate={{
+          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          opacity: isOpen ? 1 : 0,
+        }}
+        transition={transition}
+        style={{ display: "grid" }}
+        aria-hidden={!isOpen}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
+            <FieldBlock
+              legendId="duration-add-title"
+              legend={t("durationsTitleLabel")}
+              description={t("durationsTitleHint")}
+            >
+              <input
+                type="text"
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                maxLength={DURATION_TITLE_MAX_LENGTH}
+                placeholder={t("durationsTitlePlaceholder")}
+                className="oh-input"
+                aria-labelledby="duration-add-title"
+                tabIndex={isOpen ? 0 : -1}
+              />
+            </FieldBlock>
 
-        <FieldBlock
-          legendId="duration-add-desc"
-          legend={t("durationsDescriptionLabel")}
-          description={t("durationsDescriptionHint")}
-        >
-          <textarea
-            value={draftDesc}
-            onChange={(e) => setDraftDesc(e.target.value)}
-            rows={3}
-            maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
-            placeholder={t("durationsDescriptionPlaceholder")}
-            className="oh-input min-h-[80px] resize-y"
-            aria-labelledby="duration-add-desc"
-          />
-        </FieldBlock>
+            <FieldBlock
+              legendId="duration-add-minutes"
+              legend={t("durationsValueLegend")}
+              description={t("durationsMinutesHint")}
+            >
+              <MinutesInput
+                initial={null}
+                otherMinutes={existingMinutes}
+                onCommit={(picked) => setDraftMinutes(picked)}
+                disabled={!isOpen}
+              />
+            </FieldBlock>
 
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <button
-            type="button"
-            onClick={() => {
-              reset();
-              onToggle();
-            }}
-            className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
-          >
-            {t("durationsCancelLabel")}
-          </button>
-          <button
-            type="button"
-            onClick={commit}
-            disabled={!canSave}
-            className="oh-focus-ring rounded-(--oh-r-xs) bg-[var(--oh-ink)] px-4 py-2 text-[12px] font-semibold text-[var(--oh-paper)] transition-opacity duration-150 ease-oh disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            {t("durationsSave")}
-          </button>
+            <FieldBlock
+              legendId="duration-add-desc"
+              legend={t("durationsDescriptionLabel")}
+              description={t("durationsDescriptionHint")}
+            >
+              <textarea
+                value={draftDesc}
+                onChange={(e) => setDraftDesc(e.target.value)}
+                rows={3}
+                maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
+                placeholder={t("durationsDescriptionPlaceholder")}
+                className="oh-input min-h-[80px] resize-y"
+                aria-labelledby="duration-add-desc"
+                tabIndex={isOpen ? 0 : -1}
+              />
+            </FieldBlock>
+
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  reset();
+                  onToggle();
+                }}
+                tabIndex={isOpen ? 0 : -1}
+                className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
+              >
+                {t("durationsCancelLabel")}
+              </button>
+              <button
+                type="button"
+                onClick={commit}
+                disabled={!canSave}
+                tabIndex={isOpen ? 0 : -1}
+                className="oh-focus-ring rounded-(--oh-r-xs) bg-[var(--oh-ink)] px-4 py-2 text-[12px] font-semibold text-[var(--oh-paper)] transition-opacity duration-150 ease-oh disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {t("durationsSave")}
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -597,12 +648,12 @@ function MinutesInput({
   initial,
   otherMinutes,
   onCommit,
-  autoFocus,
+  disabled,
 }: {
   initial: number | null;
   otherMinutes: number[];
   onCommit: (minutes: number) => void;
-  autoFocus?: boolean;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState<string>(
     initial !== null ? String(initial) : "",
@@ -637,7 +688,7 @@ function MinutesInput({
             tryCommit();
           }
         }}
-        autoFocus={autoFocus}
+        tabIndex={disabled ? -1 : 0}
         className="oh-input w-24 text-center tabular-nums"
         aria-label={t("durationsValueLegend")}
       />
