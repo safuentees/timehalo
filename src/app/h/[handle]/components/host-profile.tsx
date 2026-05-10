@@ -599,13 +599,21 @@ export default function HostProfile({
                     </motion.h1>
                   </motion.div>
                   {/* B.PT161 — tagline is text-align CENTER per spec
-                    (textAlignHorizontal: CENTER). Was left-default. */}
+                    (textAlignHorizontal: CENTER). Was left-default.
+                    B.PT297 — closes B.PT279's deferred row: render
+                    `user.bio` (already exposed in `getByHandle` since
+                    B.PT279 shipped the schema + mutation) here in
+                    place of the static placeholder. Falls back to
+                    the placeholder copy when the host hasn't set a
+                    bio yet (cal.com convention — empty bio renders
+                    a generic "schedule with {name}" line so the
+                    visitor surface never reads as broken). */}
                   <motion.p
                     layout="position"
                     transition={identityProjectionTransition}
                     className="oh-description text-center"
                   >
-                    {t("defaultBio")}
+                    {user.bio ?? t("defaultBio")}
                   </motion.p>
                 </motion.header>
 
