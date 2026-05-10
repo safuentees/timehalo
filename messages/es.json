@@ -59,7 +59,8 @@
     "action_EMAIL_HOST": "Correo al anfitrión",
     "action_WEBHOOK_FIRE": "Disparar webhook",
     "upgradePrompt": "Los flujos son una función de pago.",
-    "upgradeLink": "Ver planes"
+    "upgradeLink": "Ver planes",
+    "upgradePromptAskOwner": "Los flujos son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan."
   },
   "ApiKeys": {
     "legend": "Claves API",
@@ -94,7 +95,8 @@
     "noKeysEmpty": "Aún no hay claves. Genera tu primera para autenticar scripts, CI o herramientas externas contra este espacio de trabajo.",
     "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave.",
     "upgradePrompt": "Las claves API son una función de pago.",
-    "upgradeLink": "Ver planes"
+    "upgradeLink": "Ver planes",
+    "upgradePromptAskOwner": "Las claves API son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan."
   },
   "Webhooks": {
     "legend": "Webhooks",
@@ -127,7 +129,8 @@
     "noSubsEmpty": "Aún no hay webhooks. Agrega uno para recibir notificaciones cuando se creen, cancelen o reprogramen reservas.",
     "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Los webhooks se asocian a un espacio — crea uno primero y vuelve para añadir una suscripción.",
     "upgradePrompt": "Los webhooks son una función de pago.",
-    "upgradeLink": "Ver planes"
+    "upgradeLink": "Ver planes",
+    "upgradePromptAskOwner": "Los webhooks son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan."
   },
   "Calendar": {
     "legend": "Calendario",

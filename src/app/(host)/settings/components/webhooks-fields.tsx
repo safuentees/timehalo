@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { keepPreviousData } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteWebhook } from "@/lib/mutations/use-delete-webhook";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { OhCard } from "@/components/oh/oh-card";
 
 export function WebhooksFields() {
   const t = useTranslations("Webhooks");
@@ -81,6 +83,7 @@ function WebhooksForWorkspace({
   );
   const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
   const isLocked = plan?.plan === "FREE";
+  const isOwner = plan?.callerRole === "OWNER";
 
   return (
     <>
@@ -132,14 +135,36 @@ function WebhooksForWorkspace({
       ) : null}
 
       <div className="mt-4">
-        {isLocked ? <UpgradePrompt /> : <WebhookCreateDialog slug={slug} />}
+        {isLocked ? (
+          <UpgradePrompt
+            isOwner={isOwner}
+            ownerName={plan?.owner?.name ?? plan?.owner?.handle ?? null}
+          />
+        ) : (
+          plan?.callerRole === "VIEWER" ? null : (
+            <WebhookCreateDialog slug={slug} />
+          )
+        )}
       </div>
     </>
   );
 }
 
-function UpgradePrompt() {
+function UpgradePrompt({
+  isOwner,
+  ownerName,
+}: {
+  isOwner: boolean;
+  ownerName: string | null;
+}) {
   const t = useTranslations("Webhooks");
+  if (!isOwner && ownerName) {
+    return (
+      <OhInlineEmpty>
+        {t("upgradePromptAskOwner", { ownerName })}
+      </OhInlineEmpty>
+    );
+  }
   return (
     <OhInlineEmpty>
       {t("upgradePrompt")}{" "}
@@ -174,27 +199,41 @@ function WebhookRow({
     .filter(Boolean);
 
   return (
-    <article
-      className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-oh",
-        active
-          ? "border-oh-line hover:border-oh-line-strong"
-          : "border-oh-line opacity-60",
-      ].join(" ")}
+    <OhCard
+      muted={!active}
+      className="flex flex-col gap-2 p-4"
     >
-      <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-        <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
-          {subscriberUrl}
-        </h3>
+      <h3 className="truncate text-[16px] font-black leading-[1.2]">
+        {subscriberUrl}
+      </h3>
+
+      {eventList.length > 0 ? (
+        <p
+          className="truncate oh-eyebrow opacity-45"
+          aria-label={t("eventsListLabel")}
+        >
+          {eventList.join(" / ")}
+        </p>
+      ) : null}
+      {!active ? (
+        <p className="text-[12px] opacity-55">{t("inactiveHint")}</p>
+      ) : null}
+
+      <div className="mt-auto self-end">
         <ConfirmDialog
           trigger={
             <Button
               type="button"
               variant="ohGhost"
-              size="oh"
+              size="icon-sm"
               disabled={deleteWebhook.isPending}
+              aria-label={t("delete")}
             >
-              {deleteWebhook.isPending ? t("deleting") : t("delete")}
+              <Trash2
+                strokeWidth={1.75}
+                className="size-4"
+                aria-hidden
+              />
             </Button>
           }
           title={t("deleteTitle")}
@@ -205,20 +244,8 @@ function WebhookRow({
           pending={deleteWebhook.isPending}
           onConfirm={() => deleteWebhook.mutateAsync({ slug, publicUid })}
         />
-      </header>
-
-      {eventList.length > 0 ? (
-        <p
-          className="mt-2 truncate oh-eyebrow opacity-45"
-          aria-label={t("eventsListLabel")}
-        >
-          {eventList.join(" / ")}
-        </p>
-      ) : null}
-      {!active ? (
-        <p className="mt-2 text-[12px] opacity-55">{t("inactiveHint")}</p>
-      ) : null}
-    </article>
+      </div>
+    </OhCard>
   );
 }
 

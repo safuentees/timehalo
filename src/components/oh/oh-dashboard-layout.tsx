@@ -32,13 +32,9 @@ export function OhDashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const { typeface, density, motion: motionPref } = useOhPrefs();
+  const { typeface, density } = useOhPrefs();
   const pathname = usePathname();
   const isPreview = pathname?.startsWith("/preview/") ?? false;
-
-  const insetClass = ["oh-root", motionPref ? "oh-motion" : ""]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <TooltipProvider delay={200}>
@@ -52,7 +48,7 @@ export function OhDashboardLayout({
           <OhDashboardBar />
           <div className="oh-app flex min-h-0 flex-1">
             <OhAppSidebar />
-            <SidebarInset className={insetClass}>
+            <SidebarInset>
               <div
                 className="oh-host-content"
                 data-oh-modal-host="true"

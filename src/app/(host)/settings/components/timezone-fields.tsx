@@ -8,7 +8,6 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
 import { Field, FieldError } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { OhSelect } from "@/components/oh/oh-select";
 import {
   DEFAULT_TIMEZONE,
@@ -16,6 +15,7 @@ import {
   timezoneSchema,
 } from "@/lib/timezone";
 import { SectionHeader } from "@/components/oh/section-header";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 
 type FormShape = { timezone: string };
 
@@ -84,11 +84,9 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             )}
           />
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button
+          <div className="mt-2">
+            <button
               type="button"
-              variant="ohGhost"
-              size="oh"
               onClick={() => {
                 const detected = getBrowserTimezone();
                 form.setValue("timezone", detected, {
@@ -96,19 +94,21 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
                   shouldValidate: true,
                 });
               }}
+              className="oh-focus-ring rounded-(--oh-r-xs) text-[13px] underline underline-offset-4 decoration-[1.5px] decoration-current opacity-55 transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("useBrowser")}
-            </Button>
-            <Button
-              type="submit"
-              variant="oh"
-              size="oh"
-              disabled={isPending || !isDirty}
-              className="ml-auto"
-            >
-              {isPending ? t("saving") : isDirty ? t("save") : t("saved")}
-            </Button>
+            </button>
           </div>
+
+          <InlineFormSave
+            isPending={isPending}
+            isDirty={isDirty}
+            labels={{
+              save: t("save"),
+              saving: t("saving"),
+              saved: t("saved"),
+            }}
+          />
         </form>
       </FormProvider>
     </section>

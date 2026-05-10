@@ -59,7 +59,8 @@
     "action_EMAIL_HOST": "Email host",
     "action_WEBHOOK_FIRE": "Fire webhook",
     "upgradePrompt": "Workflows are a paid feature.",
-    "upgradeLink": "View plans"
+    "upgradeLink": "View plans",
+    "upgradePromptAskOwner": "Workflows are a paid feature on this workspace. Ask {ownerName} to upgrade."
   },
   "ApiKeys": {
     "legend": "API keys",
@@ -94,7 +95,8 @@
     "noKeysEmpty": "No keys yet. Mint your first key to authenticate scripts, CI, or third-party tools against this workspace.",
     "noWorkspaceEmpty": "No workspace yet. API keys are scoped to a workspace — create one first, then come back to mint a key.",
     "upgradePrompt": "API keys are a paid feature.",
-    "upgradeLink": "View plans"
+    "upgradeLink": "View plans",
+    "upgradePromptAskOwner": "API keys are a paid feature on this workspace. Ask {ownerName} to upgrade."
   },
   "Webhooks": {
     "legend": "Webhooks",
@@ -127,7 +129,8 @@
     "noSubsEmpty": "No webhooks yet. Add one to get notified when bookings are created, cancelled, or rescheduled.",
     "noWorkspaceEmpty": "No workspace yet. Webhooks are scoped to a workspace — create one first, then come back to add a subscription.",
     "upgradePrompt": "Webhooks are a paid feature.",
-    "upgradeLink": "View plans"
+    "upgradeLink": "View plans",
+    "upgradePromptAskOwner": "Webhooks are a paid feature on this workspace. Ask {ownerName} to upgrade."
   },
   "Calendar": {
     "legend": "Calendar",

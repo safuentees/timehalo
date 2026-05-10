@@ -100,6 +100,7 @@ function BillingForWorkspace({
   const t = useTranslations("Billing");
   const { data: current, isLoading } =
     trpc.billing.currentPlan.useQuery({ slug });
+  const canManageBilling = current?.callerRole === "OWNER";
   const searchParams = useSearchParams();
   const isProcessingCheckout = searchParams.get("billing") === "success";
 
@@ -143,6 +144,7 @@ function BillingForWorkspace({
             cancelAtPeriodEnd={current.cancelAtPeriodEnd}
             hasStripeCustomer={current.hasStripeCustomer}
             isProcessingCheckout={isProcessingCheckout}
+            canManageBilling={canManageBilling}
           />
         )}
       </div>
@@ -154,7 +156,7 @@ function BillingForWorkspace({
               slug={slug}
               tier={tier}
               isCurrent={current?.plan === tier}
-              disabled={isLoading || !current}
+              disabled={isLoading || !current || !canManageBilling}
               isProcessingCheckout={isProcessingCheckout}
             />
           </li>
@@ -171,6 +173,7 @@ function CurrentPlanBanner({
   cancelAtPeriodEnd,
   hasStripeCustomer,
   isProcessingCheckout,
+  canManageBilling,
 }: {
   slug: string;
   plan: PlanTier;
@@ -178,6 +181,7 @@ function CurrentPlanBanner({
   cancelAtPeriodEnd: boolean;
   hasStripeCustomer: boolean;
   isProcessingCheckout: boolean;
+  canManageBilling: boolean;
 }) {
   const t = useTranslations("Billing");
   const fmt = useFormatter();
@@ -225,7 +229,7 @@ function CurrentPlanBanner({
           </p>
         </div>
 
-        {!isFree && hasStripeCustomer ? (
+        {!isFree && hasStripeCustomer && canManageBilling ? (
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"

@@ -12,6 +12,7 @@ import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { OhCard } from "@/components/oh/oh-card";
 
 export function ApiKeysFields() {
   const t = useTranslations("ApiKeys");
@@ -81,6 +82,7 @@ function ApiKeysForWorkspace({
   );
   const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
   const isLocked = plan?.plan === "FREE";
+  const isOwner = plan?.callerRole === "OWNER";
 
   return (
     <>
@@ -134,14 +136,36 @@ function ApiKeysForWorkspace({
       ) : null}
 
       <div className="mt-4">
-        {isLocked ? <UpgradePrompt /> : <ApiKeyCreateDialog slug={slug} />}
+        {isLocked ? (
+          <UpgradePrompt
+            isOwner={isOwner}
+            ownerName={plan?.owner?.name ?? plan?.owner?.handle ?? null}
+          />
+        ) : (
+          plan?.callerRole === "VIEWER" ? null : (
+            <ApiKeyCreateDialog slug={slug} />
+          )
+        )}
       </div>
     </>
   );
 }
 
-function UpgradePrompt() {
+function UpgradePrompt({
+  isOwner,
+  ownerName,
+}: {
+  isOwner: boolean;
+  ownerName: string | null;
+}) {
   const t = useTranslations("ApiKeys");
+  if (!isOwner && ownerName) {
+    return (
+      <OhInlineEmpty>
+        {t("upgradePromptAskOwner", { ownerName })}
+      </OhInlineEmpty>
+    );
+  }
   return (
     <OhInlineEmpty>
       {t("upgradePrompt")}{" "}
@@ -180,14 +204,7 @@ function ApiKeyRow({
     .filter(Boolean);
 
   return (
-    <article
-      className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-oh",
-        revoked
-          ? "border-oh-line opacity-60"
-          : "border-oh-line hover:border-oh-line-strong",
-      ].join(" ")}
-    >
+    <OhCard muted={revoked} className="p-4">
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
           {name}
@@ -227,7 +244,7 @@ function ApiKeyRow({
           {scopeList.join(" / ")}
         </p>
       ) : null}
-    </article>
+    </OhCard>
   );
 }
 
