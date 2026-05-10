@@ -347,20 +347,26 @@ export function BookingsList({
         <div
           aria-busy={isPending || undefined}
           style={{ height: "calc(100svh - 64px)" }}
-          className={cn(
-            "mx-auto flex w-full min-h-0 flex-col gap-3 px-4 pt-4 pb-4 sm:px-6 bg-yellow-300/30",
-            calendarMaxWidthClass,
-          )}
+          className="flex w-full min-h-0 flex-col gap-3 pt-4 pb-4"
         >
-          <BookingsViewSwitcher
-            value={optimisticView}
-            onValueChange={onViewChange}
-          />
-          <BookingsCursorControls
-            view={optimisticView}
-            cursorDate={optimisticCursor}
-            onDateChange={onDateChange}
-          />
+          <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 sm:px-6">
+            <BookingsViewSwitcher
+              value={optimisticView}
+              onValueChange={onViewChange}
+            />
+            <BookingsCursorControls
+              view={optimisticView}
+              cursorDate={optimisticCursor}
+              onDateChange={onDateChange}
+            />
+          </div>
+
+          <div
+            className={cn(
+              "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              calendarMaxWidthClass,
+            )}
+          >
 
           {isError ? (
             <OhInlineEmpty>
@@ -429,6 +435,7 @@ export function BookingsList({
               />
             </div>
           ) : null}
+          </div>
         </div>
         <DragOverlay dropAnimation={null}>
           {activeDrag ? (
