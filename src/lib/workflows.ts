@@ -11,7 +11,7 @@ import {
   scheduleWebhookDelivery,
   TASK_TYPE_EMAIL_SEND,
 } from "@/lib/tasks";
-import type { TemplateName, TemplatePropsMap } from "@/lib/email";
+import type { TemplateInput, TemplateName } from "@/lib/email";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("workflows");
@@ -177,7 +177,7 @@ async function dispatchOne(
     payload: {
       to: recipient,
       template: w.template,
-      props: props as TemplatePropsMap[typeof w.template],
+      props: props as TemplateInput<typeof w.template>,
     },
     referenceUid: `${opts.booking.bookingPublicUid}:workflow:${w.id}:${opts.booking.operationId}`,
     scheduledAt,
@@ -188,7 +188,7 @@ async function dispatchOne(
 function buildTemplateProps(
   template: TemplateName,
   opts: WorkflowDispatchOpts,
-): TemplatePropsMap[TemplateName] | null {
+): TemplateInput<TemplateName> | null {
   const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   const confirmationUrl = `${appUrl}/h/${opts.booking.hostHandle}/booked/${opts.booking.bookingPublicUid}`;
 

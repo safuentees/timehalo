@@ -1,10 +1,7 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import type {
-  TemplateName,
-  TemplatePropsMap,
-} from "@/lib/email";
+import type { TemplateInput, TemplateName } from "@/lib/email";
 import type { WebhookEvent } from "@/trpc/router";
 
 export const TASK_TYPE_WEBHOOK_DELIVERY = "webhookDelivery";
@@ -46,7 +43,7 @@ export async function scheduleWebhookDelivery(opts: ScheduleOpts) {
 export type EmailSendPayload<T extends TemplateName = TemplateName> = {
   to: string;
   template: T;
-  props: TemplatePropsMap[T];
+  props: TemplateInput<T>;
 };
 
 type ScheduleEmailOpts<T extends TemplateName> = {

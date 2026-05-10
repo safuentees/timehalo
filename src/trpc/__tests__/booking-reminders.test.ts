@@ -26,6 +26,7 @@ describe("booking-reminder template render", () => {
       visitorName: "Maya Lin",
       slotStartIso: new Date("2026-05-01T14:30:00Z").toISOString(),
       confirmationUrl: "https://example.com/h/alex/booked/abc",
+      recipientEmail: "maya@example.com",
     };
     expect(getSubject("booking-reminder", props)).toBe(
       "Starting in 1 hour — Alex Chen",

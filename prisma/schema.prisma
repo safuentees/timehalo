@@ -72,6 +72,17 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+model EmailOtpToken {
+  identifier String
+  token      String
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@id([identifier, token])
+  @@index([identifier])
+  @@index([expires])
+}
+
 model Authenticator {
   credentialID         String  @unique
   userId               String

@@ -8,6 +8,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { OhAppSidebar } from "./oh-app-sidebar";
 import { OhMobileNavOverlay } from "./oh-mobile-nav-overlay";
 import { OhDashboardBar } from "./oh-dashboard-bar";
@@ -54,9 +55,9 @@ export function OhDashboardLayout({
                 className="oh-host-content"
                 data-oh-modal-host="true"
               >
-                <div className="oh-host-content-inner overflow-y-auto">
+                <ScrollArea className="oh-host-content-inner">
                   <ContentSlot>{children}</ContentSlot>
-                </div>
+                </ScrollArea>
                 <OhMobileNavOverlay />
               </div>
             </SidebarInset>

@@ -9,6 +9,7 @@ import {
   ONBOARDING_STEP_IDS,
   type OnboardingStepId,
 } from "@/lib/onboarding";
+import { deriveHostDisplayLabel } from "@/lib/handle";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
@@ -107,6 +108,7 @@ export const users = router({
         select: {
           id: true,
           name: true,
+          email: true,
           handle: true,
           image: true,
           timezone: true,
@@ -122,7 +124,14 @@ export const users = router({
         ? resolveDurationChoices(eventType)
         : [{ minutes: 15, title: null, description: null }];
       const defaultDurationMinutes = eventType?.durationMins ?? 15;
-      return { ...user, durationChoices, defaultDurationMinutes };
+      const displayLabel = deriveHostDisplayLabel(user);
+      const { email: _email, ...publicUser } = user;
+      return {
+        ...publicUser,
+        displayLabel,
+        durationChoices,
+        defaultDurationMinutes,
+      };
     }),
 
   setHandle: privateProcedure

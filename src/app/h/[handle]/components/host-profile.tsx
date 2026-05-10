@@ -196,7 +196,7 @@ export default function HostProfile({
     wasOpenRef.current = drawerOpen;
   }, [drawerOpen]);
 
-  const displayName = user.name ?? user.handle ?? "Host";
+  const displayName = user.displayLabel ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
   function handleSelectDate(date: Date | undefined) {
@@ -382,10 +382,8 @@ export default function HostProfile({
                   )}
                 >
                   {slotOptions.length === 0 ? (
-                    <p className="oh-description py-6 text-center">
-                      {t("emptyNoDurationsDescription", {
-                        name: displayName,
-                      })}
+                    <p className="oh-description p-6 text-center">
+                      {t("emptyNoDurationsDescription")}
                     </p>
                   ) : hasOpenSlots ? (
                     <motion.ul
