@@ -348,10 +348,11 @@ export function BookingsList({
           onDragEnd={onDragEnd}
           onDragCancel={() => setActiveDrag(null)}
         >
+        <div className="absolute inset-0 flex flex-col">
         <div
           aria-busy={isPending || undefined}
           className={cn(
-            "mx-auto flex w-full max-w-full flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -385,7 +386,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
-              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+              maxBodyHeight="100%"
             />
           ) : null}
 
@@ -398,7 +399,7 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
-                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                  maxBodyHeight="100%"
                 />
               </div>
               <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
@@ -413,7 +414,7 @@ export function BookingsList({
                     selectedRefId={selectedUid}
                     onEventClick={onEventClick}
                     getHref={getEventHref}
-                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                    maxBodyHeight="100%"
                   />
                 </div>
               </div>
@@ -430,10 +431,11 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                maxBodyHeight="100%"
               />
             </div>
           ) : null}
+        </div>
         </div>
         <DragOverlay dropAnimation={null}>
           {activeDrag ? (
