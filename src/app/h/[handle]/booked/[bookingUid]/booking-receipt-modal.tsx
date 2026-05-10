@@ -50,7 +50,11 @@ export function BookingReceiptModal({
   });
 
   function close() {
-    router.back();
+    if (booking.host.handle) {
+      router.push(`/h/${booking.host.handle}`);
+    } else {
+      router.back();
+    }
   }
 
   return (

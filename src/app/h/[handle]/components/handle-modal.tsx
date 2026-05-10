@@ -101,7 +101,7 @@ export function HandleModal({
   const reschedule = useRescheduleBooking({
     onSuccess: (result) => {
       startRescheduleTransition(() => {
-        router.push(`/h/${handle}/booked/${result.publicUid}`);
+        router.replace(`/h/${handle}/booked/${result.publicUid}`);
         onBookingComplete?.();
       });
     },
@@ -148,6 +148,7 @@ export function HandleModal({
         ? formTitleId
         : detailTitleId;
   function handlePickSlot(slot: Slot) {
+    if (isReschedulePending) return;
     onPickSlot(slot);
     if (rescheduleFromUid) {
       reschedule.mutate({
@@ -162,6 +163,7 @@ export function HandleModal({
   }
 
   function handleSelectDate(nextDate: Date | undefined) {
+    if (isReschedulePending) return;
     if (
       view === "form" &&
       (!nextDate ||
@@ -174,6 +176,7 @@ export function HandleModal({
   }
 
   function handleMonthPick(nextDate: Date) {
+    if (isReschedulePending) return;
     onSelectDate(nextDate);
     setView("strip");
   }
@@ -183,13 +186,17 @@ export function HandleModal({
       <div className="relative z-30 grid h-7 shrink-0 grid-cols-3 items-center">
         <button
           type="button"
-          onClick={() =>
-            view === "strip" ? onOpenChange(false) : setView("strip")
-          }
+          onClick={() => {
+            if (isReschedulePending) return;
+            if (view === "strip") onOpenChange(false);
+            else setView("strip");
+          }}
           aria-label={
             view === "strip" ? t("closeDrawerAria") : t("backToPickerAria")
           }
-          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+          disabled={isReschedulePending}
+          aria-disabled={isReschedulePending}
+          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-start rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeftIcon
             className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-active:scale-95 group-active:opacity-100"
@@ -238,9 +245,14 @@ export function HandleModal({
         </motion.span>
         <button
           type="button"
-          onClick={() => onOpenChange(false)}
+          onClick={() => {
+            if (isReschedulePending) return;
+            onOpenChange(false);
+          }}
           aria-label={t("closeDrawerAria")}
-          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+          disabled={isReschedulePending}
+          aria-disabled={isReschedulePending}
+          className="oh-focus-ring group inline-flex size-7 shrink-0 items-center justify-center justify-self-end rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
         >
           <XIcon
             className="size-5 opacity-[0.7] transition-[opacity,transform] duration-150 ease-oh group-active:scale-95 group-active:opacity-100"
@@ -540,8 +552,13 @@ export function HandleModal({
           <span className="oh-drawer-monthbar-label">{monthBarLabel}</span>
           <button
             type="button"
-            onClick={() => setView("month")}
-            className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] [-webkit-tap-highlight-color:transparent]"
+            onClick={() => {
+              if (isReschedulePending) return;
+              setView("month");
+            }}
+            disabled={isReschedulePending}
+            aria-disabled={isReschedulePending}
+            className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] transition-opacity [-webkit-tap-highlight-color:transparent] disabled:cursor-not-allowed disabled:opacity-30"
             aria-label={t("openMonthViewAria")}
           >
             <CalendarIcon
@@ -614,8 +631,14 @@ export function HandleModal({
   return (
     <FocusOn
       enabled={open}
-      onEscapeKey={() => onOpenChange(false)}
-      onClickOutside={() => onOpenChange(false)}
+      onEscapeKey={() => {
+        if (isReschedulePending) return;
+        onOpenChange(false);
+      }}
+      onClickOutside={() => {
+        if (isReschedulePending) return;
+        onOpenChange(false);
+      }}
       returnFocus
       scrollLock={false}
       shards={panelShardRef ? [panelShardRef] : undefined}

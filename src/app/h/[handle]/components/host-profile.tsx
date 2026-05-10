@@ -312,16 +312,24 @@ export default function HostProfile({
       {rescheduleFromUid ? (
         <div
           role="status"
-          className="border-b border-oh-line bg-[color:var(--oh-tint)]"
+          className="absolute inset-x-0 top-0 z-20 border-b border-oh-line bg-[color:var(--oh-tint)] backdrop-blur"
         >
-          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
-            <span className="oh-eyebrow opacity-100">{t("rescheduling")}</span>
-            <a
+          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0 rounded-full bg-amber-500"
+              />
+              <span className="oh-eyebrow truncate opacity-100">
+                {t("rescheduling")}
+              </span>
+            </div>
+            <Link
               href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="oh-focus-ring oh-eyebrow rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
+              className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
             >
               {t("cancel")}
-            </a>
+            </Link>
           </div>
         </div>
       ) : null}
