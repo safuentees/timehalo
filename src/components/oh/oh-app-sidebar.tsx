@@ -283,16 +283,14 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      // Reverse-stagger on close: items translate out / fade. 1.6x
-      // timescale so the items leave faster than they entered (open
-      // is leisurely, close is snappy). The parent overlay's
-      // `clipPath` animation runs in parallel (~0.55s); items
-      // finishing slightly first is fine — they vanish into the
-      // collapsing rectangle. `onReverseComplete` is a redundant
-      // unmount signal (the parent's onAnimationComplete already
-      // handles unmount), but harmless: setNavMounted(false) is
-      // idempotent.
-      tl.timeScale(1.6);
+      // Reverse-stagger on close: items translate out / fade FAST so
+      // they finish well before the parent overlay's clipPath
+      // collapse (0.55s) reaches them. 2.5x timescale → items
+      // exit in ~0.2-0.3s, clipPath then sweeps over an empty
+      // area. Without this lead, the clipping line catches up to
+      // still-animating items and they "snap" rather than gracefully
+      // leaving on their own.
+      tl.timeScale(2.5);
       tl.eventCallback("onReverseComplete", onExitComplete);
       tl.reverse();
     } else {
