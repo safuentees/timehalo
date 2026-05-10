@@ -12,6 +12,7 @@ import {
   ChevronRightIcon,
   MailIcon,
   MoreHorizontal,
+  X,
   RefreshCw,
   Trash2,
 } from "lucide-react";
@@ -258,6 +259,16 @@ export default function BookingDetail({
               }}
             />
           ) : null}
+          {isModal && onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t("close")}
+              className="oh-focus-ring inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-colors hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)]"
+            >
+              <X className="size-3.5" strokeWidth={1.75} />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -337,13 +348,17 @@ export default function BookingDetail({
   // py-8 sm:py-10 (32-40px). Detail view's first row is the
   // back link / chevrons which are intentionally small chrome —
   // 16px above is enough breathing room without an empty band.
-  return isModal ? (
-    <div className="flex flex-col p-5 sm:p-6">{body}</div>
-  ) : (
-    <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6">
-      {body}
-    </div>
-  );
+  // Modal + page share the same wrapper shape for visual parity —
+  // user wants the modal layout to match the dedicated /bookings/[uid]
+  // page route as closely as possible. Same px / pt / pb so the
+  // chrome rhythm reads identical regardless of which variant
+  // surfaced the detail. Modal swaps `mx-auto max-w-2xl` for
+  // full-width since the ResponsiveModalContent already sizes the
+  // dialog box.
+  const wrapperClass = isModal
+    ? "flex flex-col px-4 pt-4 pb-10 sm:px-6"
+    : "mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6";
+  return <div className={wrapperClass}>{body}</div>;
 }
 
 // Adjacent booking link (A5). Active state is a Link; inactive is

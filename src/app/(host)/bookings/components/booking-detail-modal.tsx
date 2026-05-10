@@ -39,12 +39,17 @@ export function BookingDetailModal({
       }}
     >
       <ResponsiveModalContent
-        defaultClose
+        // defaultClose disabled — BookingDetail renders its own
+        // close X inline (in the modal variant) next to the chevrons,
+        // matching the page route's chrome shape (back-link top-left,
+        // action cluster on the right). Skipping the default close
+        // bar removes the 44px vertical reservation the
+        // ResponsiveModal otherwise inserts at the top, so the modal
+        // chrome aligns flush with the body content.
+        defaultClose={false}
         // !overflow-y-auto (with the `!` important modifier) is
         // required to beat `.oh-modal-content { overflow: hidden
-        // !important }` in globals.css. Without `!` the utility
-        // lacks importance and the global rule wins, locking the
-        // modal to a non-scrolling box.
+        // !important }` in globals.css.
         desktopClassName="!h-auto max-h-[calc(100vh-2*var(--oh-modal-vinset))] !overflow-y-auto"
       >
         <ResponsiveModalTitle className="sr-only">

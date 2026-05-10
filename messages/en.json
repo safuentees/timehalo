@@ -365,6 +365,7 @@
   "BookingDetail": {
     "title": "Booking",
     "back": "Back to bookings",
+    "close": "Close",
     "previousBooking": "Previous booking",
     "nextBooking": "Next booking",
     "loading": "Loading booking…",
