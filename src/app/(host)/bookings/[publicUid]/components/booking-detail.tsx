@@ -20,7 +20,6 @@ import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
-import { OhPageShell } from "@/components/oh/page-shell";
 import { OhSection } from "@/components/oh/section";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { cn } from "@/lib/utils";
@@ -111,9 +110,25 @@ export default function BookingDetail({
       day: "numeric",
       year: "numeric",
     });
+  const utils = trpc.useUtils();
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
   const isModal = variant === "modal";
+
+  // Prefetch adjacent bookings (previousUid + nextUid) so ←/→ keys
+  // OR chevron clicks load instantly without a network round-trip.
+  // Pattern: TanStack Query "Prefetching & Router Integration" docs.
+  // Fires after the current booking's data resolves (we need the
+  // adjacent uids first). React Query dedupes — if the user already
+  // visited an adjacent booking, the cache hit is a no-op.
+  useEffect(() => {
+    if (data?.previousUid) {
+      utils.bookings.getDetail.prefetch({ publicUid: data.previousUid });
+    }
+    if (data?.nextUid) {
+      utils.bookings.getDetail.prefetch({ publicUid: data.nextUid });
+    }
+  }, [data?.previousUid, data?.nextUid, utils]);
 
   // Keyboard shortcuts (cal.com pattern). Page variant: ESC → back
   // to /bookings (router.push). Modal variant: ResponsiveModal owns
@@ -164,25 +179,29 @@ export default function BookingDetail({
     },
   });
 
-  if (!data) {
-    const loadingBody = (
-      <>
-        <OhPageHeader title={t("title")} />
-        <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
-      </>
-    );
-    return isModal ? (
-      <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
-    ) : (
-      <OhPageShell tight>{loadingBody}</OhPageShell>
-    );
-  }
-
-  const slotStart = new Date(data.slotStart as unknown as string);
-  const slotEnd = new Date(data.slotEnd as unknown as string);
-  const cancelled = data.deleted;
-  const rescheduled = data.rescheduledFromUid !== null;
-  const status = cancelled ? "cancelled" : rescheduled ? "rescheduled" : "confirmed";
+  // Don't early-return on missing data. Chrome (back link + chevrons
+  // + ⋯ menu + page header + tab strip) renders unconditionally so
+  // the layout is stable across the fetch lifecycle. Fields that
+  // need real data fall back to skeleton-style placeholders (em
+  // dashes / opacity) until data arrives. Without this, the chrome
+  // shifts on first paint as the loading branch (no chevrons) gives
+  // way to the success branch (chevrons mounted) — visible DOM jump
+  // the user reported.
+  const slotStart = data
+    ? new Date(data.slotStart as unknown as string)
+    : null;
+  const slotEnd = data
+    ? new Date(data.slotEnd as unknown as string)
+    : null;
+  const cancelled = data?.deleted ?? false;
+  const rescheduled = data?.rescheduledFromUid != null;
+  const status: "confirmed" | "cancelled" | "rescheduled" | null = data
+    ? cancelled
+      ? "cancelled"
+      : rescheduled
+        ? "rescheduled"
+        : "confirmed"
+    : null;
 
   // Outer wrapper: OhPageShell on the dedicated page route,
   // a plain padded div inside the Sheet drawer (the Sheet primitive
@@ -211,18 +230,18 @@ export default function BookingDetail({
         )}
         <div className="flex shrink-0 items-center gap-1.5">
           <NeighbourLink
-            uid={data.previousUid}
+            uid={data?.previousUid ?? null}
             direction="previous"
             label={t("previousBooking")}
             onNavigate={onNavigate}
           />
           <NeighbourLink
-            uid={data.nextUid}
+            uid={data?.nextUid ?? null}
             direction="next"
             label={t("nextBooking")}
             onNavigate={onNavigate}
           />
-          {!cancelled ? (
+          {data && !cancelled ? (
             <BookingActionsMenu
               cancelLabel={t("cancelAction")}
               cancelTitle={t("cancelTitle")}
@@ -245,13 +264,17 @@ export default function BookingDetail({
       {/* Hero — visitor name as title + status pill aside. Slot
           eyebrow sits below the rule, paired with the host/visitor
           timezone row when they differ. `min-w-0` on the page
-          header so long visitor names truncate cleanly on mobile. */}
+          header so long visitor names truncate cleanly on mobile.
+          Pre-data fallback uses non-breaking space so the layout
+          reserves the title's height (no DOM jump on data arrival). */}
       <OhPageHeader
-        title={data.visitorName}
-        aside={<StatusPill status={status} />}
+        title={data?.visitorName ?? " "}
+        aside={status ? <StatusPill status={status} /> : null}
       />
       <p className="oh-eyebrow mt-2 tabular-nums">
-        {fmtSlotDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
+        {slotStart && slotEnd
+          ? `${fmtSlotDate(slotStart)} ${fmtTime(slotStart)} — ${fmtTime(slotEnd)}`
+          : " "}
       </p>
 
       {/* Tab strip — depth-card vocabulary. Active tab carries the
@@ -276,7 +299,7 @@ export default function BookingDetail({
           onClick={() => setTab("history")}
         >
           <span>{t("tabHistory")}</span>
-          {data.audit.length > 0 ? (
+          {data && data.audit.length > 0 ? (
             <span
               className={cn(
                 "tabular-nums text-[11px] font-bold leading-none",
@@ -290,10 +313,14 @@ export default function BookingDetail({
       </nav>
 
       <div className="mt-8 flex flex-col gap-10">
-        {tab === "info" ? (
-          <InfoView data={data} slotStart={slotStart} slotEnd={slotEnd} />
+        {data && slotStart && slotEnd ? (
+          tab === "info" ? (
+            <InfoView data={data} slotStart={slotStart} slotEnd={slotEnd} />
+          ) : (
+            <HistoryView audit={data.audit} />
+          )
         ) : (
-          <HistoryView audit={data.audit} />
+          <p className="text-[13px] opacity-55">{t("loading")}</p>
         )}
       </div>
       {/* Cancel action moved to the header's ⋯ menu (BookingActionsMenu
@@ -306,10 +333,16 @@ export default function BookingDetail({
     </>
   );
 
+  // Tighter top/bottom padding than OhPageShell's default
+  // py-8 sm:py-10 (32-40px). Detail view's first row is the
+  // back link / chevrons which are intentionally small chrome —
+  // 16px above is enough breathing room without an empty band.
   return isModal ? (
     <div className="flex flex-col p-5 sm:p-6">{body}</div>
   ) : (
-    <OhPageShell tight>{body}</OhPageShell>
+    <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6">
+      {body}
+    </div>
   );
 }
 
