@@ -94,7 +94,10 @@ export function BookingsList({
   const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
   const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDate);
   const router = useRouter();
-  const { data, isError, error } = trpc.bookings.listForHost.useQuery();
+  const { data, isError, error } = trpc.bookings.listForHost.useQuery(
+    undefined,
+    { staleTime: Infinity },
+  );
   const { data: flags } = trpc.users.featureFlags.useQuery();
   const { data: scheduleRanges } = trpc.schedule.get.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;

@@ -1,5 +1,3 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 import { BookingsList, type Tab } from "./components/bookings-list";
 import type { ViewMode } from "./components/bookings-view-switcher";
 
@@ -44,23 +42,13 @@ export default async function BookingsPage({
   const activeView: ViewMode = isView(params.view) ? params.view : "list";
   const cursorDate = parseCursorDate(params.date);
 
-  const trpc = await createPrivateSSRHelper();
-  await Promise.all([
-    trpc.bookings.listForHost.prefetch(),
-    trpc.users.featureFlags.prefetch(),
-    trpc.users.me.prefetch(),
-    trpc.schedule.get.prefetch(),
-  ]);
-
   return (
     <main className="oh-main">
-      <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-        <BookingsList
-          activeTab={activeTab}
-          activeView={activeView}
-          cursorDate={cursorDate}
-        />
-      </HydrationBoundary>
+      <BookingsList
+        activeTab={activeTab}
+        activeView={activeView}
+        cursorDate={cursorDate}
+      />
     </main>
   );
 }
