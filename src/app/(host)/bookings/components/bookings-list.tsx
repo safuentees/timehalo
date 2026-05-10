@@ -53,6 +53,7 @@ import {
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
+import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -439,95 +440,89 @@ export function BookingsList({
     }
   })();
 
+  // B.PT304 — page title surfaces in the topbar (≥md) via the
+  // PageTitleProvider. Frees the calendar mode from the ~80-100px
+  // OhPageHeader chrome cost in-column. Mobile (<md) still sees the
+  // in-column header in list mode (the onboarding card + tabs need
+  // narrative); calendar mobile relies on cursor controls for the
+  // date context, which is the only thing the user actually needs
+  // there.
+  usePageTitle(t("title"));
+  const isCalendarView = optimisticView !== "list";
+
   return (
     <>
-      {/* Header chrome stays in the standard 760px shell so the
-          page title + onboarding card + view switcher line up with
-          the rest of the dashboard's narrow column rhythm. */}
-      <OhPageShell>
-        <OhPageHeader
-          title={t("title")}
-          aside={liveQueueEnabled ? <LiveQueue /> : null}
-        />
-
-        <OnboardingChecklist />
-
-        {/* View-mode segmented control. Above both branches so the
-            switcher itself stays in the narrow column. Highlights the
-            EFFECTIVE view (mobile + ?view=month coalesces to "list"
-            so the pill matches what's actually rendered below). */}
-        <div className="mt-8">
-          <BookingsViewSwitcher
-            value={optimisticView}
-            onValueChange={onViewChange}
+      {/* List mode keeps the standard 760px shell + in-column header.
+          Calendar mode escapes the shell entirely (header hidden,
+          view switcher folds into the calendar wrapper above the
+          cursor controls) so the grid claims maximum vertical
+          space. */}
+      {!isCalendarView ? (
+        <OhPageShell>
+          <OhPageHeader
+            title={t("title")}
+            aside={liveQueueEnabled ? <LiveQueue /> : null}
           />
-        </div>
 
-        {optimisticView === "list" ? (
-          // List mode renders inside the SAME OhPageShell as the
-          // header / view-switcher above. Previously this lived in
-          // a sibling `<OhPageShell>` underneath, which doubled the
-          // `py-8 sm:py-10` chrome padding (one shell's bottom +
-          // the next shell's top = ~64px gap on mobile / 80px
-          // desktop). User wanted the Upcoming / Past tabs to sit
-          // tight against the view switcher above; folding into one
-          // shell makes the only gap the explicit `mt-6` between
-          // siblings.
-          <>
-            <div className="mt-6">
-              <OhPillSwitcher
-                ariaLabel={t("tablistLabel")}
-                value={optimisticTab}
-                onChange={onTabChange}
-                // Tab bar fills the column — Upcoming + Past split
-                // the page width into equal halves instead of
-                // sitting as a content-width AM/PM-style picker.
-                fullWidth
-                options={[
-                  {
-                    value: "upcoming",
-                    label: (
-                      <BookingsTabLabel
-                        label={t("tabUpcoming")}
-                        count={data?.upcoming.length ?? 0}
-                        isActive={optimisticTab === "upcoming"}
-                      />
-                    ),
-                  },
-                  {
-                    value: "past",
-                    label: (
-                      <BookingsTabLabel
-                        label={t("tabPast")}
-                        count={data?.past.length ?? 0}
-                        isActive={optimisticTab === "past"}
-                      />
-                    ),
-                  },
-                ]}
+          <OnboardingChecklist />
+
+          <div className="mt-8">
+            <BookingsViewSwitcher
+              value={optimisticView}
+              onValueChange={onViewChange}
+            />
+          </div>
+
+          <div className="mt-6">
+            <OhPillSwitcher
+              ariaLabel={t("tablistLabel")}
+              value={optimisticTab}
+              onChange={onTabChange}
+              fullWidth
+              options={[
+                {
+                  value: "upcoming",
+                  label: (
+                    <BookingsTabLabel
+                      label={t("tabUpcoming")}
+                      count={data?.upcoming.length ?? 0}
+                      isActive={optimisticTab === "upcoming"}
+                    />
+                  ),
+                },
+                {
+                  value: "past",
+                  label: (
+                    <BookingsTabLabel
+                      label={t("tabPast")}
+                      count={data?.past.length ?? 0}
+                      isActive={optimisticTab === "past"}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </div>
+
+          <div className="mt-6">
+            {optimisticTab === "upcoming" ? (
+              <BookingsListPanel
+                tab="upcoming"
+                bookings={data?.upcoming ?? []}
+                onSelect={setSelectedUid}
               />
-            </div>
+            ) : (
+              <BookingsListPanel
+                tab="past"
+                bookings={data?.past ?? []}
+                onSelect={setSelectedUid}
+              />
+            )}
+          </div>
+        </OhPageShell>
+      ) : null}
 
-            <div className="mt-6">
-              {optimisticTab === "upcoming" ? (
-                <BookingsListPanel
-                  tab="upcoming"
-                  bookings={data?.upcoming ?? []}
-                  onSelect={setSelectedUid}
-                />
-              ) : (
-                <BookingsListPanel
-                  tab="past"
-                  bookings={data?.past ?? []}
-                  onSelect={setSelectedUid}
-                />
-              )}
-            </div>
-          </>
-        ) : null}
-      </OhPageShell>
-
-      {optimisticView !== "list" ? (
+      {isCalendarView ? (
         // Calendar mode: escape the OhPageShell width cap so each
         // view can use its appropriate max width (week 1440, month
         // 1200, day 760). Outer wrapper provides the same horizontal
@@ -571,13 +566,34 @@ export function BookingsList({
           // fixed 280px chrome above and didn't track when the
           // actual chrome differed.
           aria-busy={isPending || undefined}
+          // `data-fit-viewport` flips ContentSlot's motion.div from
+          // `min-h-full` to `h-full` so `flex-1 min-h-0` below
+          // resolves against an exact viewport-height parent (see
+          // OhDashboardLayout's ContentSlot for the full chain).
+          data-fit-viewport
           className={cn(
-            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-4 px-4 pb-8 sm:px-6 sm:pb-10",
+            // B.PT304 — calendar mode owns ALL vertical space inside
+            // the ScrollArea Viewport. Title is in the topbar; no
+            // OhPageShell above; chrome above the grid is just the
+            // view switcher + cursor controls. `min-h-0 flex-1` lets
+            // the panel grow to fill, never to overflow. Tight gap
+            // + reduced bottom padding so the grid can settle on
+            // a 14h-day worth of rows without page scroll.
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
           )}
         >
+          {/* View switcher folded into the calendar wrapper now
+              that the OhPageShell is hidden above. Mobile +
+              desktop both render here so users can swap views
+              without scrolling back up to a separate chrome
+              band. */}
+          <BookingsViewSwitcher
+            value={optimisticView}
+            onValueChange={onViewChange}
+          />
           <BookingsCursorControls
             view={optimisticView}
             cursorDate={optimisticCursor}

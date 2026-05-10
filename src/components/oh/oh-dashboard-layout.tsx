@@ -17,6 +17,7 @@ import {
   DashboardRouteTransitionProvider,
   useDashboardRouteTransition,
 } from "./dashboard-route-transition";
+import { PageTitleProvider } from "./page-title-context";
 
 // Per-route content fade. The dashboard deliberately does NOT key the
 // page wrapper by `pathname`: in the App Router, the server `children`
@@ -116,6 +117,7 @@ export function OhDashboardLayout({
 
   return (
     <TooltipProvider delay={200}>
+      <PageTitleProvider>
       <DashboardRouteTransitionProvider>
         <SidebarProvider
           className="oh-app-shell"
@@ -156,6 +158,7 @@ export function OhDashboardLayout({
           </div>
         </SidebarProvider>
       </DashboardRouteTransitionProvider>
+      </PageTitleProvider>
     </TooltipProvider>
   );
 }
@@ -191,12 +194,23 @@ function ContentSlot({ children }: { children: ReactNode }) {
       // `flex flex-col` so calendar-style pages can claim the
       // ScrollArea Viewport's full height via `flex-1 min-h-0`
       // children (B.PT296 — bookings calendar adaptive height).
-      // Block-shaped pages (OhPageShell-only) render as a single
-      // flex item with natural height; the panel bg fills any
-      // slack below. `min-h-full` keeps the column at LEAST the
-      // viewport height so the slack-fill behavior holds even
-      // when content is short.
-      className="flex min-h-full flex-col"
+      //
+      // Default: `min-h-full` — the column is AT LEAST viewport
+      // height, but grows past it when the page's content (e.g. a
+      // long booking list) exceeds. ScrollArea Viewport scrolls
+      // the overflow.
+      //
+      // Fit-viewport mode: when any descendant carries
+      // `data-fit-viewport`, the column collapses to EXACTLY
+      // viewport height (`h-full`) so a `flex-1 min-h-0` child
+      // can claim a fixed slot and scroll INTERNALLY rather than
+      // overflowing into a page-level scroll. B.PT304: /bookings
+      // calendar mode uses this so day/week/month grids fit the
+      // panel without page scroll. Mobile-first concern: the
+      // calendar internal scroll is the right cue ("calendar is
+      // its own surface") vs page scroll ("you're somewhere in a
+      // long page").
+      className="flex flex-col min-h-full [&:has([data-fit-viewport])]:h-full [&:has([data-fit-viewport])]:min-h-0"
       initial={false}
       animate={{
         opacity: routeOpacity,

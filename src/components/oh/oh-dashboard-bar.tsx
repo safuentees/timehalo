@@ -22,6 +22,8 @@ import { DashboardTransitionLink } from "./dashboard-route-transition";
 import { OhMenuTrigger } from "./oh-menu-trigger";
 import { OhTopProgressBar } from "./oh-top-progress-bar";
 import { OhUserMenu } from "./user-menu";
+import { usePageTitleValue } from "./page-title-context";
+import { motion, AnimatePresence } from "motion/react";
 
 // Top bar above the dashboard sidebar+content row. Cal.com pattern:
 // outer flex-col places this above .oh-app, which still owns the
@@ -257,6 +259,15 @@ export function OhDashboardBar() {
         </Menu.Portal>
       </Menu.Root>
 
+      {/* Page title slot (B.PT304). Rendered only ≥md — at <md the
+          workspace switcher already crowds the bar and a contextual
+          title would collide with the sidebar trigger / icons.
+          AnimatePresence wait-mode crossfades the title on route
+          change so the bar's chrome doesn't visually pop. The
+          OhPageTitleSlot reads from PageTitleProvider; pages set
+          via `usePageTitle()` in an effect. */}
+      <OhPageTitleSlot />
+
       {/* Mobile dashboard-bar grid slot — pinned to column 3. The
           `data-bar-slot` marker keeps the icons + avatar justified to
           the bar's right edge regardless of how many UNMARKED
@@ -316,5 +327,36 @@ function ChromeIconLink({
     >
       <Icon aria-hidden strokeWidth={1.75} className="size-4" />
     </DashboardTransitionLink>
+  );
+}
+
+// Page title slot — reads from PageTitleProvider, hidden &lt;md.
+// `flex-1 min-w-0` so it grows to fill the gap between switcher
+// and end-slot but truncates rather than pushing icons off-screen.
+// AnimatePresence with wait mode crossfades the title text on
+// route change with a tight 180ms tween (chrome-fast, not the
+// content-spring used for the calendar / handle morphs).
+function OhPageTitleSlot() {
+  const title = usePageTitleValue();
+  return (
+    <div
+      data-bar-slot="title"
+      className="hidden min-w-0 flex-1 items-center justify-start pl-3 md:flex"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {title ? (
+          <motion.span
+            key={title}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+            className="oh-eyebrow truncate text-[color:var(--oh-content-muted)]"
+          >
+            {title}
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
