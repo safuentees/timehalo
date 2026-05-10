@@ -201,19 +201,21 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // `min-h-full` so block-shaped pages (single flex item with
-      // natural height) at least fill the panel; long content
-      // grows past and the parent overflow-y-auto scrolls. `h-full`
-      // for fit-viewport pages would clip — `min-h-full` is the
-      // right default. Calendar mode opts in via `absolute inset-0`
-      // on its wrapper (anchors to motion.div's `relative`).
+      // `h-full` (not `min-h-full`) is the canonical Tailwind class
+      // that lets `flex-1 min-h-0` children fill remaining space
+      // INSIDE motion.div. `min-h-full` doesn't give a definite
+      // height — it just floors the auto-computed height — so
+      // `flex-1` children would have 0 to claim. With Radix
+      // ScrollArea gone (its `display: table` wrapper was the
+      // chain-breaker), motion.div's parent is now a plain block
+      // div with `height: 100%`, so `h-full` here resolves to the
+      // panel's explicit `calc(100svh - 24px - bar)` cleanly.
       //
-      // `relative` is the containing-block anchor for absolute
-      // children. After replacing Radix ScrollArea with a native
-      // `overflow-y-auto` div, the flex/percentage-height chain
-      // resolves cleanly — motion.div parent is now a plain block
-      // div, not Radix's `display: table` wrapper.
-      className="relative flex min-h-full flex-col"
+      // List mode (long content): children overflow motion.div
+      // bounds; the parent `oh-host-content-inner overflow-y-auto`
+      // scrolls. Calendar mode: child is `flex-1 min-h-0`,
+      // claims remaining height; internal scroll inside the view.
+      className="flex h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,

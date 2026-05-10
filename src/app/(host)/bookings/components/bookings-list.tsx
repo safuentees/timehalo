@@ -543,17 +543,20 @@ export function BookingsList({
           onDragEnd={onDragEnd}
           onDragCancel={() => setActiveDrag(null)}
         >
-        {/* B.PT304 — outer absolute cover. Anchors to ContentSlot's
-            motion.div (which carries `relative`) so the calendar
-            mode occupies EXACTLY the Viewport bounds, bypassing the
-            broken flex chain through the Radix ScrollArea Viewport
-            (which wraps children in a `display: table` div that
-            doesn't pass flex resolution through to descendants).
-            Inside, the inner div carries the per-view max-width cap
-            and `flex-1 min-h-0` on the calendar view claims the
-            remaining vertical space — page never scrolls, the
-            calendar's internal overflow-y-auto does. */}
-        <div className="absolute inset-0 flex flex-col">
+        {/* B.PT304 — clean flex chain. ContentSlot's motion.div is
+            `flex h-full flex-col` against `oh-host-content-inner`'s
+            explicit `height: 100%` (which is 100% of the panel's
+            `calc(100svh - 24px - bar)`). Calendar wrapper is the
+            direct flex child of motion.div with `flex-1 min-h-0`
+            so it claims motion.div's full height. Inside, view's
+            `flex-1 min-h-0` claims remaining after [view switcher
+            + cursor controls], and `overflow-y-auto` on the view
+            scrolls the 24h grid INSIDE the panel.
+
+            No absolute positioning, no display:table workarounds —
+            just the canonical flex-1 min-h-0 chain that works now
+            that Radix ScrollArea was replaced by a native
+            overflow-auto div. */}
         <div
           aria-busy={isPending || undefined}
           className={cn(
@@ -685,7 +688,6 @@ export function BookingsList({
               />
             </div>
           ) : null}
-        </div>
         </div>
         {/* DragOverlay renders the chip ghost following the pointer.
             Keeping it outside the column tree prevents the source
