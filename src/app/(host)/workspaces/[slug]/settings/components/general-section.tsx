@@ -85,6 +85,10 @@ export function GeneralSection({
     if (v.slug !== slug) patch.newSlug = v.slug;
     if (patch.name === undefined && patch.newSlug === undefined) return;
     await updateWorkspace.mutateAsync(patch);
+    // Reset defaults so isDirty flips false after save (without this
+    // `keepDirtyValues: true` preserves the dirty flag through the
+    // values re-seed, and InlineFormSave never hides).
+    form.reset(v);
   }
 
   const isPending = updateWorkspace.isPending;
