@@ -147,16 +147,17 @@
   --oh-shadow-hover:
     0 4px 16px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 60%);
+  --oh-shadow-resting-centered:
+    0 0 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 50%);
   --oh-shadow-popup:
-    0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18),
+    0 16px 32px -12px rgb(0 0 0 / 0.28), 0 4px 12px -6px rgb(0 0 0 / 0.18),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 50%);
   --oh-shadow-drawer-edge:
     0 -18px 44px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 50%);
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 30%);
   --oh-shadow-well:
     inset 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
@@ -236,20 +237,21 @@
   --oh-shadow-hover:
     0 6px 20px rgba(0, 0, 0, 0.65),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
+  --oh-shadow-resting-centered:
+    0 0 14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 5%);
 
   --oh-input-shadow-rest: inset 0 0 6px rgba(0, 0, 0, 0.45);
   --oh-focus-shadow-input: inset 0 3px 10px rgba(0, 0, 0, 0.6);
 
   --oh-shadow-popup:
-    0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5),
+    0 18px 36px -12px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 6%);
   --oh-shadow-drawer-edge:
     0 -20px 48px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 5%);
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
   --oh-shadow-well:
     inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
@@ -370,6 +372,18 @@
 }
 .oh-dashboard-bar-chevron {
   transition: transform 150ms var(--ease-oh, ease);
+}
+.oh-dashboard-bar-pill {
+  align-items: center;
+  gap: 8px;
+  height: calc(var(--oh-dashboard-bar-height) - 4px);
+  padding-inline: 8px;
+  border-radius: var(--oh-r-xs);
+  background: transparent;
+  transition: background-color 150ms var(--ease-oh, ease);
+}
+.oh-dashboard-bar-pill:hover {
+  background: var(--oh-tint-hover);
 }
 .oh-dashboard-bar-trigger[data-popup-open] .oh-dashboard-bar-chevron {
   transform: rotate(180deg);
@@ -675,25 +689,6 @@
 }
 .oh-duration-picker-popup[data-starting-style],
 .oh-duration-picker-popup[data-ending-style] {
-  opacity: 0;
-  transform: scale(0.96) translateY(-4px);
-}
-
-.oh-onboarding-popup {
-  width: 340px;
-  max-width: calc(100vw - 24px);
-  background-color: var(--oh-paper);
-  color: var(--oh-ink);
-  border-radius: var(--oh-r-sm);
-  box-shadow: var(--oh-shadow-popup);
-  outline: none;
-  transform-origin: top left;
-  transition:
-    transform 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1)),
-    opacity 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1));
-}
-.oh-onboarding-popup[data-starting-style],
-.oh-onboarding-popup[data-ending-style] {
   opacity: 0;
   transform: scale(0.96) translateY(-4px);
 }
@@ -2887,6 +2882,7 @@
 .oh-host-content-inner {
   width: 100%;
   height: 100%;
+  scrollbar-gutter: stable;
 }
 
 .oh-dashboard-bar {

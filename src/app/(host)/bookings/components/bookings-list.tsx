@@ -53,6 +53,7 @@ import {
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
+import { ShareLinkPill } from "@/components/oh/share-link-pill";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -280,7 +281,10 @@ export function BookingsList({
     <>
       {!isCalendarView ? (
         <div className="mx-auto w-full max-w-[760px] px-4 pt-4 pb-4 sm:px-6 flex flex-col gap-3">
-          <OnboardingChecklist />
+          <div className="flex flex-wrap items-center gap-2">
+            <ShareLinkPill />
+            <OnboardingChecklist />
+          </div>
 
           <BookingsViewSwitcher
             value={optimisticView}
@@ -350,6 +354,10 @@ export function BookingsList({
           className="flex w-full min-h-0 flex-col gap-3 pt-4 pb-4"
         >
           <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 sm:px-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <ShareLinkPill />
+              <OnboardingChecklist />
+            </div>
             <BookingsViewSwitcher
               value={optimisticView}
               onValueChange={onViewChange}
@@ -363,7 +371,7 @@ export function BookingsList({
 
           <div
             className={cn(
-              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6",
               calendarMaxWidthClass,
               optimisticView !== "month" && "min-h-0 flex-1",
             )}
@@ -863,7 +871,9 @@ function EmptyBookings({ tab }: { tab: Tab }) {
       {tab === "upcoming" && me?.handle ? (
         <OhEmptyContent>
           <Link
-            href={`/preview/${me.handle}`}
+            href={`/h/${me.handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="oh-focus-ring text-[13px] font-medium text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-colors hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
           >
             {t("emptyCta")}

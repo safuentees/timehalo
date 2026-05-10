@@ -419,7 +419,7 @@
     "signOut": "Cerrar sesión"
   },
   "Bookings": {
-    "title": "Tus reservas",
+    "title": "Reservas",
     "tabUpcoming": "Próximas",
     "tabPast": "Pasadas",
     "tablistLabel": "Período de reservas",
@@ -817,6 +817,10 @@
     "signInDescription": "Si tienes cuenta",
     "createAccountTitle": "Crear cuenta",
     "createAccountDescription": "Si no la tienes"
+  },
+  "Share": {
+    "copyAria": "Copiar {url} al portapapeles",
+    "hideAria": "Ocultar enlace para compartir"
   },
   "AppError": {
     "label": "Officehours / 500",

@@ -15,7 +15,7 @@ export type OnboardingStep = {
   id: OnboardingStepId;
   titleKey: string;
   descriptionKey: string;
-  href: string;
+  href?: string;
   done: boolean;
   manual?: boolean;
 };
@@ -71,7 +71,6 @@ export function computeOnboardingSteps(
       id: "first-booking",
       titleKey: "stepFirstBookingTitle",
       descriptionKey: "stepFirstBookingDescription",
-      href: "/bookings",
       done: firstBookingDone,
     },
   ];

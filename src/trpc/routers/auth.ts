@@ -176,6 +176,7 @@ export const auth = router({
                   slug: placeholderHandle,
                   name: placeholderHandle,
                   durationMins: 15,
+                  durationMinsList: JSON.stringify([15]),
                 },
                 select: { id: true },
               });

@@ -53,7 +53,7 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/onboarding/handle");
+      router.push("/bookings");
       router.refresh();
     },
     onError: (error) => {
