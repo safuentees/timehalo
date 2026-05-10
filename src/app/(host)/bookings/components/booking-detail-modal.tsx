@@ -40,7 +40,12 @@ export function BookingDetailModal({
     >
       <ResponsiveModalContent
         defaultClose
-        desktopClassName="!h-auto max-h-[calc(100vh-2*var(--oh-modal-vinset))] overflow-y-auto"
+        // !overflow-y-auto (with the `!` important modifier) is
+        // required to beat `.oh-modal-content { overflow: hidden
+        // !important }` in globals.css. Without `!` the utility
+        // lacks importance and the global rule wins, locking the
+        // modal to a non-scrolling box.
+        desktopClassName="!h-auto max-h-[calc(100vh-2*var(--oh-modal-vinset))] !overflow-y-auto"
       >
         <ResponsiveModalTitle className="sr-only">
           Booking
