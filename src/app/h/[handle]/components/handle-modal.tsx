@@ -564,6 +564,12 @@ export function HandleModal({
         // animate. Rapid close→reopen is handled outside by the
         // parent AnimatePresence `onExitComplete` gate.
         layoutId="handle-card"
+        // B.PT303 — paired with the landing card's same prop. Disables
+        // motion's default lead/follow crossfade so the dark-mode drop
+        // shadow on `.oh-handle-morph-card` doesn't double up during
+        // the open/close morph. See landing card comment for the full
+        // chain. Public typed: motion-dom d.ts:970.
+        layoutCrossfade={false}
         transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
         initial={{
           ...HANDLE_CARD_RADIUS_STYLE,

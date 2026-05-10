@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
+import { OhCard } from "@/components/oh/oh-card";
 import {
   computeOnboardingSteps,
   isComplete,
@@ -99,47 +100,49 @@ export function OnboardingChecklist() {
   const { done, total, percent } = progress(steps);
 
   return (
-    <section
-      className="mt-6 border-2 border-oh-line-strong p-5"
-      aria-label={t("sectionAria")}
-    >
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="oh-eyebrow">
-            {t("gettingStarted", { done, total })}
-          </p>
-          <h2 className="mt-2 text-[18px] font-black leading-tight">
-            {t("percentSetUp", { percent })}
-          </h2>
-        </div>
-        <Button
-          type="button"
-          variant="ohGhost"
-          size="icon-sm"
-          onClick={() => setOnboardingState.mutate({ dismissed: true })}
-          aria-label={t("hideAria")}
-        >
-          <XIcon strokeWidth={1.5} />
-        </Button>
-      </header>
+    <OhCard asChild>
+      <section
+        className="mt-6 p-5"
+        aria-label={t("sectionAria")}
+      >
+        <header className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="oh-eyebrow">
+              {t("gettingStarted", { done, total })}
+            </p>
+            <h2 className="mt-2 text-[18px] font-black leading-tight">
+              {t("percentSetUp", { percent })}
+            </h2>
+          </div>
+          <Button
+            type="button"
+            variant="ohGhost"
+            size="icon-sm"
+            onClick={() => setOnboardingState.mutate({ dismissed: true })}
+            aria-label={t("hideAria")}
+          >
+            <XIcon strokeWidth={1.5} />
+          </Button>
+        </header>
 
-      <ul role="list" className="mt-5 flex flex-col gap-3">
-        {steps.map((step) => (
-          <li key={step.id}>
-            <StepRow
-              step={step}
-              onMark={() => {
-                const next = new Set(manuallyDone);
-                next.add(step.id);
-                setOnboardingState.mutate({
-                  manualSteps: Array.from(next),
-                });
-              }}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
+        <ul role="list" className="mt-5 flex flex-col gap-3">
+          {steps.map((step) => (
+            <li key={step.id}>
+              <StepRow
+                step={step}
+                onMark={() => {
+                  const next = new Set(manuallyDone);
+                  next.add(step.id);
+                  setOnboardingState.mutate({
+                    manualSteps: Array.from(next),
+                  });
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </OhCard>
   );
 }
 
