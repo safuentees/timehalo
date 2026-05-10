@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import {
   useAddEventTypeHost,
@@ -247,10 +248,15 @@ function HostRow({
               <Button
                 type="button"
                 variant="ohGhost"
-                size="oh"
+                size="icon-sm"
                 disabled={removeHost.isPending}
+                aria-label={t("removeFromPoolConfirm")}
               >
-                {t("removeFromPoolConfirm")}
+                <Trash2
+                  strokeWidth={1.75}
+                  className="size-4"
+                  aria-hidden
+                />
               </Button>
             }
           />

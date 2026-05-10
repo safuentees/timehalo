@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ArrowLeftIcon, UsersIcon } from "lucide-react";
+import { ArrowLeftIcon, Trash2, UsersIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteEventType } from "@/lib/mutations/use-event-type-mutations";
 import { Button } from "@/components/ui/button";
@@ -166,10 +166,15 @@ function EventTypeRow({
                 <Button
                   type="button"
                   variant="ohGhost"
-                  size="oh"
+                  size="icon-sm"
                   disabled={deleteEventType.isPending}
+                  aria-label={t("deleteButton")}
                 >
-                  {t("deleteButton")}
+                  <Trash2
+                    strokeWidth={1.75}
+                    className="size-4"
+                    aria-hidden
+                  />
                 </Button>
               }
             />

@@ -2,7 +2,7 @@ import "server-only";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import Stripe from "stripe";
-import type { PlanTier } from "@/generated/prisma/enums";
+import type { MembershipRole, PlanTier } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/env";
 import { hasScope, workspaceSlugSchema } from "@/lib/workspaces";
@@ -69,9 +69,10 @@ function priceIdForPlan(plan: "PRO" | "TEAM"): string {
   return id;
 }
 
-// Workspace + scope guard. workspace.write covers billing — only
-// OWNER/ADMIN should be able to swap plans or open the portal.
-async function requireBillingScope(opts: {
+// Workspace + scope guard for WRITE-side billing actions —
+// createCheckout / createPortalSession. workspace.write covers
+// these: only OWNER can swap plans or open the Stripe portal.
+async function requireBillingWriteScope(opts: {
   slug: string;
   userId: string;
 }): Promise<{ workspaceId: string }> {
@@ -101,6 +102,59 @@ async function requireBillingScope(opts: {
   return { workspaceId: ws.id };
 }
 
+// Workspace + scope guard for READ-side billing — the
+// `currentPlan` query needs to be visible to ANY member so the
+// developer / workflows / billing surfaces can render the
+// correct lock state + the "ask the owner to upgrade" copy for
+// non-OWNERs. Only requires workspace.read (every role grants).
+// Returns the caller's role + the workspace owner's identity so
+// callers can render member-aware copy without a second query.
+async function requireBillingReadScope(opts: {
+  slug: string;
+  userId: string;
+}): Promise<{
+  workspaceId: string;
+  callerRole: MembershipRole;
+  owner: { id: string; name: string | null; handle: string | null };
+}> {
+  const ws = await prisma.workspace.findUnique({
+    where: { slug: opts.slug },
+    select: {
+      id: true,
+      ownerId: true,
+      memberships: {
+        where: { userId: opts.userId },
+        select: { role: true },
+      },
+      owner: {
+        select: { id: true, name: true, handle: true },
+      },
+    },
+  });
+  if (!ws || ws.memberships.length === 0) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Workspace not found",
+    });
+  }
+  const role = ws.memberships[0].role;
+  if (!hasScope(role, "workspace.read")) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Your role (${role}) cannot read this workspace.`,
+    });
+  }
+  return {
+    workspaceId: ws.id,
+    callerRole: role,
+    owner: {
+      id: ws.owner?.id ?? ws.ownerId,
+      name: ws.owner?.name ?? null,
+      handle: ws.owner?.handle ?? null,
+    },
+  };
+}
+
 export const billing = router({
   // Read-side: current plan + period end. No side effects, no
   // Stripe calls — reads the locally-mirrored Subscription row.
@@ -108,10 +162,17 @@ export const billing = router({
   currentPlan: privateProcedure
     .input(z.object({ slug: workspaceSlugSchema }))
     .query(async ({ input, ctx }) => {
-      const { workspaceId } = await requireBillingScope({
-        slug: input.slug,
-        userId: ctx.user.id,
-      });
+      // Read-side: requires only workspace.read so non-OWNER
+      // members (ADMIN / MEMBER / VIEWER) can render the lock
+      // state + the "ask the owner to upgrade" copy on locked
+      // features (webhooks / api-keys / workflows). Write-side
+      // billing actions (createCheckout / createPortalSession)
+      // still require workspace.write below.
+      const { workspaceId, callerRole, owner } =
+        await requireBillingReadScope({
+          slug: input.slug,
+          userId: ctx.user.id,
+        });
       const plan: PlanTier = await planForWorkspace(workspaceId);
       const sub = await prisma.subscription.findUnique({
         where: { workspaceId },
@@ -131,6 +192,14 @@ export const billing = router({
         // "Manage billing" portal button (only valid post-checkout
         // when a customer id exists).
         hasStripeCustomer: Boolean(sub?.stripeCustomerId),
+        // Member-aware copy on locked features. callerRole +
+        // owner identity together let the upgrade-prompt callsites
+        // render either "Upgrade to Pro" (OWNER) or "Ask {owner}
+        // to upgrade" (ADMIN / MEMBER / VIEWER) without a second
+        // query. Owner identity is non-sensitive (name + handle —
+        // same projection `users.getByHandle` exposes publicly).
+        callerRole,
+        owner,
       };
     }),
 
@@ -164,7 +233,7 @@ export const billing = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { workspaceId } = await requireBillingScope({
+      const { workspaceId } = await requireBillingWriteScope({
         slug: input.slug,
         userId: ctx.user.id,
       });
@@ -285,7 +354,7 @@ export const billing = router({
   openPortal: privateProcedure
     .input(z.object({ slug: workspaceSlugSchema }))
     .mutation(async ({ input, ctx }) => {
-      const { workspaceId } = await requireBillingScope({
+      const { workspaceId } = await requireBillingWriteScope({
         slug: input.slug,
         userId: ctx.user.id,
       });

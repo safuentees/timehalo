@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ArrowLeftIcon, ArrowRightIcon, MinusCircleIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, Trash2 } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
 import { useSetMemberRole } from "@/lib/mutations/use-set-member-role";
 import { useRemoveMember } from "@/lib/mutations/use-remove-member";
@@ -218,12 +218,16 @@ function MemberRow({
               <Button
                 type="button"
                 variant="ohGhost"
-                size="oh"
+                size="icon-sm"
                 disabled={remove.isPending}
                 className="ml-auto"
+                aria-label={remove.isPending ? t("removing") : t("remove")}
               >
-                <MinusCircleIcon />
-                {remove.isPending ? t("removing") : t("remove")}
+                <Trash2
+                  strokeWidth={1.75}
+                  className="size-4"
+                  aria-hidden
+                />
               </Button>
             }
             title={t("removeTitle", { name })}
@@ -337,10 +341,15 @@ function InvitationRow({
                 <Button
                   type="button"
                   variant="ohGhost"
-                  size="oh"
+                  size="icon-sm"
                   disabled={revoke.isPending}
+                  aria-label={revoke.isPending ? t("revoking") : t("revoke")}
                 >
-                  {revoke.isPending ? t("revoking") : t("revoke")}
+                  <Trash2
+                    strokeWidth={1.75}
+                    className="size-4"
+                    aria-hidden
+                  />
                 </Button>
               }
               title={t("revokeTitle")}

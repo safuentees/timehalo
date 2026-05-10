@@ -136,6 +136,13 @@ function BillingForWorkspace({
   const t = useTranslations("Billing");
   const { data: current, isLoading } =
     trpc.billing.currentPlan.useQuery({ slug });
+  // Plan-change + portal actions require workspace.write on the
+  // server (B.PT284 split). Non-OWNERs viewing the billing
+  // dashboard read the plan but can't action upgrade/downgrade —
+  // disable the action buttons + the portal CTA so the failures
+  // don't surface as toasts. They'd already 403 server-side; this
+  // moves the check up to the UI for clearer affordance gating.
+  const canManageBilling = current?.callerRole === "OWNER";
   // Detect post-checkout polling window. `<CheckoutReturnSync>`
   // (rendered by `BillingSection`) starts polling when the URL
   // carries `?billing=success` and clears the param via
@@ -189,6 +196,7 @@ function BillingForWorkspace({
             cancelAtPeriodEnd={current.cancelAtPeriodEnd}
             hasStripeCustomer={current.hasStripeCustomer}
             isProcessingCheckout={isProcessingCheckout}
+            canManageBilling={canManageBilling}
           />
         )}
       </div>
@@ -200,7 +208,7 @@ function BillingForWorkspace({
               slug={slug}
               tier={tier}
               isCurrent={current?.plan === tier}
-              disabled={isLoading || !current}
+              disabled={isLoading || !current || !canManageBilling}
               isProcessingCheckout={isProcessingCheckout}
             />
           </li>
@@ -217,6 +225,7 @@ function CurrentPlanBanner({
   cancelAtPeriodEnd,
   hasStripeCustomer,
   isProcessingCheckout,
+  canManageBilling,
 }: {
   slug: string;
   plan: PlanTier;
@@ -224,6 +233,7 @@ function CurrentPlanBanner({
   cancelAtPeriodEnd: boolean;
   hasStripeCustomer: boolean;
   isProcessingCheckout: boolean;
+  canManageBilling: boolean;
 }) {
   const t = useTranslations("Billing");
   const fmt = useFormatter();
@@ -271,7 +281,7 @@ function CurrentPlanBanner({
           </p>
         </div>
 
-        {!isFree && hasStripeCustomer ? (
+        {!isFree && hasStripeCustomer && canManageBilling ? (
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"

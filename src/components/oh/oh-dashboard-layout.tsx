@@ -70,13 +70,49 @@ export function OhDashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const { typeface, density, motion: motionPref } = useOhPrefs();
+  const { typeface, density } = useOhPrefs();
   const pathname = usePathname();
   const isPreview = pathname?.startsWith("/preview/") ?? false;
 
-  const insetClass = ["oh-root", motionPref ? "oh-motion" : ""]
-    .filter(Boolean)
-    .join(" ");
+  // Note: `oh-root` + `oh-motion` were previously added to the
+  // SidebarInset here. Removed because every effect they had on the
+  // dashboard was either redundant or harmful:
+  //
+  //   - `position: relative` — already on SidebarInset via Tailwind
+  //     class `relative` (shadcn primitive).
+  //   - `width: 100%` — already via `w-full`.
+  //   - `background: var(--oh-frame)` — already via `bg-background`,
+  //     which `.oh-app` re-aliases to `var(--oh-frame)` for the
+  //     dashboard scope (globals.css line 1225). No seam, no
+  //     mismatch.
+  //   - `color: var(--oh-ink)` + body font — inherited from
+  //     `.oh-app-shell` (the SidebarProvider wrapper) which sets
+  //     them at the layout root.
+  //   - `container-type: inline-size; container-name: oh-root` —
+  //     unused on the dashboard. Every `@container oh-root` rule in
+  //     globals.css targets visitor-surface classes only
+  //     (`.oh-hero`, `.oh-topbar`, `.oh-post`, `.oh-profile-cta`,
+  //     `.oh-v1-hero`, etc.). None apply inside the dashboard tree.
+  //   - `min-height: 100vh` — **the harmful part**. The
+  //     `.oh-app-shell` is already viewport-anchored at `100svh`
+  //     and the SidebarInset is a `flex-1 min-h-0` child of
+  //     `.oh-app` (which is `flex-1` of the column-flex shell).
+  //     The shell carefully partitions: dashboard bar pays its
+  //     `--oh-dashboard-bar-block` slot at the top, the row pays
+  //     the rest via flex-1. Forcing `min-height: 100vh` on the
+  //     inset breaks that partition — on viewports where vh > svh
+  //     (mobile Safari with the URL bar visible) the inset
+  //     overflows below its allotted space, body scrolls, and the
+  //     dashboard bar gets pushed off the top. User reported this
+  //     as "topbar disappears with invisible space at the bottom."
+  //
+  // `oh-motion` similarly only affected `.oh-ticker-track` on
+  // visitor pages (globals.css line 1426). Dashboard has no
+  // ticker; the class was dead weight.
+  //
+  // Visitor surfaces (`/h/[handle]`, `/w/[slug]`, `/(dev)`) keep
+  // their own `oh-root` wrapper — those are standalone page-level
+  // containers where 100vh + container queries apply by design.
 
   return (
     <TooltipProvider delay={200}>
@@ -90,7 +126,7 @@ export function OhDashboardLayout({
           <OhDashboardBar />
           <div className="oh-app flex min-h-0 flex-1">
             <OhAppSidebar />
-            <SidebarInset className={insetClass}>
+            <SidebarInset>
               {/* The panel owns the static visual frame (paper bg, rounded
                   corners, margin from the cream frame); the inner ScrollArea
                   wraps the page content. ContentSlot animates ONLY the page

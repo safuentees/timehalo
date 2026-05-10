@@ -12,6 +12,7 @@ import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { OhCard } from "@/components/oh/oh-card";
 
 // Workspace API keys section. Surface flow:
 //
@@ -123,8 +124,12 @@ function ApiKeysForWorkspace({
   // include api-keys" on create. Surfacing the constraint inline
   // here means the user understands the gate before clicking, and
   // gets a path to resolve it without hunting for billing.
+  // `currentPlan` returns `callerRole` + `owner` (B.PT284) so the
+  // upgrade prompt + create gate render member-aware copy without
+  // a second query.
   const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
   const isLocked = plan?.plan === "FREE";
+  const isOwner = plan?.callerRole === "OWNER";
 
   return (
     <>
@@ -184,14 +189,42 @@ function ApiKeysForWorkspace({
       ) : null}
 
       <div className="mt-4">
-        {isLocked ? <UpgradePrompt /> : <ApiKeyCreateDialog slug={slug} />}
+        {isLocked ? (
+          <UpgradePrompt
+            isOwner={isOwner}
+            ownerName={plan?.owner?.name ?? plan?.owner?.handle ?? null}
+          />
+        ) : (
+          // VIEWERs can't create keys (no workspace.write); hide
+          // the create CTA for them. ADMIN+ on a Pro workspace
+          // still see it.
+          plan?.callerRole === "VIEWER" ? null : (
+            <ApiKeyCreateDialog slug={slug} />
+          )
+        )}
       </div>
     </>
   );
 }
 
-function UpgradePrompt() {
+function UpgradePrompt({
+  isOwner,
+  ownerName,
+}: {
+  isOwner: boolean;
+  ownerName: string | null;
+}) {
   const t = useTranslations("ApiKeys");
+  // Non-OWNER + we know the owner's display name → render the
+  // "Ask {ownerName} to upgrade" copy with no clickable upgrade
+  // link (they can't action it).
+  if (!isOwner && ownerName) {
+    return (
+      <OhInlineEmpty>
+        {t("upgradePromptAskOwner", { ownerName })}
+      </OhInlineEmpty>
+    );
+  }
   return (
     <OhInlineEmpty>
       {t("upgradePrompt")}{" "}
@@ -251,6 +284,12 @@ function ApiKeyRow({
   // one ellipsis dropdown) and dub.co (name + partial key + last-used
   // + ellipsis dropdown), our row carried five competing layers.
   //
+  // Depth-card chrome via <OhCard>. Replaces the prior 1.5px-border
+  // article (border-oh-line + hover-line-strong + opacity-60 on
+  // revoked). Revoked keys map to OhCard's `muted` state which bakes
+  // 60% opacity + drops the hover lift. Same one-source-of-truth
+  // shape billing / workflows / workspace-list rows already use.
+  //
   // Rebuilt: row dim communicates revoked state (no status pill), the
   // prefix and joined-scope list become two muted footer lines (no
   // chip border wall), createdAt drops off the row entirely (audit log
@@ -258,14 +297,7 @@ function ApiKeyRow({
   // text-only (the MinusCircleIcon was decorative).
 
   return (
-    <article
-      className={[
-        "rounded-(--oh-r-sm) border-[1.5px] bg-oh-bg p-4 transition-colors duration-150 ease-oh",
-        revoked
-          ? "border-oh-line opacity-60"
-          : "border-oh-line hover:border-oh-line-strong",
-      ].join(" ")}
-    >
+    <OhCard muted={revoked} className="p-4">
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
           {name}
@@ -310,7 +342,7 @@ function ApiKeyRow({
           {scopeList.join(" / ")}
         </p>
       ) : null}
-    </article>
+    </OhCard>
   );
 }
 

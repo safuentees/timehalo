@@ -8,7 +8,6 @@ import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetTimezone } from "@/lib/mutations/use-set-timezone";
 import { Field, FieldError } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { OhSelect } from "@/components/oh/oh-select";
 import {
   DEFAULT_TIMEZONE,
@@ -16,6 +15,7 @@ import {
   timezoneSchema,
 } from "@/lib/timezone";
 import { SectionHeader } from "@/components/oh/section-header";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 
 // IANA timezone picker. Self-contained — owns its own form, mutation,
 // and Save button. Per-section commits match the cal.com / dub.co
@@ -103,11 +103,18 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
             )}
           />
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button
+          {/* "Use browser" is a tertiary affordance — kept as a
+              small text link below the select rather than a
+              button-shaped chrome element. Reduces visual weight
+              so the select reads as the primary control while
+              the detect-browser action stays available + clearly
+              labeled. Going icon-only would be ambiguous (no
+              universal icon for "detect browser timezone");
+              link-style preserves the language without competing
+              with the Save button below. */}
+          <div className="mt-2">
+            <button
               type="button"
-              variant="ohGhost"
-              size="oh"
               onClick={() => {
                 const detected = getBrowserTimezone();
                 form.setValue("timezone", detected, {
@@ -115,19 +122,28 @@ export function TimezoneFields({ timezones }: { timezones: string[] }) {
                   shouldValidate: true,
                 });
               }}
+              className="oh-focus-ring rounded-(--oh-r-xs) text-[13px] underline underline-offset-4 decoration-[1.5px] decoration-current opacity-55 transition-opacity duration-150 ease-oh hover:opacity-100"
             >
               {t("useBrowser")}
-            </Button>
-            <Button
-              type="submit"
-              variant="oh"
-              size="oh"
-              disabled={isPending || !isDirty}
-              className="ml-auto"
-            >
-              {isPending ? t("saving") : isDirty ? t("save") : t("saved")}
-            </Button>
+            </button>
           </div>
+
+          {/* Save action via <InlineFormSave> — appears only when
+              dirty, hidden otherwise. Matches the per-section
+              commit pattern from `dashboard-forms.md`
+              *Hub-page sub-section chrome* used by HandleFields,
+              BioFields, DurationFields, and the rest of the
+              hub-page sub-sections. Replaces the prior always-
+              visible Save button. */}
+          <InlineFormSave
+            isPending={isPending}
+            isDirty={isDirty}
+            labels={{
+              save: t("save"),
+              saving: t("saving"),
+              saved: t("saved"),
+            }}
+          />
         </form>
       </FormProvider>
     </section>
