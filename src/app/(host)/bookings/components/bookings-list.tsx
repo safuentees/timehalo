@@ -591,12 +591,15 @@ export function BookingsList({
 
           {/* Calendar grid in a SEPARATE wrapper with variable
               max-width per view (760 day / 1440 week / 1200 month).
-              flex-1 min-h-0 claims remaining vertical space; banners
-              and views render inside. */}
+              flex-1 min-h-0 claims remaining vertical space for
+              day/week (24h grids that need internal scroll); MONTH
+              hugs its content height so there's no dead space
+              below the 5-row grid. */}
           <div
             className={cn(
-              "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
               calendarMaxWidthClass,
+              optimisticView !== "month" && "min-h-0 flex-1",
             )}
           >
 
@@ -699,7 +702,7 @@ export function BookingsList({
               against any cascade where the swap doesn't engage
               (e.g. server render). */}
           {optimisticView === "month" ? (
-            <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
+            <div className="hidden md:block">
               <MonthView
                 date={optimisticCursor}
                 events={calendarEvents}
@@ -708,7 +711,12 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="100%"
+                // "none" disables internal capping so MonthView
+                // renders at its natural content height. Combined
+                // with the parent wrapper losing flex-1 in month
+                // mode, the grid hugs the calendar — no dead space
+                // below.
+                maxBodyHeight="none"
               />
             </div>
           ) : null}
