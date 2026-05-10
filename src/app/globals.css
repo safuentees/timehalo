@@ -3989,6 +3989,20 @@
   transition: margin 380ms var(--ease-oh);
 }
 
+/* B.PT304 — explicit viewport-relative height on the dashboard
+   ContentSlot's motion.div. CSS calc() needs spaces around
+   subtraction operators — Tailwind's arbitrary-value form
+   (`h-[calc(100svh-24px-...)`]) emits the literal string and
+   browsers reject it as an invalid identifier-like token, so we
+   emit the class manually here. Mirrors `.oh-host-content`'s
+   bounded height so absolute-positioned descendants (calendar
+   mode) have a definite anchor regardless of Radix ScrollArea's
+   internal `display: table` wrapper which can't pass through a
+   percentage min-height. */
+.oh-content-slot {
+  height: calc(100svh - 24px - var(--oh-dashboard-bar-block));
+}
+
 .oh-app-shell[data-oh-preview="true"] {
   --oh-dashboard-bar-block: 0px;
 }

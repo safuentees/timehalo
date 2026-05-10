@@ -191,28 +191,33 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // Explicit viewport-relative height so absolute-positioned
-      // descendants (e.g. /bookings calendar mode's `absolute
-      // inset-0` wrapper) can anchor to a known box. `min-h-full`
-      // alone fails here: motion.div's parent is the Radix
-      // ScrollArea Viewport's internal `display: table` wrapper,
-      // which has `height: auto` and can't resolve a percentage
-      // min-height — so when an absolute child removes the only
-      // in-flow content, motion.div collapses to 0 and the
-      // calendar disappears.
+      // Explicit viewport-relative height (`.oh-content-slot` in
+      // globals.css emits `height: calc(100svh - 24px - var(...))`)
+      // so absolute-positioned descendants (e.g. /bookings calendar
+      // mode's `absolute inset-0` wrapper) can anchor to a known
+      // box.
       //
-      // Math: oh-host-content is `calc(100svh - 24px -
-      // var(--oh-dashboard-bar-block))`. ScrollArea Root + Viewport
-      // both pass through 100%. We use the same calc directly so
-      // motion.div is exactly the panel height regardless of what
-      // Radix wraps in between.
+      // Why a real class, not a Tailwind arbitrary value:
+      // `h-[calc(100svh-24px-...)`] emits the literal string and
+      // CSS calc() rejects it because `100svh-24px` is an invalid
+      // token (calc requires spaces around `-`). The class on
+      // globals.css uses proper CSS syntax.
+      //
+      // Why explicit height, not `min-h-full`: motion.div's parent
+      // is Radix ScrollArea Viewport's internal `display: table`
+      // wrapper which has `height: auto`. Percentage min-height
+      // requires a parent with resolved height; against `auto` it
+      // evaluates to 0. When calendar mode's only in-flow child
+      // becomes `position: absolute`, motion.div has no content
+      // and `min-h-full` collapses to 0 — calendar disappears.
       //
       // `flex flex-col` for block-shaped pages (single flex item,
       // panel bg fills slack below short content). Long lists
-      // overflow motion.div's bounds and the Viewport's overflow:
-      // scroll catches the overflow → page scrolls. `relative` is
-      // the containing-block anchor for absolute children.
-      className="relative flex flex-col h-[calc(100svh-24px-var(--oh-dashboard-bar-block))]"
+      // overflow motion.div's bounds and the Viewport's
+      // overflow: scroll catches the overflow → page scrolls.
+      // `relative` is the containing-block anchor for absolute
+      // children.
+      className="oh-content-slot relative flex flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
