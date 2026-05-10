@@ -283,15 +283,14 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      // Same timeScale as forward (1.0). Earlier 1.6 speed-up
-      // ("leave faster than you arrived") rushed the items out
-      // before the bg finished sliding up — items briefly hung
-      // against the transparent panel. Matched-speed reverse +
-      // a longer bg close (0.55s vs 0.32s open) keeps the
-      // exit choreography legible.
-      tl.timeScale(1);
-      tl.eventCallback("onReverseComplete", onExitComplete);
-      tl.reverse();
+      // Skip the reverse animation per user request — items should
+      // disappear instantly when the sidebar closes (no reverse
+      // stagger). The bg's clipPath collapse handles the visual exit
+      // for the panel; items are clipped away at the same time.
+      // Fire onExitComplete synchronously so the layout unmounts
+      // immediately + GSAP timeline doesn't keep running unnecessarily.
+      tl.kill();
+      onExitComplete();
     } else {
       tl.timeScale(1);
       tl.eventCallback("onReverseComplete", null);

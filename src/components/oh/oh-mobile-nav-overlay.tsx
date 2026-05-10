@@ -66,12 +66,10 @@ const SCRIM_BASE = [
   // Match the panel's outer corner radius so the scrim doesn't
   // bleed past the panel's rounded edge.
   "rounded-[inherit]",
-  // Translucent ink wash. backdrop-filter / blur removed per
-  // request — scrim is a flat dim layer, not a frosted one.
-  // Mostly hidden by the full-fill solid nav above it; remains
-  // as the click-to-dismiss target. Opacity tween owned by
-  // motion (animate prop on the JSX <motion.button>).
-  "bg-[color:color-mix(in_srgb,var(--oh-ink)_35%,transparent)]",
+  // Fully transparent. The scrim used to be a 35% ink wash; user
+  // requested no visible backdrop on hamburger click. Stays as the
+  // click-to-dismiss target — invisible but functional.
+  "bg-transparent",
 ];
 
 const WRAPPER_BASE = [
@@ -190,9 +188,12 @@ export function OhMobileNavOverlay() {
         animate={{
           clipPath: closing ? "inset(0 0 100% 0)" : "inset(0 0 0 0)",
         }}
-        // Symmetric 0.55s both directions per request — same
-        // leisurely pace open and close. Ease matches `--ease-oh`.
-        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        // Softer ease curve per request. [0.16, 1, 0.3, 1] (ease-oh)
+        // was too aggressive (snappy ease-out with a hard end-stop);
+        // [0.32, 0.72, 0, 1] is Apple's standard "smooth" curve —
+        // gentler acceleration and a relaxed approach to the final
+        // value.
+        transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
       >
         <MobileNavContent
           closing={closing}
