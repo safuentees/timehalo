@@ -348,7 +348,7 @@ export default function HostProfile({
                     transition={identityProjectionTransition}
                     className="oh-description text-center"
                   >
-                    {t("defaultBio")}
+                    {user.bio ?? t("defaultBio")}
                   </motion.p>
                 </motion.header>
 
