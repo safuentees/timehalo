@@ -188,7 +188,15 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      className="min-h-full"
+      // `flex flex-col` so calendar-style pages can claim the
+      // ScrollArea Viewport's full height via `flex-1 min-h-0`
+      // children (B.PT296 — bookings calendar adaptive height).
+      // Block-shaped pages (OhPageShell-only) render as a single
+      // flex item with natural height; the panel bg fills any
+      // slack below. `min-h-full` keeps the column at LEAST the
+      // viewport height so the slack-fill behavior holds even
+      // when content is short.
+      className="flex min-h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,

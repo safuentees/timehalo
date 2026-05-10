@@ -557,9 +557,22 @@ export function BookingsList({
           // still resolving. 70% opacity is calibrated to read as
           // "transitioning" without obscuring the content the user
           // is interacting with.
+          //
+          // B.PT296 — `flex-1 min-h-0` lets the calendar mode
+          // wrapper claim ALL remaining vertical space inside the
+          // ScrollArea Viewport (the `<motion.div>` parent in
+          // ContentSlot is `flex flex-col min-h-full`). Combined
+          // with `maxBodyHeight="100%"` on each view below, the
+          // calendar grid fills the panel without page-level
+          // scroll on tall viewports + scrolls internally only
+          // when the 24h × `oneMinuteHeightPx` content actually
+          // exceeds the available height. Replaces the prior
+          // `calc(100dvh - 280px)` heuristic which assumed a
+          // fixed 280px chrome above and didn't track when the
+          // actual chrome differed.
           aria-busy={isPending || undefined}
           className={cn(
-            "mx-auto w-full px-4 pb-8 sm:px-6 sm:pb-10 flex flex-col gap-4",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-4 px-4 pb-8 sm:px-6 sm:pb-10",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -593,7 +606,9 @@ export function BookingsList({
             <OhInlineEmpty>{t("emptyCalendarHint")}</OhInlineEmpty>
           ) : null}
 
-          {/* Day view — works at any width, no mobile fallback needed. */}
+          {/* Day view — works at any width, no mobile fallback needed.
+              `maxBodyHeight="100%"` so the view fills its flex
+              parent's remaining vertical space (B.PT296). */}
           {optimisticView === "day" ? (
             <DayView
               date={optimisticCursor}
@@ -601,6 +616,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
+              maxBodyHeight="100%"
             />
           ) : null}
 
@@ -617,16 +633,17 @@ export function BookingsList({
               swaps".) */}
           {optimisticView === "week" ? (
             <>
-              <div className="hidden md:block">
+              <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
                 <WeekView
                   date={optimisticCursor}
                   events={calendarEvents}
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
+                  maxBodyHeight="100%"
                 />
               </div>
-              <div className="md:hidden flex flex-col gap-3">
+              <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
                 {/* Mobile week → day fallback (B.PT144) gets a
                     horizontal day-strip on top (B.PT148) so the
                     user can see + tap any day in the week without
@@ -639,13 +656,16 @@ export function BookingsList({
                   cursorDate={optimisticCursor}
                   onDateChange={onDateChange}
                 />
-                <DayView
-                  date={optimisticCursor}
-                  events={calendarEvents}
-                  selectedRefId={selectedUid}
-                  onEventClick={onEventClick}
-                  getHref={getEventHref}
-                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <DayView
+                    date={optimisticCursor}
+                    events={calendarEvents}
+                    selectedRefId={selectedUid}
+                    onEventClick={onEventClick}
+                    getHref={getEventHref}
+                    maxBodyHeight="100%"
+                  />
+                </div>
               </div>
             </>
           ) : null}
@@ -658,7 +678,7 @@ export function BookingsList({
               against any cascade where the swap doesn't engage
               (e.g. server render). */}
           {optimisticView === "month" ? (
-            <div className="hidden md:block">
+            <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
               <MonthView
                 date={optimisticCursor}
                 events={calendarEvents}
@@ -667,6 +687,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
+                maxBodyHeight="100%"
               />
             </div>
           ) : null}
