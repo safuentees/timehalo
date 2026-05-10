@@ -350,9 +350,8 @@ export function BookingsList({
         >
         <div
           aria-busy={isPending || undefined}
-          data-fit-viewport
           className={cn(
-            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
+            "mx-auto flex w-full max-w-full flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -386,7 +385,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
-              maxBodyHeight="100%"
+              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
             />
           ) : null}
 
@@ -399,7 +398,7 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
-                  maxBodyHeight="100%"
+                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
                 />
               </div>
               <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
@@ -414,7 +413,7 @@ export function BookingsList({
                     selectedRefId={selectedUid}
                     onEventClick={onEventClick}
                     getHref={getEventHref}
-                    maxBodyHeight="100%"
+                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
                   />
                 </div>
               </div>
@@ -431,7 +430,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="100%"
+                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
               />
             </div>
           ) : null}

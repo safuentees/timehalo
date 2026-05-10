@@ -89,7 +89,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="flex flex-col min-h-full [&:has([data-fit-viewport])]:h-full [&:has([data-fit-viewport])]:min-h-0"
+      className="flex min-h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
