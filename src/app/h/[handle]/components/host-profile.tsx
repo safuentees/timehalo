@@ -205,6 +205,13 @@ export default function HostProfile({
     ) {
       setDrawerOpen(true);
     }
+    if (
+      !rescheduleFromUid &&
+      lastRescheduleUidRef.current &&
+      drawerOpen
+    ) {
+      setDrawerOpen(false);
+    }
     lastRescheduleUidRef.current = rescheduleFromUid;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rescheduleFromUid]);
