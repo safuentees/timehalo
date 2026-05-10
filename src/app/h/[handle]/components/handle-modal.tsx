@@ -377,6 +377,7 @@ export function HandleModal({
       <HandleMorphCard
         key={keyName}
         layoutId="handle-card"
+        layoutCrossfade={false}
         transition={{ type: "spring", ...(open ? openSpring : closeSpring) }}
         initial={{
           ...HANDLE_CARD_RADIUS_STYLE,
