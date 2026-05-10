@@ -12,7 +12,7 @@ const SCRIM_BASE = [
   "border-0 p-0 m-0",
   "cursor-pointer",
   "rounded-[inherit]",
-  "bg-[color:color-mix(in_srgb,var(--oh-ink)_35%,transparent)]",
+  "bg-transparent",
 ];
 
 const WRAPPER_BASE = [
@@ -66,7 +66,7 @@ export function OhMobileNavOverlay() {
         animate={{
           clipPath: closing ? "inset(0 0 100% 0)" : "inset(0 0 0 0)",
         }}
-        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
       >
         <MobileNavContent
           closing={closing}
