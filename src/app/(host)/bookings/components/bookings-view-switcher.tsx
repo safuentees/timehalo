@@ -52,6 +52,13 @@ export function BookingsViewSwitcher({
       value={value}
       onChange={onValueChange}
       ariaLabel={ariaLabel}
+      // Stable layoutId so the active-pill morph survives the
+      // mode-swap remount (BookingsList mounts the switcher inside
+      // the list-mode branch OR the calendar-mode branch; switching
+      // modes unmounts one and mounts the other). Without this,
+      // each mount gets a fresh useId() and motion has no source
+      // rect — pill animation snaps when crossing list↔calendar.
+      layoutIdKey="bookings-view-switcher"
     />
   );
 }

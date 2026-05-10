@@ -54,6 +54,18 @@ type Props<T extends string> = {
    * page column.
    */
   fullWidth?: boolean;
+  /**
+   * Optional stable identifier for the active-pill `layoutId`. By
+   * default each switcher mount gets a fresh `useId()` value so two
+   * switchers on the same page don't share a layoutId namespace and
+   * morph into each other. Pass a STABLE string when the same
+   * logical switcher is rendered from two different parent branches
+   * (e.g. `BookingsList` mounts one inside list mode and another
+   * inside calendar mode); without a stable id, mode swaps unmount
+   * one instance and mount the other, the fresh `useId()` differs,
+   * and motion has no source rect to morph from — animation snaps.
+   */
+  layoutIdKey?: string;
 };
 
 export function OhPillSwitcher<T extends string>({
@@ -63,10 +75,12 @@ export function OhPillSwitcher<T extends string>({
   ariaLabel,
   className,
   fullWidth = false,
+  layoutIdKey,
 }: Props<T>) {
-  // Unique per instance so two switchers on the same page don't share
-  // a layoutId namespace and morph into each other.
-  const layoutId = useId();
+  // Unique per instance UNLESS caller passed a stable key. See
+  // `layoutIdKey` JSDoc for the rationale.
+  const generatedId = useId();
+  const layoutId = layoutIdKey ?? generatedId;
 
   return (
     <Tabs value={value} onValueChange={(v) => onChange(v as T)}>
