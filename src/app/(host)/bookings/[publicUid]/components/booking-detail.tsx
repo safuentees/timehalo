@@ -20,7 +20,6 @@ import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
-import { OhPageShell } from "@/components/oh/page-shell";
 import { OhSection } from "@/components/oh/section";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { cn } from "@/lib/utils";
@@ -55,9 +54,19 @@ export default function BookingDetail({
       day: "numeric",
       year: "numeric",
     });
+  const utils = trpc.useUtils();
   const { data } = trpc.bookings.getDetail.useQuery({ publicUid });
   const [tab, setTab] = useState<Tab>("info");
   const isModal = variant === "modal";
+
+  useEffect(() => {
+    if (data?.previousUid) {
+      utils.bookings.getDetail.prefetch({ publicUid: data.previousUid });
+    }
+    if (data?.nextUid) {
+      utils.bookings.getDetail.prefetch({ publicUid: data.nextUid });
+    }
+  }, [data?.previousUid, data?.nextUid, utils]);
 
   const previousUid = data?.previousUid ?? null;
   const nextUid = data?.nextUid ?? null;
@@ -99,25 +108,21 @@ export default function BookingDetail({
     },
   });
 
-  if (!data) {
-    const loadingBody = (
-      <>
-        <OhPageHeader title={t("title")} />
-        <p className="mt-8 text-[13px] opacity-55">{t("loading")}</p>
-      </>
-    );
-    return isModal ? (
-      <div className="flex flex-col gap-2 p-5 sm:p-6">{loadingBody}</div>
-    ) : (
-      <OhPageShell tight>{loadingBody}</OhPageShell>
-    );
-  }
-
-  const slotStart = new Date(data.slotStart as unknown as string);
-  const slotEnd = new Date(data.slotEnd as unknown as string);
-  const cancelled = data.deleted;
-  const rescheduled = data.rescheduledFromUid !== null;
-  const status = cancelled ? "cancelled" : rescheduled ? "rescheduled" : "confirmed";
+  const slotStart = data
+    ? new Date(data.slotStart as unknown as string)
+    : null;
+  const slotEnd = data
+    ? new Date(data.slotEnd as unknown as string)
+    : null;
+  const cancelled = data?.deleted ?? false;
+  const rescheduled = data?.rescheduledFromUid != null;
+  const status: "confirmed" | "cancelled" | "rescheduled" | null = data
+    ? cancelled
+      ? "cancelled"
+      : rescheduled
+        ? "rescheduled"
+        : "confirmed"
+    : null;
 
   const body = (
     <>
@@ -135,18 +140,18 @@ export default function BookingDetail({
         )}
         <div className="flex shrink-0 items-center gap-1.5">
           <NeighbourLink
-            uid={data.previousUid}
+            uid={data?.previousUid ?? null}
             direction="previous"
             label={t("previousBooking")}
             onNavigate={onNavigate}
           />
           <NeighbourLink
-            uid={data.nextUid}
+            uid={data?.nextUid ?? null}
             direction="next"
             label={t("nextBooking")}
             onNavigate={onNavigate}
           />
-          {!cancelled ? (
+          {data && !cancelled ? (
             <BookingActionsMenu
               cancelLabel={t("cancelAction")}
               cancelTitle={t("cancelTitle")}
@@ -167,11 +172,13 @@ export default function BookingDetail({
       </div>
 
       <OhPageHeader
-        title={data.visitorName}
-        aside={<StatusPill status={status} />}
+        title={data?.visitorName ?? " "}
+        aside={status ? <StatusPill status={status} /> : null}
       />
       <p className="oh-eyebrow mt-2 tabular-nums">
-        {fmtSlotDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
+        {slotStart && slotEnd
+          ? `${fmtSlotDate(slotStart)} ${fmtTime(slotStart)} — ${fmtTime(slotEnd)}`
+          : " "}
       </p>
 
       <nav
@@ -190,7 +197,7 @@ export default function BookingDetail({
           onClick={() => setTab("history")}
         >
           <span>{t("tabHistory")}</span>
-          {data.audit.length > 0 ? (
+          {data && data.audit.length > 0 ? (
             <span
               className={cn(
                 "tabular-nums text-[11px] font-bold leading-none",
@@ -204,10 +211,14 @@ export default function BookingDetail({
       </nav>
 
       <div className="mt-8 flex flex-col gap-10">
-        {tab === "info" ? (
-          <InfoView data={data} slotStart={slotStart} slotEnd={slotEnd} />
+        {data && slotStart && slotEnd ? (
+          tab === "info" ? (
+            <InfoView data={data} slotStart={slotStart} slotEnd={slotEnd} />
+          ) : (
+            <HistoryView audit={data.audit} />
+          )
         ) : (
-          <HistoryView audit={data.audit} />
+          <p className="text-[13px] opacity-55">{t("loading")}</p>
         )}
       </div>
     </>
@@ -216,7 +227,9 @@ export default function BookingDetail({
   return isModal ? (
     <div className="flex flex-col p-5 sm:p-6">{body}</div>
   ) : (
-    <OhPageShell tight>{body}</OhPageShell>
+    <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6">
+      {body}
+    </div>
   );
 }
 
