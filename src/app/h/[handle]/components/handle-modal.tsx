@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { FocusOn } from "react-focus-on";
@@ -65,6 +65,7 @@ type Props = {
   identityContent?: ReactNode;
   durationLabel?: string;
   durationMinutes?: number;
+  extraShards?: ReadonlyArray<RefObject<HTMLElement | null>>;
 };
 
 export function HandleModal({
@@ -82,6 +83,7 @@ export function HandleModal({
   identityContent,
   durationLabel,
   durationMinutes,
+  extraShards,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const tHost = useTranslations("HostProfile");
@@ -641,7 +643,10 @@ export function HandleModal({
       }}
       returnFocus
       scrollLock={false}
-      shards={panelShardRef ? [panelShardRef] : undefined}
+      shards={[
+        ...(panelShardRef ? [panelShardRef] : []),
+        ...(extraShards ?? []),
+      ]}
     >
 
       <motion.div

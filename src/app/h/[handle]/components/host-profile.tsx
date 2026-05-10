@@ -122,6 +122,8 @@ export default function HostProfile({
   const [, startTransition] = useTransition();
   const router = useRouter();
 
+  const visitorHeaderRef = useRef<HTMLDivElement>(null);
+
   const utils = trpc.useUtils();
   useEffect(() => {
     if (!user.durationChoices || user.durationChoices.length <= 1) return;
@@ -274,6 +276,7 @@ export default function HostProfile({
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       headerClassName={rescheduleFromUid ? "z-[60]" : undefined}
+      headerRef={visitorHeaderRef}
       header={
         <div className="flex w-full flex-col gap-3">
           <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
@@ -605,6 +608,7 @@ export default function HostProfile({
                 handle={handle}
                 slots={slots}
                 open
+                extraShards={[visitorHeaderRef]}
                 onOpenChange={(next) => {
                   if (!next && rescheduleFromUid) {
                     router.push(

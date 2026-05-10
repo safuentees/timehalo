@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 type Props = {
   children: ReactNode;
@@ -6,6 +6,7 @@ type Props = {
   footer?: ReactNode;
   className?: string;
   headerClassName?: string;
+  headerRef?: RefObject<HTMLDivElement | null>;
 };
 
 export function OhVisitorShell({
@@ -14,6 +15,7 @@ export function OhVisitorShell({
   footer,
   className,
   headerClassName,
+  headerRef,
 }: Props) {
   return (
     <div className="oh-visitor-shell flex h-dvh flex-col overflow-hidden bg-oh-bg-muted p-[15px] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]">
@@ -27,6 +29,7 @@ export function OhVisitorShell({
       >
         {header ? (
           <div
+            ref={headerRef}
             className={[
               "absolute inset-x-0 top-0 z-10",
               headerClassName,
