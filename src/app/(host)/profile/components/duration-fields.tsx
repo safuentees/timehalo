@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   FormProvider,
@@ -65,6 +65,75 @@ const CLOSE_SPRING =
 
 const ROW_TRANSITION = { type: "spring", ...OPEN_SPRING } as const;
 const ROW_EXIT_TRANSITION = { type: "spring", ...CLOSE_SPRING } as const;
+
+// Measure the height of an element via ResizeObserver. Returns the
+// live offsetHeight and a ref to attach. Used by the accordion
+// panels: we animate motion's `height` between 0 and the measured
+// value instead of the `gridTemplateRows: 0fr ↔ 1fr` trick because
+// fr-unit interpolation rounds at sub-pixels under spring physics
+// — when the spring settles, the grid track lands at e.g. 0.4fr
+// (≈1px tall) and motion's transitionEnd snaps it to 0fr in the
+// next frame, producing a visible 1px jump on close. Explicit pixel
+// values settle cleanly to 0 with no snap. Reference: this pattern
+// is what Reach UI's old DisclosurePanel used + Adam Argyle's
+// "let's GUI" accordion writeup recommends.
+function useMeasuredHeight() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setHeight(el.offsetHeight);
+    });
+    ro.observe(el);
+    setHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  return { ref, height };
+}
+
+// Bring the row's bottom edge into the viewport when the user
+// expands a row at the bottom of the page. `block: "nearest"` is
+// the browser's built-in "only scroll if needed" behavior — if the
+// element is already in view, it does nothing. Uses two scrolls:
+// one immediate (against the partly-expanded panel, scrolls the
+// header in) and one after the spring approximate-settle time
+// (against the full panel, ensures the bottom is in view).
+//
+// Why not motion's `onAnimationComplete`: it fires once per
+// animation start; if the user toggles open/close rapidly, the
+// callback latches and a follow-up open without a full settle
+// fires no scroll. Two timed rAFs are simpler and correct under
+// rapid toggles.
+function useScrollIntoViewOnOpen(
+  ref: React.RefObject<HTMLElement | null>,
+  isOpen: boolean,
+) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = ref.current;
+    if (!el) return;
+    let raf1: number | null = null;
+    let raf2: number | null = null;
+    const settleMs = 320; // approx open-spring settle duration
+    raf1 = requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    const t = window.setTimeout(() => {
+      raf2 = requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }, settleMs);
+    return () => {
+      if (raf1 !== null) cancelAnimationFrame(raf1);
+      if (raf2 !== null) cancelAnimationFrame(raf2);
+      window.clearTimeout(t);
+    };
+  }, [isOpen, ref]);
+}
 
 const optionFormSchema = z.object({
   minutes: z
@@ -292,9 +361,13 @@ function DurationRow({
   const summary = formatDurationSummary(minutes, t);
   const caption = title && title.trim().length > 0 ? title : summary;
   const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
+  const { ref: contentRef, height } = useMeasuredHeight();
+  const articleRef = useRef<HTMLElement>(null);
+  useScrollIntoViewOnOpen(articleRef, isOpen);
 
   return (
     <article
+      ref={articleRef}
       className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[open=true]:shadow-[var(--oh-shadow-hover)]"
       data-open={isOpen}
     >
@@ -321,23 +394,25 @@ function DurationRow({
         />
       </button>
 
-      {/* Grid-template-rows trick: the outer grid track grows from
-          0fr to 1fr (or shrinks back) under spring physics; the
-          inner div's `min-h-0 + overflow-hidden` lets the track
-          actually go to 0 (without min-h-0 the intrinsic content
-          height pushes through). Content keeps its intrinsic size
-          throughout — no transform, no scaling, no text stretch. */}
+      {/* Animate `height` between explicit pixel values measured
+          via ResizeObserver, not `gridTemplateRows: 0fr↔1fr`. The
+          fr-unit trick suffers from sub-pixel rounding at the end
+          of a spring close: the track lands at ~0.5fr (=1px) when
+          the spring rests, motion snaps to 0fr in transitionEnd, and
+          the user sees a 1px jump. Pixel values settle cleanly to 0.
+          Outer `overflow:hidden` clips; inner content keeps its
+          intrinsic size — no transform, no scaling. */}
       <motion.div
         initial={false}
         animate={{
-          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          height: isOpen ? height : 0,
           opacity: isOpen ? 1 : 0,
         }}
         transition={transition}
-        style={{ display: "grid" }}
+        style={{ overflow: "hidden" }}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div ref={contentRef}>
           <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
             <FieldBlock
               legendId={`duration-${index}-title`}
@@ -495,13 +570,16 @@ function AddRow({
     !existingMinutes.includes(draftMinutes);
 
   const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
+  const { ref: contentRef, height } = useMeasuredHeight();
+  const articleRef = useRef<HTMLElement>(null);
+  useScrollIntoViewOnOpen(articleRef, isOpen);
 
   // Add row keeps the trigger ALWAYS mounted (collapsed = small "+
-  // Add duration" pill) — same grid-template-rows trick as
-  // DurationRow above. Trigger sits in the row's header band; the
-  // form panel below grows / shrinks via the grid track.
+  // Add duration" pill). Same measured-height pattern as
+  // DurationRow above so close lands cleanly at 0 with no snap.
   return (
     <article
+      ref={articleRef}
       className="self-start rounded-(--oh-r-sm) transition-shadow duration-150 ease-oh data-[open=true]:bg-[var(--oh-paper)] data-[open=true]:self-stretch data-[open=true]:shadow-[var(--oh-shadow-hover)]"
       data-open={isOpen}
     >
@@ -525,21 +603,18 @@ function AddRow({
         </span>
       </button>
 
-      {/* Same grid-template-rows trick as DurationRow — pure CSS
-          height tween, no transform, content keeps its intrinsic
-          size. Spring physics direction-aware so close eases out
-          with the same feel as open. */}
+      {/* Measured pixel height — same reasoning as DurationRow. */}
       <motion.div
         initial={false}
         animate={{
-          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          height: isOpen ? height : 0,
           opacity: isOpen ? 1 : 0,
         }}
         transition={transition}
-        style={{ display: "grid" }}
+        style={{ overflow: "hidden" }}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div ref={contentRef}>
           <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
             <FieldBlock
               legendId="duration-add-title"
