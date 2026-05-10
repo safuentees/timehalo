@@ -194,6 +194,15 @@ export function OhMobileNavOverlay() {
         // gentler acceleration and a relaxed approach to the final
         // value.
         transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+        // Unmount when the close animation completes. Items inside
+        // are paused (no reverse stagger) — they stay in place
+        // while the clipPath collapses over them, then this fires
+        // and the layout removes us from the DOM. Open animations
+        // also fire this; gated on `closing` so we only unmount on
+        // the close direction.
+        onAnimationComplete={() => {
+          if (closing) handleExitComplete();
+        }}
       >
         <MobileNavContent
           closing={closing}

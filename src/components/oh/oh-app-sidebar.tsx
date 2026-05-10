@@ -283,14 +283,14 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      // Skip the reverse animation per user request — items should
-      // disappear instantly when the sidebar closes (no reverse
-      // stagger). The bg's clipPath collapse handles the visual exit
-      // for the panel; items are clipped away at the same time.
-      // Fire onExitComplete synchronously so the layout unmounts
-      // immediately + GSAP timeline doesn't keep running unnecessarily.
-      tl.kill();
-      onExitComplete();
+      // Skip the reverse animation per user request — items
+      // shouldn't animate back. Pause the timeline at its current
+      // state; items stay where they are while the parent's
+      // clipPath collapses over them. DO NOT call onExitComplete
+      // here — that would unmount the wrapper synchronously and
+      // kill the parent's clipPath animation. Unmount is signaled
+      // from the parent overlay's `onAnimationComplete` instead.
+      tl.pause();
     } else {
       tl.timeScale(1);
       tl.eventCallback("onReverseComplete", null);
