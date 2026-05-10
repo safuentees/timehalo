@@ -67,6 +67,9 @@ export function OhMobileNavOverlay() {
           clipPath: closing ? "inset(0 0 100% 0)" : "inset(0 0 0 0)",
         }}
         transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+        onAnimationComplete={() => {
+          if (closing) handleExitComplete();
+        }}
       >
         <MobileNavContent
           closing={closing}

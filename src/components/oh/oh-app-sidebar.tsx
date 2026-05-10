@@ -154,8 +154,7 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      tl.kill();
-      onExitComplete();
+      tl.pause();
     } else {
       tl.timeScale(1);
       tl.eventCallback("onReverseComplete", null);
