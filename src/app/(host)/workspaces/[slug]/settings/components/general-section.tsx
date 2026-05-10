@@ -8,13 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUpdateWorkspace } from "@/lib/mutations/use-update-workspace";
 import { Field, FieldError } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import {
   WORKSPACE_SLUG_MIN,
   WORKSPACE_SLUG_MAX,
   workspaceSlugSchema,
 } from "@/lib/workspaces";
 import { SectionHeader } from "@/components/oh/section-header";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 
 type FormShape = { name: string; slug: string };
 
@@ -159,20 +159,16 @@ export function GeneralSection({
           </div>
 
           {canEdit ? (
-            <div className="mt-5 flex justify-end">
-              <Button
-                type="submit"
-                variant="oh"
-                size="oh"
-                disabled={isPending || !isDirty}
-              >
-                {isPending
-                  ? t("saving")
-                  : isDirty
-                    ? t("save")
-                    : t("saved")}
-              </Button>
-            </div>
+            <InlineFormSave
+              isPending={isPending}
+              isDirty={isDirty}
+              isInvalid={!form.formState.isValid}
+              labels={{
+                save: t("save"),
+                saving: t("saving"),
+                saved: t("saved"),
+              }}
+            />
           ) : null}
         </form>
       </FormProvider>

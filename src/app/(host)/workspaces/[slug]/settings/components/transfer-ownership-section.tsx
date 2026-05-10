@@ -67,37 +67,38 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
               })}
             </OhSelect>
 
-            <div className="flex justify-end">
-              <ConfirmDialog
-                trigger={
-                  <Button
-                    type="button"
-                    variant="ohGhost"
-                    size="oh"
-                    disabled={!target || transfer.isPending}
-                  >
-                    {transfer.isPending
-                      ? t("transferring")
-                      : t("transferAction")}
-                  </Button>
-                }
-                title={t("transferConfirmTitle")}
-                description={t("transferConfirmDescription", {
-                  target: targetName,
-                })}
-                confirmLabel={t("transferAction")}
-                pendingLabel={t("transferring")}
-                cancelLabel={t("cancel")}
-                pending={transfer.isPending}
-                onConfirm={async () => {
-                  if (!target) return;
-                  await transfer.mutateAsync({
-                    slug,
-                    newOwnerUserId: target.user.id,
-                  });
-                }}
-              />
-            </div>
+            {target ? (
+              <div className="flex justify-end">
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="ohGhost"
+                      size="oh"
+                      disabled={transfer.isPending}
+                    >
+                      {transfer.isPending
+                        ? t("transferring")
+                        : t("transferAction")}
+                    </Button>
+                  }
+                  title={t("transferConfirmTitle")}
+                  description={t("transferConfirmDescription", {
+                    target: targetName,
+                  })}
+                  confirmLabel={t("transferAction")}
+                  pendingLabel={t("transferring")}
+                  cancelLabel={t("cancel")}
+                  pending={transfer.isPending}
+                  onConfirm={async () => {
+                    await transfer.mutateAsync({
+                      slug,
+                      newOwnerUserId: target.user.id,
+                    });
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

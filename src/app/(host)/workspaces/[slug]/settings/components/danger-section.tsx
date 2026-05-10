@@ -41,14 +41,13 @@ export function DangerSection({
       <SectionHeader
         legendId="danger-legend"
         legend={t("dangerLegend")}
-        title={t("deleteTitle")}
         description={t("deleteDescription")}
       />
 
-      <div className="mt-5 flex justify-end">
+      <div className="mt-5 flex justify-start">
         <ResponsiveModal open={open} onOpenChange={setOpen}>
           <ResponsiveModalTrigger asChild id="oh-delete-workspace-trigger">
-            <Button variant="ohGhost" size="oh">
+            <Button variant="ohDanger" size="oh">
               {t("deleteAction")}
             </Button>
           </ResponsiveModalTrigger>
@@ -157,9 +156,7 @@ function DeleteForm({
                   aria-invalid={fieldState.invalid}
                 />
                 <OhInputGroupAddon align="inline-start">
-                  <OhInputGroupText>
-                    {t("slugLabel")}
-                  </OhInputGroupText>
+                  <OhInputGroupText>{t("slugLabel")}</OhInputGroupText>
                 </OhInputGroupAddon>
               </OhInputGroup>
               <FieldError

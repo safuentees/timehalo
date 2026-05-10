@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { keepPreviousData } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Info, Trash2 } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteWebhook } from "@/lib/mutations/use-delete-webhook";
 import { Button } from "@/components/ui/button";
@@ -97,8 +98,8 @@ function WebhooksForWorkspace({
               id="webhooks-workspace"
               value={slug}
               onChange={(e) => onSlugChange(e.target.value)}
-              wrapperClassName="w-fit"
-              className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+              wrapperClassName="w-full sm:w-fit"
+              className="w-full font-[family-name:var(--oh-mono)] text-[14px] sm:w-auto sm:min-w-[220px]"
             >
               {workspaces.map((w) => (
                 <option key={w.slug} value={w.slug}>
@@ -117,7 +118,7 @@ function WebhooksForWorkspace({
           ) : !subs || subs.length === 0 ? (
             <NoSubsEmpty />
           ) : (
-            <ul role="list" className="flex flex-col gap-2.5">
+            <ul role="list" className="flex flex-col gap-2.5 [&>li]:min-w-0">
               {subs.map((s) => (
                 <li key={s.publicUid}>
                   <WebhookRow
@@ -198,25 +199,68 @@ function WebhookRow({
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const hasMetadata = eventList.length > 0 || !active;
+
   return (
     <OhCard
       muted={!active}
-      className="flex flex-col gap-2 p-4"
+      className="flex min-w-0 flex-col gap-2 p-4"
     >
-      <h3 className="truncate text-[16px] font-black leading-[1.2]">
-        {subscriberUrl}
-      </h3>
+      <div className="flex min-w-0 items-center gap-2">
+        <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
+          {subscriberUrl}
+        </h3>
+        {hasMetadata ? (
+          <Popover.Root>
+            <Popover.Trigger
+              className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)] sm:hidden"
+              aria-label={t("infoLabel")}
+            >
+              <Info
+                strokeWidth={1.75}
+                className="size-4"
+                aria-hidden
+              />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner
+                sideOffset={6}
+                align="end"
+                style={{ zIndex: 100 }}
+              >
+                <Popover.Popup className="flex max-w-[260px] flex-col gap-2 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-3 shadow-[var(--oh-shadow-resting)]">
+                  {eventList.length > 0 ? (
+                    <p
+                      className="oh-eyebrow opacity-65"
+                      aria-label={t("eventsListLabel")}
+                    >
+                      {eventList.join(" / ")}
+                    </p>
+                  ) : null}
+                  {!active ? (
+                    <p className="text-[12px] leading-[1.5] opacity-65">
+                      {t("inactiveHint")}
+                    </p>
+                  ) : null}
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        ) : null}
+      </div>
 
       {eventList.length > 0 ? (
         <p
-          className="truncate oh-eyebrow opacity-45"
+          className="hidden truncate oh-eyebrow opacity-45 sm:block"
           aria-label={t("eventsListLabel")}
         >
           {eventList.join(" / ")}
         </p>
       ) : null}
       {!active ? (
-        <p className="text-[12px] opacity-55">{t("inactiveHint")}</p>
+        <p className="hidden text-[12px] opacity-55 sm:block">
+          {t("inactiveHint")}
+        </p>
       ) : null}
 
       <div className="mt-auto self-end">

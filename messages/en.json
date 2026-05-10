@@ -96,7 +96,8 @@
     "noWorkspaceEmpty": "No workspace yet. API keys are scoped to a workspace — create one first, then come back to mint a key.",
     "upgradePrompt": "API keys are a paid feature.",
     "upgradeLink": "View plans",
-    "upgradePromptAskOwner": "API keys are a paid feature on this workspace. Ask {ownerName} to upgrade."
+    "upgradePromptAskOwner": "API keys are a paid feature on this workspace. Ask {ownerName} to upgrade.",
+    "infoLabel": "More info"
   },
   "Webhooks": {
     "legend": "Webhooks",
@@ -130,7 +131,8 @@
     "noWorkspaceEmpty": "No workspace yet. Webhooks are scoped to a workspace — create one first, then come back to add a subscription.",
     "upgradePrompt": "Webhooks are a paid feature.",
     "upgradeLink": "View plans",
-    "upgradePromptAskOwner": "Webhooks are a paid feature on this workspace. Ask {ownerName} to upgrade."
+    "upgradePromptAskOwner": "Webhooks are a paid feature on this workspace. Ask {ownerName} to upgrade.",
+    "infoLabel": "More info"
   },
   "Calendar": {
     "legend": "Calendar",
@@ -261,7 +263,7 @@
     "leaving": "Leaving…",
     "leaveConfirmTitle": "Leave this workspace?",
     "leaveConfirmDescription": "You'll be removed from {workspace}. An admin will need to re-invite you to come back.",
-    "dangerLegend": "Danger zone",
+    "dangerLegend": "Delete workspace",
     "deleteTitle": "Delete workspace",
     "deleteDescription": "Permanently removes this workspace and everything inside — bookings, audit history, webhooks, API keys, event types. There is no undo.",
     "deleteAction": "Delete workspace",
@@ -299,6 +301,8 @@
     "revokeDescription": "{email} won't be able to use the link. They can be re-invited.",
     "resend": "Resend",
     "resending": "Resending…",
+    "invitationActionsAria": "Actions for {email}",
+    "memberActionsAria": "Actions for {name}",
     "inviteRoleLabel": "Role for {email}",
     "addInviteRow": "Add another",
     "removeInviteRow": "Remove this row",

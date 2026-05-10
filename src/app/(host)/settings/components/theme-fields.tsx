@@ -4,8 +4,8 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
-import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/oh/section-header";
+import { OhCard } from "@/components/oh/oh-card";
 
 const THEMES = ["system", "light", "dark"] as const;
 type ThemeValue = (typeof THEMES)[number];
@@ -56,7 +56,7 @@ export function ThemeFields() {
       {mounted && divergesFromOs && osPref ? (
         <p
           aria-live="polite"
-          className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-[family-name:var(--oh-mono)] text-[10px] tracking-[2px] uppercase"
+          className="mt-4 oh-eyebrow flex flex-wrap items-baseline gap-x-2 gap-y-1 opacity-100"
         >
           <span className="opacity-65">
             {t("themeOsHint", {
@@ -92,32 +92,41 @@ function ThemeCard({
 }) {
   const Icon = value === "system" ? Monitor : value === "light" ? Sun : Moon;
   return (
-    <label
-      className={cn(
-        "group relative flex w-[110px] cursor-pointer flex-col gap-2 p-2 transition-colors duration-150 ease-oh",
-        "border-2",
-        selected
-          ? "border-oh-content bg-oh-content text-oh-bg"
-          : "border-oh-line-strong bg-oh-bg text-oh-content hover:bg-oh-tint",
-        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-oh-content",
-      )}
+    <OhCard
+      asChild
+      active={selected}
+      className="group w-[110px] cursor-pointer p-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--oh-ink)]"
     >
-      <input
-        type="radio"
-        name="theme"
-        value={value}
-        className="sr-only"
-        checked={selected}
-        onChange={onSelect}
-      />
-      <ThemeSwatch value={value} />
-      <div className="flex items-center justify-between gap-1.5 px-0.5">
-        <span className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[1.5px] uppercase">
-          {label}
-        </span>
-        <Icon className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
-      </div>
-    </label>
+      <label className="flex flex-col gap-2">
+        <input
+          type="radio"
+          name="theme"
+          value={value}
+          className="sr-only"
+          checked={selected}
+          onChange={onSelect}
+        />
+        <ThemeSwatch value={value} />
+        <div className="flex items-center justify-between gap-1.5 px-0.5">
+          <span
+            className={`oh-eyebrow tracking-[1.5px] ${
+              selected ? "opacity-100" : ""
+            }`}
+          >
+            {label}
+          </span>
+          <Icon
+            className={`size-3.5 shrink-0 transition-opacity duration-150 ease-oh ${
+              selected
+                ? "opacity-100"
+                : "opacity-55 group-hover:opacity-100"
+            }`}
+            strokeWidth={2.5}
+            aria-hidden
+          />
+        </div>
+      </label>
+    </OhCard>
   );
 }
 
@@ -129,7 +138,7 @@ const INK_DARK = "#ede4cf";
 function ThemeSwatch({ value }: { value: ThemeValue }) {
   if (value === "system") {
     return (
-      <div className="relative h-12 overflow-hidden border border-current/40">
+      <div className="relative h-12 overflow-hidden border border-oh-line rounded-(--oh-r-xs)">
         <div className="absolute inset-0 grid grid-cols-2">
           <SwatchHalf paper={PAPER_LIGHT} ink={INK_LIGHT} />
           <SwatchHalf paper={PAPER_DARK} ink={INK_DARK} />
@@ -141,7 +150,7 @@ function ThemeSwatch({ value }: { value: ThemeValue }) {
   const ink = value === "light" ? INK_LIGHT : INK_DARK;
   return (
     <div
-      className="relative h-12 overflow-hidden border border-current/40"
+      className="relative h-12 overflow-hidden border border-oh-line rounded-(--oh-r-xs)"
       style={{ backgroundColor: paper }}
     >
       <SwatchMark ink={ink} />
