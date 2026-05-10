@@ -8,13 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUpdateWorkspace } from "@/lib/mutations/use-update-workspace";
 import { Field, FieldError } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import {
   WORKSPACE_SLUG_MIN,
   WORKSPACE_SLUG_MAX,
   workspaceSlugSchema,
 } from "@/lib/workspaces";
 import { SectionHeader } from "@/components/oh/section-header";
+import { InlineFormSave } from "@/components/oh/inline-form-save";
 
 // General section — rename + slug change. One atomic form so the
 // caller submits both fields together; either field may stay empty
@@ -172,20 +172,22 @@ export function GeneralSection({
           </div>
 
           {canEdit ? (
-            <div className="mt-5 flex justify-end">
-              <Button
-                type="submit"
-                variant="oh"
-                size="oh"
-                disabled={isPending || !isDirty}
-              >
-                {isPending
-                  ? t("saving")
-                  : isDirty
-                    ? t("save")
-                    : t("saved")}
-              </Button>
-            </div>
+            // Save via <InlineFormSave> — appears only when dirty,
+            // hides when clean. Matches the per-section commit
+            // pattern used by HandleFields / BioFields /
+            // DurationFields / TimezoneFields. Replaces the prior
+            // always-visible Save button (disabled when clean,
+            // visible noise on every page load).
+            <InlineFormSave
+              isPending={isPending}
+              isDirty={isDirty}
+              isInvalid={!form.formState.isValid}
+              labels={{
+                save: t("save"),
+                saving: t("saving"),
+                saved: t("saved"),
+              }}
+            />
           ) : null}
         </form>
       </FormProvider>

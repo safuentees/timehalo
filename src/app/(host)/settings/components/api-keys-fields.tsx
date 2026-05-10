@@ -11,6 +11,8 @@ import { ApiKeyCreateDialog } from "./api-key-create-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhSelect } from "@/components/oh/oh-select";
+import { Info } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { OhCard } from "@/components/oh/oh-card";
 
@@ -143,8 +145,8 @@ function ApiKeysForWorkspace({
               id="api-keys-workspace"
               value={slug}
               onChange={(e) => onSlugChange(e.target.value)}
-              wrapperClassName="w-fit"
-              className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+              wrapperClassName="w-full sm:w-fit"
+              className="w-full font-[family-name:var(--oh-mono)] text-[14px] sm:w-auto sm:min-w-[220px]"
             >
               {workspaces.map((w) => (
                 <option key={w.slug} value={w.slug}>
@@ -169,7 +171,15 @@ function ApiKeysForWorkspace({
           ) : !keys || keys.length === 0 ? (
             <NoKeysEmpty />
           ) : (
-            <ul role="list" className="flex flex-col gap-2.5">
+            <ul
+              role="list"
+              // `[&>li]:min-w-0` opts every <li> child into shrinking
+              // past content min-width (default `min-width: auto` on
+              // flex-row items prevents shrink past content). Without
+              // it a long key name with `truncate`'s `white-space:
+              // nowrap` would push the chain wider than the panel.
+              className="flex flex-col gap-2.5 [&>li]:min-w-0"
+            >
               {keys.map((k) => (
                 <li key={k.id}>
                   <ApiKeyRow
@@ -296,36 +306,79 @@ function ApiKeyRow({
   // is the source of truth for that data), and the Revoke button is
   // text-only (the MinusCircleIcon was decorative).
 
+  // `min-w-0` on the OhCard breaks the "flex items don't shrink
+  // past content min-width" chain. Without it, a long prefix (or
+  // long key name with `truncate`'s `white-space: nowrap`) forces
+  // the card wider than the panel on mobile.
+  //
+  // Mobile-cramped metadata (scope list) hides behind an Info
+  // popover so narrow viewports don't render two truncated mono
+  // lines on top of each other. Desktop keeps it inline.
   return (
-    <OhCard muted={revoked} className="p-4">
+    <OhCard muted={revoked} className="min-w-0 p-4">
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
           {name}
         </h3>
-        {revoked ? null : (
-          <ConfirmDialog
-            trigger={
-              <Button
-                type="button"
-                variant="ohGhost"
-                size="oh"
-                disabled={revokeApiKey.isPending}
+        <div className="flex shrink-0 items-center gap-1">
+          {scopeList.length > 0 ? (
+            // Info popover for the scope list — mobile only
+            // (`sm:hidden`). On desktop the same content renders
+            // inline below the prefix via `hidden sm:block`.
+            <Popover.Root>
+              <Popover.Trigger
+                className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)] sm:hidden"
+                aria-label={t("infoLabel")}
               >
-                {revokeApiKey.isPending ? t("revoking") : t("revoke")}
-              </Button>
-            }
-            title={t("revokeTitle")}
-            description={t("revokeConfirm")}
-            confirmLabel={t("revoke")}
-            pendingLabel={t("revoking")}
-            cancelLabel={t("cancel")}
-            pending={revokeApiKey.isPending}
-            onConfirm={() => revokeApiKey.mutateAsync({ slug, keyId: id })}
-          />
-        )}
+                <Info
+                  strokeWidth={1.75}
+                  className="size-4"
+                  aria-hidden
+                />
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Positioner
+                  sideOffset={6}
+                  align="end"
+                  style={{ zIndex: 100 }}
+                >
+                  <Popover.Popup className="flex max-w-[260px] flex-col gap-2 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-3 shadow-[var(--oh-shadow-resting)]">
+                    <p
+                      className="oh-eyebrow opacity-65"
+                      aria-label={t("scopesLabel")}
+                    >
+                      {scopeList.join(" / ")}
+                    </p>
+                  </Popover.Popup>
+                </Popover.Positioner>
+              </Popover.Portal>
+            </Popover.Root>
+          ) : null}
+          {revoked ? null : (
+            <ConfirmDialog
+              trigger={
+                <Button
+                  type="button"
+                  variant="ohGhost"
+                  size="oh"
+                  disabled={revokeApiKey.isPending}
+                >
+                  {revokeApiKey.isPending ? t("revoking") : t("revoke")}
+                </Button>
+              }
+              title={t("revokeTitle")}
+              description={t("revokeConfirm")}
+              confirmLabel={t("revoke")}
+              pendingLabel={t("revoking")}
+              cancelLabel={t("cancel")}
+              pending={revokeApiKey.isPending}
+              onConfirm={() => revokeApiKey.mutateAsync({ slug, keyId: id })}
+            />
+          )}
+        </div>
       </header>
 
-      <p className="mt-2 truncate font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
+      <p className="mt-2 min-w-0 truncate font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums opacity-55">
         {prefix}
         {/* Three separate periods + tracking — the unicode `…` is a single
             glyph that letter-spacing can't split, so it renders as three
@@ -335,8 +388,10 @@ function ApiKeyRow({
         <span aria-hidden className="ml-0.5 tracking-[3px]">...</span>
       </p>
       {scopeList.length > 0 ? (
+        // Inline scope list — hidden on mobile via `hidden sm:block`,
+        // surfaced through the Info popover above.
         <p
-          className="mt-1 truncate oh-eyebrow opacity-45"
+          className="mt-1 hidden truncate oh-eyebrow opacity-45 sm:block"
           aria-label={t("scopesLabel")}
         >
           {scopeList.join(" / ")}

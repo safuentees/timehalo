@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { keepPreviousData } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Info, Trash2 } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { trpc } from "@/trpc/hooks";
 import { useDeleteWebhook } from "@/lib/mutations/use-delete-webhook";
 import { Button } from "@/components/ui/button";
@@ -125,8 +126,8 @@ function WebhooksForWorkspace({
               id="webhooks-workspace"
               value={slug}
               onChange={(e) => onSlugChange(e.target.value)}
-              wrapperClassName="w-fit"
-              className="min-w-[220px] font-[family-name:var(--oh-mono)] text-[14px]"
+              wrapperClassName="w-full sm:w-fit"
+              className="w-full font-[family-name:var(--oh-mono)] text-[14px] sm:w-auto sm:min-w-[220px]"
             >
               {workspaces.map((w) => (
                 <option key={w.slug} value={w.slug}>
@@ -151,7 +152,13 @@ function WebhooksForWorkspace({
           ) : !subs || subs.length === 0 ? (
             <NoSubsEmpty />
           ) : (
-            <ul role="list" className="flex flex-col gap-2.5">
+            // `[&>li]:min-w-0` opts every <li> child into shrinking
+            // past content min-width. Without this the ul's flex-
+            // column children default to `min-width: auto` (= content
+            // intrinsic min), which on mobile lets a long subscriber
+            // URL with `truncate`'s `white-space: nowrap` push the
+            // li (and the whole card chain) wider than the panel.
+            <ul role="list" className="flex flex-col gap-2.5 [&>li]:min-w-0">
               {subs.map((s) => (
                 <li key={s.publicUid}>
                   <WebhookRow
@@ -256,30 +263,92 @@ function WebhookRow({
     .map((s) => s.trim())
     .filter(Boolean);
 
+  // Mobile-cramped metadata (events list + inactive hint) hides
+  // behind an Info popover so narrow viewports don't render two
+  // truncated metadata lines on top of each other. Desktop keeps
+  // them inline. Sentinel `hasMetadata` gates the i-icon so cards
+  // with neither events list nor inactive state don't render an
+  // empty popover trigger.
+  const hasMetadata = eventList.length > 0 || !active;
+
   // Depth-card chrome via <OhCard>. Replaces the prior 1.5px-border
   // article (border-oh-line + hover-line-strong + opacity-60 on
   // inactive). Inactive subs map to OhCard's `muted` state which
   // bakes the 60% opacity + drops the hover lift. Delete is a
   // trash icon pinned to the bottom-right corner.
+  //
+  // `min-w-0` on the OhCard + truncated children breaks the
+  // "flex items don't shrink past content min-width" chain —
+  // without it, a long subscriber URL with `white-space: nowrap`
+  // (from `truncate`) forces the card wider than the panel on
+  // mobile. Standard fix per CSS Flexbox spec: opt every flex
+  // item along the chain into shrinking past its content.
   return (
     <OhCard
       muted={!active}
-      className="flex flex-col gap-2 p-4"
+      className="flex min-w-0 flex-col gap-2 p-4"
     >
-      <h3 className="truncate text-[16px] font-black leading-[1.2]">
-        {subscriberUrl}
-      </h3>
+      <div className="flex min-w-0 items-center gap-2">
+        <h3 className="min-w-0 flex-1 truncate text-[16px] font-black leading-[1.2]">
+          {subscriberUrl}
+        </h3>
+        {hasMetadata ? (
+          // Info popover — mobile only (`sm:hidden`). On desktop
+          // the same metadata renders inline below the title via
+          // `hidden sm:block`.
+          <Popover.Root>
+            <Popover.Trigger
+              className="oh-focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)] sm:hidden"
+              aria-label={t("infoLabel")}
+            >
+              <Info
+                strokeWidth={1.75}
+                className="size-4"
+                aria-hidden
+              />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner
+                sideOffset={6}
+                align="end"
+                style={{ zIndex: 100 }}
+              >
+                <Popover.Popup className="flex max-w-[260px] flex-col gap-2 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-3 shadow-[var(--oh-shadow-resting)]">
+                  {eventList.length > 0 ? (
+                    <p
+                      className="oh-eyebrow opacity-65"
+                      aria-label={t("eventsListLabel")}
+                    >
+                      {eventList.join(" / ")}
+                    </p>
+                  ) : null}
+                  {!active ? (
+                    <p className="text-[12px] leading-[1.5] opacity-65">
+                      {t("inactiveHint")}
+                    </p>
+                  ) : null}
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        ) : null}
+      </div>
 
+      {/* Inline metadata — hidden on mobile via `hidden sm:block`,
+          surfaced through the Info popover above. Same content,
+          two presentations, gated by viewport size. */}
       {eventList.length > 0 ? (
         <p
-          className="truncate oh-eyebrow opacity-45"
+          className="hidden truncate oh-eyebrow opacity-45 sm:block"
           aria-label={t("eventsListLabel")}
         >
           {eventList.join(" / ")}
         </p>
       ) : null}
       {!active ? (
-        <p className="text-[12px] opacity-55">{t("inactiveHint")}</p>
+        <p className="hidden text-[12px] opacity-55 sm:block">
+          {t("inactiveHint")}
+        </p>
       ) : null}
 
       {/* Delete — trash icon pinned to the bottom-right. `mt-auto`

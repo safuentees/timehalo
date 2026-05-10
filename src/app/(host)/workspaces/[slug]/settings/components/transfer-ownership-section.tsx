@@ -76,37 +76,46 @@ export function TransferOwnershipSection({ slug }: { slug: string }) {
               })}
             </OhSelect>
 
-            <div className="flex justify-end">
-              <ConfirmDialog
-                trigger={
-                  <Button
-                    type="button"
-                    variant="ohGhost"
-                    size="oh"
-                    disabled={!target || transfer.isPending}
-                  >
-                    {transfer.isPending
-                      ? t("transferring")
-                      : t("transferAction")}
-                  </Button>
-                }
-                title={t("transferConfirmTitle")}
-                description={t("transferConfirmDescription", {
-                  target: targetName,
-                })}
-                confirmLabel={t("transferAction")}
-                pendingLabel={t("transferring")}
-                cancelLabel={t("cancel")}
-                pending={transfer.isPending}
-                onConfirm={async () => {
-                  if (!target) return;
-                  await transfer.mutateAsync({
-                    slug,
-                    newOwnerUserId: target.user.id,
-                  });
-                }}
-              />
-            </div>
+            {/* Hide the Transfer button entirely until a target is
+                picked — same "no button at rest" vocabulary the
+                <InlineFormSave>-driven sections use elsewhere. The
+                select acts as the dirty gate; an empty value means
+                no pending action, so no button. Once a target is
+                selected the action surfaces, identical to how
+                HandleFields' Save appears only when the form is
+                dirty. */}
+            {target ? (
+              <div className="flex justify-end">
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="ohGhost"
+                      size="oh"
+                      disabled={transfer.isPending}
+                    >
+                      {transfer.isPending
+                        ? t("transferring")
+                        : t("transferAction")}
+                    </Button>
+                  }
+                  title={t("transferConfirmTitle")}
+                  description={t("transferConfirmDescription", {
+                    target: targetName,
+                  })}
+                  confirmLabel={t("transferAction")}
+                  pendingLabel={t("transferring")}
+                  cancelLabel={t("cancel")}
+                  pending={transfer.isPending}
+                  onConfirm={async () => {
+                    await transfer.mutateAsync({
+                      slug,
+                      newOwnerUserId: target.user.id,
+                    });
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

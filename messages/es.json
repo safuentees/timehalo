@@ -96,7 +96,8 @@
     "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Las claves API se asocian a un espacio — crea uno primero y vuelve para generar una clave.",
     "upgradePrompt": "Las claves API son una función de pago.",
     "upgradeLink": "Ver planes",
-    "upgradePromptAskOwner": "Las claves API son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan."
+    "upgradePromptAskOwner": "Las claves API son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan.",
+    "infoLabel": "Más info"
   },
   "Webhooks": {
     "legend": "Webhooks",
@@ -130,7 +131,8 @@
     "noWorkspaceEmpty": "Aún no hay espacio de trabajo. Los webhooks se asocian a un espacio — crea uno primero y vuelve para añadir una suscripción.",
     "upgradePrompt": "Los webhooks son una función de pago.",
     "upgradeLink": "Ver planes",
-    "upgradePromptAskOwner": "Los webhooks son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan."
+    "upgradePromptAskOwner": "Los webhooks son una función de pago en este espacio. Pídele a {ownerName} que actualice el plan.",
+    "infoLabel": "Más info"
   },
   "Calendar": {
     "legend": "Calendario",
@@ -261,7 +263,7 @@
     "leaving": "Saliendo…",
     "leaveConfirmTitle": "¿Salir de este espacio?",
     "leaveConfirmDescription": "Serás removido de {workspace}. Un admin debe volver a invitarte para regresar.",
-    "dangerLegend": "Zona de peligro",
+    "dangerLegend": "Eliminar workspace",
     "deleteTitle": "Eliminar espacio",
     "deleteDescription": "Elimina permanentemente este espacio y todo lo que contiene — reservas, historial de auditoría, webhooks, claves de API, tipos de evento. No hay vuelta atrás.",
     "deleteAction": "Eliminar espacio",
@@ -299,6 +301,8 @@
     "revokeDescription": "{email} ya no podrá usar el enlace. Se le puede invitar de nuevo.",
     "resend": "Reenviar",
     "resending": "Reenviando…",
+    "invitationActionsAria": "Acciones para {email}",
+    "memberActionsAria": "Acciones para {name}",
     "inviteRoleLabel": "Rol para {email}",
     "addInviteRow": "Añadir otra",
     "removeInviteRow": "Quitar esta fila",

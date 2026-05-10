@@ -57,17 +57,13 @@ export default function SettingsPanel({ slug }: { slug: string }) {
           canEdit={canWriteWorkspace}
         />
 
-        {isOwner ? (
-          <TransferOwnershipSection slug={slug} />
-        ) : null}
+        {isOwner ? <TransferOwnershipSection slug={slug} /> : null}
 
         {workspace && !isOwner ? (
           <LeaveSection slug={slug} workspaceName={workspace.name} />
         ) : null}
 
-        {isOwner ? (
-          <DangerSection slug={slug} workspaceSlug={slug} />
-        ) : null}
+        {isOwner ? <DangerSection slug={slug} workspaceSlug={slug} /> : null}
       </div>
     </OhPageShell>
   );

@@ -48,17 +48,21 @@ export function DangerSection({
 
   return (
     <section aria-labelledby="danger-legend">
+      {/* Section legend renders "Delete workspace" directly (was
+          "Danger zone" + a separate "Delete workspace" subhead
+          below it — duplicated information). One legend, one
+          description. The button below uses the `ohDanger` variant
+          to match the delete-account flow's red treatment. */}
       <SectionHeader
         legendId="danger-legend"
         legend={t("dangerLegend")}
-        title={t("deleteTitle")}
         description={t("deleteDescription")}
       />
 
-      <div className="mt-5 flex justify-end">
+      <div className="mt-5 flex justify-start">
         <ResponsiveModal open={open} onOpenChange={setOpen}>
           <ResponsiveModalTrigger asChild id="oh-delete-workspace-trigger">
-            <Button variant="ohGhost" size="oh">
+            <Button variant="ohDanger" size="oh">
               {t("deleteAction")}
             </Button>
           </ResponsiveModalTrigger>
@@ -167,9 +171,7 @@ function DeleteForm({
                   aria-invalid={fieldState.invalid}
                 />
                 <OhInputGroupAddon align="inline-start">
-                  <OhInputGroupText>
-                    {t("slugLabel")}
-                  </OhInputGroupText>
+                  <OhInputGroupText>{t("slugLabel")}</OhInputGroupText>
                 </OhInputGroupAddon>
               </OhInputGroup>
               <FieldError
