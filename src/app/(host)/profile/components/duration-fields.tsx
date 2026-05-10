@@ -1,67 +1,89 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   FormProvider,
+  useFieldArray,
   useForm,
   useFormContext,
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronRightIcon, PlusIcon } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
 import {
+  DURATION_DESCRIPTION_MAX_LENGTH,
   DURATION_LIST_MAX_LENGTH,
   DURATION_MAX_MINUTES,
   DURATION_MIN_MINUTES,
+  DURATION_TITLE_MAX_LENGTH,
 } from "@/lib/durations";
 import { SectionHeader } from "@/components/oh/section-header";
-import { OhDurationPicker } from "@/components/oh/oh-duration-picker";
 import { InlineFormSave } from "@/components/oh/inline-form-save";
 
-// Profile durations editor (popup variant, dirty-save shape).
+// Profile durations editor (B.PT303 — inline-expand row variant).
 //
-// Each chip is the trigger of its own popover (single minutes field
-// + save Check + trash icon for remove). The "Add duration"
-// affordance is a small `+` icon button at the end of the chip
-// stack — same popover, no chip yet, the new value lands as a fresh
-// chip on close.
+// Each row is a chip-shaped summary that expands inline when clicked
+// to reveal title / minutes / description editors. No popover, no
+// drawer — the expanded form sits in the column flow, sliding the
+// chips below it down to accommodate. Closing a row by clicking
+// another row keeps the editor focused on one item at a time.
 //
-// Save semantics — matches the handle/bio sections above. Picker
-// commits update LOCAL form state via `setValue(... shouldDirty: true)`;
-// the section's <InlineFormSave> appears when the form is dirty and
-// commits the whole list via `users.setDurationsList`. No more
-// auto-save per chip change. (Previous implementation called the
-// mutation immediately from each picker handler — confusing because
-// changes hit the server invisibly + couldn't be batched / undone.)
+// Why inline rather than the prior popover (B.PT274): three fields
+// per chip (vs. one) overflowed the popover's natural width on
+// mobile and made the surface feel like a dialog-in-disguise.
+// Inline keeps the layout language consistent with `/availability`,
+// which uses the same row-expand language for daily windows.
 //
-// Two-+-button cleanup: the inside-popover save button switched
-// from a Plus icon to a Check icon (in oh-duration-picker.tsx).
-// The outside trigger keeps Plus — universal "add" affordance.
-// Inside Check = "confirm this value." Different icons, different
-// semantics, no more visual redundancy.
+// Motion: every height/position change rides the same Spring tuning
+// as `/h/[handle]` (`animSpec.transitions[0]` for open,
+// `transitions[2]` for close) so the dashboard's edit chrome and
+// the visitor surface agree on motion language. The outer row gets
+// `layout` so its height tweens when the form mounts/unmounts; the
+// form itself fades in via `<AnimatePresence>`. Per
+// `.claude/rules/motion-shared-layout.md`, no shared `layoutId` is
+// used here — these animations are within-row size changes, not
+// cross-element morphs, so plain `layout` is the right primitive.
 //
-// Future-proof shape: form value is `number[]` today, but the
-// handlers below operate on `next: number[]` arrays so a later
-// migration to `Array<{ minutes: number; description?: string;
-// title?: string }>` is mostly a schema + type swap. The picker's
-// API (`initialMinutes` → `onCommit(minutes)`) becomes
-// (`initialItem` → `onCommit(item)`) at that point — no surrounding
-// section logic needs to change.
+// Save semantics — matches the bio/handle sections above. Field
+// edits update LOCAL form state (`shouldDirty: true`); the
+// section's `<InlineFormSave>` appears when dirty and commits the
+// whole list via `users.setDurationsList`. Add row uses a separate
+// `appendDraft` flow so an empty in-progress entry never lands in
+// the form value (validation would fail on `minutes: 0`).
+
+const OPEN_SPRING = animSpec.transitions[0].spring;
+const CLOSE_SPRING =
+  animSpec.transitions.find(
+    (t) => t.event === "ON_BACK" || t.event === "DISMISS",
+  )?.spring ?? animSpec.transitions[2].spring;
+
+const ROW_TRANSITION = { type: "spring", ...OPEN_SPRING } as const;
+const ROW_EXIT_TRANSITION = { type: "spring", ...CLOSE_SPRING } as const;
+
+const optionFormSchema = z.object({
+  minutes: z
+    .number()
+    .int()
+    .min(DURATION_MIN_MINUTES)
+    .max(DURATION_MAX_MINUTES),
+  title: z
+    .string()
+    .max(DURATION_TITLE_MAX_LENGTH)
+    .nullable(),
+  description: z
+    .string()
+    .max(DURATION_DESCRIPTION_MAX_LENGTH)
+    .nullable(),
+});
 
 const formSchema = z.object({
-  minutes: z
-    .array(
-      z
-        .number()
-        .int()
-        .min(DURATION_MIN_MINUTES)
-        .max(DURATION_MAX_MINUTES),
-    )
-    .max(DURATION_LIST_MAX_LENGTH),
+  list: z.array(optionFormSchema).max(DURATION_LIST_MAX_LENGTH),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -70,7 +92,14 @@ export function DurationFields() {
   const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormValues>(
-    () => ({ minutes: me?.durations.list ?? [] }),
+    () => ({
+      list:
+        me?.durations.list.map((opt) => ({
+          minutes: opt.minutes,
+          title: opt.title ?? null,
+          description: opt.description ?? null,
+        })) ?? [],
+    }),
     [me],
   );
 
@@ -84,7 +113,13 @@ export function DurationFields() {
   const setDurations = useSetDurations();
 
   async function onSubmit(v: FormValues) {
-    await setDurations.mutateAsync({ minutes: v.minutes });
+    await setDurations.mutateAsync({
+      list: v.list.map((opt) => ({
+        minutes: opt.minutes,
+        title: opt.title,
+        description: opt.description,
+      })),
+    });
   }
 
   return (
@@ -106,52 +141,38 @@ export function DurationFields() {
   );
 }
 
-// Inner body — separate component so it can read the form value via
-// `useWatch` without re-rendering the outer Save button on every
-// chip edit.
 function DurationFieldsBody() {
   const t = useTranslations("Profile");
-  const { setValue } = useFormContext<FormValues>();
-  // useWatch's typing returns the union of all watched field types
-  // when given just a name. Two-generic form narrows to the exact
-  // field type (`number[]` here).
-  const list =
-    useWatch<FormValues, "minutes">({ name: "minutes" }) ?? [];
-  const { data: me } = trpc.users.me.useQuery();
-  const defaultMinutes = me?.durations.defaultMinutes ?? 30;
+  const { control } = useFormContext<FormValues>();
+  const { fields, append, remove, update } = useFieldArray<
+    FormValues,
+    "list",
+    "fieldId"
+  >({
+    control,
+    name: "list",
+    keyName: "fieldId",
+  });
 
-  function commit(next: number[]) {
-    // Sort ascending so "30 → 60 → 90 → 120" reads as a duration
-    // ladder regardless of insertion order. shouldDirty fires the
-    // form's dirty flag → InlineFormSave appears.
-    const sorted = [...next].sort((a, b) => a - b);
-    setValue("minutes", sorted, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }
+  // Lifted "which row is expanded" state. Only one row open at a
+  // time keeps the column from growing to ~600px when every row is
+  // expanded; also gives a visual "you're editing this one" cue.
+  // Encoding: number → existing row index, "add" → the add-row
+  // draft, null → all collapsed.
+  const [openKey, setOpenKey] = useState<number | "add" | null>(null);
 
-  function handleEditCommit(original: number, picked: number) {
-    if (picked === original) return;
-    commit(list.filter((m) => m !== original).concat(picked));
-  }
-
-  function handleAddCommit(picked: number) {
-    if (list.includes(picked)) return;
-    commit([...list, picked]);
-  }
-
-  function handleRemove(value: number) {
-    commit(list.filter((m) => m !== value));
-  }
-
+  const list = useWatch<FormValues, "list">({ name: "list" }) ?? [];
   const canAdd = list.length < DURATION_LIST_MAX_LENGTH;
 
-  const pickerLabels = {
-    minuteSuffix: t("durationsMinuteSuffix"),
-    saveAria: t("durationsSave"),
-    removeAria: t("durationsRemove"),
-  };
+  function handleAddCommit(opt: {
+    minutes: number;
+    title: string | null;
+    description: string | null;
+  }) {
+    if (list.some((o) => o.minutes === opt.minutes)) return;
+    append(opt, { shouldFocus: false });
+    setOpenKey(null);
+  }
 
   return (
     <section aria-labelledby="durations-legend">
@@ -160,72 +181,48 @@ function DurationFieldsBody() {
         legend={t("durationsLegend")}
         description={t("durationsDescription")}
       />
-      <div className="mt-5 flex flex-col gap-3">
-        {list.length === 0 ? <EmptyDurations /> : null}
+      <div className="mt-5 flex flex-col gap-2.5">
+        {fields.length === 0 && openKey !== "add" ? <EmptyDurations /> : null}
 
-        {list.length > 0 ? (
-          <ul className="flex flex-col gap-2.5" role="list">
-            {list.map((minutes) => {
-              const summary = formatDurationSummary(minutes, t);
-              const isDefault = minutes === defaultMinutes;
-              return (
-                <li key={minutes}>
-                  <OhDurationPicker
-                    mode="edit"
-                    initialMinutes={minutes}
-                    onCommit={(picked) => handleEditCommit(minutes, picked)}
-                    onRemove={() => handleRemove(minutes)}
-                    existingMinutes={list.filter((m) => m !== minutes)}
-                    labels={pickerLabels}
-                    triggerAriaLabel={t("durationsEditAria", {
-                      label: summary,
-                    })}
-                    triggerClassName="group relative flex w-full items-center gap-3 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-5 py-4 text-left shadow-[var(--oh-shadow-resting)] transition-[box-shadow,background-color] duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--oh-ink)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
-                    triggerContent={
-                      <>
-                        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                          <span className="oh-eyebrow">
-                            {isDefault
-                              ? t("durationsValueLabel")
-                              : t("durationsValueLegend")}
-                          </span>
-                          <span className="text-[18px] leading-[1.1] font-black tabular-nums">
-                            {summary}
-                          </span>
-                          {/* Future per-chip metadata renders here.
-                              When `description` / `title` join the
-                              chip schema, render them as additional
-                              sibling spans inside this column —
-                              picker reads/writes the same shape. */}
-                        </span>
-                        <ChevronRightIcon
-                          className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover:opacity-100 group-data-[popup-open]:rotate-90 group-data-[popup-open]:opacity-100"
-                          aria-hidden
-                        />
-                      </>
-                    }
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
+        <ul role="list" className="flex flex-col gap-2.5">
+          {fields.map((field, index) => (
+            <li key={field.fieldId}>
+              <DurationRow
+                index={index}
+                isOpen={openKey === index}
+                onToggle={() =>
+                  setOpenKey(openKey === index ? null : index)
+                }
+                onRemove={() => {
+                  remove(index);
+                  setOpenKey(null);
+                }}
+                onCommitMinutes={(minutes) => {
+                  // De-dupe across siblings before persisting.
+                  if (
+                    list.some(
+                      (o, i) => i !== index && o.minutes === minutes,
+                    )
+                  ) {
+                    return false;
+                  }
+                  update(index, { ...list[index]!, minutes });
+                  return true;
+                }}
+                otherMinutes={list
+                  .filter((_, i) => i !== index)
+                  .map((o) => o.minutes)}
+              />
+            </li>
+          ))}
+        </ul>
 
-        {/* Icon-only add trigger. Sits below the chip stack as a
-            small ghost button — keeps the section's visual weight
-            on the existing chips while still surfacing the affordance.
-            Disabled state cues the 8-cap from the schema. The save
-            action inside the popover uses a Check icon so this `+`
-            and the in-popover button don't read as redundant. */}
-        <OhDurationPicker
-          mode="add"
-          onCommit={handleAddCommit}
-          existingMinutes={list}
-          labels={pickerLabels}
+        <AddRow
+          isOpen={openKey === "add"}
           disabled={!canAdd}
-          triggerAriaLabel={t("durationsAddLabel")}
-          triggerClassName="oh-focus-ring inline-flex size-9 items-center justify-center self-start rounded-(--oh-r-sm) text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)] data-[popup-open]:bg-[var(--oh-tint)] data-[popup-open]:text-[var(--oh-ink)]"
-          triggerContent={<PlusIcon className="size-4" strokeWidth={1.75} />}
+          onToggle={() => setOpenKey(openKey === "add" ? null : "add")}
+          onCommit={handleAddCommit}
+          existingMinutes={list.map((o) => o.minutes)}
         />
       </div>
     </section>
@@ -238,6 +235,415 @@ function EmptyDurations() {
     <div className="oh-empty-surface rounded-(--oh-r-sm) px-5 py-7 text-left">
       <p className="oh-eyebrow">{t("durationsEmpty")}</p>
       <p className="oh-description mt-2">{t("durationsEmptyHint")}</p>
+    </div>
+  );
+}
+
+// Single row — collapsed shows summary; expanded shows in-place
+// editor. Outer wrapper carries `layout` so its height tweens when
+// the form mounts/unmounts via the inner AnimatePresence.
+function DurationRow({
+  index,
+  isOpen,
+  onToggle,
+  onRemove,
+  onCommitMinutes,
+  otherMinutes,
+}: {
+  index: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  onRemove: () => void;
+  // Returns false when the picked minutes collides with another
+  // row; the caller surfaces that as inline error state.
+  onCommitMinutes: (minutes: number) => boolean;
+  otherMinutes: number[];
+}) {
+  const t = useTranslations("Profile");
+  const { register, control, setValue } = useFormContext<FormValues>();
+
+  const row = useWatch<FormValues, `list.${number}`>({
+    control,
+    name: `list.${index}`,
+  });
+  const minutes = row?.minutes ?? 0;
+  const title = row?.title ?? null;
+
+  const summary = formatDurationSummary(minutes, t);
+  const caption = title && title.trim().length > 0 ? title : summary;
+
+  return (
+    <motion.article
+      layout
+      transition={isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION}
+      className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[open=true]:shadow-[var(--oh-shadow-hover)]"
+      data-open={isOpen}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="oh-focus-ring group/row flex w-full items-center gap-3 rounded-(--oh-r-sm) px-5 py-4 text-left"
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span className="oh-eyebrow">
+            {title && title.trim().length > 0
+              ? summary
+              : t("durationsValueLegend")}
+          </span>
+          <span className="text-[18px] leading-[1.1] font-black tabular-nums truncate">
+            {caption}
+          </span>
+        </span>
+        <ChevronDownIcon
+          className="size-4 shrink-0 opacity-45 transition-[opacity,transform] duration-150 ease-oh group-hover/row:opacity-100 data-[open=true]:rotate-180 data-[open=true]:opacity-100"
+          aria-hidden
+          data-open={isOpen}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen ? (
+          <motion.div
+            // `layout` on the parent already animates height; the
+            // inner div fades the form contents while the parent's
+            // bounds tween via the spring above.
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+            className="border-t border-oh-line"
+          >
+            <div className="flex flex-col gap-4 px-5 py-5">
+              <FieldBlock
+                legendId={`duration-${index}-title`}
+                legend={t("durationsTitleLabel")}
+                description={t("durationsTitleHint")}
+              >
+                <input
+                  {...register(`list.${index}.title`, {
+                    setValueAs: (v: string) => {
+                      const trimmed = (v ?? "").trim();
+                      return trimmed.length === 0 ? null : trimmed;
+                    },
+                  })}
+                  type="text"
+                  maxLength={DURATION_TITLE_MAX_LENGTH}
+                  placeholder={t("durationsTitlePlaceholder")}
+                  defaultValue={title ?? ""}
+                  className="oh-input"
+                  aria-labelledby={`duration-${index}-title`}
+                />
+              </FieldBlock>
+
+              <FieldBlock
+                legendId={`duration-${index}-minutes`}
+                legend={t("durationsValueLegend")}
+                description={t("durationsMinutesHint")}
+              >
+                <MinutesInput
+                  initial={minutes}
+                  otherMinutes={otherMinutes}
+                  onCommit={(picked) => {
+                    if (picked === minutes) return;
+                    if (!onCommitMinutes(picked)) return;
+                    // The parent's update call is the source of
+                    // truth; the input's own value rebinds on the
+                    // next render via useWatch.
+                  }}
+                />
+              </FieldBlock>
+
+              <FieldBlock
+                legendId={`duration-${index}-desc`}
+                legend={t("durationsDescriptionLabel")}
+                description={t("durationsDescriptionHint")}
+              >
+                <textarea
+                  {...register(`list.${index}.description`, {
+                    setValueAs: (v: string) => {
+                      const trimmed = (v ?? "").trim();
+                      return trimmed.length === 0 ? null : trimmed;
+                    },
+                  })}
+                  rows={3}
+                  maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
+                  placeholder={t("durationsDescriptionPlaceholder")}
+                  defaultValue={row?.description ?? ""}
+                  className="oh-input min-h-[80px] resize-y"
+                  aria-labelledby={`duration-${index}-desc`}
+                />
+              </FieldBlock>
+
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  className="oh-focus-ring inline-flex items-center gap-1.5 rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
+                >
+                  <Trash2Icon className="size-3.5" strokeWidth={1.75} />
+                  {t("durationsRemove")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // The form is the source of truth; collapse just
+                    // closes the editor. Parent's `setValue` calls
+                    // through register already wrote the trimmed
+                    // values back into the list.
+                    setValue(`list.${index}`, {
+                      minutes,
+                      title,
+                      description: row?.description ?? null,
+                    });
+                    onToggle();
+                  }}
+                  className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-semibold text-[var(--oh-ink)] transition-colors duration-150 ease-oh hover:underline"
+                >
+                  {t("durationsDoneLabel")}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.article>
+  );
+}
+
+// Add row — same chrome shape as DurationRow but starts collapsed
+// with a "+ Add duration" caption. Expands into a draft form whose
+// state is local until Save (the form's `list` doesn't carry
+// half-typed entries that would fail schema validation).
+function AddRow({
+  isOpen,
+  disabled,
+  onToggle,
+  onCommit,
+  existingMinutes,
+}: {
+  isOpen: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+  onCommit: (opt: {
+    minutes: number;
+    title: string | null;
+    description: string | null;
+  }) => void;
+  existingMinutes: number[];
+}) {
+  const t = useTranslations("Profile");
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftMinutes, setDraftMinutes] = useState<number | null>(null);
+  const [draftDesc, setDraftDesc] = useState("");
+
+  function reset() {
+    setDraftTitle("");
+    setDraftMinutes(null);
+    setDraftDesc("");
+  }
+
+  function commit() {
+    if (
+      draftMinutes === null ||
+      draftMinutes < DURATION_MIN_MINUTES ||
+      draftMinutes > DURATION_MAX_MINUTES ||
+      existingMinutes.includes(draftMinutes)
+    ) {
+      return;
+    }
+    onCommit({
+      minutes: draftMinutes,
+      title: draftTitle.trim().length > 0 ? draftTitle.trim() : null,
+      description: draftDesc.trim().length > 0 ? draftDesc.trim() : null,
+    });
+    reset();
+  }
+
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={disabled}
+        aria-label={t("durationsAddLabel")}
+        className="oh-focus-ring inline-flex items-center gap-2 self-start rounded-(--oh-r-sm) px-3 py-2 text-[13px] font-medium text-[color:var(--oh-content-muted)] transition-[color,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[color:var(--oh-content-muted)]"
+      >
+        <PlusIcon className="size-4" strokeWidth={1.75} />
+        {t("durationsAddLabel")}
+      </button>
+    );
+  }
+
+  const canSave =
+    draftMinutes !== null &&
+    draftMinutes >= DURATION_MIN_MINUTES &&
+    draftMinutes <= DURATION_MAX_MINUTES &&
+    !existingMinutes.includes(draftMinutes);
+
+  return (
+    <motion.article
+      layout
+      transition={ROW_TRANSITION}
+      className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-hover)]"
+    >
+      <div className="border-b border-oh-line px-5 py-3">
+        <p className="oh-eyebrow">{t("durationsAddTitle")}</p>
+      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+        className="flex flex-col gap-4 px-5 py-5"
+      >
+        <FieldBlock
+          legendId="duration-add-title"
+          legend={t("durationsTitleLabel")}
+          description={t("durationsTitleHint")}
+        >
+          <input
+            type="text"
+            value={draftTitle}
+            onChange={(e) => setDraftTitle(e.target.value)}
+            maxLength={DURATION_TITLE_MAX_LENGTH}
+            placeholder={t("durationsTitlePlaceholder")}
+            className="oh-input"
+            aria-labelledby="duration-add-title"
+          />
+        </FieldBlock>
+
+        <FieldBlock
+          legendId="duration-add-minutes"
+          legend={t("durationsValueLegend")}
+          description={t("durationsMinutesHint")}
+        >
+          <MinutesInput
+            initial={null}
+            otherMinutes={existingMinutes}
+            onCommit={(picked) => setDraftMinutes(picked)}
+            autoFocus
+          />
+        </FieldBlock>
+
+        <FieldBlock
+          legendId="duration-add-desc"
+          legend={t("durationsDescriptionLabel")}
+          description={t("durationsDescriptionHint")}
+        >
+          <textarea
+            value={draftDesc}
+            onChange={(e) => setDraftDesc(e.target.value)}
+            rows={3}
+            maxLength={DURATION_DESCRIPTION_MAX_LENGTH}
+            placeholder={t("durationsDescriptionPlaceholder")}
+            className="oh-input min-h-[80px] resize-y"
+            aria-labelledby="duration-add-desc"
+          />
+        </FieldBlock>
+
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              onToggle();
+            }}
+            className="oh-focus-ring rounded-(--oh-r-xs) text-[12px] font-medium text-[color:var(--oh-content-muted)] transition-colors duration-150 ease-oh hover:text-[var(--oh-ink)]"
+          >
+            {t("durationsCancelLabel")}
+          </button>
+          <button
+            type="button"
+            onClick={commit}
+            disabled={!canSave}
+            className="oh-focus-ring rounded-(--oh-r-xs) bg-[var(--oh-ink)] px-4 py-2 text-[12px] font-semibold text-[var(--oh-paper)] transition-opacity duration-150 ease-oh disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {t("durationsSave")}
+          </button>
+        </div>
+      </motion.div>
+    </motion.article>
+  );
+}
+
+function FieldBlock({
+  legendId,
+  legend,
+  description,
+  children,
+}: {
+  legendId: string;
+  legend: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={legendId} id={legendId} className="oh-eyebrow">
+        {legend}
+      </label>
+      {description ? (
+        <p className="oh-description max-w-[42ch]">{description}</p>
+      ) : null}
+      {children}
+    </div>
+  );
+}
+
+// Numeric input with onCommit semantics — fires once on blur OR
+// Enter, after validating range + duplicate. Keeps the parent free
+// of per-keystroke updates that would dirty the form on every digit.
+function MinutesInput({
+  initial,
+  otherMinutes,
+  onCommit,
+  autoFocus,
+}: {
+  initial: number | null;
+  otherMinutes: number[];
+  onCommit: (minutes: number) => void;
+  autoFocus?: boolean;
+}) {
+  const [value, setValue] = useState<string>(
+    initial !== null ? String(initial) : "",
+  );
+
+  const t = useTranslations("Profile");
+
+  function tryCommit() {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) return;
+    const parsed = Number.parseInt(trimmed, 10);
+    if (!Number.isFinite(parsed)) return;
+    if (parsed < DURATION_MIN_MINUTES || parsed > DURATION_MAX_MINUTES) return;
+    if (otherMinutes.includes(parsed)) return;
+    onCommit(parsed);
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        inputMode="numeric"
+        min={DURATION_MIN_MINUTES}
+        max={DURATION_MAX_MINUTES}
+        step={1}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={tryCommit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            tryCommit();
+          }
+        }}
+        autoFocus={autoFocus}
+        className="oh-input w-24 text-center tabular-nums"
+        aria-label={t("durationsValueLegend")}
+      />
+      <span className="oh-description shrink-0 normal-case">
+        {t("durationsMinuteSuffix")}
+      </span>
     </div>
   );
 }

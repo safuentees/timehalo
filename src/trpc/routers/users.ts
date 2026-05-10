@@ -176,7 +176,7 @@ export const users = router({
       });
       const durationChoices = eventType
         ? resolveDurationChoices(eventType)
-        : [15];
+        : [{ minutes: 15, title: null, description: null }];
       const defaultDurationMinutes = eventType?.durationMins ?? 15;
       return { ...user, durationChoices, defaultDurationMinutes };
     }),
@@ -336,7 +336,7 @@ export const users = router({
   // error (the /profile editor disables in that state via the empty
   // `durations` shape on `users.me`).
   setDurationsList: privateProcedure
-    .input(z.object({ minutes: durationsListSchema }))
+    .input(z.object({ list: durationsListSchema }))
     .mutation(async ({ input, ctx }) => {
       const user = await prisma.user.findUniqueOrThrow({
         where: { id: ctx.user.id },
@@ -365,9 +365,9 @@ export const users = router({
       // we just JSON.stringify the canonical shape onto the row.
       await prisma.eventType.update({
         where: { id: eventType.id },
-        data: { durationMinsList: JSON.stringify(input.minutes) },
+        data: { durationMinsList: JSON.stringify(input.list) },
       });
-      return { minutes: input.minutes };
+      return { list: input.list };
     }),
 
   // GDPR / CCPA data export (C5 + L4). Returns every row tied to

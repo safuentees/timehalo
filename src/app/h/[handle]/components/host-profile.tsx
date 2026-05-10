@@ -478,6 +478,20 @@ export default function HostProfile({
               <HandleMorphCard
                 key="landing-card"
                 layoutId={landingLayoutId("handle-card")}
+                // B.PT303 — kill motion's default opacity crossfade
+                // between lead+follow during the layoutId morph. Both
+                // cards share the `.oh-handle-morph-card` class which
+                // applies `box-shadow: var(--oh-handle-card-shadow)`;
+                // in dark mode that token resolves to `--oh-shadow-popup`
+                // (drop shadow). With crossfade ON, lead+follow render
+                // simultaneously through the morph → two stacked drop
+                // shadows visible behind the modal during animation,
+                // disappearing once the lead unmounts. `layoutCrossfade
+                // ={false}` sets `visibility: hidden` on the lead on
+                // promote, so its box-shadow vanishes with it. Light
+                // mode unaffected (inset shadow has no exterior paint).
+                // Public typed in motion-dom/dist/index.d.ts:970.
+                layoutCrossfade={false}
                 transition={{
                   type: "spring",
                   ...(drawerOpen ? openSpring : closeSpring),
@@ -782,8 +796,15 @@ export default function HostProfile({
                                 ),
                               }}
                               figmaLayer={`landing-slot-${i}`}
-                              title="intro"
-                              description="quick chat, voice only"
+                              // B.PT303 — host-customized title +
+                              // description override the placeholders.
+                              // Falls back to the locale-aware fullLabel
+                              // (e.g. "15 minutes") when the host
+                              // hasn't set a title; description falls
+                              // through to empty string so SlotRow's
+                              // subtitle slot collapses cleanly.
+                              title={opt.title ?? opt.fullLabel}
+                              description={opt.description ?? ""}
                               durationLabel={opt.label}
                               onClick={() => {
                                 // B.PT231 — chrome row uses the

@@ -69,18 +69,26 @@ describe("users.setDurationsList + me.durations", () => {
     // Input is intentionally unsorted + has duplicates — the schema
     // transform should canonicalize before the row write.
     const result = await caller.users.setDurationsList({
-      minutes: [60, 15, 30, 15, 60],
+      list: [
+        { minutes: 60 },
+        { minutes: 15 },
+        { minutes: 30 },
+        { minutes: 15 },
+        { minutes: 60 },
+      ],
     });
-    expect(result.minutes).toEqual([15, 30, 60]);
+    expect(result.list.map((o) => o.minutes)).toEqual([15, 30, 60]);
 
     const me = await caller.users.me();
-    expect(me.durations.list).toEqual([15, 30, 60]);
+    expect(me.durations.list.map((o) => o.minutes)).toEqual([15, 30, 60]);
   });
 
-  it("clears the list when minutes is empty", async () => {
+  it("clears the list when list is empty", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
-    await caller.users.setDurationsList({ minutes: [15, 30] });
-    await caller.users.setDurationsList({ minutes: [] });
+    await caller.users.setDurationsList({
+      list: [{ minutes: 15 }, { minutes: 30 }],
+    });
+    await caller.users.setDurationsList({ list: [] });
     const me = await caller.users.me();
     expect(me.durations.list).toEqual([]);
   });
@@ -88,14 +96,14 @@ describe("users.setDurationsList + me.durations", () => {
   it("rejects values below 5 minutes", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
     await expect(
-      caller.users.setDurationsList({ minutes: [4] }),
+      caller.users.setDurationsList({ list: [{ minutes: 4 }] }),
     ).rejects.toThrow();
   });
 
   it("rejects values above 480 minutes", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
     await expect(
-      caller.users.setDurationsList({ minutes: [481] }),
+      caller.users.setDurationsList({ list: [{ minutes: 481 }] }),
     ).rejects.toThrow();
   });
 
@@ -103,25 +111,39 @@ describe("users.setDurationsList + me.durations", () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
     await expect(
       caller.users.setDurationsList({
-        minutes: [10, 15, 20, 25, 30, 45, 60, 90, 120],
+        list: [
+          { minutes: 10 },
+          { minutes: 15 },
+          { minutes: 20 },
+          { minutes: 25 },
+          { minutes: 30 },
+          { minutes: 45 },
+          { minutes: 60 },
+          { minutes: 90 },
+          { minutes: 120 },
+        ],
       }),
     ).rejects.toThrow();
   });
 
   it("getByHandle exposes the configured list to anonymous visitors", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
-    await caller.users.setDurationsList({ minutes: [15, 30, 60] });
+    await caller.users.setDurationsList({
+      list: [{ minutes: 15 }, { minutes: 30 }, { minutes: 60 }],
+    });
 
     const anon = callRouter(fakeContext());
     const profile = await anon.users.getByHandle({ handle: HANDLE });
-    expect(profile.durationChoices).toEqual([15, 30, 60]);
+    expect(profile.durationChoices.map((o) => o.minutes)).toEqual([
+      15, 30, 60,
+    ]);
     expect(profile.defaultDurationMinutes).toBe(15);
   });
 
   it("getByHandle returns the seeded default for new hosts", async () => {
     const anon = callRouter(fakeContext());
     const profile = await anon.users.getByHandle({ handle: HANDLE });
-    expect(profile.durationChoices).toEqual([15]);
+    expect(profile.durationChoices.map((o) => o.minutes)).toEqual([15]);
     expect(profile.defaultDurationMinutes).toBe(15);
   });
 
@@ -135,7 +157,7 @@ describe("users.setDurationsList + me.durations", () => {
     });
     const anon = callRouter(fakeContext());
     const profile = await anon.users.getByHandle({ handle: HANDLE });
-    expect(profile.durationChoices).toEqual([]);
+    expect(profile.durationChoices.map((o) => o.minutes)).toEqual([]);
   });
 
   it("PRECONDITION_FAILED when the caller has no handle yet", async () => {
@@ -149,7 +171,7 @@ describe("users.setDurationsList + me.durations", () => {
     });
     const caller = callRouter(fakeContext({ userId: host.id }));
     await expect(
-      caller.users.setDurationsList({ minutes: [30] }),
+      caller.users.setDurationsList({ list: [{ minutes: 30 }] }),
     ).rejects.toThrow(TRPCError);
     // Restore the handle so afterAll teardown's slug-based cleanup
     // still finds the test row.

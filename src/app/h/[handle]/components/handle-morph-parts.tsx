@@ -59,18 +59,25 @@ export const HANDLE_SLOT_ROW_RADIUS_STYLE = cornerRadiusStyle(
 );
 
 // Per-chip label shape consumed by `SlotRow` + the modal's chrome-row
-// meeting-duration title. Two fields per option:
-//   • `label`   — compact form ("15 min" / "1 hr") that fits the small
-//                 chip frame.
-//   • `fullLabel` — sentence-case form ("15 minutes" / "1 hour") for
-//                   the chrome-row title.
-// Two fields instead of one regex transform keeps the data explicit
-// and locale-friendly when we eventually thread `useTranslations`
-// through (B.PT231 framing).
+// meeting-duration title. Fields:
+//   • `label`       — compact form. Falls back to "15 min" / "1 hr" when
+//                     the host hasn't set a custom title.
+//   • `fullLabel`   — sentence-case duration ("15 minutes" / "1 hour").
+//                     Used by the modal's chrome-row title even when the
+//                     chip displays a custom title — the modal surfaces
+//                     "{title} for {fullLabel} on {date} at {time}".
+//   • `minutes`     — raw minutes (booking write key + duration math).
+//   • `title`       — optional host-customized chip caption (B.PT303).
+//                     `null` means "no custom title; show fullLabel as
+//                     the chip caption."
+//   • `description` — optional host-customized subtitle, surfaced in
+//                     the modal's chrome row beneath the meeting title.
 export type SlotOption = {
   label: string;
   fullLabel: string;
   minutes: number;
+  title: string | null;
+  description: string | null;
 };
 
 // Translator shape for the chip-label builder. Narrows to the
@@ -100,29 +107,35 @@ type SlotOptionT = (
 // chrome row's title template gets its own `chromeRowSlotTitle` key
 // to localize the "on / at" connectors.
 export function minutesToSlotOption(
-  minutes: number,
+  option: { minutes: number; title?: string | null; description?: string | null },
   t: SlotOptionT,
 ): SlotOption {
+  const { minutes, title = null, description = null } = option;
+  let label: string;
+  let fullLabel: string;
   if (minutes < 60) {
-    return {
-      label: t("slotDurationCompactMinutes", { minutes }),
-      fullLabel: t("slotDurationFullMinutes", { minutes }),
-      minutes,
-    };
+    label = t("slotDurationCompactMinutes", { minutes });
+    fullLabel = t("slotDurationFullMinutes", { minutes });
+  } else {
+    const hours = Math.floor(minutes / 60);
+    const rem = minutes % 60;
+    if (rem === 0) {
+      label = t("slotDurationCompactHours", { count: hours });
+      fullLabel = t("slotDurationFullHours", { count: hours });
+    } else {
+      label = t("slotDurationCompactHoursMinutes", { hours, minutes: rem });
+      fullLabel = t("slotDurationFullHoursMinutes", { hours, minutes: rem });
+    }
   }
-  const hours = Math.floor(minutes / 60);
-  const rem = minutes % 60;
-  if (rem === 0) {
-    return {
-      label: t("slotDurationCompactHours", { count: hours }),
-      fullLabel: t("slotDurationFullHours", { count: hours }),
-      minutes,
-    };
-  }
+  // B.PT303 — host-customized title overrides the chip caption.
+  // `fullLabel` keeps the duration form so the modal can render
+  // "{title} for {fullLabel}" as a richer chrome-row title.
   return {
-    label: t("slotDurationCompactHoursMinutes", { hours, minutes: rem }),
-    fullLabel: t("slotDurationFullHoursMinutes", { hours, minutes: rem }),
+    label: title ?? label,
+    fullLabel,
     minutes,
+    title,
+    description,
   };
 }
 
@@ -139,6 +152,8 @@ export const FALLBACK_SLOT_OPTIONS: ReadonlyArray<SlotOption> = [
     label: "15 min",
     fullLabel: "15 minutes",
     minutes: 15,
+    title: null,
+    description: null,
   },
 ];
 

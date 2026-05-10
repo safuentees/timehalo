@@ -635,7 +635,17 @@
     "durationsValueSummaryHoursMinutes": "{hours} hr {minutes} min",
     "durationsEditAria": "Edit {label}",
     "durationsRemoveAria": "Remove {label}",
-    "durationsSavedToast": "Durations updated."
+    "durationsSavedToast": "Durations updated.",
+    "durationsTitleLabel": "Title",
+    "durationsTitleHint": "Replaces the duration label on the chip when set. Leave blank to show the duration only.",
+    "durationsTitlePlaceholder": "Quick chat",
+    "durationsDescriptionLabel": "Subtitle",
+    "durationsDescriptionHint": "A short line shown beneath the title on the visitor's chip.",
+    "durationsDescriptionPlaceholder": "Voice only, jump on a call.",
+    "durationsMinutesHint": "Anywhere from 5 to 480 minutes.",
+    "durationsAddTitle": "New duration",
+    "durationsCancelLabel": "Cancel",
+    "durationsDoneLabel": "Done"
   },
   "HostError": {
     "title": "Something went sideways",

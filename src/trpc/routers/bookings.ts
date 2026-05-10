@@ -238,7 +238,9 @@ export const bookings = router({
             }
             if (input.durationMinutes === undefined) {
               effectiveDurationMinutes = resolvedEventType.durationMins;
-            } else if (choices.includes(input.durationMinutes)) {
+            } else if (
+              choices.some((c) => c.minutes === input.durationMinutes)
+            ) {
               effectiveDurationMinutes = input.durationMinutes;
             } else {
               throw new TRPCError({

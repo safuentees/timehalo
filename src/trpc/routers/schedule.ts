@@ -132,7 +132,7 @@ export const schedule = router({
         return [];
       } else if (input.durationMinutes === undefined) {
         effectiveDurationMinutes = eventType.durationMins;
-      } else if (choices.includes(input.durationMinutes)) {
+      } else if (choices.some((c) => c.minutes === input.durationMinutes)) {
         effectiveDurationMinutes = input.durationMinutes;
       } else {
         // Stale chip strip / direct API call with an off-list duration.
