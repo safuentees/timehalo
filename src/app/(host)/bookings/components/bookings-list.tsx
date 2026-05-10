@@ -459,10 +459,11 @@ export function BookingsList({
           space. */}
       {!isCalendarView ? (
         <OhPageShell>
-          <OhPageHeader
-            title={t("title")}
-            aside={liveQueueEnabled ? <LiveQueue /> : null}
-          />
+          {liveQueueEnabled ? (
+            <div className="mb-6 flex justify-end">
+              <LiveQueue />
+            </div>
+          ) : null}
 
           <OnboardingChecklist />
 
