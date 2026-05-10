@@ -81,6 +81,11 @@ export function BioFields() {
     // invalidation in `src/trpc/hooks.ts` refetches `users.me` and
     // RHF's `values` re-seeds with the canonical stored bio.
     await setBio.mutateAsync({ bio: v.bio });
+    // Reset defaults to the saved value so isDirty flips back to
+    // false. Without this, `keepDirtyValues: true` (set on
+    // useForm) preserves the dirty flag through the values
+    // re-seed, and InlineFormSave never hides after save.
+    form.reset(v);
   }
 
   return (

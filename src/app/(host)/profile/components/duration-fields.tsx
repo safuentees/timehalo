@@ -189,6 +189,10 @@ export function DurationFields() {
         description: opt.description,
       })),
     });
+    // Reset defaults so isDirty flips false after save (without this
+    // `keepDirtyValues: true` on useForm preserves the dirty flag
+    // through the values re-seed, and InlineFormSave never hides).
+    form.reset(v);
   }
 
   return (

@@ -71,6 +71,10 @@ export default function ProfileForm() {
   async function onSubmit(v: FormValues) {
     form.clearErrors("handle");
     await saveHandle.mutateAsync({ handle: v.handle });
+    // Reset defaults so isDirty flips false after save (without this
+    // `keepDirtyValues: true` preserves the dirty flag through the
+    // values re-seed, and InlineFormSave never hides).
+    form.reset(v);
   }
 
   return (
