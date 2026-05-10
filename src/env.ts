@@ -17,6 +17,16 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().min(1),
+    /**
+     * Turso libsql auth token. Required when DATABASE_URL is a remote
+     * libsql URL (`libsql://<db>-<org>.turso.io`); ignored when the
+     * URL is a local file (`file:...`). The libsql HTTP transport is
+     * what serves as the connection pool / edge replica layer for
+     * production — there's no separate pgbouncer/Accelerate to
+     * configure. Generated via Turso CLI: `turso db tokens create
+     * <db-name>`.
+     */
+    TURSO_AUTH_TOKEN: z.string().optional(),
     AUTH_SECRET: z.string().min(1),
     AUTH_GITHUB_ID: z.string().optional(),
     AUTH_GITHUB_SECRET: z.string().optional(),
@@ -47,10 +57,16 @@ export const env = createEnv({
      */
     EMAIL_DEV_REDIRECT: z.string().email().optional(),
     /**
-     * Optional Upstash Redis for the rate-limit fallback path. When
-     * unset, the in-memory limiter (rallly's pattern) is used.
+     * Optional Upstash Redis for the rate-limit fallback path. Both
+     * URL and TOKEN must be set together — `createRatelimit`
+     * (`src/lib/rate-limit.ts`) branches on URL presence and would
+     * fail at request time if TOKEN is missing. When either is
+     * unset, the in-memory limiter (rallly's pattern) is used; that's
+     * fine for single-instance deploys but not multi-region (state
+     * doesn't share across processes).
      */
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
     /**
      * CSV of host handles permitted to access /admin/*. Empty/unset
      * → no admin access from any account. dub uses workspace-

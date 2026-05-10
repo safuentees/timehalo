@@ -6,3 +6,4 @@ import { config } from "dotenv";
 // undefined → libsql falls through to a default path → that file
 // has no tables and tests fail with `no such table: main.User`.
 config();
+

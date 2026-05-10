@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { signIn } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { OhAuthShell } from "@/components/oh/oh-auth-shell";
 import CredentialsForm from "./credentials-form";
+
+export const metadata: Metadata = {
+  title: "Sign in — Officehours",
+  description: "Sign in to manage your booking handle and weekly hours.",
+  // Auth pages should not be indexed (avoids surfacing /login in
+  // search results when users are looking for the host's profile).
+  robots: { index: false, follow: false },
+};
 
 type SearchParams = Promise<{ error?: string }>;
 

@@ -1,0 +1,34 @@
+name: Process tasks (5min cron)
+
+# Every 5 minutes, hit the production /api/cron/process-tasks
+# endpoint with the bearer token. Replaces Vercel Cron because the
+# Hobby tier limits cron jobs to once per day; GitHub Actions has
+# no such restriction (every 5 min works on the free tier for
+# public + private repos within the 2000 min/month allowance).
+#
+# When/if we upgrade to Vercel Pro, swap this back: re-add the
+# `/api/cron/process-tasks` entry to vercel.json and delete this
+# file. Per-minute scheduling on Vercel has tighter precision
+# (per-minute vs GitHub's ~5-min jitter window).
+#
+# Daily /api/cron/cleanup-bookings (at 3am UTC) stays on Vercel
+# Cron — daily intervals ARE allowed on Hobby.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  # Manual trigger from the Actions tab — useful for one-off
+  # task processing outside the schedule (e.g. drain the queue
+  # after a brief outage).
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Hit cron endpoint
+        run: |
+          curl --fail --silent --show-error --max-time 60 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://safuentes.dev/api/cron/process-tasks

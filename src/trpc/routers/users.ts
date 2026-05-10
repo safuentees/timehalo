@@ -370,6 +370,137 @@ export const users = router({
       return { minutes: input.minutes };
     }),
 
+  // GDPR / CCPA data export (C5 + L4). Returns every row tied to
+  // the calling user's id. The caller wraps this in a JSON download
+  // (no streaming — one host's data is comfortably <5MB even for an
+  // active account). Secrets and FK-only fields are omitted: the
+  // adapter-encrypted CalendarCredential.accessToken / refreshToken
+  // never leave the server, only the provider + externalAccountEmail
+  // are returned.
+  //
+  // BookingAudit rows are excluded from the user's export because
+  // they survive deletion BY DESIGN (production-primitives.md item
+  // 2): handing them to the user would let them undo the audit's
+  // long-term traceability of state changes that touched their
+  // account. The user's own bookings + their state transitions are
+  // already in the `bookings` array.
+  exportData: privateProcedure.query(async ({ ctx }) => {
+    const [
+      user,
+      bookings,
+      availabilityRanges,
+      calendarCredentials,
+      ownedWorkspaces,
+      memberships,
+      webhookSubscriptions,
+      userFeatures,
+    ] = await Promise.all([
+      prisma.user.findUniqueOrThrow({
+        where: { id: ctx.user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          handle: true,
+          image: true,
+          timezone: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.booking.findMany({
+        where: { hostId: ctx.user.id },
+        select: {
+          id: true,
+          publicUid: true,
+          slotStart: true,
+          slotEnd: true,
+          visitorEmail: true,
+          visitorName: true,
+          visitorTimezone: true,
+          question: true,
+          referrer: true,
+          rescheduledFromUid: true,
+          deleted: true,
+          deletedAt: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.availabilityRange.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          dayOfWeek: true,
+          startTime: true,
+          endTime: true,
+        },
+      }),
+      prisma.calendarCredential.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          provider: true,
+          externalAccountId: true,
+          externalAccountEmail: true,
+          accessTokenExpiresAt: true,
+          scope: true,
+          createdAt: true,
+        },
+      }),
+      prisma.workspace.findMany({
+        where: { ownerId: ctx.user.id },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          createdAt: true,
+        },
+      }),
+      prisma.membership.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          role: true,
+          workspaceId: true,
+          assignedAt: true,
+        },
+      }),
+      prisma.webhookSubscription.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          publicUid: true,
+          subscriberUrl: true,
+          events: true,
+          active: true,
+          createdAt: true,
+        },
+      }),
+      prisma.userFeatures.findMany({
+        where: { userId: ctx.user.id },
+        select: {
+          featureSlug: true,
+          assignedAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      schemaVersion: 1,
+      user,
+      bookings,
+      availabilityRanges,
+      calendarCredentials,
+      ownedWorkspaces,
+      memberships,
+      webhookSubscriptions,
+      userFeatures,
+    };
+  }),
+
   // Account deletion. Cascades through every relation onDelete:
   // Cascade (Account, Session, AvailabilityRange, Booking,
   // WebhookSubscription, UserFeatures, Authenticator). BookingAudit

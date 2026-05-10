@@ -3,6 +3,47 @@ import path from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
+// D1 — Content-Security-Policy. Static CSP (no per-request nonce) is
+// the simpler shipping path for Next 16 App Router; the nonce-based
+// approach requires plumbing `x-nonce` through every server component
+// + every <Script> tag, which is a substantial refactor. The trade-off
+// is `'unsafe-inline'` on script-src + style-src — React 19's
+// hydration injects inline <script> data, and Tailwind + shadcn ship
+// inline style attributes. Promote to the nonce-based variant via a
+// future B.PT row when the launch surface stabilizes.
+//
+// Allowlists scoped to actually-used third parties:
+// - Stripe Checkout (script + frame + xhr)
+// - Sentry (xhr only — SDK is bundled via @sentry/nextjs, not CDN)
+// - Upstash Redis REST (xhr only)
+// - GitHub avatars (img)
+// - Google avatars (img — calendar OAuth + GitHub-via-Google chain)
+// - Vercel preview URLs (frame-ancestors stays 'none' to block
+//   clickjacking; vercel.live previews don't need to be embeddable)
+//
+// upgrade-insecure-requests forces any http:// reference to https://
+//
+// Two CSP variants because /embed/<handle> + /embed.js (the embed
+// loader script — see B.PT85) are designed to be iframed by third-
+// party sites. The default policy uses frame-ancestors 'none' (D3
+// X-Frame-Options DENY equivalent); the embed-route policy uses
+// frame-ancestors '*' so any parent site can host the iframe.
+const baseCspParts = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.googleusercontent.com",
+  "font-src 'self' data:",
+  "connect-src 'self' https://api.stripe.com https://*.sentry.io https://*.ingest.sentry.io https://*.upstash.io",
+  "frame-src https://js.stripe.com https://hooks.stripe.com",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+  "upgrade-insecure-requests",
+];
+const cspDefault = [...baseCspParts, "frame-ancestors 'none'"].join("; ");
+const cspEmbed = [...baseCspParts, "frame-ancestors *"].join("; ");
+
 const nextConfig: NextConfig = {
   // Pin the workspace root explicitly so Next 16's Turbopack stops
   // finding the stray ~/pnpm-lock.yaml in the user's home directory
@@ -10,6 +51,79 @@ const nextConfig: NextConfig = {
   // lockfile warning fires on every `pnpm dev`.
   turbopack: {
     root: path.resolve(__dirname),
+  },
+  async headers() {
+    // Shared headers applied across both rule sets.
+    const sharedHeaders = [
+      {
+        // D2 — HSTS. 2-year max-age (63072000s) is the canonical
+        // value most browsers + the preload list expect.
+        // includeSubDomains covers any future api.officehours.app
+        // / cdn.officehours.app etc. preload directive opts in to
+        // the browser-shipped preload list (must submit domain at
+        // hstspreload.org for inclusion).
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+      {
+        // D4 — Referrer-Policy. strict-origin-when-cross-origin
+        // sends the origin (no path) on cross-site, full URL on
+        // same-origin. Default for most browsers; setting it
+        // explicitly defends against any UA that defaults looser.
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+      {
+        // D4 — Permissions-Policy. Deny everything we don't use:
+        // camera, microphone, geolocation, payment-handler (Stripe
+        // checkout uses redirect, not the Payment Request API),
+        // accelerometer / gyroscope (booking flow doesn't need
+        // motion sensors). Empty parens = "deny for all origins."
+        key: "Permissions-Policy",
+        value: [
+          "camera=()",
+          "microphone=()",
+          "geolocation=()",
+          "payment=()",
+          "accelerometer=()",
+          "gyroscope=()",
+          "magnetometer=()",
+          "usb=()",
+          "interest-cohort=()",
+        ].join(", "),
+      },
+    ];
+    return [
+      {
+        // Embed surface — iframe-able by third-party sites.
+        // /embed/<handle> + /embed.js (see B.PT85). NO X-Frame-Options
+        // (would block the iframe entirely); CSP frame-ancestors *
+        // permits any parent. Order matters — Next.js applies the
+        // first matching rule, so the embed rule MUST come before the
+        // catch-all.
+        source: "/(embed.js|embed/.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: cspEmbed },
+          ...sharedHeaders,
+        ],
+      },
+      {
+        // Default policy for every other route.
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: cspDefault },
+          {
+            // D3 — legacy clickjacking guard. Modern browsers obey
+            // CSP frame-ancestors 'none'; X-Frame-Options DENY is
+            // belt-and-suspenders for older clients (IE11, Safari
+            // <13).
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          ...sharedHeaders,
+        ],
+      },
+    ];
   },
 };
 

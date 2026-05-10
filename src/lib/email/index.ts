@@ -1,5 +1,6 @@
 import "server-only";
 import { createLogger } from "@/lib/logger";
+import { redactEmailString } from "@/lib/sentry-redact";
 import { renderEmail } from "./render";
 import { resend, EMAIL_FROM } from "./resend";
 import {
@@ -62,7 +63,7 @@ export async function sendEmail<T extends TemplateName>(opts: {
   if (!resend) {
     log.warn("RESEND_API_KEY not set — skipping send", {
       template: opts.template,
-      to: opts.to,
+      to: redactEmailString(opts.to),
     });
     return { ok: false, reason: "no-key" };
   }
@@ -85,7 +86,7 @@ export async function sendEmail<T extends TemplateName>(opts: {
     if (result.error) {
       log.error("resend returned error", {
         template: opts.template,
-        to: opts.to,
+        to: redactEmailString(opts.to),
         error: serializeError(result.error),
       });
       return { ok: false, reason: "send-failed", error: result.error };
@@ -94,7 +95,7 @@ export async function sendEmail<T extends TemplateName>(opts: {
   } catch (error) {
     log.error("resend send threw", {
       template: opts.template,
-      to: opts.to,
+      to: redactEmailString(opts.to),
       error: serializeError(error),
     });
     return { ok: false, reason: "send-failed", error };

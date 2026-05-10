@@ -30,6 +30,9 @@ import {
 import { selectHost } from "@/lib/round-robin";
 import { findBusyHostIds } from "@/lib/calendar";
 import { resolveActiveWorkspaceId } from "@/lib/active-workspace-server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("bookings");
 import {
   emitBookingEvent,
   iterateBookingEvents,
@@ -464,7 +467,9 @@ export const bookings = router({
               } catch (err) {
                 // Same shape as the workflow / webhook fan-out below —
                 // never roll back the booking for an analytics write.
-                console.error("[bookings.create] bumpRecentAssignments", err);
+                log.error("bookings.create bumpRecentAssignments failed", {
+                  error: err instanceof Error ? err.message : String(err),
+                });
               }
             }
 

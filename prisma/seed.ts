@@ -2,6 +2,21 @@ import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
+// Production guard: refuse to seed when NODE_ENV is "production".
+// Prisma's `migrate deploy` (the prod path, see vercel.json.buildCommand)
+// does NOT auto-run the seed, but `migrate reset` + `db seed` do — and
+// PRODUCTION-READINESS A6 wants a defense-in-depth check so a future
+// agent adding real seed data can't accidentally insert rows into prod
+// via either of those paths. The check throws BEFORE the Prisma client
+// is constructed so misuse fails loud rather than half-running.
+if (process.env.NODE_ENV === "production") {
+  console.error(
+    "[seed] refusing to run with NODE_ENV=production. " +
+      "Seeds are dev/test only — prod data should come from real users."
+  );
+  process.exit(1);
+}
+
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL || "file:./dev.db",
 });
