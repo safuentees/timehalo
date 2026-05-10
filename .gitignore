@@ -84,3 +84,4 @@ playwright/.auth/
 # their service's output through `tee` into logs/<svc>.log so Claude
 # Code can Read it. Local-only artifact; never committed.
 /logs/
+.emails-out

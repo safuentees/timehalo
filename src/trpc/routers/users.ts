@@ -9,6 +9,7 @@ import {
   ONBOARDING_STEP_IDS,
   type OnboardingStepId,
 } from "@/lib/onboarding";
+import { deriveHostDisplayLabel } from "@/lib/handle";
 import { handleSchema } from "@/lib/register-schema";
 import { scheduleEmailSend } from "@/lib/tasks";
 import { timezoneSchema } from "@/lib/timezone";
@@ -152,12 +153,16 @@ export const users = router({
     .query(async ({ input }) => {
       const user = await prisma.user.findUnique({
         where: { handle: input.handle },
-        // timezone is public — visitors need it to label the slot
-        // picker ("Times shown in Pacific time"). No PII; no email/hash.
-        // bio is public by design — host writes it for visitors.
+        // `email` IS read here BUT the response below strips it out
+        // before returning — `deriveHostDisplayLabel` consumes it
+        // server-side to compute the public `displayLabel` for
+        // placeholder-handle accounts. The email itself never
+        // reaches the client. timezone is public — visitors need
+        // it to label the slot picker. bio is public by design.
         select: {
           id: true,
           name: true,
+          email: true,
           handle: true,
           image: true,
           timezone: true,
@@ -178,7 +183,20 @@ export const users = router({
         ? resolveDurationChoices(eventType)
         : [{ minutes: 15, title: null, description: null }];
       const defaultDurationMinutes = eventType?.durationMins ?? 15;
-      return { ...user, durationChoices, defaultDurationMinutes };
+      // B.PT-host-display — derive the public display label from the
+      // user's identity per the rules in `deriveHostDisplayLabel`:
+      // placeholder handle → email-local-part (or name if set);
+      // custom handle → handle itself (display tracks URL).
+      const displayLabel = deriveHostDisplayLabel(user);
+      // Strip email out of the response so the public surface never
+      // ships PII. Spread without `email` field.
+      const { email: _email, ...publicUser } = user;
+      return {
+        ...publicUser,
+        displayLabel,
+        durationChoices,
+        defaultDurationMinutes,
+      };
     }),
 
   // Atomic handle update with unique-constraint error mapping:

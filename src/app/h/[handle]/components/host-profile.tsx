@@ -348,7 +348,11 @@ export default function HostProfile({
     wasOpenRef.current = drawerOpen;
   }, [drawerOpen]);
 
-  const displayName = user.name ?? user.handle ?? "Host";
+  // B.PT-host-display — `displayLabel` is computed server-side by
+  // `users.getByHandle` per `deriveHostDisplayLabel` in `lib/handle.ts`:
+  // placeholder handle → email-local-part (or name if set); custom
+  // handle → handle itself (so the heading mirrors the URL).
+  const displayName = user.displayLabel ?? user.handle ?? "Host";
   const initials = toInitials(displayName);
 
   function handleSelectDate(date: Date | undefined) {
@@ -688,10 +692,15 @@ export default function HostProfile({
                     // "no slots" empty state. Supersedes the slot
                     // checks below — without a duration the visitor
                     // can't pick a slot anyway.
-                    <p className="oh-description py-6 text-center">
-                      {t("emptyNoDurationsDescription", {
-                        name: displayName,
-                      })}
+                    //
+                    // Padding: `p-6` (24px on all sides) so the copy
+                    // doesn't hug the chip-area's rounded edges. Copy
+                    // dropped the host's name prefix — name's already
+                    // prominent at the top of the page, repeating it
+                    // here just stretched the line and crowded the
+                    // narrow chip column.
+                    <p className="oh-description p-6 text-center">
+                      {t("emptyNoDurationsDescription")}
                     </p>
                   ) : hasOpenSlots ? (
                     <motion.ul

@@ -32,6 +32,10 @@ import MagicLinkSigninEmail, {
   magicLinkSigninSubject,
   type MagicLinkSigninProps,
 } from "./templates/magic-link-signin";
+import RegisterOtpEmail, {
+  registerOtpSubject,
+  type RegisterOtpProps,
+} from "./templates/register-otp";
 
 // Template registry — one entry per template, paired with its subject
 // generator. The discriminated union of TemplateName + per-template
@@ -74,6 +78,10 @@ export const TEMPLATES = {
     Component: MagicLinkSigninEmail,
     getSubject: magicLinkSigninSubject,
   },
+  "register-otp": {
+    Component: RegisterOtpEmail,
+    getSubject: registerOtpSubject,
+  },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
@@ -89,6 +97,7 @@ export type TemplatePropsMap = {
   "booking-reminder": BookingReminderProps;
   "workspace-invite": WorkspaceInviteProps;
   "magic-link-signin": MagicLinkSigninProps;
+  "register-otp": RegisterOtpProps;
 };
 
 export function renderTemplateElement<T extends TemplateName>(

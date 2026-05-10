@@ -8,6 +8,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { OhAppSidebar } from "./oh-app-sidebar";
 import { OhMobileNavOverlay } from "./oh-mobile-nav-overlay";
 import { OhDashboardBar } from "./oh-dashboard-bar";
@@ -144,20 +145,32 @@ export function OhDashboardLayout({
                 // (visitor surface, auth shells, etc).
                 data-oh-modal-host="true"
               >
-                {/* Native overflow-y-auto, not Radix ScrollArea.
-                    Radix Viewport wraps children in a `display:
-                    table` div (see node_modules/@radix-ui/
-                    react-scroll-area/dist/index.mjs:130) which
-                    breaks the flex/percentage-height chain — fit-
-                    viewport pages can't reach a definite-height
-                    ancestor through `display: table`. shadcn's
-                    ScrollArea is purely decorative (custom thumb
-                    visuals); native scroll preserves all functional
-                    behavior + lets `flex-1 min-h-0` chains resolve.
-                    Sidebar trigger / mobile nav unaffected. */}
-                <div className="oh-host-content-inner overflow-y-auto">
+                {/* Radix ScrollArea — overlay scrollbar that floats
+                    above content without reserving a layout gutter,
+                    so `mx-auto` children inside the panel never
+                    re-center as scroll state changes (the original
+                    horizontal-jitter bug on month view). The styled
+                    thumb matches the rest of the chrome
+                    vocabulary (see `src/components/ui/scroll-area`).
+
+                    Caveat: Radix Viewport wraps children in an
+                    inner `<div style="min-width:100%; display:
+                    table">` (verifiable at
+                    `node_modules/@radix-ui/react-scroll-area/dist/
+                    index.mjs:130`). That breaks any descendant
+                    `flex-1 min-h-0` chain that depends on
+                    PERCENTAGE height resolving through this
+                    parent. The dashboard's heavy callsites (the
+                    bookings calendar, `ContentSlot`) anchor their
+                    height to viewport units (`calc(100svh - …)`)
+                    rather than `%`, so they're unaffected. If you
+                    add a new fit-viewport page, prefer viewport
+                    units over `h-full` percentages here. Full
+                    diagnostic recipe: `.claude/rules/scroll-
+                    containers.md`. */}
+                <ScrollArea className="oh-host-content-inner">
                   <ContentSlot>{children}</ContentSlot>
-                </div>
+                </ScrollArea>
                 {/* Mobile nav overlay — absolute-positioned sibling
                     of the ScrollArea so it paints above the page
                     inside the panel boundary. Renders nothing on

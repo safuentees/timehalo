@@ -36,6 +36,7 @@ describe("email layer — templates render", () => {
       slotStartIso: new Date("2026-05-01T14:30:00Z").toISOString(),
       question: "Help with Redux state",
       confirmationUrl: "https://example.com/h/alex/booked/abc",
+      recipientEmail: "maya@example.com",
     };
     const subject = getSubject("booking-created", props);
     expect(subject).toBe("Booked with Alex Chen");
@@ -57,6 +58,7 @@ describe("email layer — templates render", () => {
       hostName: "Alex Chen",
       visitorName: "Maya Lin",
       slotStartIso: new Date("2026-05-01T14:30:00Z").toISOString(),
+      recipientEmail: "maya@example.com",
     };
     const subject = getSubject("booking-cancelled", props);
     expect(subject).toBe("Booking with Alex Chen cancelled");
@@ -73,6 +75,7 @@ describe("email layer — templates render", () => {
       visitorName: "Maya Lin",
       visitorEmail: "maya@example.com",
       slotStartIso: new Date("2026-05-01T14:30:00Z").toISOString(),
+      recipientEmail: "alex@example.com",
     };
     const subject = getSubject("booking-cancelled-host", props);
     expect(subject).toBe("Maya Lin cancelled their booking");
@@ -92,6 +95,7 @@ describe("email layer — templates render", () => {
       "booking-reminder",
       "booking-rescheduled",
       "magic-link-signin",
+      "register-otp",
       "workspace-invite",
     ]);
   });

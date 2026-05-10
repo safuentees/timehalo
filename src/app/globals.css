@@ -2531,6 +2531,25 @@
   transform-origin: left center;
   animation: oh-progress-shimmer 1400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+/* Caret-blink for the InputOTP slots (B.PT-otp). Each slot's "active"
+   visual gets a 1px ink line that blinks like a native text caret —
+   essential for readability when the underlying real caret is hidden
+   off-screen by the input-otp lib. The 1.0s cycle matches macOS / iOS
+   defaults so it doesn't read as a hyperactive throb. */
+@keyframes oh-caret-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  60.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.animate-caret-blink {
+  animation: oh-caret-blink 1s steps(2) infinite;
+}
+
 @keyframes oh-progress-shimmer {
   0% {
     transform: translateX(-100%) scaleX(0.4);
@@ -3955,27 +3974,18 @@
 }
 
 .oh-host-content-inner {
-  /* Sizing for the Radix ScrollArea Root. Radix sets `position: relative`
-     inline on Root — inline style beats className, so an absolute override
-     here is silently ignored. Per the Radix maintainers' guidance
-     (github.com/radix-ui/primitives/discussions/1485): set explicit
-     height/width on Root, then the Viewport's `size-full` resolves and
-     `overflow-y: scroll` kicks in when content exceeds Root's height.
-     Parent (.oh-host-content) is exactly viewport-anchored, so 100% here
-     = exactly 100svh - 24px - bar height. */
+  /* Sizing for the Radix ScrollArea Root. Per the Radix maintainers'
+     guidance (github.com/radix-ui/primitives/discussions/1485): set
+     explicit height/width on Root, then the Viewport's `size-full`
+     resolves and overflow kicks in when content exceeds Root's
+     height. Parent (.oh-host-content) is exactly viewport-anchored,
+     so 100% here = exactly 100svh - 24px - bar height. The native
+     browser scrollbar is hidden by Radix internally and replaced by
+     the overlay Scrollbar primitive — no reserved gutter needed
+     here, the overlay never shrinks usable width so `mx-auto`
+     children stay centered across view switches. */
   width: 100%;
   height: 100%;
-  /* Reserve scrollbar gutter so `mx-auto` children don't shift on the
-     inline axis when the panel-internal scrollbar appears /
-     disappears across views. /bookings flips this on view change:
-     day/week cap their internal heights (no scrollbar on this
-     container), month uses content-intrinsic height (sometimes
-     overflows → scrollbar appears → usable width shrinks ~15px →
-     every centered child re-centers). `stable` reserves the gutter
-     unconditionally so the inner usable width stays constant. The
-     html-level rule at the top of this file does the same thing for
-     the body scrollbar. */
-  scrollbar-gutter: stable;
 }
 
 /* ────────────────────────────────────────────────────────────────────

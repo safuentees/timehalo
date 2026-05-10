@@ -46,6 +46,18 @@ export type SendEmailResult =
   | { ok: false; reason: "no-key" | "send-failed"; error?: unknown };
 
 /**
+ * Public input shape — every template's props minus `recipientEmail`,
+ * which `sendEmail()` auto-injects from `opts.to`. Means callers
+ * never need to repeat the address. The shared `OhEmailLayout`
+ * footer reads it on render to surface "this email was sent to X"
+ * (dub.co's pattern, applied universally).
+ */
+export type TemplateInput<T extends TemplateName> = Omit<
+  TemplatePropsMap[T],
+  "recipientEmail"
+>;
+
+/**
  * Send a templated email synchronously via Resend.
  *
  * Most call sites should NOT use this directly — enqueue a Task row
@@ -58,7 +70,7 @@ export type SendEmailResult =
 export async function sendEmail<T extends TemplateName>(opts: {
   to: string;
   template: T;
-  props: TemplatePropsMap[T];
+  props: TemplateInput<T>;
 }): Promise<SendEmailResult> {
   if (!resend) {
     log.warn("RESEND_API_KEY not set — skipping send", {
@@ -68,11 +80,19 @@ export async function sendEmail<T extends TemplateName>(opts: {
     return { ok: false, reason: "no-key" };
   }
 
+  // Inject `recipientEmail` from `to` so the layout's footer can
+  // render "this email was sent to X" without callers repeating
+  // themselves at every callsite.
+  const fullProps = {
+    ...opts.props,
+    recipientEmail: opts.to,
+  } as TemplatePropsMap[T];
+
   const subject = `${devSubjectPrefix()}${getSubject(
     opts.template,
-    opts.props,
+    fullProps,
   )}`;
-  const element = renderTemplateElement(opts.template, opts.props);
+  const element = renderTemplateElement(opts.template, fullProps);
   const { html, text } = await renderEmail(element);
 
   try {

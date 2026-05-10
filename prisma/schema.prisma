@@ -102,6 +102,31 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+// Email-OTP tokens for the register flow (B.PT-otp). Sibling of
+// `VerificationToken` (which Auth.js owns for magic-link sends) so
+// the two flows can co-exist without surface entanglement.
+//
+// `identifier` is the lower-cased email; `token` is the 6-digit
+// decimal code shown in the email. We rotate eagerly: every
+// `auth.sendRegisterOtp` call deletes prior tokens for that email
+// before inserting a fresh one, so a user only ever has ONE active
+// code per address. Lazy User creation is the whole point of this
+// table — the User row doesn't exist until the OTP verifies, so
+// half-baked unverified accounts never accumulate.
+//
+// Pattern reference: dub.co `EmailVerificationToken` model
+// (github.com/dubinc/dub/blob/main/packages/prisma/schema/token.prisma).
+model EmailOtpToken {
+  identifier String
+  token      String
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@id([identifier, token])
+  @@index([identifier])
+  @@index([expires])
+}
+
 model Authenticator {
   credentialID         String  @unique
   userId               String

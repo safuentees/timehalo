@@ -1,10 +1,7 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import type {
-  TemplateName,
-  TemplatePropsMap,
-} from "@/lib/email";
+import type { TemplateInput, TemplateName } from "@/lib/email";
 import type { WebhookEvent } from "@/trpc/router";
 
 // Task scheduler — writes a row that the cron processor picks up later.
@@ -78,7 +75,10 @@ export async function scheduleWebhookDelivery(opts: ScheduleOpts) {
 export type EmailSendPayload<T extends TemplateName = TemplateName> = {
   to: string;
   template: T;
-  props: TemplatePropsMap[T];
+  // `props` deliberately excludes `recipientEmail` — `sendEmail()`
+  // injects that from `to` at render time so the cron payload stays
+  // free of duplication.
+  props: TemplateInput<T>;
 };
 
 type ScheduleEmailOpts<T extends TemplateName> = {
