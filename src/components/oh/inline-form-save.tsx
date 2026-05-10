@@ -24,11 +24,10 @@ export function InlineFormSave({
 }) {
   const mounted = useMounted();
 
-  const settled = mounted && !isPending && !isDirty;
-  if (settled) return null;
+  if (!mounted || (!isPending && !isDirty)) return null;
 
-  const disabled = mounted ? isPending || !isDirty || isInvalid : true;
-  const label = mounted && isPending ? labels.saving : labels.save;
+  const disabled = isPending || !isDirty || isInvalid;
+  const label = isPending ? labels.saving : labels.save;
 
   return (
     <div
