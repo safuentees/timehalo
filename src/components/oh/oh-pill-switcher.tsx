@@ -18,6 +18,7 @@ type Props<T extends string> = {
   ariaLabel?: string;
   className?: string;
   fullWidth?: boolean;
+  layoutIdKey?: string;
 };
 
 export function OhPillSwitcher<T extends string>({
@@ -27,8 +28,10 @@ export function OhPillSwitcher<T extends string>({
   ariaLabel,
   className,
   fullWidth = false,
+  layoutIdKey,
 }: Props<T>) {
-  const layoutId = useId();
+  const generatedId = useId();
+  const layoutId = layoutIdKey ?? generatedId;
 
   return (
     <Tabs value={value} onValueChange={(v) => onChange(v as T)}>

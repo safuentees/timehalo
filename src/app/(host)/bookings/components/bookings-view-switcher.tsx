@@ -30,6 +30,7 @@ export function BookingsViewSwitcher({
       value={value}
       onChange={onValueChange}
       ariaLabel={ariaLabel}
+      layoutIdKey="bookings-view-switcher"
     />
   );
 }

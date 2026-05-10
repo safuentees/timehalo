@@ -277,12 +277,10 @@ export function BookingsList({
         <div className="mx-auto w-full max-w-[760px] px-4 pt-4 pb-4 sm:px-6 flex flex-col gap-3">
           <OnboardingChecklist />
 
-          <div>
-            <BookingsViewSwitcher
-              value={optimisticView}
-              onValueChange={onViewChange}
-            />
-          </div>
+          <BookingsViewSwitcher
+            value={optimisticView}
+            onValueChange={onViewChange}
+          />
 
           <div>
             <OhPillSwitcher
