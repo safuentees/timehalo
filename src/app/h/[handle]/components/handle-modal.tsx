@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { useFormatter, useTranslations } from "next-intl";
-import { CalendarIcon, ChevronLeftIcon, XIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronLeftIcon,
+  Loader2,
+  XIcon,
+} from "lucide-react";
 import {
   BookingForm,
   DayStrip,
@@ -12,6 +18,8 @@ import {
   MonthCalendar,
 } from "@/components/calendar";
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
+import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
+import { getBrowserTimezone } from "@/lib/timezone";
 import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
 import {
   oStyle,
@@ -153,6 +161,40 @@ export function HandleModal({
   const [view, setView] = useState<"strip" | "month" | "form">("strip");
   const isPresent = useIsPresent();
 
+  // B.PT305 — direct-reschedule mode: slot click fires the
+  // `bookings.reschedule` mutation immediately, skipping the
+  // `<RescheduleConfirm>` intermediate panel. Mirrors how the
+  // confirm-booking flow already routes to /booked on success;
+  // here we route to the NEW publicUid so the intercepting
+  // receipt modal morphs forward.
+  //
+  // `startTransition` wrap matches `CreateForm.onSuccess` —
+  // React holds the modal mounted until the @receipt slot's
+  // server fetch resolves so motion can hand off form-card →
+  // receipt-card in the same commit.
+  const router = useRouter();
+  const [isRescheduleTransitionPending, startRescheduleTransition] =
+    useTransition();
+  const [rescheduleIdempotencyKey] = useState(() => crypto.randomUUID());
+  const reschedule = useRescheduleBooking({
+    onSuccess: (result) => {
+      // Mirror `RescheduleConfirm.onSuccess` from booking-form.tsx:
+      // wrap navigation + parent close-callback in `startTransition`
+      // so React holds the modal mounted until the @receipt slot's
+      // server fetch resolves. Modal exits and receipt-card mounts
+      // in the SAME commit → Motion morphs `layoutId="handle-card"`
+      // from form/strip card to receipt cleanly. Without the
+      // transition, the modal would unmount before /booked/[uid]'s
+      // RSC payload arrives, breaking the shared-layout handoff.
+      startRescheduleTransition(() => {
+        router.push(`/h/${handle}/booked/${result.publicUid}`);
+        onBookingComplete?.();
+      });
+    },
+  });
+  const isReschedulePending =
+    reschedule.isPending || isRescheduleTransitionPending;
+
   // B.PT232 — chrome-row text. Picker view shows duration only.
   // Form view (after slot pick) expands to "<duration> on <date>
   // at <start>" — natural language, no "from X to Y" since the
@@ -221,6 +263,21 @@ export function HandleModal({
         : detailTitleId;
   function handlePickSlot(slot: Slot) {
     onPickSlot(slot);
+    // B.PT305 — reschedule mode skips the form view entirely. The
+    // visitor's name/email/question are already on the original
+    // booking; the only thing to confirm is the new slot, which
+    // the click itself signals. Fire the mutation directly and
+    // let the loader-in-chrome-row + page navigation provide
+    // feedback.
+    if (rescheduleFromUid) {
+      reschedule.mutate({
+        oldPublicUid: rescheduleFromUid,
+        newSlotStart: slot.start,
+        idempotencyKey: rescheduleIdempotencyKey,
+        visitorTimezone: getBrowserTimezone(),
+      });
+      return;
+    }
     setView("form");
   }
 
@@ -294,7 +351,7 @@ export function HandleModal({
           layoutId="oh-modal-chrome-title"
           layout="position"
           transition={{ type: "spring", ...openSpring }}
-          className="min-w-0 justify-self-center truncate font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
+          className="inline-flex min-w-0 items-center justify-self-center gap-1.5 font-[family-name:var(--font-grotesk)] text-sm font-semibold leading-none tracking-tight text-[color:var(--oh-ink)]"
         >
           <AnimatePresence mode="wait" initial={false}>
             {chromeRowText ? (
@@ -304,9 +361,34 @@ export function HandleModal({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -8, opacity: 0 }}
                 transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                className="block truncate"
+                className="block min-w-0 truncate"
               >
                 {chromeRowText}
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
+          {/* B.PT305 — inline loading indicator while the reschedule
+              mutation is in flight. Mirrors the workspace switcher's
+              Loader2 affordance in `oh-dashboard-bar.tsx`: same icon,
+              same `animate-spin`, sits to the right of the contextual
+              title so it reads as "this title is the thing being
+              acted on." Outside the AnimatePresence so the spinner
+              persists across any text key swaps. */}
+          <AnimatePresence initial={false}>
+            {isReschedulePending ? (
+              <motion.span
+                key="reschedule-loader"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                className="inline-flex shrink-0 items-center"
+                aria-hidden
+              >
+                <Loader2
+                  className="size-3.5 animate-spin opacity-65"
+                  strokeWidth={2.25}
+                />
               </motion.span>
             ) : null}
           </AnimatePresence>

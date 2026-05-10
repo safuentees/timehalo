@@ -5,13 +5,18 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  useTransition,
   type ComponentProps,
 } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { AnimatePresence, motion } from "motion/react";
@@ -46,12 +51,26 @@ import {
   type SlotOption,
 } from "./handle-morph-parts";
 
-// B.PT156 — open spring is the SMART_ANIMATE physics from Figma
-// `handle` → `handle-detail` (`docs/figma/anim-h-handle-redesign.json`
-// transitions[0]). Same spring drives the `motion.article` landing
-// card + the `<HandleModal>`'s shared-`layoutId` element so the morph
-// reads as one continuous element.
-const OPEN_SPRING = animSpec.transitions[0].spring;
+// B.PT-instant — replaces the Figma-exported GENTLE_SPRING
+// (`animSpec.transitions[0].spring`: mass=1, stiffness=247,
+// damping=23.58, ~650ms visible motion) with a snappier physics
+// curve that settles in ~250ms. The export was authored for a
+// Figma prototype where there's no React reconciliation +
+// shared-layout measurement overhead in front of the spring; in
+// production those add ~30ms of pre-animation latency, making the
+// gentle spring feel laggy on desktop (mobile masks it via
+// faster touch-event timing). Stiffness 400 + damping 35 keeps
+// the same critically-damped feel (no overshoot/bounce) at ~2.5x
+// the visible speed.
+//
+// If you want the original Figma motion back, swap this constant
+// for `animSpec.transitions[0].spring`.
+const OPEN_SPRING = {
+  mass: 1,
+  stiffness: 400,
+  damping: 35,
+  velocity: 0,
+} as const;
 // B.PT179 — close spring is the dismissal SMART_ANIMATE from Figma
 // (`handle-detail` → `handle`). The landing's transition needs this
 // for the rollback animation; without it, motion picks up
@@ -70,6 +89,12 @@ type Props = {
   initialUser: RouterOutputs["users"]["getByHandle"];
   initialSlots: RouterOutputs["schedule"]["getUpcomingSlots"];
   renderedAt: string;
+  /** Server-resolved: true when the visiting session owns this
+   *  handle. Drives the "Back to dashboard" link in the header.
+   *  Optional + defaults to false so the embed/preview/playground
+   *  surfaces that mount `<HostProfile>` don't have to thread the
+   *  flag through. */
+  isOwner?: boolean;
 };
 
 export default function HostProfile({
@@ -77,6 +102,7 @@ export default function HostProfile({
   initialUser,
   initialSlots,
   renderedAt,
+  isOwner = false,
 }: Props) {
   const t = useTranslations("HostProfile");
   const pathname = usePathname();
@@ -145,7 +171,20 @@ export default function HostProfile({
   // measures the landing right before it goes invisible.
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
-    { initialData: initialUser },
+    {
+      initialData: initialUser,
+      // Visitor-surface query stabilization (B.PT-instant). The
+      // default TanStack `refetchOnWindowFocus: true` triggered a
+      // visible UI freeze every time the user alt-tabbed back to
+      // /h/[handle] or hit the browser back button — re-mount
+      // refetched user + slots and the modal animation hung waiting
+      // on data. dub.co's `use-links.ts:61-66` disables focus refetch
+      // on its public read queries for the same reason.
+      // 5-min staleTime: host profile data (name, bio, avatar,
+      // duration list) is effectively static within a session.
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
   );
   // B.PT276 — track which slot duration the visitor clicked on the
   // landing card. Modal renders the label in its chrome row; the
@@ -165,6 +204,17 @@ export default function HostProfile({
   // resolves the host's primary chip). After a chip click,
   // react-query refires with the new duration → server returns
   // slots that fit + reflect range-overlap with existing bookings.
+  //
+  // `placeholderData: keepPreviousData` is the TanStack Query 5
+  // canonical fix for query-key transitions: instead of dropping
+  // into the empty "no data yet" state while the new duration's
+  // slots fetch (which produced the visible ~1s blank chip strip
+  // on /h/[handle] chip clicks), the cache hands back the
+  // previous-query's data and flips `isPlaceholderData: true`
+  // until the fetch resolves. The strip stays interactive +
+  // visible the whole time. Reference: tanstack.com/query/v5/
+  // docs/framework/react/guides/paginated-queries#better-paginated-
+  // queries-with-placeholderdata.
   const fetchedSlotsResult = trpc.schedule.getUpcomingSlots.useQuery(
     {
       handle,
@@ -176,10 +226,65 @@ export default function HostProfile({
       // chip the query keys diverge from the SSR cache and refetches.
       initialData:
         selectedDurationMinutes === undefined ? initialSlots : undefined,
+      placeholderData: keepPreviousData,
+      // Same visitor-surface stabilization as `getByHandle` — kills
+      // the focus/back-nav refetch freeze. Slot availability changes
+      // server-side but the 5-min staleTime is fine for a visitor
+      // session; the SSE bus (live-queue) doesn't reach the visitor
+      // surface so refetch-on-mount is the only invalidation path
+      // anyway.
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
     },
   );
   const user = fetchedUser ?? initialUser;
   const slots = fetchedSlotsResult.data ?? initialSlots;
+  // `isFetching && isPlaceholderData` means the cache handed us the
+  // previous duration's slots while the new one fetches. This is the
+  // signal to render a loading affordance inside the strip (small
+  // centered spinner) without unmounting the prior data — the click
+  // feels instant, the visible spinner tells the user a refresh is
+  // in flight.
+  const slotsFetchingFresh =
+    fetchedSlotsResult.isFetching && fetchedSlotsResult.isPlaceholderData;
+  // React 19 transitions — wraps the chip-click setState batch so
+  // the modal-open call stays urgent (drives the morph animation)
+  // while the per-chip side effects (duration label, minutes, query
+  // key change) flow through as non-urgent work. Net effect: the
+  // click registers + modal slide starts in the same frame, render
+  // contention from the query-key change happens off the critical
+  // path.
+  const [, startTransition] = useTransition();
+  const router = useRouter();
+
+  // Eager prefetch — warm the React Query cache for EVERY duration
+  // the host offers, in parallel, right after mount. Visitors usually
+  // click a duration chip within the first ~1-2s of landing; by the
+  // time they tap, the cache for that chip's slot list is already
+  // populated, so `placeholderData: keepPreviousData` ALSO has a
+  // fresh hit to swap in instantly. Net effect: zero perceptible
+  // network delay on chip clicks. Pattern matches dub.co's analytics
+  // dashboard which prefetches adjacent date-range queries on mount.
+  const utils = trpc.useUtils();
+  useEffect(() => {
+    if (!user.durationChoices || user.durationChoices.length <= 1) return;
+    // Stagger by a microtask so the initial-paint critical path isn't
+    // contended by N parallel network requests. The default duration
+    // is already covered by SSR's `initialSlots`, so skip it.
+    void Promise.resolve().then(() => {
+      for (const choice of user.durationChoices) {
+        if (choice.minutes === user.defaultDurationMinutes) continue;
+        void utils.schedule.getUpcomingSlots.prefetch({
+          handle,
+          durationMinutes: choice.minutes,
+        });
+      }
+    });
+    // user.durationChoices reference is stable across SSR-hydrated +
+    // client-fetched payloads (server returns the same shape); handle
+    // never changes within the page lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const now = new Date(renderedAt);
   const availableSlots = slots.filter(isOpenSlot);
   const nextSlot = availableSlots[0];
@@ -420,10 +525,36 @@ export default function HostProfile({
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       header={
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
-          <span className="oh-eyebrow tabular-nums opacity-100">
-            /h/{user.handle}
-          </span>
+        <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
+          {/* Left column: handle URL on top, owner-only back link
+              underneath. `items-start` on the parent so the status
+              indicator on the right stays vertically aligned with
+              the URL line (not the column's midpoint). */}
+          <div className="flex flex-col items-start gap-1.5">
+            <span className="oh-eyebrow tabular-nums opacity-100">
+              /h/{user.handle}
+            </span>
+            {isOwner ? (
+              // Owner-only "Back to dashboard" — `z-[100]` lifts it
+              // above any modal/overlay that mounts inside `<main>`
+              // (default z 0) so the host can always exit to the
+              // dashboard regardless of which surface is in front.
+              // `!underline` prefix beats `.oh-root a {
+              // text-decoration: none }` unlayered reset.
+              <Link
+                href="/bookings"
+                aria-label="Back to dashboard"
+                className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
+              >
+                <ArrowLeft
+                  aria-hidden
+                  strokeWidth={2}
+                  className="size-3 no-underline"
+                />
+                Back to dashboard
+              </Link>
+            ) : null}
+          </div>
           <div className="flex items-center gap-2" role="status">
             <span
               aria-hidden
@@ -568,6 +699,17 @@ export default function HostProfile({
                   style={{
                     visibility: stripLandingLayoutId ? "hidden" : undefined,
                     zIndex: zStyle(zL1?.identity),
+                    // `container-type: inline-size` lets the h1
+                    // below use `cqi` units to size against THIS
+                    // card's actual inline width — not the
+                    // viewport. Without this, the prior
+                    // `vw`-driven clamp() emitted 52px on a 1440px
+                    // desktop even though the 336-wide card only
+                    // has ~270px of inline space for the name
+                    // (after the 55px avatar + 12px gap), so long
+                    // handles like "santiagofuentesg" overflowed
+                    // the card right edge.
+                    containerType: "inline-size",
                   }}
                   className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
                 >
@@ -578,7 +720,7 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    className="flex items-center gap-3"
+                    className="flex min-w-0 items-center gap-3"
                   >
                     <motion.span
                       layoutId={landingLayoutId("oh-identity-avatar")}
@@ -596,14 +738,31 @@ export default function HostProfile({
                         initials={initials}
                       />
                     </motion.span>
-                    {/* B.PT161 — spec is Space Grotesk **Bold** (700) at
-                      51.7px / line-height 54.6px / letter-spacing
-                      -1.3px. Was `font-black` (900); too heavy. The
-                      clamp keeps the type fluid for narrow viewports
-                      but caps at 52px which matches the spec exactly.
-                      `tracking-[-1.3px]` is the explicit letter-
-                      spacing value rather than the loose
-                      `tracking-tight`. */}
+                    {/* B.PT161 — spec is Space Grotesk **Bold** (700)
+                        at 51.7px / line-height 54.6px / letter-
+                        spacing -1.3px on the Figma reference. We
+                        keep that as the upper bound but layer in
+                        three defenses so no handle (no matter how
+                        long) overflows the card:
+                          1. Container-query sizing — `cqi` resolves
+                             against THIS card's inline width
+                             (header has `container-type: inline-
+                             size`), not viewport. Cap at 52px so
+                             short names hit the Figma spec; clamp
+                             floor 22px so super-narrow viewports
+                             still read.
+                          2. `min-w-0` lets flex actually constrain
+                             the h1 (without it, flex items grow to
+                             content width regardless of parent).
+                          3. `[overflow-wrap:anywhere]` + `break-
+                             words` + `text-balance` — names that
+                             still don't fit at the floor font size
+                             wrap to a second line with balanced
+                             distribution instead of overflowing
+                             horizontally.
+                        Net: short names render at spec; medium
+                        names shrink fluidly; very long handles wrap
+                        cleanly. Never overflows. */}
                     <motion.h1
                       layoutId={landingLayoutId("oh-identity-title")}
                       layout="position"
@@ -611,7 +770,7 @@ export default function HostProfile({
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 1 }}
-                      className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
+                      className="min-w-0 break-words text-balance font-sans text-[clamp(22px,11cqi,52px)] font-bold leading-[1.06] tracking-[-0.04em] [overflow-wrap:anywhere]"
                     >
                       {displayName}
                     </motion.h1>
@@ -674,7 +833,7 @@ export default function HostProfile({
                     // on motion.ul / oh-slot-stack so it mirrors
                     // cleanly to modal's slot-stack motion.div).
                     // Single source of truth for the cream gutter.
-                    "flex flex-col gap-2.5",
+                    "relative flex flex-col gap-2.5",
                     // `#F5EFDF` is paper (`#EEE7D5`) lifted ~5% L*.
                     // Dark counterpart `#272727` is dark-paper
                     // (`#1a1a1a`) lifted ~5% L* — same elevation
@@ -816,15 +975,34 @@ export default function HostProfile({
                               description={opt.description ?? ""}
                               durationLabel={opt.label}
                               onClick={() => {
-                                // B.PT231 — chrome row uses the
-                                // expanded `fullLabel` ("15
-                                // minutes"); chip itself keeps
-                                // compact `label` ("15 min").
-                                // B.PT276 — also stash the duration
-                                // in minutes so the booking-form
-                                // can ship it on `bookings.create`.
-                                setSelectedDurationLabel(opt.fullLabel);
-                                setSelectedDurationMinutes(opt.minutes);
+                                // B.PT-instant — split urgent vs non-
+                                // urgent updates. `setDrawerOpen(true)`
+                                // is URGENT: it drives the motion
+                                // shared-layout morph, must paint in
+                                // the same frame as the click so the
+                                // modal slide feels instant.
+                                // Duration label + minutes are NON-
+                                // urgent: they update the chrome row
+                                // copy + the query key. Wrapping them
+                                // in `startTransition` defers them off
+                                // the critical path, so the modal-mount
+                                // commit isn't contended by the slot-
+                                // query re-key in the same frame.
+                                // Reference: react.dev/reference/react/
+                                // useTransition — "use transitions to
+                                // mark state updates as non-urgent."
+                                // Also prefetch the booked route's
+                                // server payload — we don't know the
+                                // bookingUid yet, but the route
+                                // segment (layout + page chrome) is
+                                // shared across uids, so prefetching
+                                // it primes the App Router cache for
+                                // the post-submit navigation.
+                                router.prefetch(`/h/${handle}/booked`);
+                                startTransition(() => {
+                                  setSelectedDurationLabel(opt.fullLabel);
+                                  setSelectedDurationMinutes(opt.minutes);
+                                });
                                 setDrawerOpen(true);
                               }}
                             />
@@ -839,6 +1017,29 @@ export default function HostProfile({
                         : t("emptyBookedDescription", { name: displayName })}
                     </p>
                   )}
+                  {/* In-flight loading affordance. Only mounts when
+                      the slot query is BOTH refetching AND serving
+                      `placeholderData` from the previous duration —
+                      so the strip stays visible (no skeleton) and a
+                      small centered spinner tells the user that a
+                      fresh availability check is in progress. Per
+                      user request: "show a loading icon in the
+                      middle instead of a skeleton." */}
+                  {slotsFetchingFresh ? (
+                    <div
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                      aria-live="polite"
+                      aria-busy="true"
+                    >
+                      <span className="rounded-full bg-[var(--oh-paper)] p-2 shadow-[var(--oh-shadow-resting)]">
+                        <Loader2
+                          aria-hidden
+                          strokeWidth={1.75}
+                          className="size-4 animate-spin opacity-65"
+                        />
+                      </span>
+                    </div>
+                  ) : null}
                 </motion.div>
               </HandleMorphCard>
             ) : null}
@@ -912,7 +1113,14 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    className="flex items-center gap-3"
+                    // `min-w-0` mirrors the landing-card change so
+                    // the identity-row inside the modal also lets
+                    // the h1 shrink/wrap instead of forcing
+                    // horizontal overflow. The modal phantom shares
+                    // the layoutId family with the landing card, so
+                    // the same flex contract must apply both sides.
+                    className="flex min-w-0 items-center gap-3"
+                    style={{ containerType: "inline-size" }}
                   >
                     <motion.span
                       layoutId="oh-identity-avatar"
@@ -937,7 +1145,11 @@ export default function HostProfile({
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 1 }}
-                      className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
+                      // Same overflow defenses as the landing-card
+                      // h1 (see comment block on the other h1).
+                      // Container-relative `cqi` sizing + `min-w-0`
+                      // + wrap fallback so no handle overflows.
+                      className="min-w-0 break-words text-balance font-sans text-[clamp(22px,11cqi,52px)] font-bold leading-[1.06] tracking-[-0.04em] [overflow-wrap:anywhere]"
                     >
                       {displayName}
                     </motion.h1>

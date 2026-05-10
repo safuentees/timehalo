@@ -40,6 +40,13 @@ model User {
   // (SQLite has no native array type); parsed in `users.me`.
   onboardingDismissed  Boolean             @default(false)
   onboardingManualSteps String             @default("[]")
+  // Share-link pill dismissal (B.PT-share-flash). Moved off
+  // localStorage onto the User row so SSR can render the pill's
+  // visibility on the right side of the truth — without server-
+  // readable state, the pill server-renders unconditionally and
+  // visibly snaps closed post-hydration for users who previously
+  // dismissed it. Mirrors `onboardingDismissed` exactly.
+  shareLinkDismissed    Boolean             @default(false)
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]

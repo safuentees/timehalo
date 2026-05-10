@@ -3,19 +3,15 @@ import { Hr, Link, Text } from "@react-email/components";
 // Shared footer for transactional emails. Adopts dub.co's
 // "this email was intended for X" pattern — gives a forwarded copy
 // context, plus a safety affordance ("you can ignore this if
-// unexpected"). Final tagline keeps the Officehours signature.
+// unexpected").
 //
 // The footer renders inside a parent that already has `<Tailwind>`
 // applied (via OhEmailLayout), so utility classes compile here too.
 
 export function OhEmailFooter({
   recipientEmail,
-  brandName = "Officehours",
-  brandTagline = "Small surface, deep stack.",
 }: {
   recipientEmail: string;
-  brandName?: string;
-  brandTagline?: string;
 }) {
   return (
     <>
@@ -33,9 +29,6 @@ export function OhEmailFooter({
         >
           support@officehours.app
         </Link>
-      </Text>
-      <Text className="m-0 mt-6 font-mono text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-subtle">
-        {brandName} — {brandTagline}
       </Text>
     </>
   );

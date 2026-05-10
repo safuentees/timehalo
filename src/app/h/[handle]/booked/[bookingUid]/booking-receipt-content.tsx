@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { buttonVariants } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
 import { cn } from "@/lib/utils";
 import type { BookingConfirmationBooking } from "./booking-confirmation";
@@ -28,9 +28,10 @@ import { HandleHostAvatar } from "../../components/handle-host-avatar";
 //     hairline-separated footer row, matching the visitor surface's
 //     tertiary-chrome vocabulary
 //
-// Reschedule remains gated by `<ConfirmDialog>` per the
-// `oh-ui.md` destructive-action rule (visitor is leaving a finished
-// receipt; mid-stakes confirm).
+// Reschedule confirm is a Base UI `<Popover>` (B.PT305) — minimal
+// inline confirm anchored to the trigger. Mid-stakes prompt that
+// already lives in a modal doesn't need a second full-screen
+// dialog stacked on top.
 
 export function BookingReceiptContent({
   booking,
@@ -260,25 +261,61 @@ export function BookingReceiptContent({
                   : t("copied")}
             </button>
             {booking.host.handle ? (
-              <ConfirmDialog
-                trigger={
-                  <button
-                    type="button"
-                    className="opacity-55 transition-opacity hover:opacity-100"
+              // B.PT305 — Reschedule confirm migrated from
+              // `<ConfirmDialog>` to a Base UI `<Popover>` so the
+              // mid-stakes prompt sits inline next to the trigger
+              // instead of taking over the full screen. The receipt
+              // already lives in a modal; layering a second modal
+              // on top of the first read heavy. Popover keeps the
+              // confirm contextual + minimal — title, one-line
+              // description, two buttons — and dismisses on outside
+              // click or Escape automatically.
+              //
+              // `Popover.Close` handles dismissal for both Cancel
+              // and Confirm. The Confirm button additionally fires
+              // the navigation; the page unmounts before the close
+              // animation finishes, which is fine.
+              <Popover.Root>
+                <Popover.Trigger
+                  nativeButton
+                  className="opacity-55 transition-opacity hover:opacity-100 data-[popup-open]:opacity-100"
+                >
+                  {t("reschedule")}
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Positioner
+                    sideOffset={10}
+                    align="start"
+                    style={{ zIndex: 200 }}
                   >
-                    {t("reschedule")}
-                  </button>
-                }
-                title={t("rescheduleConfirmTitle")}
-                description={t("rescheduleConfirmDescription")}
-                confirmLabel={t("rescheduleConfirmCta")}
-                cancelLabel={t("rescheduleConfirmCancel")}
-                onConfirm={() => {
-                  router.push(
-                    `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
-                  );
-                }}
-              />
+                    <Popover.Popup className="flex w-[280px] flex-col gap-3 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-4 shadow-[var(--oh-shadow-resting)]">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[14px] font-bold leading-tight tracking-tight">
+                          {t("rescheduleConfirmTitle")}
+                        </p>
+                        <p className="text-[12px] leading-[1.45] opacity-65">
+                          {t("rescheduleConfirmDescription")}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-end gap-2 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold uppercase tracking-[2px]">
+                        <Popover.Close className="rounded-(--oh-r-xs) px-2 py-1 opacity-55 transition-opacity hover:opacity-100">
+                          {t("rescheduleConfirmCancel")}
+                        </Popover.Close>
+                        <Popover.Close
+                          onClick={() => {
+                            router.push(
+                              `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                            );
+                          }}
+                          className="rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] px-2 py-1 text-[color:var(--oh-paper)] transition-opacity hover:opacity-90"
+                        >
+                          {t("rescheduleConfirmCta")}
+                        </Popover.Close>
+                      </div>
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
             ) : null}
           </div>
           <span className="truncate opacity-40">#{booking.publicUid}</span>

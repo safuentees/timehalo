@@ -4,36 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CheckIcon, CopyIcon, LinkIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { useMounted } from "@/hooks/use-mounted";
 import { env } from "@/env";
-
-// Local-only persistence for the share-pill dismissal — purely a UI
-// preference, no server roundtrip needed. Same SSR-safe lazy-init
-// pattern as `dev-notes-launcher`: the guard returns false when
-// window is undefined so SSR doesn't blow up.
-const SHARE_DISMISSED_STORAGE_KEY = "oh-share-link-dismissed";
-
-function readShareDismissed(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(SHARE_DISMISSED_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeShareDismissed(next: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    if (next) {
-      window.localStorage.setItem(SHARE_DISMISSED_STORAGE_KEY, "1");
-    } else {
-      window.localStorage.removeItem(SHARE_DISMISSED_STORAGE_KEY);
-    }
-  } catch {
-    // Quota / privacy mode — fail silently; pill stays visible.
-  }
-}
 
 // Public-URL share affordance for the host's `/h/<handle>` page.
 // Sits above the bookings list as a peer of the onboarding pill —
@@ -46,48 +17,65 @@ function writeShareDismissed(next: boolean) {
 // `https://...`); the clipboard payload includes the full URL so a
 // paste lands as a clickable link.
 //
-// Dismiss flow (B.PT-share): the share-pill ships with NO dismiss X
-// at first paint — the onboarding pill already owns the "X to dismiss
-// chrome" affordance, and two side-by-side X buttons read as visual
-// noise. Once the host dismisses the onboarding (its X disappears)
-// the share-pill grows a sibling X so the pattern stays available
-// without ever showing two dismiss controls at once. Dismissal is
-// persisted in localStorage (UI-only preference; no server state).
+// Dismiss flow (B.PT-share-flash): the share-pill ships with NO
+// dismiss X at first paint — the onboarding pill already owns the
+// "X to dismiss chrome" affordance, and two side-by-side X buttons
+// read as visual noise. Once the host dismisses the onboarding (its
+// X disappears) the share-pill grows a sibling X so the pattern
+// stays available without ever showing two dismiss controls at once.
+//
+// Dismissal state lives on the SERVER (`User.shareLinkDismissed`),
+// prefetched alongside `users.me` in the bookings layout. Previously
+// stored in localStorage which produced a visible flash on first
+// paint for dismissed users: SSR rendered the pill, the post-mount
+// localStorage read hid it one frame later. Server-readable state
+// closes that hydration gap — the SSR pass already knows whether
+// to render. Mirrors the `onboardingDismissed` pattern exactly.
 export function ShareLinkPill() {
   const t = useTranslations("Share");
+  const utils = trpc.useUtils();
   const me = trpc.users.me.useQuery();
-  const mounted = useMounted();
   const [copied, setCopied] = useState(false);
-  // Lazy initializer reads localStorage on first client render. SSR
-  // returns false (window guard) so initial paint matches the server.
-  // Visibility is gated on `mounted` below so the post-mount re-read
-  // doesn't fight hydration.
-  const [shareDismissed, setShareDismissed] = useState<boolean>(() =>
-    readShareDismissed(),
-  );
 
-  // Build the URL on the server with the env'd base so SSR and
-  // client agree on first paint. After mount, window.location.origin
-  // takes over for dev environments where the env var isn't set.
+  const setDismissed = trpc.users.setShareLinkDismissed.useMutation({
+    onMutate: async (input) => {
+      // Optimistic update — pill hides immediately on click without
+      // waiting for the server roundtrip. Mirrors the onboarding-
+      // pill's onMutate pattern so both dismiss flows feel
+      // identically snappy.
+      await utils.users.me.cancel();
+      const prev = utils.users.me.getData();
+      if (prev) {
+        utils.users.me.setData(undefined, {
+          ...prev,
+          shareLinkDismissed: input.dismissed,
+        });
+      }
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prev) utils.users.me.setData(undefined, ctx.prev);
+    },
+  });
+
+  // Build the URL purely from the env'd base (deterministic on SSR
+  // + client). Previously fell back to `window.location.origin` post-
+  // mount which forced a `useMounted` gate; with NEXT_PUBLIC_APP_URL
+  // set in every environment the fallback is unreachable, so we drop
+  // the mount dance and the flash it caused.
   const handle = me.data?.handle;
-  const base =
-    env.NEXT_PUBLIC_APP_URL ??
-    (mounted ? window.location.origin : "https://officehours.app");
+  const shareDismissed = me.data?.shareLinkDismissed ?? false;
+  const base = env.NEXT_PUBLIC_APP_URL ?? "https://officehours.app";
   const fullUrl = handle ? `${base}/h/${handle}` : null;
   const displayUrl = fullUrl ? fullUrl.replace(/^https?:\/\//, "") : null;
 
-  // Hide entirely when the user has dismissed the share pill. Gated
-  // on `mounted` so the SSR pass + first client render still emit the
-  // pill — matches the server snapshot and avoids hydration mismatch.
-  if (mounted && shareDismissed) return null;
+  if (shareDismissed) return null;
   if (!fullUrl || !displayUrl) return null;
 
   // Sibling dismiss X only surfaces AFTER the onboarding pill has
-  // been hidden — until then the onboarding pill's own X carries the
-  // dismiss vocabulary and a second X next to the share pill would
-  // double the visual weight. Gated on `mounted` for the same
-  // hydration reason as `shareDismissed`.
-  const showDismissX = mounted && Boolean(me.data?.onboardingDismissed);
+  // been hidden. `onboardingDismissed` is server-state too, so this
+  // gate doesn't introduce any client-only timing.
+  const showDismissX = Boolean(me.data?.onboardingDismissed);
 
   async function handleCopy() {
     if (!fullUrl) return;
@@ -105,8 +93,7 @@ export function ShareLinkPill() {
   }
 
   function handleDismiss() {
-    writeShareDismissed(true);
-    setShareDismissed(true);
+    setDismissed.mutate({ dismissed: true });
   }
 
   return (

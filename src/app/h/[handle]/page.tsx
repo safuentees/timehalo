@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
+import { auth } from "@/auth";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
 import { env } from "@/env";
 import HostProfile from "./components/host-profile";
@@ -67,6 +68,16 @@ export default async function HostPage({
     throw err;
   }
 
+  // Owner detection — compare the visiting session's user.id against
+  // the host's user.id resolved from the URL handle. When they match,
+  // surface a quiet "Back to dashboard" affordance so the host can
+  // return to /bookings without retyping the URL. Computed entirely
+  // server-side so the affordance is part of the SSR pass — no
+  // post-hydration flash, no client-only branch.
+  const session = await auth();
+  const isOwner =
+    session?.user?.id !== undefined && session.user.id === user.id;
+
   // G6 — JSON-LD Person schema for rich Google search results. The
   // image field is omitted when the host hasn't uploaded an avatar
   // yet (Google's Person schema treats image as optional). url is
@@ -98,6 +109,7 @@ export default async function HostPage({
         initialUser={user}
         initialSlots={slots}
         renderedAt={renderedAt}
+        isOwner={isOwner}
       />
     </>
   );

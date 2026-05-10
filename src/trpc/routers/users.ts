@@ -61,6 +61,12 @@ export const users = router({
         // native array type. Defensive parse: malformed cell → empty.
         onboardingDismissed: true,
         onboardingManualSteps: true,
+        // B.PT-share-flash — same pattern as `onboardingDismissed`.
+        // Was localStorage-only and produced a visible pill flash on
+        // first paint for dismissed users (SSR rendered the pill,
+        // mount-time localStorage read hid it one frame later).
+        // Server-readable means SSR renders correctly on first paint.
+        shareLinkDismissed: true,
       },
     });
     // B.PT158 — visitor-selectable duration list. Lives on the host's
@@ -122,6 +128,21 @@ export const users = router({
         data.onboardingManualSteps = JSON.stringify(unique);
       }
       await prisma.user.update({ where: { id: ctx.user.id }, data });
+      return { ok: true as const };
+    }),
+
+  // B.PT-share-flash — persist the share-link pill's dismissed state
+  // on the User row. Single-field mutation (matches the dismiss-
+  // forever shape of `setOnboardingState({ dismissed: true })`). The
+  // pill reads `me.data.shareLinkDismissed` server-side so SSR
+  // already knows whether to render — no localStorage flash.
+  setShareLinkDismissed: privateProcedure
+    .input(z.object({ dismissed: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { shareLinkDismissed: input.dismissed },
+      });
       return { ok: true as const };
     }),
 
