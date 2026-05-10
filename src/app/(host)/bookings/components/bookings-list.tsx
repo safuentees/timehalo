@@ -51,7 +51,6 @@ import {
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
-import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
@@ -277,12 +276,6 @@ export function BookingsList({
     <>
       {!isCalendarView ? (
         <OhPageShell>
-          {liveQueueEnabled ? (
-            <div className="mb-6 flex justify-end">
-              <LiveQueue />
-            </div>
-          ) : null}
-
           <OnboardingChecklist />
 
           <div className="mt-8">
