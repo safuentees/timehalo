@@ -51,7 +51,6 @@ import {
   OhEmptyTitle,
 } from "@/components/oh/oh-empty";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
-import { OhPageShell } from "@/components/oh/page-shell";
 import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
@@ -457,17 +456,17 @@ export function BookingsList({
           cursor controls) so the grid claims maximum vertical
           space. */}
       {!isCalendarView ? (
-        <OhPageShell>
+        <div className="mx-auto w-full max-w-[760px] px-4 pt-4 pb-4 sm:px-6 flex flex-col gap-3">
           <OnboardingChecklist />
 
-          <div className="mt-8">
+          <div>
             <BookingsViewSwitcher
               value={optimisticView}
               onValueChange={onViewChange}
             />
           </div>
 
-          <div className="mt-6">
+          <div>
             <OhPillSwitcher
               ariaLabel={t("tablistLabel")}
               value={optimisticTab}
@@ -498,7 +497,7 @@ export function BookingsList({
             />
           </div>
 
-          <div className="mt-6">
+          <div>
             {optimisticTab === "upcoming" ? (
               <BookingsListPanel
                 tab="upcoming"
@@ -513,7 +512,7 @@ export function BookingsList({
               />
             )}
           </div>
-        </OhPageShell>
+        </div>
       ) : null}
 
       {isCalendarView ? (
