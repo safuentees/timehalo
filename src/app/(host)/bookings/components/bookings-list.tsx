@@ -170,6 +170,13 @@ export function BookingsList({
   const { data: scheduleRanges } = trpc.schedule.get.useQuery();
   const liveQueueEnabled = flags?.["live-queue"] ?? false;
 
+  // SSE auto-sync: subscribe to bookings.queue and invalidate the
+  // listForHost query when a new booking lands. Headless — no UI
+  // rendered. Mounts unconditionally so a host receives live
+  // updates without needing to mount the optional <LiveQueue />
+  // visual chip.
+  useBookingsLiveSync();
+
   // Selected booking for the detail modal. State-driven instead of
   // intercepted-route navigation — the modal opens synchronously, no
   // server roundtrip, and prev/next chevrons swap content in place.
@@ -1172,19 +1179,34 @@ function BookingRow({
   );
 }
 
-function LiveQueue() {
+// Headless SSE subscription. Mount unconditionally in BookingsList;
+// no UI rendered. Receives bookings.queue events and invalidates
+// the listForHost query so the host's UI refreshes automatically
+// when a visitor books or cancels.
+//
+// Pattern: tkdodo.eu/blog/using-web-sockets-with-react-query —
+// subscription always runs while the page is mounted; visual chip
+// (LiveQueue below) is optional and gated behind a feature flag.
+function useBookingsLiveSync() {
   const t = useTranslations("Bookings");
   const utils = trpc.useUtils();
-  // Initial state: "connecting" (amber). Same architectural fix as
-  // the tab underline — render the indicator at its visible state on
-  // first paint via SSR HTML, no JS-deferred reveal. Earlier shape
-  // started at "hidden" + setTimeout(500ms) → "connecting"; the
-  // 500ms delay was meant to skip the amber flash if SSE connects
-  // fast, but it cost us the dot's visibility for half a second on
-  // every page load. Better: show the amber dot immediately, let
-  // the SSE callbacks transition it to "live" (green) or "off"
-  // (grey) when they fire. The amber→green transition is meaningful
-  // ("connection just succeeded"), not noise.
+  trpc.bookings.queue.useSubscription(undefined, {
+    onData: ({ data: event }) => {
+      if (event.type === "created") {
+        toast.success(t("toastNewBooking", { name: event.visitorName }));
+      } else {
+        toast(t("toastCancelled", { name: event.visitorName }));
+      }
+      utils.bookings.listForHost.invalidate();
+    },
+  });
+}
+
+// Optional visual chip. Mount only when the host wants the live-
+// status dot visible. The actual data-sync logic lives in
+// `useBookingsLiveSync` above and runs unconditionally.
+function LiveQueue() {
+  const t = useTranslations("Bookings");
   const [status, setStatus] = useState<
     "connecting" | "live" | "off"
   >("connecting");
@@ -1193,13 +1215,7 @@ function LiveQueue() {
   trpc.bookings.queue.useSubscription(undefined, {
     onStarted: () => setStatus("live"),
     onError: () => setStatus("off"),
-    onData: ({ data: event }) => {
-      if (event.type === "created") {
-        toast.success(t("toastNewBooking", { name: event.visitorName }));
-      } else {
-        toast(t("toastCancelled", { name: event.visitorName }));
-      }
-      utils.bookings.listForHost.invalidate();
+    onData: () => {
       setPulseKey((k) => k + 1);
     },
   });
