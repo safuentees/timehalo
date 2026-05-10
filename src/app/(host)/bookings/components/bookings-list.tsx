@@ -34,6 +34,7 @@ import {
   snapPixelToGrid,
 } from "@/lib/calendar-grid/event-geometry";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { BookingHoverPreview } from "./booking-hover-preview";
 import { EventChip } from "./calendar/event-chip";
 import type { DraggableEventDragData } from "./calendar/draggable-event-chip";
 import type { TimeGridDropData } from "./calendar/time-grid-column";
@@ -701,7 +702,8 @@ function BookingRow({
     month: "short",
     day: "numeric",
   });
-  return (
+
+  const trigger = (
     <Link
       href={`/bookings/${publicUid}`}
       onClick={(e) => {
@@ -733,7 +735,7 @@ function BookingRow({
 
       {question ? (
         <p className="mt-2 text-[13px] italic opacity-75 leading-relaxed">
-          “{question}”
+          &ldquo;{question}&rdquo;
         </p>
       ) : null}
 
@@ -741,6 +743,17 @@ function BookingRow({
         {visitorEmail}
       </p>
     </Link>
+  );
+
+  return (
+    <BookingHoverPreview
+      trigger={trigger}
+      visitorName={visitorName}
+      visitorEmail={visitorEmail}
+      question={question}
+      slotStart={slotStart}
+      fmtSlotTime={fmtSlotTime}
+    />
   );
 }
 
