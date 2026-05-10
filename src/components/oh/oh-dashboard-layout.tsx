@@ -8,7 +8,6 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { OhAppSidebar } from "./oh-app-sidebar";
 import { OhMobileNavOverlay } from "./oh-mobile-nav-overlay";
 import { OhDashboardBar } from "./oh-dashboard-bar";
@@ -55,9 +54,9 @@ export function OhDashboardLayout({
                 className="oh-host-content"
                 data-oh-modal-host="true"
               >
-                <ScrollArea className="oh-host-content-inner">
+                <div className="oh-host-content-inner overflow-y-auto">
                   <ContentSlot>{children}</ContentSlot>
-                </ScrollArea>
+                </div>
                 <OhMobileNavOverlay />
               </div>
             </SidebarInset>
@@ -89,7 +88,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="oh-content-slot relative flex flex-col"
+      className="relative flex min-h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
