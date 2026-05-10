@@ -148,7 +148,12 @@ export function WeekView({
   //                 Cal.com uses the same pattern (width: 165% on
   //                 their inner div in Calendar.tsx).
   const isCapped = maxBodyHeight !== "none";
-  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  // B.PT304 — `"100%"` switches to fit-parent mode (flex-1 min-h-0)
+  // so the view shares vertical space with sibling chrome above
+  // rather than running max-height: 100% which doesn't share.
+  const isFitParent = maxBodyHeight === "100%";
+  const wrapperStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
@@ -207,6 +212,7 @@ export function WeekView({
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={wrapperStyle}
     >

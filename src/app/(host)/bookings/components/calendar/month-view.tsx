@@ -97,7 +97,12 @@ export function MonthView({
   // letting the cells grow makes them readable for chip lists +
   // gives breathing room).
   const isCapped = maxBodyHeight !== "none";
-  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  // B.PT304 — `"100%"` switches to fit-parent mode (flex-1 min-h-0)
+  // so the view shares vertical space with sibling chrome above
+  // rather than running max-height: 100% which doesn't share.
+  const isFitParent = maxBodyHeight === "100%";
+  const wrapperStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
 
   // Region label for screen readers (B.PT145). Announces "Month view
   // for May 2026" on focus, giving SR users context for the grid.
@@ -120,6 +125,7 @@ export function MonthView({
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={wrapperStyle}
     >

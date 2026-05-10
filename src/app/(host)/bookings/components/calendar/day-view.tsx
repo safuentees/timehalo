@@ -101,8 +101,17 @@ export function DayView({
   // uses viewport-relative `calc(100dvh - 280px)` (B.PT143 — was a
   // fixed 640px which under-used tall screens). Playground passes
   // `"none"` so the visual regression baseline captures full height.
+  //
+  // B.PT304 — when caller passes `"100%"` the view runs in
+  // fit-parent mode: claim remaining flex space via `flex-1
+  // min-h-0` instead of relying on max-height. `max-height: 100%`
+  // alone doesn't share viewport space with sibling chrome (view
+  // switcher + cursor controls above) — flex layout needs the
+  // child to be flex-1 to compute the shared distribution.
   const isCapped = maxBodyHeight !== "none";
-  const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  const isFitParent = maxBodyHeight === "100%";
+  const bodyStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
 
   // Auto-scroll to a meaningful hour on cursor change (B.PT292).
   // Now that the grid renders 0-23 (24h), we'd otherwise paint the
@@ -170,6 +179,7 @@ export function DayView({
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={bodyStyle}
     >
