@@ -8,7 +8,7 @@ import {
   useTransition,
   type ComponentProps,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { flushSync } from "react-dom";
@@ -177,9 +177,8 @@ export default function HostProfile({
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
-  const [rescheduleFromUid, setRescheduleFromUid] = useState<
-    string | undefined
-  >();
+  const searchParams = useSearchParams();
+  const rescheduleFromUid = searchParams.get("reschedule") ?? undefined;
 
   useEffect(() => {
     const dateStr = getQueryParam("date");
@@ -192,12 +191,21 @@ export default function HostProfile({
       const matching = slots.find((s) => s.start === slotIso);
       if (matching) setSelectedSlot(matching);
     }
-    const rescheduleUid = getQueryParam("reschedule");
-    if (rescheduleUid) {
-      setRescheduleFromUid(rescheduleUid);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const lastRescheduleUidRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      rescheduleFromUid &&
+      rescheduleFromUid !== lastRescheduleUidRef.current &&
+      !drawerOpen
+    ) {
+      setDrawerOpen(true);
+    }
+    lastRescheduleUidRef.current = rescheduleFromUid;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rescheduleFromUid]);
 
   useEffect(() => {
     function handlePop() {
