@@ -274,65 +274,65 @@ export default function HostProfile({
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       header={
-        <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
-          <div className="flex flex-col items-start gap-1.5">
-            <span className="oh-eyebrow tabular-nums opacity-100">
-              /h/{user.handle}
-            </span>
-            {isOwner ? (
-              <Link
-                href="/bookings"
-                aria-label="Back to dashboard"
-                className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
-              >
-                <ArrowLeft
+        <div className="flex w-full flex-col gap-3">
+          <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
+            <div className="flex flex-col items-start gap-1.5">
+              <span className="oh-eyebrow tabular-nums opacity-100">
+                /h/{user.handle}
+              </span>
+              {isOwner ? (
+                <Link
+                  href="/bookings"
+                  aria-label="Back to dashboard"
+                  className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
+                >
+                  <ArrowLeft
+                    aria-hidden
+                    strokeWidth={2}
+                    className="size-3 no-underline"
+                  />
+                  Back to dashboard
+                </Link>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2" role="status">
+              <span
+                aria-hidden
+                className={cn(
+                  "size-2 shrink-0 rounded-full transition-colors duration-200 ease-oh",
+                  openToday ? "bg-emerald-500" : "bg-neutral-400",
+                )}
+              />
+              <span className="oh-eyebrow opacity-100">
+                {openToday ? t("openNow") : t("closedToday")}
+              </span>
+            </div>
+          </div>
+          {rescheduleFromUid ? (
+            <div
+              role="status"
+              className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 border-t border-oh-line pt-3"
+            >
+              <div className="flex items-center gap-2">
+                <span
                   aria-hidden
-                  strokeWidth={2}
-                  className="size-3 no-underline"
+                  className="size-1.5 shrink-0 rounded-full bg-amber-500"
                 />
-                Back to dashboard
+                <span className="oh-eyebrow truncate opacity-100">
+                  {t("rescheduling")}
+                </span>
+              </div>
+              <Link
+                href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
+                className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
+              >
+                {t("cancel")}
               </Link>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2" role="status">
-            <span
-              aria-hidden
-              className={cn(
-                "size-2 shrink-0 rounded-full transition-colors duration-200 ease-oh",
-                openToday ? "bg-emerald-500" : "bg-neutral-400",
-              )}
-            />
-            <span className="oh-eyebrow opacity-100">
-              {openToday ? t("openNow") : t("closedToday")}
-            </span>
-          </div>
+            </div>
+          ) : null}
         </div>
       }
     >
-      {rescheduleFromUid ? (
-        <div
-          role="status"
-          className="absolute inset-x-0 top-0 z-20 border-b border-oh-line bg-[color:var(--oh-tint)] backdrop-blur"
-        >
-          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-amber-500"
-              />
-              <span className="oh-eyebrow truncate opacity-100">
-                {t("rescheduling")}
-              </span>
-            </div>
-            <Link
-              href={`/h/${user.handle}/booked/${rescheduleFromUid}`}
-              className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
-            >
-              {t("cancel")}
-            </Link>
-          </div>
-        </div>
-      ) : null}
 
           <AnimatePresence mode="popLayout">
             {!drawerOpen || keepLandingMounted ? (
@@ -597,7 +597,15 @@ export default function HostProfile({
                 handle={handle}
                 slots={slots}
                 open
-                onOpenChange={setDrawerOpen}
+                onOpenChange={(next) => {
+                  if (!next && rescheduleFromUid) {
+                    router.push(
+                      `/h/${user.handle}/booked/${rescheduleFromUid}`,
+                    );
+                    return;
+                  }
+                  setDrawerOpen(next);
+                }}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
                 selectedSlot={selectedSlot}
