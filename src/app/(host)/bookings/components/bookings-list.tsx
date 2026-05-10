@@ -543,39 +543,21 @@ export function BookingsList({
           onDragEnd={onDragEnd}
           onDragCancel={() => setActiveDrag(null)}
         >
+        {/* B.PT304 — outer absolute cover. Anchors to ContentSlot's
+            motion.div (which carries `relative`) so the calendar
+            mode occupies EXACTLY the Viewport bounds, bypassing the
+            broken flex chain through the Radix ScrollArea Viewport
+            (which wraps children in a `display: table` div that
+            doesn't pass flex resolution through to descendants).
+            Inside, the inner div carries the per-view max-width cap
+            and `flex-1 min-h-0` on the calendar view claims the
+            remaining vertical space — page never scrolls, the
+            calendar's internal overflow-y-auto does. */}
+        <div className="absolute inset-0 flex flex-col">
         <div
-          // B.PT293 — `aria-busy` + a subtle opacity dim during the
-          // navigation transition. The optimistic chrome (cursor
-          // label, active pill, calendar view layout) updates
-          // synchronously on click; this signals to AT users + any
-          // visually-detected feedback that the data layer is
-          // still resolving. 70% opacity is calibrated to read as
-          // "transitioning" without obscuring the content the user
-          // is interacting with.
-          //
-          // B.PT296 — `flex-1 min-h-0` lets the calendar mode
-          // wrapper claim ALL remaining vertical space inside the
-          // ScrollArea Viewport (the `<motion.div>` parent in
-          // ContentSlot is `flex flex-col min-h-full`). Combined
-          // with `maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"` on each view below, the
-          // calendar grid fills the panel without page-level
-          // scroll on tall viewports + scrolls internally only
-          // when the 24h × `oneMinuteHeightPx` content actually
-          // exceeds the available height. Replaces the prior
-          // `calc(100dvh - 280px)` heuristic which assumed a
-          // fixed 280px chrome above and didn't track when the
-          // actual chrome differed.
           aria-busy={isPending || undefined}
           className={cn(
-            // B.PT304 — calendar mode escapes the OhPageShell. Title
-            // is in the topbar; chrome above the grid is just the
-            // view switcher (~40px) + cursor controls (~60px). The
-            // calendar grid below is sized via an explicit
-            // viewport-relative max-height on each VIEW (passed as
-            // `maxBodyHeight` below) so the view's internal
-            // overflow-y-auto scrolls the 24h grid INSIDE the panel
-            // — page never scrolls, container does.
-            "mx-auto flex w-full max-w-full flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 sm:px-6 sm:pb-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -619,7 +601,7 @@ export function BookingsList({
           ) : null}
 
           {/* Day view — works at any width, no mobile fallback needed.
-              `maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"` so the view fills its flex
+              `maxBodyHeight="100%"` so the view fills its flex
               parent's remaining vertical space (B.PT296). */}
           {optimisticView === "day" ? (
             <DayView
@@ -628,7 +610,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
-              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+              maxBodyHeight="100%"
             />
           ) : null}
 
@@ -652,7 +634,7 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
-                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                  maxBodyHeight="100%"
                 />
               </div>
               <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
@@ -675,7 +657,7 @@ export function BookingsList({
                     selectedRefId={selectedUid}
                     onEventClick={onEventClick}
                     getHref={getEventHref}
-                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                    maxBodyHeight="100%"
                   />
                 </div>
               </div>
@@ -699,10 +681,11 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 196px))"
+                maxBodyHeight="100%"
               />
             </div>
           ) : null}
+        </div>
         </div>
         {/* DragOverlay renders the chip ghost following the pointer.
             Keeping it outside the column tree prevents the source

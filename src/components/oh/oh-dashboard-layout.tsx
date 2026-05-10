@@ -191,14 +191,20 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // `flex flex-col` so calendar-style pages can claim the
-      // ScrollArea Viewport's full height via `flex-1 min-h-0`
-      // children. Block-shaped pages (OhPageShell-only) render
-      // as a single flex item with natural height; the panel bg
-      // fills any slack below. `min-h-full` keeps the column at
-      // LEAST the viewport height so the slack-fill behavior
-      // holds even when content is short.
-      className="flex min-h-full flex-col"
+      // `flex flex-col` so block-shaped pages render as a single
+      // flex item with natural height; the panel bg fills any
+      // slack below. `min-h-full` keeps the column at LEAST the
+      // viewport height so the slack-fill behavior holds even
+      // when content is short.
+      //
+      // `relative` is the containing-block anchor for fit-viewport
+      // pages (e.g. /bookings calendar mode) that absolute-position
+      // their content with `inset-0` to claim exact Viewport bounds.
+      // Bypasses the Radix ScrollArea Viewport's `display: table`
+      // wrapper, which doesn't pass flex resolution through, so
+      // `flex-1 min-h-0` chains can't reach a definite height
+      // ancestor through the normal flow.
+      className="relative flex min-h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
