@@ -12,6 +12,7 @@ import {
   Loader2,
   Plus,
   Settings,
+  Slash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/hooks";
@@ -216,20 +217,36 @@ function OhPageTitleSlot() {
   return (
     <div
       data-bar-slot="title"
-      className="hidden min-w-0 flex-1 items-center justify-start pl-3 md:flex"
+      className="hidden min-w-0 flex-1 items-center justify-start gap-2 pl-2 md:flex"
     >
       <AnimatePresence mode="wait" initial={false}>
         {title ? (
-          <motion.span
-            key={title}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+          <motion.div
+            key="title-cluster"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-            className="oh-eyebrow truncate text-[color:var(--oh-content-muted)]"
+            className="flex min-w-0 items-center gap-2"
           >
-            {title}
-          </motion.span>
+            <Slash
+              aria-hidden
+              strokeWidth={2}
+              className="size-3 shrink-0 opacity-35"
+            />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={title}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                className="oh-dashboard-bar-label truncate"
+              >
+                {title}
+              </motion.span>
+            </AnimatePresence>
+          </motion.div>
         ) : null}
       </AnimatePresence>
     </div>
