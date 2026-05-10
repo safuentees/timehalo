@@ -152,7 +152,16 @@ export function BookingsList({
   const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
   const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDate);
   const router = useRouter();
-  const { data, isError, error } = trpc.bookings.listForHost.useQuery();
+  // staleTime: Infinity — bookings.listForHost data is invalidated
+  // ONLY by the SSE live-queue subscription when a new booking
+  // arrives. Otherwise no automatic refetch on view/tab/date change,
+  // window focus, or remount. The data is already prefetched in
+  // bookings/layout.tsx on initial route entry; subsequent
+  // navigation reuses the cache without hitting the DB.
+  const { data, isError, error } = trpc.bookings.listForHost.useQuery(
+    undefined,
+    { staleTime: Infinity },
+  );
   const { data: flags } = trpc.users.featureFlags.useQuery();
   // B.PT152 — drop-validation pre-flight needs the host's
   // availability ranges. The /bookings/page.tsx already prefetches

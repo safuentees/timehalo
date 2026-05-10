@@ -1,5 +1,3 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { createPrivateSSRHelper } from "@/trpc/server-helpers";
 import { BookingsList, type Tab } from "./components/bookings-list";
 import type { ViewMode } from "./components/bookings-view-switcher";
 
@@ -80,36 +78,17 @@ export default async function BookingsPage({
   const activeView: ViewMode = isView(params.view) ? params.view : "list";
   const cursorDate = parseCursorDate(params.date);
 
-  const trpc = await createPrivateSSRHelper();
-  // Parallel prefetch. featureFlags drives whether <LiveQueue /> mounts;
-  // users.me feeds the empty-state CTA's `/h/<handle>` link without
-  // a second roundtrip when the empty path renders.
-  //
-  // schedule.get (B.PT42) — the inline `<OnboardingChecklist>` reads
-  // the host's AvailabilityRange rows to auto-check the "Draw your
-  // weekly hours" step. Without this prefetch, the checklist
-  // server-renders with `availabilityCount: 0` (the query is
-  // unhydrated), the availability step shows unchecked, the card
-  // appears completed-but-pending, then client-side fetch resolves
-  // and the card disappears or the row updates — visible "card
-  // flashes back" + "checkbox briefly unmarked" on hard refresh.
-  // Adding it here closes the hydration gap for the checklist.
-  await Promise.all([
-    trpc.bookings.listForHost.prefetch(),
-    trpc.users.featureFlags.prefetch(),
-    trpc.users.me.prefetch(),
-    trpc.schedule.get.prefetch(),
-  ]);
-
+  // No prefetch here — moved to bookings/layout.tsx so it runs
+  // once per route entry, not on every searchParam change. The
+  // layout's HydrationBoundary populates the client queryClient;
+  // BookingsList below reads via useQuery without re-fetching.
   return (
     <main className="oh-main">
-      <HydrationBoundary state={dehydrate(trpc.queryClient)}>
-        <BookingsList
-          activeTab={activeTab}
-          activeView={activeView}
-          cursorDate={cursorDate}
-        />
-      </HydrationBoundary>
+      <BookingsList
+        activeTab={activeTab}
+        activeView={activeView}
+        cursorDate={cursorDate}
+      />
     </main>
   );
 }
