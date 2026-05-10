@@ -53,6 +53,7 @@ import {
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { usePageTitle } from "@/components/oh/page-title-context";
 import { OnboardingChecklist } from "@/components/oh/onboarding-checklist";
+import { ShareLinkPill } from "@/components/oh/share-link-pill";
 import { OhPillSwitcher } from "@/components/oh/oh-pill-switcher";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -473,7 +474,15 @@ export function BookingsList({
           space. */}
       {!isCalendarView ? (
         <div className="mx-auto w-full max-w-[760px] px-4 pt-4 pb-4 sm:px-6 flex flex-col gap-3">
-          <OnboardingChecklist />
+          {/* Share-link + onboarding pills sit on a wrapping flex row
+              so they pair side-by-side at desktop widths and stack
+              cleanly on mobile when both are present. ShareLinkPill
+              is permanent (always relevant); the onboarding pill
+              vanishes once dismissed/completed. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <ShareLinkPill />
+            <OnboardingChecklist />
+          </div>
 
           <BookingsViewSwitcher
             value={optimisticView}
@@ -578,6 +587,14 @@ export function BookingsList({
               wrapper's max-width changes, making the chrome feel
               "loose" — user wants the switcher fixed. */}
           <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 sm:px-6">
+            {/* Same pill row as list-mode (share + onboarding) so the
+                public URL + setup progress stay visible across every
+                view (day / week / month). ShareLinkPill is permanent;
+                onboarding self-hides once dismissed/completed. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <ShareLinkPill />
+              <OnboardingChecklist />
+            </div>
             <BookingsViewSwitcher
               value={optimisticView}
               onValueChange={onViewChange}
@@ -597,7 +614,7 @@ export function BookingsList({
               below the 5-row grid. */}
           <div
             className={cn(
-              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6",
               calendarMaxWidthClass,
               optimisticView !== "month" && "min-h-0 flex-1",
             )}
@@ -1299,7 +1316,13 @@ function EmptyBookings({ tab }: { tab: Tab }) {
       {tab === "upcoming" && me?.handle ? (
         <OhEmptyContent>
           <Link
-            href={`/preview/${me.handle}`}
+            // Opens the public visitor route in a new tab — what
+            // actual visitors land on. The in-dashboard `/preview/<handle>`
+            // surface still exists for dashboard-chrome'd previews;
+            // this affordance points at the live page.
+            href={`/h/${me.handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
             // `!underline` + `!decoration-...` because globals.css line 756
             // has an unlayered `:where(.oh-root a) { text-decoration: none }`
             // shell reset. Unlayered CSS beats Tailwind's utilities layer

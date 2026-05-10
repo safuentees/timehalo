@@ -244,13 +244,22 @@
   --oh-shadow-hover:
     0 4px 16px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 60%);
+  /* Centered drop variant — same blur/opacity as `--oh-shadow-resting`
+     but Y-offset zeroed so the shadow sits directly behind the
+     surface, not slightly beneath it. Used by the segmented switcher's
+     active pill (`oh-pill-switcher`) where the elevation is the only
+     active-state cue and an asymmetric drop reads as "leaning down."
+     Chips/popovers/cards keep `--oh-shadow-resting` so their downward
+     drop continues to disambiguate "floating ABOVE the page." */
+  --oh-shadow-resting-centered:
+    0 0 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 50%);
   /* Floated surfaces — popovers, menu popups, drawer top-edge.
      Two-layer drop (longer soft + shorter contact) so a popover
      visibly floats above the page-level shadow plane that
      `--oh-shadow-resting` defines. Same 1px tonal rim as chips. */
   --oh-shadow-popup:
-    0 16px 32px -12px rgb(0 0 0 / 0.28),
-    0 4px 12px -6px rgb(0 0 0 / 0.18),
+    0 16px 32px -12px rgb(0 0 0 / 0.28), 0 4px 12px -6px rgb(0 0 0 / 0.18),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 50%);
   /* Drawer top-edge shadow — the slim band above a bottom-sheet so
      the sheet visibly lifts off the page. Light mode: dark drop
@@ -274,8 +283,7 @@
      The mix follows `border-radius` naturally so the rim wraps
      the panel's 18px corner curve. */
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 32px -16px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 30%);
   /* Recessed "well" — empty placeholders inside the panel. The
      inverse cue of the resting/hover/popup tokens: instead of
@@ -452,6 +460,13 @@
   --oh-shadow-hover:
     0 6px 20px rgba(0, 0, 0, 0.65),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
+  /* Dark variant of the centered-drop shadow. Y-offset zeroed; same
+     blur/opacity as the dark `--oh-shadow-resting` so the active
+     switcher pill keeps its elevation against the recessed dark
+     track. */
+  --oh-shadow-resting-centered:
+    0 0 14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 5%);
 
   /* Input recess shadows deepen so the recessed-paper metaphor
      survives on the lighter dark-mode panel. */
@@ -462,8 +477,7 @@
      metaphor as resting/hover but stronger — popups float higher
      than chips. 1px tonal rim on the upper face. */
   --oh-shadow-popup:
-    0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 6px 16px -6px rgba(0, 0, 0, 0.5),
+    0 18px 36px -12px rgba(0, 0, 0, 0.7), 0 6px 16px -6px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 6%);
   --oh-shadow-drawer-edge:
     0 -20px 48px rgba(0, 0, 0, 0.55),
@@ -473,8 +487,7 @@
      stays soft (chip-scale); the 1px tonal rim follows the 18px
      corner curve and dissolves into the paper. */
   --oh-shadow-panel:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 12px 32px -16px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 color-mix(in srgb, var(--oh-paper), white 8%);
   /* Well token in dark mode — deeper inset shadow because the
      lighter dark-paper panel eats subtle shadows. The 1px inner
@@ -729,6 +742,31 @@
 }
 .oh-dashboard-bar-chevron {
   transition: transform 150ms var(--ease-oh, ease);
+}
+/* Non-interactive pill that mirrors `.oh-dashboard-bar-trigger` chrome
+   so the page-title breadcrumb segment reads as a peer of the workspace
+   switcher rather than bare floating text. Same height, padding-inline,
+   radius, and hover bg-tint as the trigger; no button affordances since
+   the title isn't clickable (yet). Apply to a non-button element.
+
+   The pill OCCUPIES its full padded box in layout (no negative margin)
+   so the hover bounding box matches the space the element actually
+   reserves — sibling elements (the breadcrumb slash) sit beside the
+   pill's outer edge, not overlap it. Trade-off vs the workspace
+   trigger's `margin-inline-start: -8px` recipe: visible text shifts
+   8px in from where bare-text would land, but the hover area no
+   longer leaks into adjacent space. */
+.oh-dashboard-bar-pill {
+  align-items: center;
+  gap: 8px;
+  height: calc(var(--oh-dashboard-bar-height) - 4px);
+  padding-inline: 8px;
+  border-radius: var(--oh-r-xs);
+  background: transparent;
+  transition: background-color 150ms var(--ease-oh, ease);
+}
+.oh-dashboard-bar-pill:hover {
+  background: var(--oh-tint-hover);
 }
 .oh-dashboard-bar-trigger[data-popup-open] .oh-dashboard-bar-chevron {
   transform: rotate(180deg);
@@ -1129,30 +1167,6 @@
 }
 .oh-duration-picker-popup[data-starting-style],
 .oh-duration-picker-popup[data-ending-style] {
-  opacity: 0;
-  transform: scale(0.96) translateY(-4px);
-}
-
-/* Onboarding popover — anchors below the compact pill on /bookings.
-   Wider than the duration popover (the checklist content is denser);
-   same shadow + radius vocabulary so it reads as part of the same
-   chrome family. Width caps at 360px so 5 steps don't sprawl across
-   the page. */
-.oh-onboarding-popup {
-  width: 340px;
-  max-width: calc(100vw - 24px);
-  background-color: var(--oh-paper);
-  color: var(--oh-ink);
-  border-radius: var(--oh-r-sm);
-  box-shadow: var(--oh-shadow-popup);
-  outline: none;
-  transform-origin: top left;
-  transition:
-    transform 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1)),
-    opacity 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1));
-}
-.oh-onboarding-popup[data-starting-style],
-.oh-onboarding-popup[data-ending-style] {
   opacity: 0;
   transform: scale(0.96) translateY(-4px);
 }
@@ -3951,6 +3965,17 @@
      = exactly 100svh - 24px - bar height. */
   width: 100%;
   height: 100%;
+  /* Reserve scrollbar gutter so `mx-auto` children don't shift on the
+     inline axis when the panel-internal scrollbar appears /
+     disappears across views. /bookings flips this on view change:
+     day/week cap their internal heights (no scrollbar on this
+     container), month uses content-intrinsic height (sometimes
+     overflows → scrollbar appears → usable width shrinks ~15px →
+     every centered child re-centers). `stable` reserves the gutter
+     unconditionally so the inner usable width stays constant. The
+     html-level rule at the top of this file does the same thing for
+     the body scrollbar. */
+  scrollbar-gutter: stable;
 }
 
 /* ────────────────────────────────────────────────────────────────────

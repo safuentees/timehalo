@@ -28,7 +28,13 @@ export type OnboardingStep = {
    */
   titleKey: string;
   descriptionKey: string;
-  href: string;
+  /**
+   * Optional. Steps without an `href` are passive — there's no page
+   * the user can navigate to in order to make progress (e.g.
+   * `first-booking` is a "wait for traffic" milestone). The renderer
+   * skips the "Open" link for these.
+   */
+  href?: string;
   done: boolean;
   /**
    * Whether the step gets auto-checked from data (handle/timezone/
@@ -90,7 +96,11 @@ export function computeOnboardingSteps(
       id: "first-booking",
       titleKey: "stepFirstBookingTitle",
       descriptionKey: "stepFirstBookingDescription",
-      href: "/bookings",
+      // No `href` — this is a passive milestone; the user can't
+      // navigate anywhere to "make" a booking happen, they have to
+      // share their handle and wait for traffic. Keeping the row in
+      // the checklist tells them what success looks like even though
+      // it's not actionable.
       done: firstBookingDone,
     },
   ];

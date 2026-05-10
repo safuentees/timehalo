@@ -19,9 +19,10 @@ import { useRegister } from "@/lib/mutations/use-register";
 
 // B.PT285 — handle field removed (dub.co pattern). Signup collects
 // email + password only; the handle is auto-generated as a placeholder
-// at User.create time. After sign-in, the user is sent to
-// /onboarding/handle to claim a real handle (cal.com-style live
-// availability check + email-derived suggestion).
+// at User.create time. After sign-in, the user lands on /bookings —
+// the canonical post-auth landing page; the in-dashboard onboarding
+// pill (`<OnboardingChecklist>`) drives them to claim a real handle,
+// set hours, etc. without a separate /onboarding route.
 type Form = {
   email: string;
   password: string;
@@ -58,7 +59,7 @@ export function RegisterForm() {
         return;
       }
 
-      router.push("/onboarding/handle");
+      router.push("/bookings");
       router.refresh();
     },
     onError: (error) => {

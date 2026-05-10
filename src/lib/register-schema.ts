@@ -11,8 +11,8 @@ export const handleSchema = z
 // Signup collects email + password only; the handle is auto-generated
 // as a placeholder (`u-<5char>`) at User.create time so downstream
 // workspace + event-type seeding succeed atomically. Users claim a
-// real handle at /onboarding/handle (cal.com-style live availability
-// check + email-derived suggestion). See `claimHandle` mutation +
+// real handle from the in-dashboard onboarding pill on /bookings (the
+// `<OnboardingChecklist>` step + `claimHandle` mutation). See
 // `derivePlaceholderHandle` util.
 export const registerInputSchema = z.object({
   email: z

@@ -174,20 +174,22 @@ export function OhPillSwitcher<T extends string>({
                   layoutId={layoutId}
                   aria-hidden
                   // Active pill = `--oh-paper` (the LIGHTER main
-                  // tone). Outer drop shadow matching the `oh` /
-                  // `ohGhost` button variants
-                  // (`0 3px 12px rgba(0,0,0,0.22)`) so the pill
-                  // reads as floating ABOVE the recessed track.
-                  // Radius = 3px per Apple HIG concentric formula:
-                  // outer track is `--oh-r-sm` (6px) with `p-[3px]`,
-                  // so a perfectly concentric inner arc is at
-                  // `outer - padding = 6 - 3 = 3px`. WWDC22 "What's
-                  // new in SwiftUI" calls this out as the canonical
-                  // way to nest rounded rects. Tracks the
-                  // TabsTrigger's `rounded-[3px]` above so the pill
-                  // and its containing button share bounds + radius
-                  // exactly.
-                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting)]"
+                  // tone). Centered-drop variant of the resting
+                  // shadow (`--oh-shadow-resting-centered`, Y=0 vs
+                  // the standard token's Y=3) so the elevation sits
+                  // directly behind the pill. The pill is the only
+                  // active-state cue here; an asymmetric drop reads
+                  // as the pill "leaning down" relative to the
+                  // recessed track. Radius = 3px per Apple HIG
+                  // concentric formula: outer track is `--oh-r-sm`
+                  // (6px) with `p-[3px]`, so a perfectly concentric
+                  // inner arc is at `outer - padding = 6 - 3 = 3px`.
+                  // WWDC22 "What's new in SwiftUI" calls this out
+                  // as the canonical way to nest rounded rects.
+                  // Tracks the TabsTrigger's `rounded-[3px]` above
+                  // so the pill and its containing button share
+                  // bounds + radius exactly.
+                  className="absolute inset-0 rounded-[3px] bg-oh-paper shadow-[var(--oh-shadow-resting-centered)]"
                   transition={{
                     type: "spring",
                     duration: 0.22,

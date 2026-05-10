@@ -224,6 +224,14 @@ export const auth = router({
                   slug: placeholderHandle,
                   name: placeholderHandle,
                   durationMins: 15,
+                  // Seed the visitor-selectable duration list with the
+                  // singular default (15min) so the host's `/h/<handle>`
+                  // immediately renders the duration chip strip + the
+                  // profile durations editor lands non-empty. Without
+                  // this seed, durationMinsList = "[]" and the surface
+                  // falls back to single-duration mode (no chip strip)
+                  // until the host visits /profile and adds a row.
+                  durationMinsList: JSON.stringify([15]),
                 },
                 select: { id: true },
               });

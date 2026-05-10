@@ -419,7 +419,7 @@
     "signOut": "Sign out"
   },
   "Bookings": {
-    "title": "Your bookings",
+    "title": "Bookings",
     "tabUpcoming": "Upcoming",
     "tabPast": "Past",
     "tablistLabel": "Booking timeframe",
@@ -817,6 +817,10 @@
     "signInDescription": "If you have an account",
     "createAccountTitle": "Create an account",
     "createAccountDescription": "If you don't"
+  },
+  "Share": {
+    "copyAria": "Copy {url} to clipboard",
+    "hideAria": "Hide share link"
   },
   "AppError": {
     "label": "Officehours / 500",

@@ -54,12 +54,14 @@ export function OhAuthShell({ children, header, footer }: Props) {
   //     + inset shadow) read as recessed INTO the panel, same as the
   //     visitor's booking form on /h/[handle].
   //
-  // Light-mode pins (`[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5]`) so
-  // the surface stays brand-correct regardless of the dashboard's
-  // dark-mode toggle. Same lock the visitor surface applies
-  // (B.PT219).
+  // Auth surface follows the user's theme preference (light / dark /
+  // system) — unlike the visitor shell at `/h/[handle]` (B.PT219) which
+  // pins to the brand light tokens regardless of host preference,
+  // these are the host's OWN auth pages and should respect the OS /
+  // user-selected mode. The dark-mode `--oh-paper` / `--oh-ink` flip
+  // happens automatically via the `.dark` rule on `:root`.
   return (
-    <div className="flex min-h-dvh flex-col bg-oh-bg-muted p-[15px] text-[color:var(--oh-ink)] [--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] sm:p-[24px]">
+    <div className="flex min-h-dvh flex-col bg-oh-bg-muted p-[15px] text-[color:var(--oh-ink)] sm:p-[24px]">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[25px] bg-oh-bg">
         {header ? <OhAuthHeader>{header}</OhAuthHeader> : null}
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-10 sm:px-6 sm:py-14">

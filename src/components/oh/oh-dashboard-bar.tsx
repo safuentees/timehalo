@@ -65,11 +65,12 @@ export function OhDashboardBar() {
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const utils = trpc.useUtils();
+  const title = usePageTitleValue();
 
   const current = workspaces?.find((w) => w.isActive) ?? workspaces?.[0];
   const pendingWorkspace =
     pendingSlug != null
-      ? workspaces?.find((w) => w.slug === pendingSlug) ?? null
+      ? (workspaces?.find((w) => w.slug === pendingSlug) ?? null)
       : null;
   // Optimistic label — show the picked workspace's name the moment the
   // user clicks. Falls back to current when nothing's pending. The
@@ -127,147 +128,132 @@ export function OhDashboardBar() {
           The icon morphs hamburger ↔ X via GSAP MorphSVG (B.PT52
           motion vocabulary applied to a single-element morph). */}
       <OhMenuTrigger className="-ml-1 mr-1 md:hidden" />
-      <Menu.Root>
-        {/* Stable `id` prop bypasses Base UI's `useBaseUiId(idOverride)`
-            useId fallback. Without it, the trigger's auto-id is
-            positional (`base-ui-_R_xxxxx_`) and React 19's hydration
-            counter can disagree between SSR and the first client paint
-            when any earlier hook in the tree shifts the useId fiber
-            position — surfaces as the "tree hydrated but some
-            attributes of the server rendered HTML didn't match" error
-            on the trigger's `id`. Reference: Base UI Menu docs
-            "Multiple Triggers" (the `id` prop is the documented escape
-            hatch for stable trigger IDs). */}
-        <Menu.Trigger
-          id="oh-workspace-switcher-trigger"
-          className="oh-dashboard-bar-trigger"
-          type="button"
-          // B.PT84 — `aria-busy` so AT users hear the trigger as
-          // "in progress" while the switch resolves. Pairs with
-          // the `<OhTopProgressBar>` aria-live announcement.
-          aria-busy={isPending || undefined}
-          data-pending={isPending || undefined}
-          // Mobile dashboard-bar grid slot — pinned to column 2.
-          data-bar-slot="center"
-        >
-          <span className="oh-dashboard-bar-label">{label}</span>
-          {isPending ? (
-            <Loader2
-              aria-hidden
-              strokeWidth={2}
-              className="oh-dashboard-bar-chevron size-3 opacity-55 animate-spin"
-            />
-          ) : (
-            <ChevronDown
-              aria-hidden
-              strokeWidth={1.75}
-              className="oh-dashboard-bar-chevron size-3 opacity-55"
-            />
-          )}
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner
-            className="oh-menu-positioner"
-            sideOffset={8}
-            // align="center" so the popup centers under the trigger.
-            // On mobile (where the trigger is grid-centered in the
-            // dashboard bar) this puts the popup in the viewport
-            // center. On desktop the trigger sits at the bar's left
-            // edge — Base UI's collision avoidance flips/shifts the
-            // popup to keep it on-screen, so center is still the
-            // safe default vs. start (which left-justifies the popup
-            // and reads as off-balance now that the trigger isn't
-            // hugging the left rail on mobile).
-            align="center"
-            // Inline z-index as belt-and-suspenders: the sidebar
-            // primitive's [data-slot="sidebar-container"] is
-            // position: fixed; z-index: 10. Base UI's Positioner is
-            // body-portaled but ships no z-index. Inline beats
-            // any CSS specificity surprises and tolerates Turbopack
-            // CSS-cache hiccups in dev.
-            style={{ zIndex: 100 }}
-          >
-            <Menu.Popup className="oh-menu-popup">
-              <Menu.Group>
-                <Menu.GroupLabel className="oh-menu-label">
-                  {t("workspaceSwitcherGroupLabel")}
-                </Menu.GroupLabel>
-                {(workspaces ?? []).map((w) => {
-                  const isPicked = pendingSlug === w.slug;
-                  return (
-                    <Menu.Item
-                      key={w.id}
-                      className="oh-menu-item"
-                      // B.PT84 — block re-entry while a switch is in
-                      // flight. Without this the user can stack picks
-                      // and the optimistic label race-conditions
-                      // against the actual cookie write.
-                      disabled={isPending}
-                      data-pending={isPicked || undefined}
-                      onClick={() => handlePick(w.slug)}
-                    >
-                      <span className="oh-menu-item-glyph">
-                        {isPicked ? (
-                          <Loader2
-                            aria-hidden
-                            strokeWidth={2}
-                            className="size-3.5 animate-spin opacity-70"
-                          />
-                        ) : w.isActive ? (
-                          <Check
-                            aria-hidden
-                            strokeWidth={2}
-                            className="size-3.5"
-                          />
-                        ) : null}
-                      </span>
-                      <span
-                        className={
-                          w.isActive
-                            ? "font-semibold"
-                            : "font-normal opacity-85"
-                        }
-                      >
-                        {w.name}
-                      </span>
-                    </Menu.Item>
-                  );
-                })}
-              </Menu.Group>
 
-              <Menu.Separator className="oh-menu-separator" />
-
-              <Menu.Item
-                className="oh-menu-item"
-                onClick={() => setCreateOpen(true)}
+      {/* Breadcrumb cluster: workspace dropdown + slash + page title pill,
+          all inside the same motion.div so they animate + lay out as one
+          flex row. Title slot reads from PageTitleProvider. */}
+      <OhPageTitleSlot
+        title={title}
+        workspaceMenu={
+          <Menu.Root>
+            {/* Stable `id` prop bypasses Base UI's `useBaseUiId(idOverride)`
+                useId fallback. Without it, the trigger's auto-id is
+                positional (`base-ui-_R_xxxxx_`) and React 19's hydration
+                counter can disagree between SSR and the first client paint
+                when any earlier hook in the tree shifts the useId fiber
+                position — surfaces as the "tree hydrated but some
+                attributes of the server rendered HTML didn't match" error
+                on the trigger's `id`. Reference: Base UI Menu docs
+                "Multiple Triggers" (the `id` prop is the documented escape
+                hatch for stable trigger IDs). */}
+            <Menu.Trigger
+              id="oh-workspace-switcher-trigger"
+              className="oh-dashboard-bar-trigger"
+              type="button"
+              // B.PT84 — `aria-busy` so AT users hear the trigger as
+              // "in progress" while the switch resolves. Pairs with
+              // the `<OhTopProgressBar>` aria-live announcement.
+              aria-busy={isPending || undefined}
+              data-pending={isPending || undefined}
+              // Mobile dashboard-bar grid slot — pinned to column 2.
+              data-bar-slot="center"
+            >
+              <span className="oh-dashboard-bar-label">{label}</span>
+              {isPending ? (
+                <Loader2
+                  aria-hidden
+                  strokeWidth={2}
+                  className="oh-dashboard-bar-chevron size-3 opacity-55 animate-spin"
+                />
+              ) : (
+                <ChevronDown
+                  aria-hidden
+                  strokeWidth={1.75}
+                  className="oh-dashboard-bar-chevron size-3 opacity-55"
+                />
+              )}
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner
+                className="oh-menu-positioner"
+                sideOffset={8}
+                align="center"
+                style={{ zIndex: 100 }}
               >
-                <span className="oh-menu-item-glyph">
-                  <Plus aria-hidden strokeWidth={1.75} className="size-4" />
-                </span>
-                <span>{t("createWorkspace")}</span>
-              </Menu.Item>
-              <Menu.Item
-                className="oh-menu-item"
-                render={<Link href="/workspaces" />}
-              >
-                <span className="oh-menu-item-glyph">
-                  <Settings aria-hidden strokeWidth={1.75} className="size-4" />
-                </span>
-                <span>{t("manageWorkspaces")}</span>
-              </Menu.Item>
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
+                <Menu.Popup className="oh-menu-popup">
+                  <Menu.Group>
+                    <Menu.GroupLabel className="oh-menu-label">
+                      {t("workspaceSwitcherGroupLabel")}
+                    </Menu.GroupLabel>
+                    {(workspaces ?? []).map((w) => {
+                      const isPicked = pendingSlug === w.slug;
+                      return (
+                        <Menu.Item
+                          key={w.id}
+                          className="oh-menu-item"
+                          disabled={isPending}
+                          data-pending={isPicked || undefined}
+                          onClick={() => handlePick(w.slug)}
+                        >
+                          <span className="oh-menu-item-glyph">
+                            {isPicked ? (
+                              <Loader2
+                                aria-hidden
+                                strokeWidth={2}
+                                className="size-3.5 animate-spin opacity-70"
+                              />
+                            ) : w.isActive ? (
+                              <Check
+                                aria-hidden
+                                strokeWidth={2}
+                                className="size-3.5"
+                              />
+                            ) : null}
+                          </span>
+                          <span
+                            className={
+                              w.isActive
+                                ? "font-semibold"
+                                : "font-normal opacity-85"
+                            }
+                          >
+                            {w.name}
+                          </span>
+                        </Menu.Item>
+                      );
+                    })}
+                  </Menu.Group>
 
-      {/* Page title slot (B.PT304). Rendered only ≥md — at <md the
-          workspace switcher already crowds the bar and a contextual
-          title would collide with the sidebar trigger / icons.
-          AnimatePresence wait-mode crossfades the title on route
-          change so the bar's chrome doesn't visually pop. The
-          OhPageTitleSlot reads from PageTitleProvider; pages set
-          via `usePageTitle()` in an effect. */}
-      <OhPageTitleSlot />
+                  <Menu.Separator className="oh-menu-separator" />
+
+                  <Menu.Item
+                    className="oh-menu-item"
+                    onClick={() => setCreateOpen(true)}
+                  >
+                    <span className="oh-menu-item-glyph">
+                      <Plus aria-hidden strokeWidth={1.75} className="size-4" />
+                    </span>
+                    <span>{t("createWorkspace")}</span>
+                  </Menu.Item>
+                  <Menu.Item
+                    className="oh-menu-item"
+                    render={<Link href="/workspaces" />}
+                  >
+                    <span className="oh-menu-item-glyph">
+                      <Settings
+                        aria-hidden
+                        strokeWidth={1.75}
+                        className="size-4"
+                      />
+                    </span>
+                    <span>{t("manageWorkspaces")}</span>
+                  </Menu.Item>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        }
+      />
 
       {/* Mobile dashboard-bar grid slot — pinned to column 3. The
           `data-bar-slot` marker keeps the icons + avatar justified to
@@ -340,43 +326,60 @@ function ChromeIconLink({
 // route" — the bar reads like a breadcrumb. AnimatePresence
 // wait-mode crossfade on the title text only (not the slash) so
 // the separator stays anchored as titles swap on route change.
-function OhPageTitleSlot() {
-  const title = usePageTitleValue();
+function OhPageTitleSlot({
+  title,
+  workspaceMenu,
+}: {
+  title: string | null;
+  workspaceMenu: React.ReactNode;
+}) {
   return (
     <div
       data-bar-slot="title"
-      className="hidden min-w-0 flex-1 items-center justify-start gap-2 pl-2 md:flex"
+      className="flex min-w-0 flex-1 items-center justify-start"
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {title ? (
-          <motion.div
-            key="title-cluster"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-            className="flex min-w-0 items-center gap-2"
-          >
-            <Slash
-              aria-hidden
-              strokeWidth={2}
-              className="size-3 shrink-0 opacity-35"
-            />
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={title}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                className="oh-dashboard-bar-label truncate"
-              >
-                {title}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {/* Always-rendered cluster: workspace dropdown + (when a page
+          title exists) slash + title pill. Workspace lives inside this
+          motion.div so the whole breadcrumb row is one flexbox. */}
+      <motion.div
+        initial={false}
+        animate={{ opacity: 1 }}
+        className="flex min-w-0 items-center"
+      >
+        {workspaceMenu}
+        <AnimatePresence mode="wait" initial={false}>
+          {title ? (
+            <motion.div
+              key="title-segment"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              className="hidden min-w-0 items-center md:flex"
+            >
+              <Slash
+                aria-hidden
+                strokeWidth={2}
+                className="size-3 shrink-0 opacity-35"
+              />
+              <span className="oh-dashboard-bar-pill min-w-0 flex items-center">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={title}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                    className="oh-dashboard-bar-label truncate"
+                  >
+                    {title}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

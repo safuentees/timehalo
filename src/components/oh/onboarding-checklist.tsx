@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { CheckIcon, ChevronRightIcon, XIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { trpc } from "@/trpc/hooks";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   computeOnboardingSteps,
@@ -92,62 +91,94 @@ export function OnboardingChecklist() {
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger
-        className="oh-focus-ring inline-flex items-center gap-2.5 self-start rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-3 py-1.5 shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
-        aria-label={t("sectionAria")}
-      >
-        {/* Progress dot strip — one dot per step. Filled dots for
-            completed steps, empty rings for pending. Reads as a
-            mini progress bar at chrome scale. */}
-        <span aria-hidden className="flex items-center gap-1">
-          {steps.map((step, i) => (
-            <span
-              key={i}
-              className={cn(
-                "size-1.5 rounded-full",
-                step.done
-                  ? "bg-[var(--oh-ink)]"
-                  : "border border-[var(--oh-line)]",
-              )}
-            />
-          ))}
-        </span>
-        <span className="oh-eyebrow opacity-100">
-          {t("gettingStarted", { done, total })}
-        </span>
-        <ChevronRightIcon
-          className="size-3 opacity-55 transition-transform duration-150 ease-oh data-[popup-open]:rotate-90"
-          strokeWidth={2}
-          aria-hidden
-        />
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner sideOffset={8} align="start">
-          <Popover.Popup className="oh-onboarding-popup">
-            <header className="flex items-start justify-between gap-4 px-4 pt-4">
-              <div className="min-w-0">
-                <p className="oh-eyebrow">
-                  {t("gettingStarted", { done, total })}
-                </p>
-                <h2 className="mt-2 text-[18px] font-black leading-tight">
-                  {t("percentSetUp", { percent })}
-                </h2>
-              </div>
-              <Popover.Close
-                render={
-                  <Button
-                    type="button"
-                    variant="ohGhost"
-                    size="icon-sm"
-                    onClick={() =>
-                      setOnboardingState.mutate({ dismissed: true })
-                    }
-                    aria-label={t("hideAria")}
-                  >
-                    <XIcon strokeWidth={1.5} />
-                  </Button>
-                }
+      {/* Two-target cluster: the pill opens the popover, the sibling
+          X dismisses the entire onboarding affordance. Splitting the
+          actions out kept the popover dismissal as outside-click only
+          (the pattern users learn from every modal) and freed the
+          inside of the popup from a deceptive "close" button that
+          looked like it would just collapse the popover. */}
+      <div className="inline-flex items-center gap-0.5 self-start">
+        <Popover.Trigger
+          className="oh-focus-ring inline-flex items-center gap-2.5 rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-3 py-1.5 shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
+          aria-label={t("sectionAria")}
+        >
+          {/* Progress dot strip — one dot per step. Filled dots for
+              completed steps, empty rings for pending. Reads as a
+              mini progress bar at chrome scale. */}
+          <span aria-hidden className="flex items-center gap-1">
+            {steps.map((step, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "size-1.5 rounded-full",
+                  step.done
+                    ? "bg-[var(--oh-ink)]"
+                    : "border border-[var(--oh-line)]",
+                )}
               />
+            ))}
+          </span>
+          <span className="oh-eyebrow opacity-100">
+            {t("gettingStarted", { done, total })}
+          </span>
+          <ChevronRightIcon
+            className="size-3 opacity-55 transition-transform duration-150 ease-oh data-[popup-open]:rotate-90"
+            strokeWidth={2}
+            aria-hidden
+          />
+        </Popover.Trigger>
+        {/* Sibling dismiss. Sits outside the trigger so a click on
+            the X never opens the popover; it commits the
+            `dismissed: true` mutation directly. Low-opacity at rest
+            keeps it quiet next to the active pill; opacity uplifts
+            + tint bg appear on hover/focus so the affordance is
+            both keyboard-reachable and visually self-teaching. */}
+        <button
+          type="button"
+          onClick={() => setOnboardingState.mutate({ dismissed: true })}
+          aria-label={t("hideAria")}
+          className="oh-focus-ring inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] opacity-40 transition-[opacity,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] hover:opacity-100 focus-visible:opacity-100"
+        >
+          <XIcon strokeWidth={1.75} className="size-3.5" aria-hidden />
+        </button>
+      </div>
+      <Popover.Portal>
+        <Popover.Positioner
+          sideOffset={8}
+          align="start"
+          // z-index tier matching the workspace switcher menu, time
+          // picker, duration picker, hover preview. Without it the
+          // popup mounts at z-auto and renders behind other chrome
+          // — Base UI ships no z-index by default.
+          style={{ zIndex: 100 }}
+          className="outline-none"
+        >
+          {/* Tailwind-utility version of the proven popover surface
+              (matches `booking-hover-preview`, `api-keys-fields`).
+              Inline utilities side-step the layer/specificity edge
+              we hit when shipping a custom `.oh-onboarding-popup`
+              class — the bg + shadow now apply unconditionally.
+              `[&[data-starting-style]]:` / `[&[data-ending-style]]:`
+              ride on Tailwind v4 arbitrary-variant syntax; Base UI
+              emits these data attrs during enter/exit so the
+              entrance animation works without a custom CSS rule. */}
+          <Popover.Popup
+            className="flex w-[340px] max-w-[calc(100vw-24px)] flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] text-[color:var(--oh-ink)] shadow-[var(--oh-shadow-popup)] outline-none origin-top-left transition-[transform,opacity] duration-200 ease-oh [&[data-starting-style]]:opacity-0 [&[data-starting-style]]:-translate-y-1 [&[data-starting-style]]:scale-[0.96] [&[data-ending-style]]:opacity-0 [&[data-ending-style]]:-translate-y-1 [&[data-ending-style]]:scale-[0.96]"
+          >
+            {/* No in-popup close X. Outside-click on the backdrop
+                handles popover dismissal (the pattern users already
+                know from every modal); the dismiss-onboarding-
+                forever action lives on the pill outside. Splitting
+                the two responsibilities removed a deceptive control
+                that read as "close this view" but actually destroyed
+                the entire onboarding entry point. */}
+            <header className="px-4 pt-4">
+              <p className="oh-eyebrow">
+                {t("gettingStarted", { done, total })}
+              </p>
+              <h2 className="mt-2 text-[18px] font-black leading-tight">
+                {t("percentSetUp", { percent })}
+              </h2>
             </header>
             <ul role="list" className="flex flex-col gap-3 px-4 pb-4 pt-4">
               {steps.map((step) => (
@@ -180,24 +211,50 @@ function StepRow({
   onMark: () => void;
 }) {
   const t = useTranslations("Onboarding");
-  return (
-    <div className="flex items-start gap-3">
-      {/* Circular check indicator. Filled with ink when done,
-          empty hairline ring when pending. Tighter than the prior
-          lucide circle icons — matches the dot strip on the pill. */}
+
+  // The indicator does double duty: status + (when manual+pending)
+  // the action itself. Eliminating the separate "Mark done" button
+  // dropped a chunky chrome row in favor of reusing the visual that
+  // was already there. A faint check previews on hover so the
+  // affordance is self-teaching; without preview the empty ring
+  // could read as decorative.
+  let indicator: React.ReactNode;
+  if (step.done) {
+    indicator = (
       <span
         aria-hidden
-        className={cn(
-          "mt-1 inline-flex size-3.5 shrink-0 items-center justify-center rounded-full",
-          step.done
-            ? "bg-[var(--oh-ink)] text-[var(--oh-paper)]"
-            : "border border-[var(--oh-line)]",
-        )}
+        className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-[var(--oh-ink)] text-[var(--oh-paper)]"
       >
-        {step.done ? (
-          <CheckIcon className="size-2.5" strokeWidth={3} />
-        ) : null}
+        <CheckIcon className="size-2.5" strokeWidth={3} />
       </span>
+    );
+  } else if (step.manual) {
+    indicator = (
+      <button
+        type="button"
+        onClick={onMark}
+        aria-label={t("markDone")}
+        className="oh-focus-ring group/check mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-[var(--oh-line)] transition-colors duration-150 ease-oh hover:border-[var(--oh-ink)]"
+      >
+        <CheckIcon
+          className="size-2.5 opacity-0 transition-opacity duration-150 ease-oh group-hover/check:opacity-55 group-focus-visible/check:opacity-55"
+          strokeWidth={3}
+          aria-hidden
+        />
+      </button>
+    );
+  } else {
+    indicator = (
+      <span
+        aria-hidden
+        className="mt-0.5 inline-flex size-4 shrink-0 rounded-full border border-[var(--oh-line)]"
+      />
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-3">
+      {indicator}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <p
@@ -208,7 +265,7 @@ function StepRow({
           >
             {t(step.titleKey)}
           </p>
-          {!step.done ? (
+          {!step.done && step.href ? (
             <Link
               href={step.href}
               className="oh-eyebrow underline underline-offset-4 opacity-65 hover:opacity-100"
@@ -225,17 +282,6 @@ function StepRow({
         >
           {t(step.descriptionKey)}
         </p>
-        {!step.done && step.manual ? (
-          <Button
-            type="button"
-            variant="ohGhost"
-            size="oh"
-            onClick={onMark}
-            className="mt-2"
-          >
-            {t("markDone")}
-          </Button>
-        ) : null}
       </div>
     </div>
   );
