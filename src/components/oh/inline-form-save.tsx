@@ -79,23 +79,22 @@ export function InlineFormSave({
   // the latter — explicit, no surprise, but invisible at rest.
   //
   // Visibility rules:
-  //   - Pre-mount: render the button (disabled) so SSR + first
-  //     client paint don't differ. RHF's `isDirty` is client-only,
-  //     so any mounted-only branching would flicker.
+  //   - Pre-mount: HIDE. RHF starts fresh with isDirty=false; the
+  //     button shouldn't appear before the user has done anything.
+  //     SSR + first client render both return null → no hydration
+  //     mismatch (both render nothing).
   //   - Mounted + dirty: render (enabled, ready to save)
   //   - Mounted + pending: render (disabled, label = saving)
   //   - Mounted + invalid + dirty: render (disabled — user sees
   //     a CTA they can't yet click, prompting them to fix the
   //     field; matches cal.com's `SectionBottomActions` shape)
   //   - Mounted + clean + idle + valid: HIDE — no work to do.
-  const settled = mounted && !isPending && !isDirty;
-  if (settled) return null;
+  if (!mounted || (!isPending && !isDirty)) return null;
 
-  const disabled = mounted ? isPending || !isDirty || isInvalid : true;
+  const disabled = isPending || !isDirty || isInvalid;
   // B.PT299 — simplified to two labels. `saving` while pending,
-  // `save` otherwise (covers idle/dirty AND idle/clean — disabled
-  // state communicates "no changes" without a separate label).
-  const label = mounted && isPending ? labels.saving : labels.save;
+  // `save` otherwise.
+  const label = isPending ? labels.saving : labels.save;
 
   return (
     <div
