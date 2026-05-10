@@ -283,14 +283,18 @@ export function MobileNavContent({
     }
 
     if (closing) {
-      // Skip the reverse animation per user request — items
-      // shouldn't animate back. Pause the timeline at its current
-      // state; items stay where they are while the parent's
-      // clipPath collapses over them. DO NOT call onExitComplete
-      // here — that would unmount the wrapper synchronously and
-      // kill the parent's clipPath animation. Unmount is signaled
-      // from the parent overlay's `onAnimationComplete` instead.
-      tl.pause();
+      // Reverse-stagger on close: items translate out / fade. 1.6x
+      // timescale so the items leave faster than they entered (open
+      // is leisurely, close is snappy). The parent overlay's
+      // `clipPath` animation runs in parallel (~0.55s); items
+      // finishing slightly first is fine — they vanish into the
+      // collapsing rectangle. `onReverseComplete` is a redundant
+      // unmount signal (the parent's onAnimationComplete already
+      // handles unmount), but harmless: setNavMounted(false) is
+      // idempotent.
+      tl.timeScale(1.6);
+      tl.eventCallback("onReverseComplete", onExitComplete);
+      tl.reverse();
     } else {
       tl.timeScale(1);
       tl.eventCallback("onReverseComplete", null);
