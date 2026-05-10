@@ -558,100 +558,99 @@ export default function HostProfile({
   return (
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
+      // B.PT306d — restore the stacked in-header layout from 32ad88
+      // (URL row + reschedule banner row inside the same sticky
+      // chrome region). To keep Cancel clickable while the picker
+      // modal (z-50) is open, raise the header wrapper's z-index to
+      // 60 ONLY when reschedule mode is active. Default header z-10
+      // preserved for the normal flow.
+      headerClassName={rescheduleFromUid ? "z-[60]" : undefined}
       header={
-        <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
-          {/* Left column: handle URL on top, owner-only back link
-              underneath. `items-start` on the parent so the status
-              indicator on the right stays vertically aligned with
-              the URL line (not the column's midpoint). */}
-          <div className="flex flex-col items-start gap-1.5">
-            <span className="oh-eyebrow tabular-nums opacity-100">
-              /h/{user.handle}
-            </span>
-            {isOwner ? (
-              <Link
-                href="/bookings"
-                aria-label="Back to dashboard"
-                className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
-              >
-                <ArrowLeft
+        <div className="flex w-full flex-col gap-3">
+          <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
+            {/* Left column: handle URL on top, owner-only back link
+                underneath. `items-start` on the parent so the status
+                indicator on the right stays vertically aligned with
+                the URL line (not the column's midpoint). */}
+            <div className="flex flex-col items-start gap-1.5">
+              <span className="oh-eyebrow tabular-nums opacity-100">
+                /h/{user.handle}
+              </span>
+              {isOwner ? (
+                <Link
+                  href="/bookings"
+                  aria-label="Back to dashboard"
+                  className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
+                >
+                  <ArrowLeft
+                    aria-hidden
+                    strokeWidth={2}
+                    className="size-3 no-underline"
+                  />
+                  Back to dashboard
+                </Link>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2" role="status">
+              <span
+                aria-hidden
+                className={cn(
+                  "size-2 shrink-0 rounded-full transition-colors duration-200 ease-oh",
+                  openToday ? "bg-emerald-500" : "bg-neutral-400",
+                )}
+              />
+              <span className="oh-eyebrow opacity-100">
+                {openToday ? t("openNow") : t("closedToday")}
+              </span>
+            </div>
+          </div>
+          {/* Reschedule banner row — stacks below the URL row inside
+              the same sticky chrome region. Hairline `border-t
+              border-oh-line` separates the two rows. Amber 2px dot
+              reads as a live indicator. Cancel is a `<button>` (not
+              a Link) so the click can't bubble into any underlying
+              FocusOn click-outside handler; explicit `router.push`
+              navigates to the original booking's receipt so motion's
+              shared `layoutId="handle-card"` morphs the picker back
+              to the receipt the visitor came from (same animation
+              contract as the X close). */}
+          {rescheduleFromUid ? (
+            <div
+              role="status"
+              className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 border-t border-oh-line pt-3"
+            >
+              <div className="flex items-center gap-2">
+                <span
                   aria-hidden
-                  strokeWidth={2}
-                  className="size-3 no-underline"
+                  className="size-1.5 shrink-0 rounded-full bg-amber-500"
                 />
-                Back to dashboard
-              </Link>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2" role="status">
-            <span
-              aria-hidden
-              className={cn(
-                "size-2 shrink-0 rounded-full transition-colors duration-200 ease-oh",
-                openToday ? "bg-emerald-500" : "bg-neutral-400",
-              )}
-            />
-            <span className="oh-eyebrow opacity-100">
-              {openToday ? t("openNow") : t("closedToday")}
-            </span>
-          </div>
+                <span className="oh-eyebrow truncate opacity-100">
+                  {t("rescheduling")}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(
+                    `/h/${user.handle}/booked/${rescheduleFromUid}`,
+                  );
+                }}
+                className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          ) : null}
         </div>
       }
     >
-      {/* B.PT306c — reschedule banner. Rendered as a FIXED-position
-          chrome strip with `z-[60]` — above the picker modal's
-          `z-50`, so the Cancel affordance stays clickable while the
-          picker is open (the dominant state during reschedule). The
-          earlier in-header placement put the banner at z-10, hidden
-          beneath the modal's transparent overlay; clicks + hovers
-          never reached it.
-          Position: `fixed top-[15px] inset-x-[15px]` matches the
-          OhVisitorShell's outer `p-[15px]`, so the banner sits at
-          the panel's top edge with the same horizontal inset as the
-          rounded paper card behind it. `rounded-t-[25px]` matches
-          the panel's top corners — banner reads as the panel's own
-          top strip rather than a floating callout. */}
-      {rescheduleFromUid ? (
-        <div
-          role="status"
-          className="fixed inset-x-[15px] top-[15px] z-[60] rounded-t-[25px] border-b border-oh-line bg-[color:var(--oh-paper)]/95 backdrop-blur"
-        >
-          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-5 py-3 sm:px-8 lg:px-12">
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-amber-500"
-              />
-              <span className="oh-eyebrow truncate opacity-100">
-                {t("rescheduling")}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                // Use a `<button>` with `router.push` instead of a
-                // Link so the click is unambiguous even if a parent
-                // FocusOn / motion overlay also captures the event.
-                // `e.preventDefault` + `e.stopPropagation` belt-and-
-                // suspenders so the click can't bubble into the
-                // picker modal's click-outside handler underneath
-                // (motion's `LayoutGroup` ensures the shared
-                // `layoutId="handle-card"` morph still plays as the
-                // picker unmounts and the receipt mounts under the
-                // intercepted `@receipt` slot — the cancel feels
-                // like the modal MORPHED back to the receipt the
-                // visitor came from).
-                e.preventDefault();
-                e.stopPropagation();
-                router.push(`/h/${user.handle}/booked/${rescheduleFromUid}`);
-              }}
-              className="oh-focus-ring oh-eyebrow shrink-0 rounded-(--oh-r-xs) opacity-55 transition-opacity hover:opacity-100"
-            >
-              {t("cancel")}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {/* B.PT306d — banner moved back INTO the visitor header (above).
+          To keep Cancel clickable while the picker modal (z-50) is
+          open, the OhVisitorShell `headerClassName` raises the
+          header wrapper's z-index to 60 only while in reschedule
+          mode. Single source of chrome — no floating duplicates. */}
 
       {/* Centered-card scaffold. The card is exactly 385×387 per Figma;
           on viewports narrower than ~415px the card shrinks to fit

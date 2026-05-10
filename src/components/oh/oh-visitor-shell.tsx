@@ -42,9 +42,24 @@ type Props = {
   footer?: ReactNode;
   /** Optional root-level overrides for one-off Figma-exact visitor surfaces. */
   className?: string;
+  /**
+   * Optional override for the header wrapper's class string (defaults
+   * include `absolute inset-x-0 top-0 z-10`). Passed tokens append to
+   * the defaults so callers can raise z-index for surfaces that need
+   * the header to sit ABOVE a modal — e.g. `/h/[handle]` reschedule
+   * mode, where the picker modal renders at `z-50` and the header's
+   * Cancel affordance must remain clickable.
+   */
+  headerClassName?: string;
 };
 
-export function OhVisitorShell({ children, header, footer, className }: Props) {
+export function OhVisitorShell({
+  children,
+  header,
+  footer,
+  className,
+  headerClassName,
+}: Props) {
   return (
     // B.PT216 — Two-layer shell, viewport-fit (no scroll).
     // Outer: `h-dvh overflow-hidden` pins the box to dynamic viewport
@@ -112,7 +127,14 @@ export function OhVisitorShell({ children, header, footer, className }: Props) {
           .join(" ")}
       >
         {header ? (
-          <div className="absolute inset-x-0 top-0 z-10">
+          <div
+            className={[
+              "absolute inset-x-0 top-0 z-10",
+              headerClassName,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <OhVisitorHeader>{header}</OhVisitorHeader>
           </div>
         ) : null}
