@@ -8,7 +8,6 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { OhAppSidebar } from "./oh-app-sidebar";
 import { OhMobileNavOverlay } from "./oh-mobile-nav-overlay";
 import { OhDashboardBar } from "./oh-dashboard-bar";
@@ -145,9 +144,20 @@ export function OhDashboardLayout({
                 // (visitor surface, auth shells, etc).
                 data-oh-modal-host="true"
               >
-                <ScrollArea className="oh-host-content-inner">
+                {/* Native overflow-y-auto, not Radix ScrollArea.
+                    Radix Viewport wraps children in a `display:
+                    table` div (see node_modules/@radix-ui/
+                    react-scroll-area/dist/index.mjs:130) which
+                    breaks the flex/percentage-height chain — fit-
+                    viewport pages can't reach a definite-height
+                    ancestor through `display: table`. shadcn's
+                    ScrollArea is purely decorative (custom thumb
+                    visuals); native scroll preserves all functional
+                    behavior + lets `flex-1 min-h-0` chains resolve.
+                    Sidebar trigger / mobile nav unaffected. */}
+                <div className="oh-host-content-inner overflow-y-auto">
                   <ContentSlot>{children}</ContentSlot>
-                </ScrollArea>
+                </div>
                 {/* Mobile nav overlay — absolute-positioned sibling
                     of the ScrollArea so it paints above the page
                     inside the panel boundary. Renders nothing on
@@ -191,33 +201,19 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // Explicit viewport-relative height (`.oh-content-slot` in
-      // globals.css emits `height: calc(100svh - 24px - var(...))`)
-      // so absolute-positioned descendants (e.g. /bookings calendar
-      // mode's `absolute inset-0` wrapper) can anchor to a known
-      // box.
+      // `min-h-full` so block-shaped pages (single flex item with
+      // natural height) at least fill the panel; long content
+      // grows past and the parent overflow-y-auto scrolls. `h-full`
+      // for fit-viewport pages would clip — `min-h-full` is the
+      // right default. Calendar mode opts in via `absolute inset-0`
+      // on its wrapper (anchors to motion.div's `relative`).
       //
-      // Why a real class, not a Tailwind arbitrary value:
-      // `h-[calc(100svh-24px-...)`] emits the literal string and
-      // CSS calc() rejects it because `100svh-24px` is an invalid
-      // token (calc requires spaces around `-`). The class on
-      // globals.css uses proper CSS syntax.
-      //
-      // Why explicit height, not `min-h-full`: motion.div's parent
-      // is Radix ScrollArea Viewport's internal `display: table`
-      // wrapper which has `height: auto`. Percentage min-height
-      // requires a parent with resolved height; against `auto` it
-      // evaluates to 0. When calendar mode's only in-flow child
-      // becomes `position: absolute`, motion.div has no content
-      // and `min-h-full` collapses to 0 — calendar disappears.
-      //
-      // `flex flex-col` for block-shaped pages (single flex item,
-      // panel bg fills slack below short content). Long lists
-      // overflow motion.div's bounds and the Viewport's
-      // overflow: scroll catches the overflow → page scrolls.
       // `relative` is the containing-block anchor for absolute
-      // children.
-      className="oh-content-slot relative flex flex-col"
+      // children. After replacing Radix ScrollArea with a native
+      // `overflow-y-auto` div, the flex/percentage-height chain
+      // resolves cleanly — motion.div parent is now a plain block
+      // div, not Radix's `display: table` wrapper.
+      className="relative flex min-h-full flex-col"
       initial={false}
       animate={{
         opacity: routeOpacity,
