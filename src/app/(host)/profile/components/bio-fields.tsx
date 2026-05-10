@@ -48,6 +48,7 @@ export function BioFields() {
 
   async function onSubmit(v: FormValues) {
     await setBio.mutateAsync({ bio: v.bio });
+    form.reset(v);
   }
 
   return (

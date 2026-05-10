@@ -134,6 +134,7 @@ export function DurationFields() {
         description: opt.description,
       })),
     });
+    form.reset(v);
   }
 
   return (

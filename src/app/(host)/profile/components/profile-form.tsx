@@ -60,6 +60,7 @@ export default function ProfileForm() {
   async function onSubmit(v: FormValues) {
     form.clearErrors("handle");
     await saveHandle.mutateAsync({ handle: v.handle });
+    form.reset(v);
   }
 
   return (
