@@ -438,6 +438,23 @@ export default function HostProfile({
     ) {
       setDrawerOpen(true);
     }
+    // B.PT306f — symmetric auto-CLOSE on the set → undefined
+    // transition. Without this, the drawer state stays `true` from
+    // the auto-open after the user cancels reschedule and X-closes
+    // the receipt: the picker silently re-mounts on top of the
+    // landing card (its `view` useState resets to "strip", so the
+    // visitor lands on the day-strip/slot picker instead of the
+    // duration-chip landing they'd expect). Normal booking flow
+    // gets this for free via `onBookingComplete` → `setDrawerOpen
+    // (false)`; the reschedule-cancel path skipped that callback,
+    // hence the stale `true`. Closing here mirrors the normal flow.
+    if (
+      !rescheduleFromUid &&
+      lastRescheduleUidRef.current &&
+      drawerOpen
+    ) {
+      setDrawerOpen(false);
+    }
     lastRescheduleUidRef.current = rescheduleFromUid;
     // setDrawerOpen is stable (lifted from useState in component body);
     // drawerOpen is the gate so we don't fight an open already in
