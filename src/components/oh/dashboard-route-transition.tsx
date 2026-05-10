@@ -174,7 +174,7 @@ export const DashboardTransitionLink = forwardRef<
   HTMLAnchorElement,
   DashboardTransitionLinkProps
 >(function DashboardTransitionLink(
-  { href, onClick, replace, target, download, ...props },
+  { href, onClick, replace, target, download, prefetch, ...props },
   ref,
 ) {
   const { beginNavigation } = useDashboardRouteTransition();
@@ -198,6 +198,8 @@ export const DashboardTransitionLink = forwardRef<
     [beginNavigation, download, href, onClick, replace, target],
   );
 
+  const prefetchProp = prefetch ?? true;
+
   return (
     <Link
       ref={ref}
@@ -206,6 +208,7 @@ export const DashboardTransitionLink = forwardRef<
       replace={replace}
       target={target}
       download={download}
+      prefetch={prefetchProp}
       {...props}
     />
   );

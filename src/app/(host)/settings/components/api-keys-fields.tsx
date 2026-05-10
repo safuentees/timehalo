@@ -82,7 +82,10 @@ function ApiKeysForWorkspace({
     { slug },
     { placeholderData: keepPreviousData },
   );
-  const { data: plan } = trpc.billing.currentPlan.useQuery({ slug });
+  const { data: plan } = trpc.billing.currentPlan.useQuery(
+    { slug },
+    { placeholderData: keepPreviousData },
+  );
   const isLocked = plan?.plan === "FREE";
   const isOwner = plan?.callerRole === "OWNER";
 
