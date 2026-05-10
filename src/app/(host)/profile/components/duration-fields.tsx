@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   FormProvider,
@@ -34,6 +34,51 @@ const CLOSE_SPRING =
 
 const ROW_TRANSITION = { type: "spring", ...OPEN_SPRING } as const;
 const ROW_EXIT_TRANSITION = { type: "spring", ...CLOSE_SPRING } as const;
+
+function useMeasuredHeight() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setHeight(el.offsetHeight);
+    });
+    ro.observe(el);
+    setHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  return { ref, height };
+}
+
+function useScrollIntoViewOnOpen(
+  ref: React.RefObject<HTMLElement | null>,
+  isOpen: boolean,
+) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = ref.current;
+    if (!el) return;
+    let raf1: number | null = null;
+    let raf2: number | null = null;
+    const settleMs = 320; // approx open-spring settle duration
+    raf1 = requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    const t = window.setTimeout(() => {
+      raf2 = requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }, settleMs);
+    return () => {
+      if (raf1 !== null) cancelAnimationFrame(raf1);
+      if (raf2 !== null) cancelAnimationFrame(raf2);
+      window.clearTimeout(t);
+    };
+  }, [isOpen, ref]);
+}
 
 const optionFormSchema = z.object({
   minutes: z
@@ -230,9 +275,13 @@ function DurationRow({
   const summary = formatDurationSummary(minutes, t);
   const caption = title && title.trim().length > 0 ? title : summary;
   const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
+  const { ref: contentRef, height } = useMeasuredHeight();
+  const articleRef = useRef<HTMLElement>(null);
+  useScrollIntoViewOnOpen(articleRef, isOpen);
 
   return (
     <article
+      ref={articleRef}
       className="rounded-(--oh-r-sm) bg-[var(--oh-paper)] shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[open=true]:shadow-[var(--oh-shadow-hover)]"
       data-open={isOpen}
     >
@@ -262,14 +311,14 @@ function DurationRow({
       <motion.div
         initial={false}
         animate={{
-          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          height: isOpen ? height : 0,
           opacity: isOpen ? 1 : 0,
         }}
         transition={transition}
-        style={{ display: "grid" }}
+        style={{ overflow: "hidden" }}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div ref={contentRef}>
           <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
             <FieldBlock
               legendId={`duration-${index}-title`}
@@ -416,9 +465,13 @@ function AddRow({
     !existingMinutes.includes(draftMinutes);
 
   const transition = isOpen ? ROW_TRANSITION : ROW_EXIT_TRANSITION;
+  const { ref: contentRef, height } = useMeasuredHeight();
+  const articleRef = useRef<HTMLElement>(null);
+  useScrollIntoViewOnOpen(articleRef, isOpen);
 
   return (
     <article
+      ref={articleRef}
       className="self-start rounded-(--oh-r-sm) transition-shadow duration-150 ease-oh data-[open=true]:bg-[var(--oh-paper)] data-[open=true]:self-stretch data-[open=true]:shadow-[var(--oh-shadow-hover)]"
       data-open={isOpen}
     >
@@ -445,14 +498,14 @@ function AddRow({
       <motion.div
         initial={false}
         animate={{
-          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          height: isOpen ? height : 0,
           opacity: isOpen ? 1 : 0,
         }}
         transition={transition}
-        style={{ display: "grid" }}
+        style={{ overflow: "hidden" }}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div ref={contentRef}>
           <div className="flex flex-col gap-4 border-t border-oh-line px-5 py-5">
             <FieldBlock
               legendId="duration-add-title"
