@@ -195,6 +195,13 @@
       "prioritySupport": "Soporte prioritario"
     }
   },
+  "DataExport": {
+    "label": "Tus datos",
+    "title": "Descargar una copia",
+    "description": "Exporta tu perfil, tus horas semanales, las reservas, las conexiones de calendario, los espacios de trabajo y los webhooks en un archivo JSON. Los tokens cifrados del calendario quedan excluidos.",
+    "button": "Descargar como JSON",
+    "preparing": "Preparando…"
+  },
   "DangerZone": {
     "label": "Zona de peligro",
     "deleteAccountTitle": "Eliminar cuenta",
@@ -635,6 +642,13 @@
     "body": "Ocurrió un error inesperado en esta página. El flujo de reservas no se vio afectado — vuelve a intentarlo o elige otra sección desde la barra lateral.",
     "reference": "Referencia {digest}",
     "tryAgain": "Vuelve a intentarlo"
+  },
+  "VisitorError": {
+    "label": "Algo se rompió",
+    "title": "Tuvimos un problema cargando esta página",
+    "body": "Ocurrió un error inesperado al preparar este perfil. Vuelve a intentarlo — si persiste, puede que el enlace del anfitrión necesite actualizarse.",
+    "tryAgain": "Vuelve a intentarlo",
+    "reference": "Referencia {digest}"
   },
   "BookingCalendar": {
     "triggerEmpty": "Elige una fecha",

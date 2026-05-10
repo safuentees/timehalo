@@ -36,6 +36,8 @@ describe("calendar busy-time integration (mocked Google freeBusy)", () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeAll(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-15T14:00:00Z"));
     host = await createTestHost("vitest-cal-integration");
     const cred = await prisma.calendarCredential.create({
       data: {
@@ -65,6 +67,7 @@ describe("calendar busy-time integration (mocked Google freeBusy)", () => {
   });
 
   afterAll(async () => {
+    vi.useRealTimers();
     globalThis.fetch = originalFetch;
     await prisma.selectedCalendar.deleteMany({ where: { credentialId } });
     await prisma.calendarCredential.deleteMany({

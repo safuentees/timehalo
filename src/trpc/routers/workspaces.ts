@@ -26,6 +26,9 @@ import {
 import { selectHost } from "@/lib/round-robin";
 import { findBusyHostIds } from "@/lib/calendar";
 import { bumpRecentAssignments } from "@/lib/event-types";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("workspaces");
 import {
   generateTeamUpcomingSlots,
   resolveTeamEventType,
@@ -452,10 +455,9 @@ export const workspaces = router({
           userId: pickedHostId,
         });
       } catch (err) {
-        console.error(
-          "[workspaces.bookForTeam] bumpRecentAssignments",
-          err,
-        );
+        log.error("workspaces.bookForTeam bumpRecentAssignments failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
 
       const subscriptions = await findActiveSubscriptionsForEvent(

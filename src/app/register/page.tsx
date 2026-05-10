@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { OhAuthShell } from "@/components/oh/oh-auth-shell";
 import { RegisterForm } from "./register-form";
+
+export const metadata: Metadata = {
+  title: "Create account — Officehours",
+  description: "Claim your booking handle and start taking 1:1s.",
+  robots: { index: false, follow: false },
+};
 
 export default async function RegisterPage() {
   const t = await getTranslations("Auth");
