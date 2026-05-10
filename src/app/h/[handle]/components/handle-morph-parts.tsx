@@ -80,7 +80,7 @@ export function minutesToSlotOption(
     }
   }
   return {
-    label: title ?? label,
+    label,
     fullLabel,
     minutes,
     title,
