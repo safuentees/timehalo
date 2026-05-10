@@ -604,7 +604,7 @@ export function BookingsList({
           ) : null}
 
           {/* Day view — works at any width, no mobile fallback needed.
-              `maxBodyHeight="100%"` so the view fills its flex
+              `maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 232px))"` so the view fills its flex
               parent's remaining vertical space (B.PT296). */}
           {optimisticView === "day" ? (
             <DayView
@@ -613,7 +613,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
-              maxBodyHeight="100%"
+              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 232px))"
             />
           ) : null}
 
@@ -637,7 +637,7 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
-                  maxBodyHeight="100%"
+                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 232px))"
                 />
               </div>
               <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
@@ -660,7 +660,7 @@ export function BookingsList({
                     selectedRefId={selectedUid}
                     onEventClick={onEventClick}
                     getHref={getEventHref}
-                    maxBodyHeight="100%"
+                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 232px))"
                   />
                 </div>
               </div>
@@ -684,7 +684,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="100%"
+                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 232px))"
               />
             </div>
           ) : null}
