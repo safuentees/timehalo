@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, XIcon } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
-import { OhCard } from "@/components/oh/oh-card";
+import { cn } from "@/lib/utils";
 import {
   computeOnboardingSteps,
   isComplete,
@@ -20,6 +21,7 @@ export function OnboardingChecklist() {
   const me = trpc.users.me.useQuery();
   const ranges = trpc.schedule.get.useQuery();
   const bookings = trpc.bookings.listForHost.useQuery();
+  const [open, setOpen] = useState(false);
 
   const setOnboardingState = trpc.users.setOnboardingState.useMutation({
     onMutate: async (input) => {
@@ -69,49 +71,81 @@ export function OnboardingChecklist() {
   const { done, total, percent } = progress(steps);
 
   return (
-    <OhCard asChild>
-      <section
-        className="mt-6 p-5"
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        className="oh-focus-ring inline-flex items-center gap-2.5 self-start rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-3 py-1.5 shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
         aria-label={t("sectionAria")}
       >
-        <header className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="oh-eyebrow">
-              {t("gettingStarted", { done, total })}
-            </p>
-            <h2 className="mt-2 text-[18px] font-black leading-tight">
-              {t("percentSetUp", { percent })}
-            </h2>
-          </div>
-          <Button
-            type="button"
-            variant="ohGhost"
-            size="icon-sm"
-            onClick={() => setOnboardingState.mutate({ dismissed: true })}
-            aria-label={t("hideAria")}
-          >
-            <XIcon strokeWidth={1.5} />
-          </Button>
-        </header>
-
-        <ul role="list" className="mt-5 flex flex-col gap-3">
-          {steps.map((step) => (
-            <li key={step.id}>
-              <StepRow
-                step={step}
-                onMark={() => {
-                  const next = new Set(manuallyDone);
-                  next.add(step.id);
-                  setOnboardingState.mutate({
-                    manualSteps: Array.from(next),
-                  });
-                }}
-              />
-            </li>
+        <span aria-hidden className="flex items-center gap-1">
+          {steps.map((step, i) => (
+            <span
+              key={i}
+              className={cn(
+                "size-1.5 rounded-full",
+                step.done
+                  ? "bg-[var(--oh-ink)]"
+                  : "border border-[var(--oh-line)]",
+              )}
+            />
           ))}
-        </ul>
-      </section>
-    </OhCard>
+        </span>
+        <span className="oh-eyebrow opacity-100">
+          {t("gettingStarted", { done, total })}
+        </span>
+        <ChevronRightIcon
+          className="size-3 opacity-55 transition-transform duration-150 ease-oh data-[popup-open]:rotate-90"
+          strokeWidth={2}
+          aria-hidden
+        />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={8} align="start">
+          <Popover.Popup className="oh-onboarding-popup">
+            <header className="flex items-start justify-between gap-4 px-4 pt-4">
+              <div className="min-w-0">
+                <p className="oh-eyebrow">
+                  {t("gettingStarted", { done, total })}
+                </p>
+                <h2 className="mt-2 text-[18px] font-black leading-tight">
+                  {t("percentSetUp", { percent })}
+                </h2>
+              </div>
+              <Popover.Close
+                render={
+                  <Button
+                    type="button"
+                    variant="ohGhost"
+                    size="icon-sm"
+                    onClick={() =>
+                      setOnboardingState.mutate({ dismissed: true })
+                    }
+                    aria-label={t("hideAria")}
+                  >
+                    <XIcon strokeWidth={1.5} />
+                  </Button>
+                }
+              />
+            </header>
+            <ul role="list" className="flex flex-col gap-3 px-4 pb-4 pt-4">
+              {steps.map((step) => (
+                <li key={step.id}>
+                  <StepRow
+                    step={step}
+                    onMark={() => {
+                      const next = new Set(manuallyDone);
+                      next.add(step.id);
+                      setOnboardingState.mutate({
+                        manualSteps: Array.from(next),
+                      });
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -123,39 +157,45 @@ function StepRow({
   onMark: () => void;
 }) {
   const t = useTranslations("Onboarding");
-  const Icon = step.done ? CheckCircleIcon : CircleIcon;
   return (
     <div className="flex items-start gap-3">
-      <Icon
-        className={[
-          "mt-0.5 size-4 flex-shrink-0",
-          step.done ? "opacity-90" : "opacity-40",
-        ].join(" ")}
-      />
+      <span
+        aria-hidden
+        className={cn(
+          "mt-1 inline-flex size-3.5 shrink-0 items-center justify-center rounded-full",
+          step.done
+            ? "bg-[var(--oh-ink)] text-[var(--oh-paper)]"
+            : "border border-[var(--oh-line)]",
+        )}
+      >
+        {step.done ? (
+          <CheckIcon className="size-2.5" strokeWidth={3} />
+        ) : null}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <p
-            className={[
-              "text-[14px] font-bold",
+            className={cn(
+              "text-[13px] font-bold",
               step.done ? "line-through opacity-55" : "opacity-100",
-            ].join(" ")}
+            )}
           >
             {t(step.titleKey)}
           </p>
           {!step.done ? (
             <Link
               href={step.href}
-              className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase underline underline-offset-4 opacity-65 hover:opacity-100"
+              className="oh-eyebrow underline underline-offset-4 opacity-65 hover:opacity-100"
             >
               {t("openLink")}
             </Link>
           ) : null}
         </div>
         <p
-          className={[
+          className={cn(
             "mt-1 text-[12px] leading-[1.4]",
             step.done ? "opacity-40" : "opacity-65",
-          ].join(" ")}
+          )}
         >
           {t(step.descriptionKey)}
         </p>
