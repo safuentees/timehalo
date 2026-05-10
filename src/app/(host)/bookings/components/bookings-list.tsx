@@ -560,7 +560,7 @@ export function BookingsList({
         <div
           aria-busy={isPending || undefined}
           className={cn(
-            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pt-4 pb-2.5 sm:px-6",
+            "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 pt-4 pb-px sm:px-6",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
@@ -604,7 +604,7 @@ export function BookingsList({
           ) : null}
 
           {/* Day view — works at any width, no mobile fallback needed.
-              `maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 214px))"` so the view fills its flex
+              `maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 205px))"` so the view fills its flex
               parent's remaining vertical space (B.PT296). */}
           {optimisticView === "day" ? (
             <DayView
@@ -613,7 +613,7 @@ export function BookingsList({
               selectedRefId={selectedUid}
               onEventClick={onEventClick}
               getHref={getEventHref}
-              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 214px))"
+              maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 205px))"
             />
           ) : null}
 
@@ -637,7 +637,7 @@ export function BookingsList({
                   selectedRefId={selectedUid}
                   onEventClick={onEventClick}
                   getHref={getEventHref}
-                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 214px))"
+                  maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 205px))"
                 />
               </div>
               <div className="md:hidden flex min-h-0 flex-1 flex-col gap-3">
@@ -660,7 +660,12 @@ export function BookingsList({
                     selectedRefId={selectedUid}
                     onEventClick={onEventClick}
                     getHref={getEventHref}
-                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 214px))"
+                    // Mobile-week-fallback offset = base (205) +
+                    // DayStrip (~50) + gap-3 (12) = 267px. The mobile
+                    // wrapper has the DayStrip as an additional
+                    // sibling above DayView, eating into the
+                    // available space.
+                    maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 267px))"
                   />
                 </div>
               </div>
@@ -684,7 +689,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 214px))"
+                maxBodyHeight="calc(100svh - var(--oh-bookings-chrome-offset, 205px))"
               />
             </div>
           ) : null}
