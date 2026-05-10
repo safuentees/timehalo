@@ -94,7 +94,9 @@ export function WeekView({
   const today = nowOverride ?? new Date();
 
   const isCapped = maxBodyHeight !== "none";
-  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  const isFitParent = maxBodyHeight === "100%";
+  const wrapperStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
   const innerStyle =
     minBodyWidthPx > 0 ? { minWidth: `${minBodyWidthPx}px` } : undefined;
 
@@ -136,6 +138,7 @@ export function WeekView({
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
         minBodyWidthPx > 0 && "overflow-x-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={wrapperStyle}
     >

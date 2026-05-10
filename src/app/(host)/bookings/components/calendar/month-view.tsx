@@ -68,7 +68,9 @@ export function MonthView({
   const headerDays = dayOfWeekOrder(weekStartsOn);
 
   const isCapped = maxBodyHeight !== "none";
-  const wrapperStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  const isFitParent = maxBodyHeight === "100%";
+  const wrapperStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
 
   const monthLabel = date
     .toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -82,6 +84,7 @@ export function MonthView({
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={wrapperStyle}
     >

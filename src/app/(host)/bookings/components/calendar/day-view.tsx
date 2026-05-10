@@ -65,7 +65,9 @@ export function DayView({
   })();
 
   const isCapped = maxBodyHeight !== "none";
-  const bodyStyle = isCapped ? { maxHeight: maxBodyHeight } : undefined;
+  const isFitParent = maxBodyHeight === "100%";
+  const bodyStyle =
+    isCapped && !isFitParent ? { maxHeight: maxBodyHeight } : undefined;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
@@ -101,6 +103,7 @@ export function DayView({
         "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
         "shadow-[var(--oh-shadow-resting)]",
         isCapped && "overflow-y-auto",
+        isFitParent && "min-h-0 flex-1",
       )}
       style={bodyStyle}
     >
