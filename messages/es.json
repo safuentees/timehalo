@@ -365,6 +365,7 @@
   "BookingDetail": {
     "title": "Reserva",
     "back": "Volver a reservas",
+    "close": "Cerrar",
     "previousBooking": "Reserva anterior",
     "nextBooking": "Reserva siguiente",
     "loading": "Cargando reserva…",

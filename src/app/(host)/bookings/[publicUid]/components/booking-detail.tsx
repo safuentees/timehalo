@@ -12,6 +12,7 @@ import {
   ChevronRightIcon,
   MailIcon,
   MoreHorizontal,
+  X,
   RefreshCw,
   Trash2,
 } from "lucide-react";
@@ -168,6 +169,16 @@ export default function BookingDetail({
               }}
             />
           ) : null}
+          {isModal && onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t("close")}
+              className="oh-focus-ring inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] transition-colors hover:bg-[var(--oh-tint)] hover:text-[var(--oh-ink)]"
+            >
+              <X className="size-3.5" strokeWidth={1.75} />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -224,13 +235,10 @@ export default function BookingDetail({
     </>
   );
 
-  return isModal ? (
-    <div className="flex flex-col p-5 sm:p-6">{body}</div>
-  ) : (
-    <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6">
-      {body}
-    </div>
-  );
+  const wrapperClass = isModal
+    ? "flex flex-col px-4 pt-4 pb-10 sm:px-6"
+    : "mx-auto w-full max-w-2xl px-4 pt-4 pb-10 sm:px-6";
+  return <div className={wrapperClass}>{body}</div>;
 }
 
 function NeighbourLink({

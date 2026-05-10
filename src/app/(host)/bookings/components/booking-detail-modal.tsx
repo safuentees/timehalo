@@ -24,7 +24,7 @@ export function BookingDetailModal({
       }}
     >
       <ResponsiveModalContent
-        defaultClose
+        defaultClose={false}
         desktopClassName="!h-auto max-h-[calc(100vh-2*var(--oh-modal-vinset))] !overflow-y-auto"
       >
         <ResponsiveModalTitle className="sr-only">
