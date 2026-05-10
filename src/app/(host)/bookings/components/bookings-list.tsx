@@ -348,7 +348,6 @@ export function BookingsList({
           onDragEnd={onDragEnd}
           onDragCancel={() => setActiveDrag(null)}
         >
-        <div className="absolute inset-0 flex flex-col">
         <div
           aria-busy={isPending || undefined}
           className={cn(
@@ -435,7 +434,6 @@ export function BookingsList({
               />
             </div>
           ) : null}
-        </div>
         </div>
         <DragOverlay dropAnimation={null}>
           {activeDrag ? (
