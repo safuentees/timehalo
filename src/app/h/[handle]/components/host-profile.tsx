@@ -8,7 +8,7 @@ import {
   useTransition,
   type ComponentProps,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { flushSync } from "react-dom";
@@ -370,16 +370,24 @@ export default function HostProfile({
   // URL is the truth across reload/share/back.
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
-  // A9 — `?reschedule=<bookingUid>` puts the picker in reschedule
-  // mode. Triggered from the booked confirmation page's Reschedule
-  // button. Also seeded post-mount so SSR + first client render agree
-  // on `undefined` (matches the URL-from-effect pattern above).
-  const [rescheduleFromUid, setRescheduleFromUid] = useState<
-    string | undefined
-  >();
+  // A9 / B.PT305 — `?reschedule=<bookingUid>` puts the picker in
+  // reschedule mode. Triggered from the booked confirmation page's
+  // Reschedule popover. Read directly from `useSearchParams()` so the
+  // value tracks URL changes ON SOFT NAVIGATION (the receipt's
+  // Reschedule confirm does `router.push('/h/[handle]?reschedule=...')`;
+  // the parent host-profile stays mounted across that nav since it's
+  // the `children` slot — only the `@receipt` slot unmounts). Reading
+  // from URL on every render means the new value flows in without a
+  // setState-in-effect dance. Per Next.js App Router docs: `useSearch
+  // Params` re-renders on every client-side URL change, which is the
+  // exact reactivity we want here.
+  const searchParams = useSearchParams();
+  const rescheduleFromUid = searchParams.get("reschedule") ?? undefined;
 
-  // Seed selection from URL once on mount, after hydration. Read once;
-  // popstate handles forward updates, our setters write back.
+  // Seed selection (`date` + `slot`) from URL once on mount. These two
+  // params are visitor-driven local state — the form layer writes them
+  // back on pick — so they don't need the reactive useSearchParams
+  // treatment. Run once; popstate handles back/forward.
   useEffect(() => {
     const dateStr = getQueryParam("date");
     if (dateStr) {
@@ -391,15 +399,41 @@ export default function HostProfile({
       const matching = slots.find((s) => s.start === slotIso);
       if (matching) setSelectedSlot(matching);
     }
-    const rescheduleUid = getQueryParam("reschedule");
-    if (rescheduleUid) {
-      setRescheduleFromUid(rescheduleUid);
-    }
     // Run once — slots prop changes after this should NOT clobber the
     // visitor's selection. If a fetch returns new slots that no longer
     // contain the picked one, the drawer handles the empty case.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // B.PT305 — auto-open the picker modal the moment reschedule mode
+  // enters from the URL. Two callsites trip this:
+  //   1. Soft nav from the receipt's Reschedule popover. The receipt's
+  //      `@receipt/[...catchAll]/page.tsx` returns null, so motion's
+  //      AnimatePresence exits the receipt card; this effect opens the
+  //      picker modal in the SAME commit, so motion's shared
+  //      `layoutId="handle-card"` morphs receipt → picker directly
+  //      (the user's "transform the form to the choosing-date form
+  //      again" intent).
+  //   2. Hard refresh / deep-link with `?reschedule=<uid>`. Lands the
+  //      visitor in the picker without an extra chip click.
+  // Ref-gated so the open fires ONLY on the undefined → set
+  // transition. Once the user closes the modal we don't re-open it
+  // on every URL re-evaluation — that would trap them.
+  const lastRescheduleUidRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      rescheduleFromUid &&
+      rescheduleFromUid !== lastRescheduleUidRef.current &&
+      !drawerOpen
+    ) {
+      setDrawerOpen(true);
+    }
+    lastRescheduleUidRef.current = rescheduleFromUid;
+    // setDrawerOpen is stable (lifted from useState in component body);
+    // drawerOpen is the gate so we don't fight an open already in
+    // progress.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rescheduleFromUid]);
 
   // Browser back/forward → re-read URL → restore state inside a view
   // transition so the change feels animated, not snappy. This is the
