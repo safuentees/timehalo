@@ -363,8 +363,9 @@ export function BookingsList({
 
           <div
             className={cn(
-              "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              "mx-auto flex w-full flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
               calendarMaxWidthClass,
+              optimisticView !== "month" && "min-h-0 flex-1",
             )}
           >
 
@@ -422,7 +423,7 @@ export function BookingsList({
           ) : null}
 
           {optimisticView === "month" ? (
-            <div className="hidden min-h-0 flex-1 md:flex md:flex-col">
+            <div className="hidden md:block">
               <MonthView
                 date={optimisticCursor}
                 events={calendarEvents}
@@ -431,7 +432,7 @@ export function BookingsList({
                 getHref={getEventHref}
                 onOverflowClick={onOverflowClick}
                 getOverflowHref={getOverflowHref}
-                maxBodyHeight="100%"
+                maxBodyHeight="none"
               />
             </div>
           ) : null}
