@@ -4,52 +4,41 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CheckIcon, CopyIcon, LinkIcon, XIcon } from "lucide-react";
 import { trpc } from "@/trpc/hooks";
-import { useMounted } from "@/hooks/use-mounted";
 import { env } from "@/env";
-
-const SHARE_DISMISSED_STORAGE_KEY = "oh-share-link-dismissed";
-
-function readShareDismissed(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(SHARE_DISMISSED_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeShareDismissed(next: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    if (next) {
-      window.localStorage.setItem(SHARE_DISMISSED_STORAGE_KEY, "1");
-    } else {
-      window.localStorage.removeItem(SHARE_DISMISSED_STORAGE_KEY);
-    }
-  } catch {
-  }
-}
 
 export function ShareLinkPill() {
   const t = useTranslations("Share");
+  const utils = trpc.useUtils();
   const me = trpc.users.me.useQuery();
-  const mounted = useMounted();
   const [copied, setCopied] = useState(false);
-  const [shareDismissed, setShareDismissed] = useState<boolean>(() =>
-    readShareDismissed(),
-  );
+
+  const setDismissed = trpc.users.setShareLinkDismissed.useMutation({
+    onMutate: async (input) => {
+      await utils.users.me.cancel();
+      const prev = utils.users.me.getData();
+      if (prev) {
+        utils.users.me.setData(undefined, {
+          ...prev,
+          shareLinkDismissed: input.dismissed,
+        });
+      }
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.prev) utils.users.me.setData(undefined, ctx.prev);
+    },
+  });
 
   const handle = me.data?.handle;
-  const base =
-    env.NEXT_PUBLIC_APP_URL ??
-    (mounted ? window.location.origin : "https://officehours.app");
+  const shareDismissed = me.data?.shareLinkDismissed ?? false;
+  const base = env.NEXT_PUBLIC_APP_URL ?? "https://officehours.app";
   const fullUrl = handle ? `${base}/h/${handle}` : null;
   const displayUrl = fullUrl ? fullUrl.replace(/^https?:\/\//, "") : null;
 
-  if (mounted && shareDismissed) return null;
+  if (shareDismissed) return null;
   if (!fullUrl || !displayUrl) return null;
 
-  const showDismissX = mounted && Boolean(me.data?.onboardingDismissed);
+  const showDismissX = Boolean(me.data?.onboardingDismissed);
 
   async function handleCopy() {
     if (!fullUrl) return;
@@ -62,8 +51,7 @@ export function ShareLinkPill() {
   }
 
   function handleDismiss() {
-    writeShareDismissed(true);
-    setShareDismissed(true);
+    setDismissed.mutate({ dismissed: true });
   }
 
   return (

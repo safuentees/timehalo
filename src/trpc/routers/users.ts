@@ -46,6 +46,7 @@ export const users = router({
         bio: true,
         onboardingDismissed: true,
         onboardingManualSteps: true,
+        shareLinkDismissed: true,
       },
     });
     const eventType = user.handle
@@ -89,6 +90,16 @@ export const users = router({
         data.onboardingManualSteps = JSON.stringify(unique);
       }
       await prisma.user.update({ where: { id: ctx.user.id }, data });
+      return { ok: true as const };
+    }),
+
+  setShareLinkDismissed: privateProcedure
+    .input(z.object({ dismissed: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { shareLinkDismissed: input.dismissed },
+      });
       return { ok: true as const };
     }),
 

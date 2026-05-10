@@ -5,13 +5,18 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  useTransition,
   type ComponentProps,
 } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useMounted } from "@/hooks/use-mounted";
 import { useTranslations } from "next-intl";
 import type { inferRouterOutputs } from "@trpc/server";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/hooks";
 import type { AppRouter } from "@/trpc/router";
 import { AnimatePresence, motion } from "motion/react";
@@ -46,7 +51,12 @@ import {
   type SlotOption,
 } from "./handle-morph-parts";
 
-const OPEN_SPRING = animSpec.transitions[0].spring;
+const OPEN_SPRING = {
+  mass: 1,
+  stiffness: 400,
+  damping: 35,
+  velocity: 0,
+} as const;
 const CLOSE_SPRING =
   animSpec.transitions.find(
     (t) => t.from?.name === "handle-detail" && t.to?.name === "handle",
@@ -59,6 +69,7 @@ type Props = {
   initialUser: RouterOutputs["users"]["getByHandle"];
   initialSlots: RouterOutputs["schedule"]["getUpcomingSlots"];
   renderedAt: string;
+  isOwner?: boolean;
 };
 
 export default function HostProfile({
@@ -66,6 +77,7 @@ export default function HostProfile({
   initialUser,
   initialSlots,
   renderedAt,
+  isOwner = false,
 }: Props) {
   const t = useTranslations("HostProfile");
   const pathname = usePathname();
@@ -78,7 +90,11 @@ export default function HostProfile({
   const mounted = useMounted();
   const { data: fetchedUser } = trpc.users.getByHandle.useQuery(
     { handle },
-    { initialData: initialUser },
+    {
+      initialData: initialUser,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    },
   );
   const [selectedDurationLabel, setSelectedDurationLabel] = useState<
     string | undefined
@@ -94,10 +110,32 @@ export default function HostProfile({
     {
       initialData:
         selectedDurationMinutes === undefined ? initialSlots : undefined,
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
     },
   );
   const user = fetchedUser ?? initialUser;
   const slots = fetchedSlotsResult.data ?? initialSlots;
+  const slotsFetchingFresh =
+    fetchedSlotsResult.isFetching && fetchedSlotsResult.isPlaceholderData;
+  const [, startTransition] = useTransition();
+  const router = useRouter();
+
+  const utils = trpc.useUtils();
+  useEffect(() => {
+    if (!user.durationChoices || user.durationChoices.length <= 1) return;
+    void Promise.resolve().then(() => {
+      for (const choice of user.durationChoices) {
+        if (choice.minutes === user.defaultDurationMinutes) continue;
+        void utils.schedule.getUpcomingSlots.prefetch({
+          handle,
+          durationMinutes: choice.minutes,
+        });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const now = new Date(renderedAt);
   const availableSlots = slots.filter(isOpenSlot);
   const nextSlot = availableSlots[0];
@@ -228,10 +266,26 @@ export default function HostProfile({
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
       header={
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
-          <span className="oh-eyebrow tabular-nums opacity-100">
-            /h/{user.handle}
-          </span>
+        <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
+          <div className="flex flex-col items-start gap-1.5">
+            <span className="oh-eyebrow tabular-nums opacity-100">
+              /h/{user.handle}
+            </span>
+            {isOwner ? (
+              <Link
+                href="/bookings"
+                aria-label="Back to dashboard"
+                className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
+              >
+                <ArrowLeft
+                  aria-hidden
+                  strokeWidth={2}
+                  className="size-3 no-underline"
+                />
+                Back to dashboard
+              </Link>
+            ) : null}
+          </div>
           <div className="flex items-center gap-2" role="status">
             <span
               aria-hidden
@@ -304,6 +358,7 @@ export default function HostProfile({
                   style={{
                     visibility: stripLandingLayoutId ? "hidden" : undefined,
                     zIndex: zStyle(zL1?.identity),
+                    containerType: "inline-size",
                   }}
                   className="mx-auto flex w-[336px] max-w-full flex-col gap-3"
                 >
@@ -314,7 +369,7 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    className="flex items-center gap-3"
+                    className="flex min-w-0 items-center gap-3"
                   >
                     <motion.span
                       layoutId={landingLayoutId("oh-identity-avatar")}
@@ -339,7 +394,7 @@ export default function HostProfile({
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 1 }}
-                      className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
+                      className="min-w-0 break-words text-balance font-sans text-[clamp(22px,11cqi,52px)] font-bold leading-[1.06] tracking-[-0.04em] [overflow-wrap:anywhere]"
                     >
                       {displayName}
                     </motion.h1>
@@ -377,7 +432,7 @@ export default function HostProfile({
                     zIndex: zStyle(zL1?.slotList),
                   }}
                   className={cn(
-                    "flex flex-col gap-2.5",
+                    "relative flex flex-col gap-2.5",
                     "bg-[#F5EFDF] dark:bg-[#272727]",
                   )}
                 >
@@ -467,8 +522,11 @@ export default function HostProfile({
                               description={opt.description ?? ""}
                               durationLabel={opt.label}
                               onClick={() => {
-                                setSelectedDurationLabel(opt.fullLabel);
-                                setSelectedDurationMinutes(opt.minutes);
+                                router.prefetch(`/h/${handle}/booked`);
+                                startTransition(() => {
+                                  setSelectedDurationLabel(opt.fullLabel);
+                                  setSelectedDurationMinutes(opt.minutes);
+                                });
                                 setDrawerOpen(true);
                               }}
                             />
@@ -483,6 +541,21 @@ export default function HostProfile({
                         : t("emptyBookedDescription", { name: displayName })}
                     </p>
                   )}
+                  {slotsFetchingFresh ? (
+                    <div
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                      aria-live="polite"
+                      aria-busy="true"
+                    >
+                      <span className="rounded-full bg-[var(--oh-paper)] p-2 shadow-[var(--oh-shadow-resting)]">
+                        <Loader2
+                          aria-hidden
+                          strokeWidth={1.75}
+                          className="size-4 animate-spin opacity-65"
+                        />
+                      </span>
+                    </div>
+                  ) : null}
                 </motion.div>
               </HandleMorphCard>
             ) : null}
@@ -531,7 +604,8 @@ export default function HostProfile({
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 1 }}
-                    className="flex items-center gap-3"
+                    className="flex min-w-0 items-center gap-3"
+                    style={{ containerType: "inline-size" }}
                   >
                     <motion.span
                       layoutId="oh-identity-avatar"
@@ -556,7 +630,7 @@ export default function HostProfile({
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 1 }}
-                      className="font-sans text-[clamp(32px,1rem+4vw,52px)] font-bold leading-[1.06] tracking-[-1.3px]"
+                      className="min-w-0 break-words text-balance font-sans text-[clamp(22px,11cqi,52px)] font-bold leading-[1.06] tracking-[-0.04em] [overflow-wrap:anywhere]"
                     >
                       {displayName}
                     </motion.h1>

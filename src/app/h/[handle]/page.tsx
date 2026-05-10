@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
+import { auth } from "@/auth";
 import { createPublicSSRHelper } from "@/trpc/server-helpers";
 import { env } from "@/env";
 import HostProfile from "./components/host-profile";
@@ -59,6 +60,10 @@ export default async function HostPage({
     throw err;
   }
 
+  const session = await auth();
+  const isOwner =
+    session?.user?.id !== undefined && session.user.id === user.id;
+
   const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://officehours.app";
   const personLd = {
     "@context": "https://schema.org",
@@ -80,6 +85,7 @@ export default async function HostPage({
         initialUser={user}
         initialSlots={slots}
         renderedAt={renderedAt}
+        isOwner={isOwner}
       />
     </>
   );

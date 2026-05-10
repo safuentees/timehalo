@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { CalendarIcon } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { buttonVariants } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
 import { cn } from "@/lib/utils";
 import type { BookingConfirmationBooking } from "./booking-confirmation";
@@ -145,25 +145,47 @@ export function BookingReceiptContent({
                   : t("copied")}
             </button>
             {booking.host.handle ? (
-              <ConfirmDialog
-                trigger={
-                  <button
-                    type="button"
-                    className="opacity-55 transition-opacity hover:opacity-100"
+              <Popover.Root>
+                <Popover.Trigger
+                  nativeButton
+                  className="opacity-55 transition-opacity hover:opacity-100 data-[popup-open]:opacity-100"
+                >
+                  {t("reschedule")}
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Positioner
+                    sideOffset={10}
+                    align="start"
+                    style={{ zIndex: 200 }}
                   >
-                    {t("reschedule")}
-                  </button>
-                }
-                title={t("rescheduleConfirmTitle")}
-                description={t("rescheduleConfirmDescription")}
-                confirmLabel={t("rescheduleConfirmCta")}
-                cancelLabel={t("rescheduleConfirmCancel")}
-                onConfirm={() => {
-                  router.push(
-                    `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
-                  );
-                }}
-              />
+                    <Popover.Popup className="flex w-[280px] flex-col gap-3 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-4 shadow-[var(--oh-shadow-resting)]">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[14px] font-bold leading-tight tracking-tight">
+                          {t("rescheduleConfirmTitle")}
+                        </p>
+                        <p className="text-[12px] leading-[1.45] opacity-65">
+                          {t("rescheduleConfirmDescription")}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-end gap-2 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold uppercase tracking-[2px]">
+                        <Popover.Close className="rounded-(--oh-r-xs) px-2 py-1 opacity-55 transition-opacity hover:opacity-100">
+                          {t("rescheduleConfirmCancel")}
+                        </Popover.Close>
+                        <Popover.Close
+                          onClick={() => {
+                            router.push(
+                              `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                            );
+                          }}
+                          className="rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] px-2 py-1 text-[color:var(--oh-paper)] transition-opacity hover:opacity-90"
+                        >
+                          {t("rescheduleConfirmCta")}
+                        </Popover.Close>
+                      </div>
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
             ) : null}
           </div>
           <span className="truncate opacity-40">#{booking.publicUid}</span>

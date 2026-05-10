@@ -20,6 +20,7 @@ model User {
   timezone             String              @default("UTC")
   onboardingDismissed  Boolean             @default(false)
   onboardingManualSteps String             @default("[]")
+  shareLinkDismissed    Boolean             @default(false)
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]

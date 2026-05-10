@@ -2,12 +2,8 @@ import { Hr, Link, Text } from "@react-email/components";
 
 export function OhEmailFooter({
   recipientEmail,
-  brandName = "Officehours",
-  brandTagline = "Small surface, deep stack.",
 }: {
   recipientEmail: string;
-  brandName?: string;
-  brandTagline?: string;
 }) {
   return (
     <>
@@ -25,9 +21,6 @@ export function OhEmailFooter({
         >
           support@officehours.app
         </Link>
-      </Text>
-      <Text className="m-0 mt-6 font-mono text-[10px] font-extrabold uppercase tracking-[1.5px] text-ink-subtle">
-        {brandName} — {brandTagline}
       </Text>
     </>
   );
