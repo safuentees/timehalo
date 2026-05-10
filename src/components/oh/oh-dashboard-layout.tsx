@@ -191,20 +191,28 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // `flex flex-col` so block-shaped pages render as a single
-      // flex item with natural height; the panel bg fills any
-      // slack below. `min-h-full` keeps the column at LEAST the
-      // viewport height so the slack-fill behavior holds even
-      // when content is short.
+      // Explicit viewport-relative height so absolute-positioned
+      // descendants (e.g. /bookings calendar mode's `absolute
+      // inset-0` wrapper) can anchor to a known box. `min-h-full`
+      // alone fails here: motion.div's parent is the Radix
+      // ScrollArea Viewport's internal `display: table` wrapper,
+      // which has `height: auto` and can't resolve a percentage
+      // min-height — so when an absolute child removes the only
+      // in-flow content, motion.div collapses to 0 and the
+      // calendar disappears.
       //
-      // `relative` is the containing-block anchor for fit-viewport
-      // pages (e.g. /bookings calendar mode) that absolute-position
-      // their content with `inset-0` to claim exact Viewport bounds.
-      // Bypasses the Radix ScrollArea Viewport's `display: table`
-      // wrapper, which doesn't pass flex resolution through, so
-      // `flex-1 min-h-0` chains can't reach a definite height
-      // ancestor through the normal flow.
-      className="relative flex min-h-full flex-col"
+      // Math: oh-host-content is `calc(100svh - 24px -
+      // var(--oh-dashboard-bar-block))`. ScrollArea Root + Viewport
+      // both pass through 100%. We use the same calc directly so
+      // motion.div is exactly the panel height regardless of what
+      // Radix wraps in between.
+      //
+      // `flex flex-col` for block-shaped pages (single flex item,
+      // panel bg fills slack below short content). Long lists
+      // overflow motion.div's bounds and the Viewport's overflow:
+      // scroll catches the overflow → page scrolls. `relative` is
+      // the containing-block anchor for absolute children.
+      className="relative flex flex-col h-[calc(100svh-24px-var(--oh-dashboard-bar-block))]"
       initial={false}
       animate={{
         opacity: routeOpacity,
