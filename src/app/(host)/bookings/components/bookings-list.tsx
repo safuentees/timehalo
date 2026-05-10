@@ -352,7 +352,7 @@ export function BookingsList({
           aria-busy={isPending || undefined}
           style={{ height: "calc(100svh - 64px)" }}
           className={cn(
-            "mx-auto flex w-full min-h-0 flex-col gap-3 px-4 pt-4 pb-px sm:px-6 bg-yellow-300/30",
+            "mx-auto flex w-full min-h-0 flex-col gap-3 px-4 pt-4 pb-4 sm:px-6 bg-yellow-300/30",
             calendarMaxWidthClass,
             isPending &&
               "opacity-70 transition-opacity duration-150 ease-oh",
