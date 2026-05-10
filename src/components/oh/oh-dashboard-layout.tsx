@@ -89,7 +89,7 @@ function ContentSlot({ children }: { children: ReactNode }) {
 
   return (
     <motion.div
-      className="relative flex min-h-full flex-col"
+      className="relative flex flex-col h-[calc(100svh-24px-var(--oh-dashboard-bar-block))]"
       initial={false}
       animate={{
         opacity: routeOpacity,
