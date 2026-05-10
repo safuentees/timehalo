@@ -228,6 +228,8 @@
     "backToList": "Volver a espacios",
     "backToMembers": "Volver a miembros",
     "settingsLink": "Configuración del espacio",
+    "detailTab_members": "Miembros",
+    "detailTab_settings": "Configuración",
     "role_OWNER": "Dueño",
     "role_ADMIN": "Admin",
     "role_MEMBER": "Miembro",

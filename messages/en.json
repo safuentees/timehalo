@@ -228,6 +228,8 @@
     "backToList": "Back to workspaces",
     "backToMembers": "Back to members",
     "settingsLink": "Workspace settings",
+    "detailTab_members": "Members",
+    "detailTab_settings": "Settings",
     "role_OWNER": "Owner",
     "role_ADMIN": "Admin",
     "role_MEMBER": "Member",

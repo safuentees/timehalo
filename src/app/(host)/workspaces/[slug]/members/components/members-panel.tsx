@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   Check,
   MailCheck,
   MoreHorizontal,
@@ -26,6 +23,7 @@ import { ConfirmDialog } from "@/components/oh/confirm-dialog";
 import { SectionHeader } from "@/components/oh/section-header";
 import { OhCard } from "@/components/oh/oh-card";
 import { InviteMemberDialog } from "./invite-member-dialog";
+import { WorkspaceDetailNav } from "../../components/workspace-detail-nav";
 
 // Members panel for /workspaces/<slug>/members. Three sections
 // stacked in the standard settings rhythm (mt-12 between them):
@@ -42,7 +40,6 @@ const ROLE_OPTIONS = ["OWNER", "ADMIN", "MEMBER", "VIEWER"] as const;
 
 export default function MembersPanel({ slug }: { slug: string }) {
   const t = useTranslations("Members");
-  const tWorkspaces = useTranslations("Workspaces");
   const { data: workspace } = trpc.workspaces.get.useQuery({ slug });
   const { data: members, isLoading: membersLoading } =
     trpc.workspaces.listMembers.useQuery({ slug });
@@ -57,22 +54,10 @@ export default function MembersPanel({ slug }: { slug: string }) {
     <OhPageShell>
       <OhPageHeader title={workspace?.name ?? t("title")} />
 
-      <div className="mt-4 flex flex-wrap items-center justify-between">
-        <Link
-          href="/workspaces"
-          className="oh-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
-        >
-          <ArrowLeftIcon className="size-3" aria-hidden />
-          {tWorkspaces("backToList")}
-        </Link>
-        <Link
-          href={`/workspaces/${slug}/settings`}
-          className="oh-eyebrow inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
-        >
-          {tWorkspaces("settingsLink")}
-          <ArrowRightIcon className="size-3" aria-hidden />
-        </Link>
-      </div>
+      {/* Shared sub-nav: back-to-workspaces link + Members |
+          Settings tab strip. Single source of truth across both
+          detail pages — see workspace-detail-nav.tsx for why. */}
+      <WorkspaceDetailNav slug={slug} active="members" />
 
       <div className="mt-8 flex flex-col gap-12">
         <section aria-labelledby="members-legend">

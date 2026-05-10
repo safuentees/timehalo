@@ -5,32 +5,62 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import {
+  AlertTriangle,
   ArrowLeftIcon,
+  Check,
   ChevronLeftIcon,
   ChevronRightIcon,
   MailIcon,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
 import { trpc } from "@/trpc/hooks";
 import { useCancelBooking } from "@/lib/mutations/use-cancel-booking";
-import { Button } from "@/components/ui/button";
 import { OhInlineEmpty } from "@/components/oh/inline-empty";
 import { OhPageHeader } from "@/components/oh/page-header";
 import { OhPageShell } from "@/components/oh/page-shell";
 import { OhSection } from "@/components/oh/section";
 import { ConfirmDialog } from "@/components/oh/confirm-dialog";
+import { cn } from "@/lib/utils";
 
-// Host-side booking detail. Layout pattern stolen from cal.com's
-// BookingDetailsSheet but rendered as a full page (drawer / intercepted
-// route is a future iteration — see chisel research note in commit
-// message). Sections compose via <OhSection /> for consistent
-// label/content rhythm.
+// Host-side booking detail. Refactored 2026-05-09 (B.PT293) to
+// match the rest of the app's chrome + UX vocabulary:
+//
+//   - Brutalist `border-2 border-oh-line-strong` segmented tabs →
+//     depth-card-styled tab strip (paper bg + shadow-resting on
+//     active, opacity-55 on inactive). Same vocabulary as the new
+//     WorkspaceDetailNav.
+//   - Unicode status glyphs (✓ ✗ ⟳) → lucide icons (`Check`,
+//     `AlertTriangle`, `RefreshCw`) for consistency with the rest
+//     of the app's icon vocabulary.
+//   - Sticky `oh-dash-save-bar` cancel action → `⋯ Menu` in the
+//     header strip (per `dashboard-forms.md`: the position-fixed
+//     save bar pattern was retired 2026-04-29 in favor of inline
+//     actions; here cancel becomes a one-shot action behind the
+//     compact ⋯ trigger so it doesn't compete with the
+//     informational sections).
+//   - Inline `font-[family-name:var(--oh-mono)] text-[Npx]
+//     font-extrabold tracking-[Npx] uppercase` strings →
+//     `oh-eyebrow` utility (single source of truth per `oh-ui.md`).
+//   - `border-t-2 border-oh-line pt-3` dividers between visitor
+//     and host inside the WHO section → flex `gap-3` rhythm.
+//   - `min-w-0` chain on truncated children for mobile shrinking
+//     (same pattern as the developer-cards mobile fix).
+//
+// Cal.com-inspired adds: `mailto:` link on the visitor email row
+// so the host can reach out directly. Cancellation reason input
+// (cal.com's pattern) is deferred to a future commit — would
+// need a `cancelReason` schema add on `bookings.cancel`.
 //
 // Two tabs (info/history) — same segmented control as cal.com's
 // info-vs-audit toggle. Hides the audit log behind a tab so the
 // primary surface stays focused on "what's this booking?" instead
 // of "what's happened to it?".
 //
-// Keyboard shortcuts: ESC → back to /bookings.
+// Keyboard shortcuts: ESC → back to /bookings (page variant).
+// ←/→ → adjacent booking (both variants).
 
 type Tab = "info" | "history";
 
@@ -161,25 +191,25 @@ export default function BookingDetail({
   // the React 19 lint rule against component construction in render.
   const body = (
     <>
-      {/* Back nav + adjacent prev/next chevrons (A5). The chevrons
-          mirror cal.com's BookingDetailsSheet keyboard cluster. ←/→
-          keys also navigate (effect above). Modal variant suppresses
-          the back link (the modal has its own close affordance) but
-          keeps the prev/next chevrons aligned to the leading edge so
-          the host can triage without round-tripping to the list. */}
-      <div className="mb-4 flex items-center justify-between gap-3">
+      {/* Top action row — back link (page variant) + prev/next
+          chevrons + ⋯ Menu containing destructive actions. The
+          chevrons mirror cal.com's BookingDetailsSheet keyboard
+          cluster (←/→ keys also navigate via the effect above).
+          Modal variant suppresses the back link (the modal has its
+          own close affordance) but keeps the rest aligned. */}
+      <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
         {isModal ? (
           <span aria-hidden />
         ) : (
           <Link
             href="/bookings"
-            className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
+            className="oh-eyebrow inline-flex min-w-0 items-center gap-1.5 opacity-55 transition-opacity hover:opacity-100"
           >
-            <ArrowLeftIcon className="size-3" aria-hidden />
-            {t("back")}
+            <ArrowLeftIcon className="size-3 shrink-0" aria-hidden />
+            <span className="truncate">{t("back")}</span>
           </Link>
         )}
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           <NeighbourLink
             uid={data.previousUid}
             direction="previous"
@@ -192,41 +222,72 @@ export default function BookingDetail({
             label={t("nextBooking")}
             onNavigate={onNavigate}
           />
+          {!cancelled ? (
+            <BookingActionsMenu
+              cancelLabel={t("cancelAction")}
+              cancelTitle={t("cancelTitle")}
+              cancelDescription={t("cancelDescription", {
+                name: data.visitorName,
+              })}
+              cancelConfirm={t("cancelConfirm")}
+              cancelPending={t("cancelling")}
+              cancelCancel={t("cancelCancel")}
+              actionsAria={t("actionsLabel")}
+              isPending={cancel.isPending}
+              onConfirm={async () => {
+                await cancel.mutateAsync({ publicUid });
+              }}
+            />
+          ) : null}
         </div>
       </div>
 
-      {/* Hero — visitor name as title, slot eyebrow above, status pill */}
+      {/* Hero — visitor name as title + status pill aside. Slot
+          eyebrow sits below the rule, paired with the host/visitor
+          timezone row when they differ. `min-w-0` on the page
+          header so long visitor names truncate cleanly on mobile. */}
       <OhPageHeader
         title={data.visitorName}
         aside={<StatusPill status={status} />}
       />
-      <p className="oh-eyebrow tabular-nums mt-2">
+      <p className="oh-eyebrow mt-2 tabular-nums">
         {fmtSlotDate(slotStart)} {fmtTime(slotStart)} — {fmtTime(slotEnd)}
       </p>
 
-      {/* Segmented control — info / history. Cal.com's pattern. */}
-      <div
+      {/* Tab strip — depth-card vocabulary. Active tab carries the
+          paper-bg + shadow-resting lift the rest of the app uses
+          for selected pills (sidebar nav, OhPillSwitcher, theme
+          card). Non-active tabs read as muted opacity-55 with a
+          tint hover. Replaces the prior brutalist `border-2
+          border-oh-line-strong` segmented inverse-fill control. */}
+      <nav
         role="tablist"
         aria-label={t("tabsLabel")}
-        className="mt-8 inline-flex overflow-hidden rounded-(--oh-r-sm) border-2 border-oh-line-strong"
+        className="mt-8 flex gap-1"
       >
-        <SegButton active={tab === "info"} onClick={() => setTab("info")}>
+        <DetailTab
+          active={tab === "info"}
+          onClick={() => setTab("info")}
+        >
           {t("tabInfo")}
-        </SegButton>
-        <SegButton active={tab === "history"} onClick={() => setTab("history")}>
-          {t("tabHistory")}
+        </DetailTab>
+        <DetailTab
+          active={tab === "history"}
+          onClick={() => setTab("history")}
+        >
+          <span>{t("tabHistory")}</span>
           {data.audit.length > 0 ? (
             <span
-              className={[
+              className={cn(
                 "tabular-nums text-[11px] font-bold leading-none",
-                tab === "history" ? "opacity-65" : "opacity-45",
-              ].join(" ")}
+                tab === "history" ? "opacity-65" : "opacity-55",
+              )}
             >
               {data.audit.length}
             </span>
           ) : null}
-        </SegButton>
-      </div>
+        </DetailTab>
+      </nav>
 
       <div className="mt-8 flex flex-col gap-10">
         {tab === "info" ? (
@@ -235,70 +296,13 @@ export default function BookingDetail({
           <HistoryView audit={data.audit} />
         )}
       </div>
-
-      {/* Footer actions. Page variant: sticky at viewport bottom
-          (.oh-dash-save-bar is position:fixed). Modal variant:
-          inline at the bottom of the modal body — the modal is a
-          position:fixed container, an additional fixed bar would
-          float outside it. */}
-      {!cancelled ? (
-        isModal ? (
-          <div className="mt-8 flex gap-2">
-            <ConfirmDialog
-              title={t("cancelTitle")}
-              description={t("cancelDescription", { name: data.visitorName })}
-              confirmLabel={t("cancelConfirm")}
-              pendingLabel={t("cancelling")}
-              cancelLabel={t("cancelCancel")}
-              pending={cancel.isPending}
-              onConfirm={async () => {
-                await cancel.mutateAsync({ publicUid });
-              }}
-              trigger={
-                <Button
-                  type="button"
-                  variant="ohGhost"
-                  size="oh"
-                  className="flex-1"
-                  disabled={cancel.isPending}
-                >
-                  {cancel.isPending ? t("cancelling") : t("cancelAction")}
-                </Button>
-              }
-            />
-          </div>
-        ) : (
-          <>
-            <div className="oh-dash-save-spacer" aria-hidden />
-            <div className="oh-dash-save-bar" role="region" aria-label={t("actionsLabel")}>
-              <div className="oh-dash-save-bar-inner flex gap-2">
-                <ConfirmDialog
-                  title={t("cancelTitle")}
-                  description={t("cancelDescription", { name: data.visitorName })}
-                  confirmLabel={t("cancelConfirm")}
-                  pendingLabel={t("cancelling")}
-                  cancelLabel={t("cancelCancel")}
-                  pending={cancel.isPending}
-                  onConfirm={async () => {
-                    await cancel.mutateAsync({ publicUid });
-                  }}
-                  trigger={
-                    <Button
-                      type="button"
-                      variant="ohGhost"
-                      size="oh"
-                      className="flex-1"
-                      disabled={cancel.isPending}
-                    >
-                      {cancel.isPending ? t("cancelling") : t("cancelAction")}
-                    </Button>
-                  }
-                />
-              </div>
-            </div>
-          </>
-        )
-      ) : null}
+      {/* Cancel action moved to the header's ⋯ menu (BookingActionsMenu
+          above). The prior shape was a `oh-dash-save-bar` sticky at
+          viewport bottom on the page route — that pattern was retired
+          2026-04-29 per `dashboard-forms.md`. The cancel action is
+          one-shot destructive, not a frequent affordance — surfacing
+          it inline at the bottom AND a position-fixed island read as
+          alarmist. The ⋯ trigger keeps it findable but unobtrusive. */}
     </>
   );
 
@@ -386,7 +390,11 @@ function StatusPill({ status }: { status: "confirmed" | "cancelled" | "reschedul
   );
 }
 
-function SegButton({
+// Tab strip button — depth-card vocabulary. Active tab pins
+// `--oh-shadow-resting` + paper bg + bold; inactive tab reads as
+// muted opacity-55 with a tint hover. Same shape WorkspaceDetailNav
+// + the sidebar nav active row + OhPillSwitcher's active pill use.
+function DetailTab({
   active,
   onClick,
   children,
@@ -401,19 +409,98 @@ function SegButton({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={[
-        "inline-flex items-center gap-2.5 px-4 py-2.5",
-        "font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tracking-[2px] uppercase",
-        "transition-colors duration-150 ease-oh",
-        "border-r-2 border-oh-line-strong last:border-r-0",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oh-line-strong focus-visible:ring-inset",
+      className={cn(
+        "oh-eyebrow inline-flex items-center gap-2 rounded-(--oh-r-xs) px-3 py-1.5",
+        "transition-[background-color,color,box-shadow,opacity] duration-150 ease-oh",
+        "oh-focus-ring",
         active
-          ? "bg-oh-content text-oh-bg"
-          : "bg-oh-bg text-oh-content hover:bg-oh-tint",
-      ].join(" ")}
+          ? "bg-[color:var(--oh-paper)] opacity-100 shadow-[var(--oh-shadow-resting)]"
+          : "opacity-55 hover:bg-[var(--oh-tint)] hover:opacity-100",
+      )}
     >
       {children}
     </button>
+  );
+}
+
+// Header actions menu — compact ⋯ trigger that opens a Base UI
+// Menu with the destructive flow behind a controlled ConfirmDialog.
+// Same vocabulary as members-panel's invitation-row actions menu:
+// trash icon + verbal label inside a `oh-menu-popup`. Future
+// reschedule + copy-link items slot in here.
+function BookingActionsMenu({
+  cancelLabel,
+  cancelTitle,
+  cancelDescription,
+  cancelConfirm,
+  cancelPending,
+  cancelCancel,
+  actionsAria,
+  isPending,
+  onConfirm,
+}: {
+  cancelLabel: string;
+  cancelTitle: string;
+  cancelDescription: string;
+  cancelConfirm: string;
+  cancelPending: string;
+  cancelCancel: string;
+  actionsAria: string;
+  isPending: boolean;
+  onConfirm: () => Promise<void>;
+}) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  return (
+    <>
+      <Menu.Root>
+        <Menu.Trigger
+          className="oh-focus-ring inline-flex size-7 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] duration-150 ease-oh hover:bg-[var(--oh-tint-hover)] hover:opacity-100 data-[popup-open]:bg-[var(--oh-tint-hover)] data-[popup-open]:opacity-100"
+          aria-label={actionsAria}
+        >
+          <MoreHorizontal
+            strokeWidth={1.75}
+            className="size-3.5"
+            aria-hidden
+          />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner
+            className="oh-menu-positioner"
+            sideOffset={6}
+            align="end"
+            style={{ zIndex: 100 }}
+          >
+            <Menu.Popup className="oh-menu-popup">
+              <Menu.Item
+                className="oh-menu-item"
+                disabled={isPending}
+                onClick={() => setConfirmOpen(true)}
+              >
+                <span className="oh-menu-item-glyph">
+                  <Trash2
+                    aria-hidden
+                    strokeWidth={1.75}
+                    className="size-4"
+                  />
+                </span>
+                <span>{cancelLabel}</span>
+              </Menu.Item>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={cancelTitle}
+        description={cancelDescription}
+        confirmLabel={cancelConfirm}
+        pendingLabel={cancelPending}
+        cancelLabel={cancelCancel}
+        pending={isPending}
+        onConfirm={onConfirm}
+      />
+    </>
   );
 }
 
@@ -541,18 +628,31 @@ function InfoView({
       </OhSection>
 
       <OhSection title={t("who")}>
-        <div className="flex flex-col gap-3">
-          <div>
-            <p className="text-[14px] font-bold">{data.visitorName}</p>
-            <p className="oh-eyebrow inline-flex items-center gap-1.5 mt-1.5 opacity-55">
-              <MailIcon className="size-3" aria-hidden />
-              {data.visitorEmail}
+        <div className="flex flex-col gap-4">
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-bold">
+              {data.visitorName}
             </p>
+            {/* mailto on the visitor email — cal.com inspiration.
+                Lets the host reach out directly instead of copy-
+                pasting the address. Hairline tertiary affordance,
+                opacity-55 → 100 on hover. */}
+            <a
+              href={`mailto:${data.visitorEmail}`}
+              className="oh-eyebrow oh-focus-ring mt-1.5 inline-flex min-w-0 items-center gap-1.5 rounded-(--oh-r-xs) opacity-55 transition-opacity duration-150 ease-oh hover:opacity-100"
+            >
+              <MailIcon className="size-3 shrink-0" aria-hidden />
+              <span className="truncate">{data.visitorEmail}</span>
+            </a>
           </div>
           {data.host ? (
-            <div className="border-t-2 border-oh-line pt-3">
-              <p className="oh-eyebrow opacity-55 mb-1.5">{t("hostLabel")}</p>
-              <p className="text-[14px] font-bold">
+            // Host row — no `border-t-2 border-oh-line pt-3`
+            // divider (was a brutalist motif). Flex `gap-4` on
+            // the parent provides the breathing room; the eyebrow
+            // label visually separates the rows.
+            <div className="min-w-0">
+              <p className="oh-eyebrow mb-1.5">{t("hostLabel")}</p>
+              <p className="truncate text-[14px] font-bold">
                 {data.host.name ?? data.host.handle ?? data.host.email}
               </p>
             </div>
@@ -611,12 +711,14 @@ function InfoView({
                   {scheduled.map((task) => (
                     <li
                       key={task.id}
-                      className="flex items-baseline justify-between gap-x-4 text-[13px]"
+                      className="flex min-w-0 items-baseline justify-between gap-x-4 text-[13px]"
                     >
-                      <span className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55">
-                        <span aria-hidden className="text-[color:var(--oh-content-muted)]">
-                          ⟳
-                        </span>
+                      <span className="oh-eyebrow inline-flex min-w-0 items-center gap-1.5">
+                        <RefreshCw
+                          aria-hidden
+                          strokeWidth={1.75}
+                          className="size-3 shrink-0 text-[color:var(--oh-content-muted)]"
+                        />
                         {taskLabel(task.referenceUid ?? "")}
                         {task.attempts > 0 ? (
                           <span
@@ -648,11 +750,15 @@ function InfoView({
                   {failed.map((task) => (
                     <li
                       key={task.id}
-                      className="flex flex-col gap-1 text-[13px]"
+                      className="flex min-w-0 flex-col gap-1 text-[13px]"
                     >
-                      <div className="flex items-baseline justify-between gap-x-4">
-                        <span className="oh-eyebrow inline-flex items-center gap-1.5 text-[color:var(--destructive)]">
-                          <span aria-hidden>✗</span>
+                      <div className="flex min-w-0 items-baseline justify-between gap-x-4">
+                        <span className="oh-eyebrow inline-flex min-w-0 items-center gap-1.5 text-[color:var(--destructive)]">
+                          <AlertTriangle
+                            aria-hidden
+                            strokeWidth={1.75}
+                            className="size-3 shrink-0"
+                          />
                           {taskLabel(task.referenceUid ?? "")}
                           <span
                             className="tabular-nums opacity-75"
@@ -666,7 +772,7 @@ function InfoView({
                         <span className="oh-eyebrow inline-flex items-center gap-2 tabular-nums text-[color:var(--destructive)]">
                           {task.lastResponseStatus !== null ? (
                             <span
-                              className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums"
+                              className="oh-eyebrow tabular-nums"
                               aria-label={`HTTP ${task.lastResponseStatus}`}
                             >
                               {task.lastResponseStatus}
@@ -676,7 +782,7 @@ function InfoView({
                         </span>
                       </div>
                       {task.lastError ? (
-                        <p className="font-[family-name:var(--oh-mono)] text-[12px] leading-[1.5] opacity-65 line-clamp-3">
+                        <p className="font-mono text-[12px] leading-[1.5] opacity-65 line-clamp-3">
                           {task.lastError}
                         </p>
                       ) : null}
@@ -695,21 +801,18 @@ function InfoView({
             {data.deliveries.map((delivery) => (
               <li
                 key={delivery.id}
-                className="flex items-baseline justify-between gap-x-4 text-[13px]"
+                className="flex min-w-0 items-baseline justify-between gap-x-4 text-[13px]"
               >
-                <span className="oh-eyebrow inline-flex items-center gap-1.5 opacity-55">
-                  <span
+                <span className="oh-eyebrow inline-flex min-w-0 items-center gap-1.5">
+                  <Check
                     aria-hidden
-                    className="text-[color:var(--oh-success,emerald-600)]"
-                    style={{ color: "rgb(5 150 105)" }}
-                  >
-                    ✓
-                  </span>
+                    strokeWidth={2}
+                    className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+                  />
                   {taskLabel(delivery.referenceUid ?? "")}
                   {delivery.lastResponseStatus !== null ? (
                     <span
-                      className="font-[family-name:var(--oh-mono)] text-[11px] font-extrabold tabular-nums"
-                      style={{ color: "rgb(5 150 105)" }}
+                      className="oh-eyebrow tabular-nums text-emerald-600 dark:text-emerald-400"
                       aria-label={`HTTP ${delivery.lastResponseStatus}`}
                     >
                       {delivery.lastResponseStatus}
