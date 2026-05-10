@@ -1133,6 +1133,30 @@
   transform: scale(0.96) translateY(-4px);
 }
 
+/* Onboarding popover — anchors below the compact pill on /bookings.
+   Wider than the duration popover (the checklist content is denser);
+   same shadow + radius vocabulary so it reads as part of the same
+   chrome family. Width caps at 360px so 5 steps don't sprawl across
+   the page. */
+.oh-onboarding-popup {
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  background-color: var(--oh-paper);
+  color: var(--oh-ink);
+  border-radius: var(--oh-r-sm);
+  box-shadow: var(--oh-shadow-popup);
+  outline: none;
+  transform-origin: top left;
+  transition:
+    transform 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity 200ms var(--ease-oh, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.oh-onboarding-popup[data-starting-style],
+.oh-onboarding-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96) translateY(-4px);
+}
+
 /* Trash icon button inside the duration popover. Subtle — gray at
    rest, ink-on-tint on hover. Sits inline with the input + suffix
    so it reads as part of the same control row, not a competing

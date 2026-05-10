@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckCircleIcon, CircleIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, XIcon } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
 import { trpc } from "@/trpc/hooks";
 import { Button } from "@/components/ui/button";
-import { OhCard } from "@/components/oh/oh-card";
+import { cn } from "@/lib/utils";
 import {
   computeOnboardingSteps,
   isComplete,
@@ -14,25 +15,25 @@ import {
   type OnboardingStepId,
 } from "@/lib/onboarding";
 
-// Onboarding checklist surface — renders above the bookings list on
-// /bookings until either the host clicks "Hide" or every step is
-// complete. Five steps; tasks the host has already done show
-// auto-checked, tasks pending show as links.
+// Compact onboarding affordance — small pill with a progress dot
+// strip + label that opens a popover with the full checklist.
+// Replaces the prior full-card surface that ate ~200px above the
+// bookings list. Pill is ~28px tall; popover anchors below on
+// click.
 //
-// State source (B.PT43): the User row owns `onboardingDismissed` +
-// `onboardingManualSteps`. The previous localStorage shape
-// (`officehours.onboarding.{hide,manual}`) couldn't be read during
-// SSR — so the checklist server-rendered with `manuallyDone:
-// new Set()`, the "Share your link" step rendered unchecked, and
-// the post-hydration client read snap-flipped it to checked. Moving
-// to the DB lets `users.me`'s SSR prefetch carry the truth on first
-// paint. dub stores onboarding-completion on Workspace; cal.com
-// stores it on User. We follow cal.com — onboarding is a per-host
-// concern, not per-workspace.
+// Pill render:
+//   ●●○  2 of 3 setup steps  ›
 //
-// Pattern reference: dub /apps/web/ui/layout/toolbar/onboarding/
-// onboarding-button.tsx — same shape (progress fraction +
-// title/desc/CTA per task), DB-backed.
+// Popover:
+//   Header — "Get started" eyebrow + percent done + close X
+//   Step list — same shape as the prior card; checked items
+//   strikethrough'd, pending items show "Open ›" + (manual)
+//   "Mark done" inline buttons
+//
+// State source unchanged (B.PT43): User row owns
+// `onboardingDismissed` + `onboardingManualSteps`. SSR-hydrated
+// via `users.me`. Once dismissed OR every step complete, the
+// pill disappears.
 
 export function OnboardingChecklist() {
   const t = useTranslations("Onboarding");
@@ -40,13 +41,8 @@ export function OnboardingChecklist() {
   const me = trpc.users.me.useQuery();
   const ranges = trpc.schedule.get.useQuery();
   const bookings = trpc.bookings.listForHost.useQuery();
+  const [open, setOpen] = useState(false);
 
-  // Optimistic dismiss + mark-done. Without `setData` here the card
-  // would linger ~50-300ms while the mutation round-trips, defeating
-  // the "click Hide → it's gone" expectation. Hooks.ts's global
-  // useMutation override invalidates every query on success, so the
-  // server-confirmed value lands automatically on the next refetch
-  // — we only need the optimistic write + onError rollback.
   const setOnboardingState = trpc.users.setOnboardingState.useMutation({
     onMutate: async (input) => {
       await utils.users.me.cancel();
@@ -88,11 +84,6 @@ export function OnboardingChecklist() {
     });
   }, [me.data, ranges.data, bookings.data, manuallyDone]);
 
-  // SSR + first-render guard. `me.data` is hydrated by the layout's
-  // prefetch (B.PT41) so this should be truthy on first paint of every
-  // host route — but we still keep the guard for the rare cases where
-  // the cache hasn't landed (background refetches, route-level cache
-  // misses on stale pages).
   if (!me.data) return null;
   if (me.data.onboardingDismissed) return null;
   if (isComplete(steps)) return null;
@@ -100,49 +91,84 @@ export function OnboardingChecklist() {
   const { done, total, percent } = progress(steps);
 
   return (
-    <OhCard asChild>
-      <section
-        className="mt-6 p-5"
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        className="oh-focus-ring inline-flex items-center gap-2.5 self-start rounded-(--oh-r-sm) bg-[var(--oh-paper)] px-3 py-1.5 shadow-[var(--oh-shadow-resting)] transition-shadow duration-150 ease-oh hover:shadow-[var(--oh-shadow-hover)] data-[popup-open]:shadow-[var(--oh-shadow-hover)]"
         aria-label={t("sectionAria")}
       >
-        <header className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="oh-eyebrow">
-              {t("gettingStarted", { done, total })}
-            </p>
-            <h2 className="mt-2 text-[18px] font-black leading-tight">
-              {t("percentSetUp", { percent })}
-            </h2>
-          </div>
-          <Button
-            type="button"
-            variant="ohGhost"
-            size="icon-sm"
-            onClick={() => setOnboardingState.mutate({ dismissed: true })}
-            aria-label={t("hideAria")}
-          >
-            <XIcon strokeWidth={1.5} />
-          </Button>
-        </header>
-
-        <ul role="list" className="mt-5 flex flex-col gap-3">
-          {steps.map((step) => (
-            <li key={step.id}>
-              <StepRow
-                step={step}
-                onMark={() => {
-                  const next = new Set(manuallyDone);
-                  next.add(step.id);
-                  setOnboardingState.mutate({
-                    manualSteps: Array.from(next),
-                  });
-                }}
-              />
-            </li>
+        {/* Progress dot strip — one dot per step. Filled dots for
+            completed steps, empty rings for pending. Reads as a
+            mini progress bar at chrome scale. */}
+        <span aria-hidden className="flex items-center gap-1">
+          {steps.map((step, i) => (
+            <span
+              key={i}
+              className={cn(
+                "size-1.5 rounded-full",
+                step.done
+                  ? "bg-[var(--oh-ink)]"
+                  : "border border-[var(--oh-line)]",
+              )}
+            />
           ))}
-        </ul>
-      </section>
-    </OhCard>
+        </span>
+        <span className="oh-eyebrow opacity-100">
+          {t("gettingStarted", { done, total })}
+        </span>
+        <ChevronRightIcon
+          className="size-3 opacity-55 transition-transform duration-150 ease-oh data-[popup-open]:rotate-90"
+          strokeWidth={2}
+          aria-hidden
+        />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={8} align="start">
+          <Popover.Popup className="oh-onboarding-popup">
+            <header className="flex items-start justify-between gap-4 px-4 pt-4">
+              <div className="min-w-0">
+                <p className="oh-eyebrow">
+                  {t("gettingStarted", { done, total })}
+                </p>
+                <h2 className="mt-2 text-[18px] font-black leading-tight">
+                  {t("percentSetUp", { percent })}
+                </h2>
+              </div>
+              <Popover.Close
+                render={
+                  <Button
+                    type="button"
+                    variant="ohGhost"
+                    size="icon-sm"
+                    onClick={() =>
+                      setOnboardingState.mutate({ dismissed: true })
+                    }
+                    aria-label={t("hideAria")}
+                  >
+                    <XIcon strokeWidth={1.5} />
+                  </Button>
+                }
+              />
+            </header>
+            <ul role="list" className="flex flex-col gap-3 px-4 pb-4 pt-4">
+              {steps.map((step) => (
+                <li key={step.id}>
+                  <StepRow
+                    step={step}
+                    onMark={() => {
+                      const next = new Set(manuallyDone);
+                      next.add(step.id);
+                      setOnboardingState.mutate({
+                        manualSteps: Array.from(next),
+                      });
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -154,39 +180,48 @@ function StepRow({
   onMark: () => void;
 }) {
   const t = useTranslations("Onboarding");
-  const Icon = step.done ? CheckCircleIcon : CircleIcon;
   return (
     <div className="flex items-start gap-3">
-      <Icon
-        className={[
-          "mt-0.5 size-4 flex-shrink-0",
-          step.done ? "opacity-90" : "opacity-40",
-        ].join(" ")}
-      />
+      {/* Circular check indicator. Filled with ink when done,
+          empty hairline ring when pending. Tighter than the prior
+          lucide circle icons — matches the dot strip on the pill. */}
+      <span
+        aria-hidden
+        className={cn(
+          "mt-1 inline-flex size-3.5 shrink-0 items-center justify-center rounded-full",
+          step.done
+            ? "bg-[var(--oh-ink)] text-[var(--oh-paper)]"
+            : "border border-[var(--oh-line)]",
+        )}
+      >
+        {step.done ? (
+          <CheckIcon className="size-2.5" strokeWidth={3} />
+        ) : null}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <p
-            className={[
-              "text-[14px] font-bold",
+            className={cn(
+              "text-[13px] font-bold",
               step.done ? "line-through opacity-55" : "opacity-100",
-            ].join(" ")}
+            )}
           >
             {t(step.titleKey)}
           </p>
           {!step.done ? (
             <Link
               href={step.href}
-              className="font-[family-name:var(--oh-mono)] text-[10px] font-extrabold tracking-[2px] uppercase underline underline-offset-4 opacity-65 hover:opacity-100"
+              className="oh-eyebrow underline underline-offset-4 opacity-65 hover:opacity-100"
             >
               {t("openLink")}
             </Link>
           ) : null}
         </div>
         <p
-          className={[
+          className={cn(
             "mt-1 text-[12px] leading-[1.4]",
             step.done ? "opacity-40" : "opacity-65",
-          ].join(" ")}
+          )}
         >
           {t(step.descriptionKey)}
         </p>
