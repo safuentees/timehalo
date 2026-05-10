@@ -201,24 +201,17 @@ function ContentSlot({ children }: { children: ReactNode }) {
   // Per-route content fade — see top-of-file comment for the sequencing.
   return (
     <motion.div
-      // `.oh-content-slot` (globals.css) emits explicit
-      // `height: calc(100svh - 24px - var(--oh-dashboard-bar-block))`
-      // — same calc as `oh-host-content`. Bypasses every
-      // parent-chain height resolution (shadcn SidebarProvider's
-      // `min-h-svh` in @layer utilities was overriding `.oh-app-
-      // shell { height: 100svh }`, leaving ancestors at
-      // `min-height: 100svh + height: auto` — and percentage
-      // children of an auto-height parent resolve to 0).
+      // Inline height beats any cascade conflict: `100svh - 64px`
+      // = panel inner height (24px panel margins + 40px dashboard
+      // bar block). Inline style has higher specificity than any
+      // class-based rule, so it always wins.
       //
-      // With explicit calc here, motion.div is deterministically
-      // the panel size, descendants with `flex-1 min-h-0` claim a
-      // real bounded slot, and the calendar grids' overflow-y-auto
-      // scrolls INSIDE the panel — page never scrolls.
-      //
-      // List mode (long content): children overflow motion.div
-      // bounds; parent oh-host-content-inner's overflow-y-auto
-      // catches the overflow → page-style scroll.
-      className="oh-content-slot flex flex-col"
+      // motion.div is now deterministically the panel inner height.
+      // Descendants with `flex-1 min-h-0` claim a real bounded slot,
+      // calendar grids' overflow-y-auto scrolls INSIDE the panel,
+      // page never scrolls.
+      className="flex flex-col"
+      style={{ height: "calc(100svh - 64px)" }}
       initial={false}
       animate={{
         opacity: routeOpacity,
