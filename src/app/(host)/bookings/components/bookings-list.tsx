@@ -566,30 +566,39 @@ export function BookingsList({
             overflow-auto div. */}
         <div
           aria-busy={isPending || undefined}
-          // Inline calc height = panel inner height. Beats every
-          // flex-chain / cascade resolution issue. Wrapper is now
-          // deterministically the panel height; yellow bg fills
-          // top to bottom of panel.
           style={{ height: "calc(100svh - 64px)" }}
-          className={cn(
-            "mx-auto flex w-full min-h-0 flex-col gap-3 px-4 pt-4 pb-4 sm:px-6 bg-yellow-300/30",
-            calendarMaxWidthClass,
-          )}
+          className="flex w-full min-h-0 flex-col gap-3 pt-4 pb-4"
         >
-          {/* View switcher folded into the calendar wrapper now
-              that the OhPageShell is hidden above. Mobile +
-              desktop both render here so users can swap views
-              without scrolling back up to a separate chrome
-              band. */}
-          <BookingsViewSwitcher
-            value={optimisticView}
-            onValueChange={onViewChange}
-          />
-          <BookingsCursorControls
-            view={optimisticView}
-            cursorDate={optimisticCursor}
-            onDateChange={onDateChange}
-          />
+          {/* View switcher + cursor controls sit in a CONSTANT
+              max-w-[760px] mx-auto column so their on-screen
+              position doesn't shift when the user changes view
+              modes (calendar grids below have variable max-w
+              per view: 760 day / 1440 week / 1200 month).
+              Without this, the switcher's left edge moves as the
+              wrapper's max-width changes, making the chrome feel
+              "loose" — user wants the switcher fixed. */}
+          <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 sm:px-6">
+            <BookingsViewSwitcher
+              value={optimisticView}
+              onValueChange={onViewChange}
+            />
+            <BookingsCursorControls
+              view={optimisticView}
+              cursorDate={optimisticCursor}
+              onDateChange={onDateChange}
+            />
+          </div>
+
+          {/* Calendar grid in a SEPARATE wrapper with variable
+              max-width per view (760 day / 1440 week / 1200 month).
+              flex-1 min-h-0 claims remaining vertical space; banners
+              and views render inside. */}
+          <div
+            className={cn(
+              "mx-auto flex w-full min-h-0 flex-1 flex-col gap-3 px-4 sm:px-6 bg-yellow-300/30",
+              calendarMaxWidthClass,
+            )}
+          >
 
           {/* Error banner — shows if the bookings query failed. The
               calendar still renders below so the host sees the
@@ -703,6 +712,7 @@ export function BookingsList({
               />
             </div>
           ) : null}
+          </div>
         </div>
         {/* DragOverlay renders the chip ghost following the pointer.
             Keeping it outside the column tree prevents the source
