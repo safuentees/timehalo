@@ -31,10 +31,7 @@ type FormShape = {
 };
 
 const schema = z.object({
-  days: z.union([
-    z.literal(null),
-    z.number().int().min(1).max(365),
-  ]),
+  days: z.union([z.literal(null), z.number().int().min(1).max(365)]),
 });
 
 export function BookingHorizonFields() {
@@ -81,7 +78,7 @@ export function BookingHorizonFields() {
                 <div
                   role="radiogroup"
                   aria-labelledby="booking-window-legend"
-                  className="mt-3 flex flex-wrap gap-2"
+                  className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6"
                 >
                   {PRESETS.map((preset) => {
                     const isActive = field.value === preset.days;
@@ -97,7 +94,6 @@ export function BookingHorizonFields() {
                         key={preset.days ?? "unlimited"}
                         asChild
                         active={isActive}
-                        className="shrink-0"
                       >
                         <button
                           type="button"
@@ -107,7 +103,7 @@ export function BookingHorizonFields() {
                             field.onChange(preset.days as number | null)
                           }
                           className={cn(
-                            "oh-focus-ring inline-flex items-center gap-2 px-4 py-2.5 text-left transition-opacity duration-150 ease-oh",
+                            "oh-focus-ring flex w-full items-center justify-center gap-2 px-4 py-2.5 transition-opacity duration-150 ease-oh",
                             isActive
                               ? "opacity-100"
                               : "opacity-65 hover:opacity-100",
