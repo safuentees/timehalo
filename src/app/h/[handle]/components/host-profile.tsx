@@ -630,11 +630,25 @@ export default function HostProfile({
                 pointer users; aria-label covers screen readers. */}
             <div className="flex items-center gap-2">
               {isOwner ? (
+                // B.PT307c — chevron uses CSS opacity ONLY (group
+                // opacity), with the text color at full alpha. Avoids
+                // the "x-ray" effect: when both `currentColor` carries
+                // alpha (e.g. `--oh-content-muted` = `rgba(10,10,10,
+                // 0.55)`) AND the element has `opacity-55`, each stroke
+                // segment is drawn at 0.55 alpha into the layer; where
+                // the lucide ArrowLeft's two paths overlap (arrowhead
+                // apex + shaft) the per-pixel alpha compounds to ~0.80
+                // before the layer composites at 0.55 — the overlap
+                // shows ~46% effective alpha versus ~30% elsewhere, the
+                // visible seam the user reported. Using full-alpha
+                // `--oh-ink` + CSS opacity means each stroke writes
+                // alpha 1.0 to the layer, the layer composites once at
+                // 0.55, overlaps and non-overlaps render uniformly.
                 <Link
                   href="/bookings"
                   aria-label="Back to dashboard"
                   title="Back to dashboard"
-                  className="oh-focus-ring relative z-[100] inline-flex size-5 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] opacity-55 transition-[opacity,color] duration-150 ease-oh hover:opacity-100 hover:text-[color:var(--oh-ink)]"
+                  className="oh-focus-ring relative z-[100] inline-flex size-5 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] opacity-55 transition-opacity duration-150 ease-oh hover:opacity-100"
                 >
                   <ArrowLeft
                     aria-hidden
