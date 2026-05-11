@@ -279,6 +279,7 @@ function buildTemplateProps(
     case "account-deleted":
     case "workspace-invite":
     case "magic-link-signin":
+    case "register-otp":
       // Not booking-scoped; workflows can't dispatch them.
       return null;
   }
