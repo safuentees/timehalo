@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
-import { CalendarIcon } from "lucide-react";
+import { ArrowRight, CalendarIcon, CalendarClockIcon, XIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
@@ -158,28 +158,42 @@ export function BookingReceiptContent({
                     align="start"
                     style={{ zIndex: 200 }}
                   >
-                    <Popover.Popup className="flex w-[280px] flex-col gap-3 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-4 shadow-[var(--oh-shadow-resting)]">
-                      <div className="flex flex-col gap-1">
-                        <p className="text-[14px] font-bold leading-tight tracking-tight">
+                    <Popover.Popup className="flex w-[210px] flex-col gap-2.5 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-3 shadow-[var(--oh-shadow-resting)]">
+                      <div className="flex items-center gap-2">
+                        <CalendarClockIcon
+                          aria-hidden
+                          strokeWidth={1.75}
+                          className="size-3.5 shrink-0 opacity-55"
+                        />
+                        <p className="text-[13px] font-bold leading-tight tracking-tight">
                           {t("rescheduleConfirmTitle")}
                         </p>
-                        <p className="text-[12px] leading-[1.45] opacity-65">
-                          {t("rescheduleConfirmDescription")}
-                        </p>
                       </div>
-                      <div className="flex items-center justify-end gap-2 font-[family-name:var(--oh-mono)] text-[10px] font-extrabold uppercase tracking-[2px]">
-                        <Popover.Close className="rounded-(--oh-r-xs) px-2 py-1 opacity-55 transition-opacity hover:opacity-100">
-                          {t("rescheduleConfirmCancel")}
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Popover.Close
+                          aria-label={t("rescheduleConfirmCancel")}
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100"
+                        >
+                          <XIcon
+                            strokeWidth={2.25}
+                            aria-hidden
+                            className="size-3.5"
+                          />
                         </Popover.Close>
                         <Popover.Close
+                          aria-label={t("rescheduleConfirmCta")}
                           onClick={() => {
                             router.push(
                               `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
                             );
                           }}
-                          className="rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] px-2 py-1 text-[color:var(--oh-paper)] transition-opacity hover:opacity-90"
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)] transition-opacity hover:opacity-85"
                         >
-                          {t("rescheduleConfirmCta")}
+                          <ArrowRight
+                            strokeWidth={2.25}
+                            aria-hidden
+                            className="size-3.5"
+                          />
                         </Popover.Close>
                       </div>
                     </Popover.Popup>
