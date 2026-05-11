@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -430,7 +431,27 @@ export default function HostProfile({
   // transition. Once the user closes the modal we don't re-open it
   // on every URL re-evaluation — that would trap them.
   const lastRescheduleUidRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
+  // B.PT306g — `useLayoutEffect`, NOT `useEffect`. The auto-close
+  // branch fires the moment the URL strips `?reschedule=…` (e.g.
+  // visitor X-closes the receipt after a cancel). With a regular
+  // `useEffect`, the effect runs AFTER paint — meaning the picker
+  // modal would render (and FocusOn would activate, walking the DOM
+  // to mark siblings as `aria-hidden` / inert + registering its
+  // document-level click listeners) for one paint cycle BEFORE this
+  // effect fires and closes the drawer. That brief mount leaves
+  // FocusOn artifacts in the document: click events on the landing
+  // card's duration chips get swallowed by stale outside-click
+  // listeners even though hover/pointer-events still fire (FocusOn
+  // hooks into `mousedown`/`mouseup` outside-detection, not
+  // `mouseover`). Symptom: "hover triggers but click doesn't."
+  // `useLayoutEffect` runs synchronously after DOM commit but BEFORE
+  // paint, and `setState` calls inside it cause an immediate
+  // re-render in the same commit cycle — so the modal never reaches
+  // a painted state, FocusOn never activates, and no listeners are
+  // left behind. React docs (react.dev/reference/react/useLayoutEffect)
+  // flag this exact pattern: "Use it when you need to update state
+  // based on layout BEFORE the browser repaints the screen."
+  useLayoutEffect(() => {
     if (
       rescheduleFromUid &&
       rescheduleFromUid !== lastRescheduleUidRef.current &&
@@ -438,16 +459,15 @@ export default function HostProfile({
     ) {
       setDrawerOpen(true);
     }
-    // B.PT306f — symmetric auto-CLOSE on the set → undefined
-    // transition. Without this, the drawer state stays `true` from
-    // the auto-open after the user cancels reschedule and X-closes
-    // the receipt: the picker silently re-mounts on top of the
-    // landing card (its `view` useState resets to "strip", so the
-    // visitor lands on the day-strip/slot picker instead of the
-    // duration-chip landing they'd expect). Normal booking flow
-    // gets this for free via `onBookingComplete` → `setDrawerOpen
-    // (false)`; the reschedule-cancel path skipped that callback,
-    // hence the stale `true`. Closing here mirrors the normal flow.
+    // Symmetric auto-CLOSE on the set → undefined transition. Without
+    // this, the drawer state stays `true` from the auto-open after
+    // the user cancels reschedule and X-closes the receipt: the
+    // picker silently re-mounts on top of the landing card (its
+    // `view` useState resets to "strip", so the visitor lands on the
+    // day-strip/slot picker instead of the duration-chip landing
+    // they'd expect). Normal booking flow gets this for free via
+    // `onBookingComplete` → `setDrawerOpen(false)`; the reschedule-
+    // cancel path skipped that callback, hence the stale `true`.
     if (
       !rescheduleFromUid &&
       lastRescheduleUidRef.current &&
