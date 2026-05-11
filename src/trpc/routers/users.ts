@@ -47,6 +47,7 @@ export const users = router({
         onboardingDismissed: true,
         onboardingManualSteps: true,
         shareLinkDismissed: true,
+        bookingHorizonDays: true,
       },
     });
     const eventType = user.handle
@@ -99,6 +100,20 @@ export const users = router({
       await prisma.user.update({
         where: { id: ctx.user.id },
         data: { shareLinkDismissed: input.dismissed },
+      });
+      return { ok: true as const };
+    }),
+
+  setBookingHorizon: privateProcedure
+    .input(
+      z.object({
+        days: z.number().int().min(1).max(365).nullable(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { bookingHorizonDays: input.days },
       });
       return { ok: true as const };
     }),

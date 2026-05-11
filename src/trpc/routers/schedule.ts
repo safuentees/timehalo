@@ -91,16 +91,20 @@ export const schedule = router({
     .input(
       z.object({
         handle: z.string(),
-        days: z.number().int().min(1).max(14).default(7),
+        days: z.number().int().min(1).max(365).optional(),
         durationMinutes: durationMinutesSchema.optional(),
       }),
     )
     .query(async ({ input }) => {
       const user = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true, timezone: true },
+        select: { id: true, timezone: true, bookingHorizonDays: true },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const hostHorizon = user.bookingHorizonDays ?? 7;
+      const requested = input.days ?? hostHorizon;
+      const effectiveDays = Math.min(requested, hostHorizon);
 
       const eventType = await resolveEventTypeForHandle(input.handle);
       const choices = eventType ? resolveDurationChoices(eventType) : [];
@@ -129,7 +133,7 @@ export const schedule = router({
       const allSlots = generateUpcomingSlots({
         ranges,
         from: new Date(),
-        days: input.days,
+        days: effectiveDays,
         stepMinutes: 15,
         eventDurationMinutes: effectiveDurationMinutes,
         hostTimezone: user.timezone,

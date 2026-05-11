@@ -21,6 +21,7 @@ import {
   availabilitySchema,
   defaultAvailability,
 } from "./availability-fields";
+import { BookingHorizonFields } from "./booking-horizon-fields";
 
 const schema = z.object({
   availability: availabilitySchema,
@@ -54,7 +55,7 @@ export default function AvailabilityForm() {
       <form noValidate>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col gap-12">
             <FieldGroup>
               <FieldSet>
                 <FieldLegend className="oh-legend opacity-100">
@@ -73,6 +74,7 @@ export default function AvailabilityForm() {
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
+            <BookingHorizonFields />
           </div>
         </OhPageShell>
       </form>

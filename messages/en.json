@@ -595,6 +595,13 @@
     "pageTitle": "Hours",
     "weeklyLegend": "Weekly availability",
     "weeklyDescription": "The hours visitors can book from on your public page.",
+    "bookingWindowLegend": "Booking window",
+    "bookingWindowDescription": "How far in advance visitors can book. Off means no cap — visitors see every open slot in your schedule.",
+    "bookingWindowDaysLabel": "Within",
+    "bookingWindowDayUnit": "day from today",
+    "bookingWindowDaysUnit": "days from today",
+    "saving": "Saving…",
+    "saved": "Saved",
     "saveLabel": "Save",
     "savingLabel": "Saving…",
     "savedLabel": "Saved"

@@ -93,6 +93,7 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              bookingHorizonDays: true,
               ownedWorkspaces: {
                 select: { id: true },
                 take: 1,
@@ -909,6 +910,7 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              bookingHorizonDays: true,
             },
           });
           if (!host || !host.handle) {
@@ -946,7 +948,7 @@ export const bookings = router({
           const upcoming = generateUpcomingSlots({
             ranges,
             from: new Date(),
-            days: 14,
+            days: host.bookingHorizonDays ?? 365,
             stepMinutes: SLOT_MINUTES,
             hostTimezone: host.timezone,
           });

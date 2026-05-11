@@ -21,6 +21,7 @@ model User {
   onboardingDismissed  Boolean             @default(false)
   onboardingManualSteps String             @default("[]")
   shareLinkDismissed    Boolean             @default(false)
+  bookingHorizonDays    Int?
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]
