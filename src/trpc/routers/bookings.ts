@@ -137,7 +137,7 @@ export const bookings = router({
           const upcoming = generateUpcomingSlots({
             ranges,
             from: new Date(),
-            days: 14,
+            days: host.bookingHorizonDays ?? 365,
             stepMinutes: SLOT_MINUTES,
             hostTimezone: host.timezone,
           });
