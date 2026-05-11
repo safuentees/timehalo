@@ -966,7 +966,26 @@ export function HandleModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={currentTitleId}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+        // B.PT307d — in reschedule mode the visitor header sits at
+        // z-60 above this modal (z-50) so its Cancel + back-to-
+        // dashboard affordances stay clickable. Without compensating,
+        // the modal's own top chrome (back chevron / duration title /
+        // X close) is occluded behind the header on mobile — most
+        // visible in month view where the card fills viewport height.
+        // Adding top padding equal to the 2-row visitor header's
+        // nominal height (~96px mobile / ~112px sm+ — see
+        // OhVisitorHeader's `py-4 sm:py-5` + two `oh-eyebrow` rows
+        // separated by `border-t` + `pt-3`) pushes the modal's flex-
+        // centered card down so its chrome row sits below the header,
+        // not behind it. Both layers stay interactive: header above,
+        // card below, no z-fighting, no occlusion. Normal flow (no
+        // reschedule) keeps the original `p-4 sm:p-8` since the
+        // header is at z-10 there and the modal covers it cleanly.
+        className={
+          rescheduleFromUid
+            ? "fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28"
+            : "fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+        }
       >
         <AnimatePresence mode="popLayout" initial={false}>
           {view === "month"
