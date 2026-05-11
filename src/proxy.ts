@@ -76,7 +76,8 @@ export const proxy = auth((req) => {
     pathname === "/playground" || pathname.startsWith("/playground/");
 
   const isPublic =
-    ["/login", "/register"].includes(pathname) ||
+    ["/", "/login", "/register"].includes(pathname) ||
+    pathname.startsWith("/legal/") ||
     isHostPage ||
     isInvitationLink ||
     isEmbed ||
