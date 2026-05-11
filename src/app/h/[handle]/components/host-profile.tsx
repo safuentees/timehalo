@@ -283,7 +283,7 @@ export default function HostProfile({
   return (
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
-      headerClassName={rescheduleFromUid ? "z-[60]" : undefined}
+      headerClassName="z-[60]"
       headerRef={visitorHeaderRef}
       header={
         <div className="flex w-full flex-col gap-3">

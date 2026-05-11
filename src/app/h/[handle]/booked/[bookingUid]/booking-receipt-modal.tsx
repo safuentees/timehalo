@@ -68,7 +68,7 @@ export function BookingReceiptModal({
       className="contents"
     >
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+        className="fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-16 sm:px-8 sm:pb-8 sm:pt-20"
         role="dialog"
         aria-modal="true"
         aria-label={t("badgeBooked")}

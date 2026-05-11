@@ -657,7 +657,7 @@ export function HandleModal({
         className={
           rescheduleFromUid
             ? "fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28"
-            : "fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+            : "fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-16 sm:px-8 sm:pb-8 sm:pt-20"
         }
       >
         <AnimatePresence mode="popLayout" initial={false}>
