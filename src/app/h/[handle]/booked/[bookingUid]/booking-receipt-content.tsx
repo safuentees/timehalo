@@ -289,18 +289,18 @@ export function BookingReceiptContent({
                     align="start"
                     style={{ zIndex: 200 }}
                   >
-                    <Popover.Popup className="flex w-[210px] flex-col gap-2.5 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] p-3 shadow-[var(--oh-shadow-resting)]">
+                    <Popover.Popup className="flex items-center gap-3 rounded-(--oh-r-sm) bg-[color:var(--oh-paper)] py-2 pl-3 pr-2 shadow-[var(--oh-shadow-resting)]">
                       <div className="flex items-center gap-2">
                         <CalendarClockIcon
                           aria-hidden
                           strokeWidth={1.75}
                           className="size-3.5 shrink-0 opacity-55"
                         />
-                        <p className="text-[13px] font-bold leading-tight tracking-tight">
+                        <p className="whitespace-nowrap text-[13px] font-bold leading-tight tracking-tight">
                           {t("rescheduleConfirmTitle")}
                         </p>
                       </div>
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex shrink-0 items-center gap-1.5">
                         <Popover.Close
                           aria-label={t("rescheduleConfirmCancel")}
                           className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100"
