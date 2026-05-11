@@ -7,27 +7,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/trpc/hooks";
 import { useSetBookingHorizon } from "@/lib/mutations/use-set-booking-horizon";
-import { Field, FieldError } from "@/components/ui/field";
-import { Switch } from "@/components/ui/switch";
-import { SectionHeader } from "@/components/oh/section-header";
+import {
+  FieldDescription,
+  FieldGroup,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { OhCard } from "@/components/oh/oh-card";
 import { InlineFormSave } from "@/components/oh/inline-form-save";
+import { cn } from "@/lib/utils";
 
-const DEFAULT_HORIZON_DAYS = 30;
-const HORIZON_MIN_DAYS = 1;
-const HORIZON_MAX_DAYS = 365;
+const PRESETS = [
+  { days: 7 },
+  { days: 14 },
+  { days: 30 },
+  { days: 60 },
+  { days: 90 },
+  { days: null }, // Unlimited
+] as const;
 
 type FormShape = {
-  limitEnabled: boolean;
-  days: number;
+  days: number | null;
 };
 
 const schema = z.object({
-  limitEnabled: z.boolean(),
-  days: z
-    .number({ error: "Enter a number" })
-    .int("Whole days only")
-    .min(HORIZON_MIN_DAYS, `At least ${HORIZON_MIN_DAYS} day`)
-    .max(HORIZON_MAX_DAYS, `At most ${HORIZON_MAX_DAYS} days`),
+  days: z.union([
+    z.literal(null),
+    z.number().int().min(1).max(365),
+  ]),
 });
 
 export function BookingHorizonFields() {
@@ -35,10 +42,7 @@ export function BookingHorizonFields() {
   const { data: me } = trpc.users.me.useQuery();
 
   const values = useMemo<FormShape>(
-    () => ({
-      limitEnabled: me?.bookingHorizonDays != null,
-      days: me?.bookingHorizonDays ?? DEFAULT_HORIZON_DAYS,
-    }),
+    () => ({ days: me?.bookingHorizonDays ?? null }),
     [me],
   );
 
@@ -46,110 +50,105 @@ export function BookingHorizonFields() {
     resolver: zodResolver(schema),
     values,
     resetOptions: { keepDirtyValues: true },
-    mode: "onBlur",
+    mode: "onChange",
   });
 
   const saveHorizon = useSetBookingHorizon();
 
   async function onSubmit(v: FormShape) {
-    const next = v.limitEnabled ? v.days : null;
-    await saveHorizon.mutateAsync({ days: next });
+    await saveHorizon.mutateAsync({ days: v.days });
     form.reset(v);
   }
 
-  const limitEnabled = form.watch("limitEnabled");
   const isPending = saveHorizon.isPending;
   const isDirty = form.formState.isDirty;
+  const isInvalid = !form.formState.isValid;
 
   return (
-    <section aria-labelledby="booking-horizon-legend">
-      <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} suppressHydrationWarning>
-          <div className="flex items-start justify-between gap-4">
-            <SectionHeader
-              legendId="booking-horizon-legend"
-              legend={t("bookingWindowLegend")}
-              description={t("bookingWindowDescription")}
-            />
-            <Controller<FormShape, "limitEnabled">
-              name="limitEnabled"
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldSet>
+          <FieldLegend className="oh-legend opacity-100">
+            {t("bookingWindowLegend")}
+          </FieldLegend>
+          <FieldDescription className="text-[13px] leading-[1.5] opacity-65">
+            {t("bookingWindowDescription")}
+          </FieldDescription>
+          <FieldGroup>
+            <Controller<FormShape, "days">
+              name="days"
               render={({ field }) => (
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={(checked) => field.onChange(checked)}
-                  aria-labelledby="booking-horizon-legend"
-                  className="mt-1 shrink-0"
-                />
+                <div
+                  role="radiogroup"
+                  aria-labelledby="booking-window-legend"
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {PRESETS.map((preset) => {
+                    const isActive = field.value === preset.days;
+                    const days: number | null = preset.days;
+                    const label =
+                      days === null
+                        ? t("bookingWindowUnlimited")
+                        : days === 1
+                          ? t("bookingWindowDayChip", { days })
+                          : t("bookingWindowDaysChip", { days });
+                    return (
+                      <OhCard
+                        key={preset.days ?? "unlimited"}
+                        asChild
+                        active={isActive}
+                        className="shrink-0"
+                      >
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isActive}
+                          onClick={() =>
+                            field.onChange(preset.days as number | null)
+                          }
+                          className={cn(
+                            "oh-focus-ring inline-flex items-center gap-2 px-4 py-2.5 text-left transition-opacity duration-150 ease-oh",
+                            isActive
+                              ? "opacity-100"
+                              : "opacity-65 hover:opacity-100",
+                          )}
+                        >
+                          <span
+                            aria-hidden
+                            className={cn(
+                              "inline-block size-2 shrink-0 rounded-full transition-[background-color,box-shadow] duration-150 ease-oh",
+                              isActive
+                                ? "bg-[color:var(--oh-ink)]"
+                                : "bg-transparent shadow-[inset_0_0_0_1.5px_var(--oh-line-default)]",
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "font-[family-name:var(--font-grotesk)] text-[13px] font-semibold leading-tight tracking-tight tabular-nums",
+                            )}
+                          >
+                            {label}
+                          </span>
+                        </button>
+                      </OhCard>
+                    );
+                  })}
+                </div>
               )}
             />
-          </div>
-
-          {limitEnabled ? (
-            <div className="mt-5">
-              <Controller<FormShape, "days">
-                name="days"
-                render={({ field, fieldState }) => {
-                  const numericValue =
-                    typeof field.value === "number" ? field.value : Number.NaN;
-                  return (
-                    <Field data-invalid={fieldState.invalid}>
-                      <label
-                        htmlFor={field.name}
-                        className="oh-eyebrow opacity-100"
-                      >
-                        {t("bookingWindowDaysLabel")}
-                      </label>
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          id={field.name}
-                          type="number"
-                          inputMode="numeric"
-                          min={HORIZON_MIN_DAYS}
-                          max={HORIZON_MAX_DAYS}
-                          value={
-                            Number.isFinite(numericValue) ? numericValue : ""
-                          }
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            field.onChange(
-                              raw === "" ? Number.NaN : Number(raw),
-                            );
-                          }}
-                          onBlur={field.onBlur}
-                          ref={field.ref}
-                          aria-invalid={fieldState.invalid}
-                          className="oh-focus-ring w-[100px] rounded-(--oh-r-sm) border border-oh-line bg-[color:var(--oh-paper)] px-3 py-2 font-[family-name:var(--oh-mono)] text-[14px] tabular-nums text-[color:var(--oh-ink)] outline-none transition-[border-color] duration-150 ease-oh focus:border-oh-line-strong"
-                        />
-                        <span className="oh-eyebrow opacity-55">
-                          {numericValue === 1
-                            ? t("bookingWindowDayUnit")
-                            : t("bookingWindowDaysUnit")}
-                        </span>
-                      </div>
-                      <FieldError
-                        errors={
-                          fieldState.error ? [fieldState.error] : undefined
-                        }
-                        className="oh-field-error"
-                      />
-                    </Field>
-                  );
-                }}
-              />
-            </div>
-          ) : null}
-
-          <InlineFormSave
-            isPending={isPending}
-            isDirty={isDirty}
-            labels={{
-              save: t("save"),
-              saving: t("saving"),
-              saved: t("saved"),
-            }}
-          />
-        </form>
-      </FormProvider>
-    </section>
+          </FieldGroup>
+        </FieldSet>
+        <InlineFormSave
+          isPending={isPending}
+          isDirty={isDirty}
+          isInvalid={isInvalid}
+          labels={{
+            save: t("saveLabel"),
+            saving: t("savingLabel"),
+            saved: t("savedLabel"),
+          }}
+        />
+      </form>
+    </FormProvider>
   );
 }
