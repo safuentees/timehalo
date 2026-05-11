@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -197,7 +198,7 @@ export default function HostProfile({
   }, []);
 
   const lastRescheduleUidRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       rescheduleFromUid &&
       rescheduleFromUid !== lastRescheduleUidRef.current &&
