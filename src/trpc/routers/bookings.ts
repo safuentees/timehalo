@@ -121,6 +121,10 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              // B.PT308 — booking-window horizon. Bounds the slot-
+              // validity check below so create rejects slots beyond
+              // the host's configured rolling window.
+              bookingHorizonDays: true,
               // Primary workspace — the oldest workspace the host
               // owns, mirrored onto the booking so reads can scope by
               // workspace without joining through User. Backfill +
@@ -1215,6 +1219,11 @@ export const bookings = router({
               handle: true,
               timezone: true,
               email: true,
+              // B.PT308 — same horizon check as bookings.create. A
+              // reschedule with a slot outside the host's current
+              // window rejects (e.g. host shrank their window after
+              // the original booking but before the reschedule).
+              bookingHorizonDays: true,
             },
           });
           if (!host || !host.handle) {
@@ -1252,7 +1261,7 @@ export const bookings = router({
           const upcoming = generateUpcomingSlots({
             ranges,
             from: new Date(),
-            days: 14,
+            days: host.bookingHorizonDays ?? 365,
             stepMinutes: SLOT_MINUTES,
             hostTimezone: host.timezone,
           });

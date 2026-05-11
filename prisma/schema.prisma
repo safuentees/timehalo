@@ -47,6 +47,22 @@ model User {
   // visibly snaps closed post-hydration for users who previously
   // dismissed it. Mirrors `onboardingDismissed` exactly.
   shareLinkDismissed    Boolean             @default(false)
+  // Booking-window horizon (B.PT308). How many ROLLING CALENDAR DAYS
+  // from today the visitor's day-strip on /h/<handle> spans. Null =
+  // unlimited (visitor sees as many days ahead as the procedure's
+  // hard cap allows). The visitor's `getUpcomingSlots` clamps its
+  // `days` arg by this value, and `bookings.create` validates that
+  // the picked slotStart is within the window.
+  // Cal.com's equivalent is `EventType.periodType` (4-state enum:
+  // UNLIMITED / ROLLING / ROLLING_WINDOW / RANGE) + `periodDays` +
+  // `periodCountCalendarDays` + start/end dates for RANGE. We
+  // collapse to a single nullable int because (a) a single-host
+  // surface rarely needs RANGE, (b) ROLLING_WINDOW (skip days the
+  // host is unavailable) is solved naturally by the availability-
+  // range generator skipping closed days, and (c) calendar-day
+  // counting matches the visitor's mental model "how many days in
+  // the future."
+  bookingHorizonDays    Int?
   availabilityRanges   AvailabilityRange[]
   accounts             Account[]
   sessions             Session[]

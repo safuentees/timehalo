@@ -67,6 +67,10 @@ export const users = router({
         // mount-time localStorage read hid it one frame later).
         // Server-readable means SSR renders correctly on first paint.
         shareLinkDismissed: true,
+        // B.PT308 — booking horizon. Null = unlimited; otherwise N
+        // rolling calendar days. /availability reads this to seed the
+        // booking-window section.
+        bookingHorizonDays: true,
       },
     });
     // B.PT158 — visitor-selectable duration list. Lives on the host's
@@ -142,6 +146,31 @@ export const users = router({
       await prisma.user.update({
         where: { id: ctx.user.id },
         data: { shareLinkDismissed: input.dismissed },
+      });
+      return { ok: true as const };
+    }),
+
+  // B.PT308 — booking-window horizon. Null = unlimited, otherwise the
+  // number of ROLLING CALENDAR DAYS from today the visitor's day-
+  // strip on /h/<handle> spans. The visitor's `schedule.getUpcoming
+  // Slots` clamps its day count by this value, so a host setting
+  // `bookingHorizonDays: 14` means the strip never shows more than
+  // 14 days of slots — visitors can pick a slot within 14 days but
+  // not later. Cal.com's equivalent is the `ROLLING` periodType +
+  // `periodDays`; we collapse to a single nullable int because
+  // single-host surfaces rarely need the `RANGE` / `ROLLING_WINDOW`
+  // variants. Validation: 1-365 days (matches the procedure's
+  // hard cap on `days` input) or null for unlimited.
+  setBookingHorizon: privateProcedure
+    .input(
+      z.object({
+        days: z.number().int().min(1).max(365).nullable(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { bookingHorizonDays: input.days },
       });
       return { ok: true as const };
     }),

@@ -595,6 +595,13 @@
     "pageTitle": "Horas",
     "weeklyLegend": "Disponibilidad semanal",
     "weeklyDescription": "Las horas en las que los visitantes pueden reservar en tu página pública.",
+    "bookingWindowLegend": "Ventana de reserva",
+    "bookingWindowDescription": "Con cuánta anticipación pueden reservar los visitantes. Desactivado significa sin límite — verán todos los espacios libres de tu agenda.",
+    "bookingWindowDaysLabel": "Dentro de",
+    "bookingWindowDayUnit": "día desde hoy",
+    "bookingWindowDaysUnit": "días desde hoy",
+    "saving": "Guardando…",
+    "saved": "Guardado",
     "saveLabel": "Guardar",
     "savingLabel": "Guardando…",
     "savedLabel": "Guardado"

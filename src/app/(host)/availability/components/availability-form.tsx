@@ -21,6 +21,7 @@ import {
   availabilitySchema,
   defaultAvailability,
 } from "./availability-fields";
+import { BookingHorizonFields } from "./booking-horizon-fields";
 
 // Single-purpose form: weekly availability windows. Persists via
 // `schedule.save`.
@@ -77,7 +78,7 @@ export default function AvailabilityForm() {
       <form noValidate>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col gap-12">
             <FieldGroup>
               <FieldSet>
                 <FieldLegend className="oh-legend opacity-100">
@@ -96,6 +97,13 @@ export default function AvailabilityForm() {
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
+            {/* B.PT308 — booking-window horizon. Self-contained
+                section with its own form + per-section Save,
+                matching the hub-page sub-section chrome from
+                `dashboard-forms.md`. Sits BELOW the weekly grid
+                because the weekly availability is the primary
+                config; the horizon is a refinement. */}
+            <BookingHorizonFields />
           </div>
         </OhPageShell>
       </form>

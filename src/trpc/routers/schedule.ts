@@ -100,7 +100,14 @@ export const schedule = router({
     .input(
       z.object({
         handle: z.string(),
-        days: z.number().int().min(1).max(14).default(7),
+        // B.PT308 — `days` is now an OPTIONAL upper-bound override.
+        // Default resolution: host's `bookingHorizonDays` if set,
+        // else 7 (legacy default). Hard ceiling raised to 365
+        // (Cal.com's hard cap on ROLLING is similar — they allow
+        // up to ~730 but most hosts stay <= 90). The visitor can
+        // request fewer days than the host's horizon (e.g. for
+        // prefetching the next 7 visually) but never more.
+        days: z.number().int().min(1).max(365).optional(),
         // B.PT277 — visitor's picked duration. Drives slot generation
         // (`start + duration ≤ range.end`) AND the range-overlap status
         // check below. Optional: when omitted we resolve the host's
@@ -112,9 +119,17 @@ export const schedule = router({
     .query(async ({ input }) => {
       const user = await prisma.user.findUnique({
         where: { handle: input.handle },
-        select: { id: true, timezone: true },
+        select: { id: true, timezone: true, bookingHorizonDays: true },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // B.PT308 — effective horizon: host's `bookingHorizonDays` if
+      // set, else 7-day legacy default. Visitor's `days` arg (if
+      // present) acts as a `min` clamp — they can ask for fewer
+      // days, never more.
+      const hostHorizon = user.bookingHorizonDays ?? 7;
+      const requested = input.days ?? hostHorizon;
+      const effectiveDays = Math.min(requested, hostHorizon);
 
       // B.PT277 — resolve the EventType so we can validate the picked
       // duration AND fall back to the host's default. Legacy hosts
@@ -153,7 +168,7 @@ export const schedule = router({
       const allSlots = generateUpcomingSlots({
         ranges,
         from: new Date(),
-        days: input.days,
+        days: effectiveDays,
         stepMinutes: 15,
         eventDurationMinutes: effectiveDurationMinutes,
         hostTimezone: user.timezone,
