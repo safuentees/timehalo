@@ -9,6 +9,7 @@ import {
   type WeekStart,
 } from "@/lib/calendar-grid/month-grid";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
+import { OhCard } from "@/components/oh/oh-card";
 import { MonthDayCell } from "./month-day-cell";
 
 export type MonthViewProps = {
@@ -76,13 +77,12 @@ export function MonthView({
     .toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
-    <div
+    <OhCard
       role="region"
       aria-label={`Month view for ${monthLabel}`}
       tabIndex={isCapped ? 0 : undefined}
       className={cn(
-        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
-        "shadow-[var(--oh-shadow-resting)]",
+        "flex flex-col overflow-hidden",
         isCapped && "overflow-y-auto",
         isFitParent && "min-h-0 flex-1",
       )}
@@ -103,7 +103,7 @@ export function MonthView({
       </div>
 
       <div
-        className="grid border-l border-oh-line"
+        className="grid [&>:nth-child(7n)]:border-r-0 [&>:nth-last-child(-n+7)]:border-b-0"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
       >
         {cells.map((cell) => (
@@ -121,6 +121,6 @@ export function MonthView({
           />
         ))}
       </div>
-    </div>
+    </OhCard>
   );
 }
