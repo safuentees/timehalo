@@ -618,29 +618,34 @@ export default function HostProfile({
       headerRef={visitorHeaderRef}
       header={
         <div className="flex w-full flex-col gap-3">
-          <div className="mx-auto flex w-full max-w-[760px] items-start justify-between gap-3 px-0">
-            {/* Left column: handle URL on top, owner-only back link
-                underneath. `items-start` on the parent so the status
-                indicator on the right stays vertically aligned with
-                the URL line (not the column's midpoint). */}
-            <div className="flex flex-col items-start gap-1.5">
-              <span className="oh-eyebrow tabular-nums opacity-100">
-                /h/{user.handle}
-              </span>
+          <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3 px-0">
+            {/* Left cluster: owner-only back-to-dashboard chevron + handle
+                URL. Back affordance is an icon-only ArrowLeft button
+                positioned as a breadcrumb prefix to `/h/<handle>` so the
+                row reads "← path" — the arrow leads, the path follows.
+                Owner-only (host viewing their own page); visitors never
+                see it. opacity-55 → 100 on hover keeps it quiet against
+                the URL's full-opacity eyebrow but discoverable on
+                approach. Title attribute surfaces the label on hover for
+                pointer users; aria-label covers screen readers. */}
+            <div className="flex items-center gap-2">
               {isOwner ? (
                 <Link
                   href="/bookings"
                   aria-label="Back to dashboard"
-                  className="oh-focus-ring relative z-[100] inline-flex items-center gap-1 rounded-(--oh-r-xs) -mx-1 px-1 text-[10px] font-semibold leading-[1.4] tabular-nums uppercase tracking-[2px] text-[color:var(--oh-content-muted)] !underline !underline-offset-4 !decoration-[1.5px] !decoration-[color:var(--oh-content-muted)] transition-[color,text-decoration-color] duration-150 ease-oh hover:text-[color:var(--oh-ink)] hover:!decoration-[color:var(--oh-ink)]"
+                  title="Back to dashboard"
+                  className="oh-focus-ring relative z-[100] inline-flex size-5 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] opacity-55 transition-[opacity,color] duration-150 ease-oh hover:opacity-100 hover:text-[color:var(--oh-ink)]"
                 >
                   <ArrowLeft
                     aria-hidden
-                    strokeWidth={2}
-                    className="size-3 no-underline"
+                    strokeWidth={2.25}
+                    className="size-3.5"
                   />
-                  Back to dashboard
                 </Link>
               ) : null}
+              <span className="oh-eyebrow tabular-nums opacity-100">
+                /h/{user.handle}
+              </span>
             </div>
             <div className="flex items-center gap-2" role="status">
               <span
