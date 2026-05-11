@@ -45,9 +45,6 @@ export default async function HostPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
-  if (handle === "n10-smoke-handle") {
-    throw new Error("N10 smoke — verify error.tsx + Sentry capture");
-  }
   const trpc = await createPublicSSRHelper();
   const renderedAt = new Date().toISOString();
   let user;
