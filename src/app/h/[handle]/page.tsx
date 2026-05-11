@@ -53,6 +53,13 @@ export default async function HostPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
+  // N10 SMOKE: deliberate throw on a specific test handle to verify
+  // error.tsx renders + Sentry receives the event. Scoped to a
+  // single handle (`n10-smoke-handle`) so live visitor traffic is
+  // unaffected. REVERT IMMEDIATELY after capture.
+  if (handle === "n10-smoke-handle") {
+    throw new Error("N10 smoke — verify error.tsx + Sentry capture");
+  }
   const trpc = await createPublicSSRHelper();
   const renderedAt = new Date().toISOString();
   let user;
