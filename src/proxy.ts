@@ -109,7 +109,8 @@ export const proxy = auth((req) => {
 
   // Public routes — accessible without auth
   const isPublic =
-    ["/login", "/register"].includes(pathname) ||
+    ["/", "/login", "/register"].includes(pathname) ||
+    pathname.startsWith("/legal/") ||
     isHostPage ||
     isInvitationLink ||
     isEmbed ||
