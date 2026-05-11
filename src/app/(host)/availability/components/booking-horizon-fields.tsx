@@ -108,13 +108,16 @@ export function BookingHorizonFields() {
                   aria-labelledby="booking-window-legend"
                   // Grid splits the container into equal-width
                   // columns so each chip occupies the same horizontal
-                  // slot regardless of label length. 3 cols on
-                  // mobile (~400px → ~125px per chip, plenty for
-                  // "Unlimited" / "30 days"), 6 cols at sm+ where the
-                  // container has room for a single row. Grid items
-                  // default to `align-items: stretch` so chip heights
-                  // also stay uniform.
-                  className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6"
+                  // slot regardless of label length. 2 cols on
+                  // mobile — earlier 3-col layout squeezed
+                  // "Unlimited" past the chip width (~107px chip on
+                  // 400px viewport, label needs ~70px after dot +
+                  // padding). 2 cols gives ~165px per chip, every
+                  // label fits with breathing room. 6 cols at sm+
+                  // where the container has room for one row. Grid
+                  // items default to `align-items: stretch` so chip
+                  // heights stay uniform.
+                  className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6"
                 >
                   {PRESETS.map((preset) => {
                     const isActive = field.value === preset.days;
@@ -139,7 +142,14 @@ export function BookingHorizonFields() {
                             field.onChange(preset.days as number | null)
                           }
                           className={cn(
-                            "oh-focus-ring flex w-full items-center justify-center gap-2 px-4 py-2.5 transition-opacity duration-150 ease-oh",
+                            // `min-w-0` lets the inner label
+                            // `truncate` actually kick in if a future
+                            // viewport / locale ever produces a chip
+                            // narrower than its label (e.g. a long
+                            // translation). Without `min-w-0` on the
+                            // flex container, the label's intrinsic
+                            // width forces the button to overflow.
+                            "oh-focus-ring flex w-full min-w-0 items-center justify-center gap-2 px-4 py-2.5 transition-opacity duration-150 ease-oh",
                             // De-emphasize unselected chips so the
                             // active one reads as the obvious "this is
                             // it" without competing weight from the
@@ -166,7 +176,7 @@ export function BookingHorizonFields() {
                           />
                           <span
                             className={cn(
-                              "font-[family-name:var(--font-grotesk)] text-[13px] font-semibold leading-tight tracking-tight tabular-nums",
+                              "truncate font-[family-name:var(--font-grotesk)] text-[13px] font-semibold leading-tight tracking-tight tabular-nums",
                             )}
                           >
                             {label}
