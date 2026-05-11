@@ -52,7 +52,7 @@ export default function AvailabilityForm() {
 
   return (
     <FormProvider {...form}>
-      <form noValidate>
+      <div>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8 flex flex-col gap-12">
@@ -77,7 +77,7 @@ export default function AvailabilityForm() {
             <BookingHorizonFields />
           </div>
         </OhPageShell>
-      </form>
+      </div>
     </FormProvider>
   );
 }
