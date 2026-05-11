@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
-import { ArrowRight, CalendarIcon, CalendarClockIcon, XIcon } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarIcon,
+  CalendarClockIcon,
+  Loader2,
+  XIcon,
+} from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
@@ -44,6 +50,16 @@ export function BookingReceiptContent({
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied">(
     "idle",
   );
+  // B.PT307b — pending state for the reschedule navigation. Mirrors
+  // the HandleModal reschedule mutation's loader pattern: confirm
+  // click swaps the ArrowRight icon for a spinning Loader2, and the
+  // X / confirm buttons disable so a second click while the route is
+  // resolving doesn't fire a duplicate navigation. `useTransition`
+  // is the canonical React 19 mechanism for "navigation in flight"
+  // state — `router.push` inside `startTransition` flips `isPending`
+  // until the destination RSC payload commits, then back to false.
+  const [isRescheduleNavPending, startRescheduleNavTransition] =
+    useTransition();
 
   const hostName =
     booking.host.name ?? booking.host.handle ?? t("fallbackHostName");
@@ -301,9 +317,18 @@ export function BookingReceiptContent({
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5">
+                        {/* B.PT307b — Cancel + Confirm both disable
+                            while the reschedule navigation is in
+                            flight. `<Popover.Close>` honors the
+                            `disabled` prop (Base UI's `useButton`
+                            semantics) — disabled buttons don't fire
+                            their click handler and don't close the
+                            popover, so a second click can't kick off
+                            a duplicate navigation under the loader. */}
                         <Popover.Close
                           aria-label={t("rescheduleConfirmCancel")}
-                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100"
+                          disabled={isRescheduleNavPending}
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
                         >
                           <XIcon
                             strokeWidth={2.25}
@@ -313,18 +338,41 @@ export function BookingReceiptContent({
                         </Popover.Close>
                         <Popover.Close
                           aria-label={t("rescheduleConfirmCta")}
-                          onClick={() => {
-                            router.push(
-                              `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
-                            );
+                          disabled={isRescheduleNavPending}
+                          onClick={(e) => {
+                            // Suppress the default Popover.Close
+                            // dismissal while the navigation is
+                            // pending — we want the loader to stay
+                            // visible until the destination route
+                            // commits. (Base UI fires onClick first,
+                            // then auto-dismisses; preventDefault
+                            // here is a no-op for the dismissal but
+                            // belt-and-suspenders.)
+                            if (isRescheduleNavPending) {
+                              e.preventDefault();
+                              return;
+                            }
+                            startRescheduleNavTransition(() => {
+                              router.push(
+                                `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                              );
+                            });
                           }}
-                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)] transition-opacity hover:opacity-85"
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)] transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:hover:opacity-100"
                         >
-                          <ArrowRight
-                            strokeWidth={2.25}
-                            aria-hidden
-                            className="size-3.5"
-                          />
+                          {isRescheduleNavPending ? (
+                            <Loader2
+                              strokeWidth={2.25}
+                              aria-hidden
+                              className="size-3.5 animate-spin"
+                            />
+                          ) : (
+                            <ArrowRight
+                              strokeWidth={2.25}
+                              aria-hidden
+                              className="size-3.5"
+                            />
+                          )}
                         </Popover.Close>
                       </div>
                     </Popover.Popup>
