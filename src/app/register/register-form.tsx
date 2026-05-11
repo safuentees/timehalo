@@ -10,6 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GithubMark } from "@/components/oh/github-mark";
 import {
   InputGroup,
   InputGroupAddon,
@@ -263,11 +264,7 @@ export function RegisterForm() {
               disabled={isBusy}
               className="w-full justify-center gap-2 bg-[color:var(--oh-paper)]! text-[color:var(--oh-ink)]! hover:bg-[color:var(--oh-paper)]! hover:text-[color:var(--oh-ink)]!"
             >
-              <img
-                src="/icons/github.svg"
-                alt=""
-                className="size-4 dark:invert"
-              />
+              <GithubMark />
               {t("continueWithGithub")}
             </Button>
           </div>

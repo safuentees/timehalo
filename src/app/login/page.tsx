@@ -4,6 +4,7 @@ import { signIn } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { OhAuthShell } from "@/components/oh/oh-auth-shell";
+import { GithubMark } from "@/components/oh/github-mark";
 import CredentialsForm from "./credentials-form";
 
 export const metadata: Metadata = {
@@ -73,11 +74,7 @@ export default async function LoginPage({
             size="oh"
             className="w-full justify-center gap-2 bg-[color:var(--oh-paper)]! text-[color:var(--oh-ink)]! hover:bg-[color:var(--oh-paper)]! hover:text-[color:var(--oh-ink)]!"
           >
-            <img
-              src="/icons/github.svg"
-              alt=""
-              className="size-4 dark:invert"
-            />
+            <GithubMark />
             {t("continueWithGithub")}
           </Button>
         </form>
