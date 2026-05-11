@@ -78,7 +78,7 @@ export function BookingHorizonFields() {
                 <div
                   role="radiogroup"
                   aria-labelledby="booking-window-legend"
-                  className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6"
+                  className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6"
                 >
                   {PRESETS.map((preset) => {
                     const isActive = field.value === preset.days;
@@ -103,7 +103,7 @@ export function BookingHorizonFields() {
                             field.onChange(preset.days as number | null)
                           }
                           className={cn(
-                            "oh-focus-ring flex w-full items-center justify-center gap-2 px-4 py-2.5 transition-opacity duration-150 ease-oh",
+                            "oh-focus-ring flex w-full min-w-0 items-center justify-center gap-2 px-4 py-2.5 transition-opacity duration-150 ease-oh",
                             isActive
                               ? "opacity-100"
                               : "opacity-65 hover:opacity-100",
@@ -120,7 +120,7 @@ export function BookingHorizonFields() {
                           />
                           <span
                             className={cn(
-                              "font-[family-name:var(--font-grotesk)] text-[13px] font-semibold leading-tight tracking-tight tabular-nums",
+                              "truncate font-[family-name:var(--font-grotesk)] text-[13px] font-semibold leading-tight tracking-tight tabular-nums",
                             )}
                           >
                             {label}
