@@ -70,12 +70,21 @@ export default function AvailabilityForm() {
 
   return (
     <FormProvider {...form}>
-      {/* Form element kept for the FormProvider context (RHF needs it
-          for register/setValue) but no `onSubmit` — saves now happen
-          via the drawer's `<AvailabilityFields onPersist={...}>`
-          callback. The `noValidate` prevents the browser's native
-          submit on Enter from firing a blank submit. */}
-      <form noValidate>
+      {/* B.PT308b — was a `<form noValidate>` wrapping everything for
+          FormProvider context. HTML forbids nesting forms (MDN
+          `<form>` content model, React 19 hydration check), and
+          `<BookingHorizonFields>` mounts its own `<form>` for its
+          per-section Save flow. RHF's FormProvider doesn't need a
+          form element — it provides context via React context, so
+          a plain `<div>` is enough. Per RHF docs
+          (`react-hook-form.com/docs/useformcontext`): "FormProvider
+          will provide the form context to your nested components"
+          — no DOM requirement. The drawer-driven save flow
+          (B.PT300) means this outer wrapper never owned an
+          onSubmit anyway; removing the form element changes
+          nothing functionally, only resolves the nested-form
+          hydration error. */}
+      <div>
         <OhPageShell>
           <OhPageHeader title={t("pageTitle")} />
           <div className="mt-8 flex flex-col gap-12">
@@ -106,7 +115,7 @@ export default function AvailabilityForm() {
             <BookingHorizonFields />
           </div>
         </OhPageShell>
-      </form>
+      </div>
     </FormProvider>
   );
 }
