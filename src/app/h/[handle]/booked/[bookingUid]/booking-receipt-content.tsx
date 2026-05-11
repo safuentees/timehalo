@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
-import { ArrowRight, CalendarIcon, CalendarClockIcon, XIcon } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarIcon,
+  CalendarClockIcon,
+  Loader2,
+  XIcon,
+} from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { BOOKING_SUBMIT_BUTTON_CLASS } from "@/components/calendar/booking-form";
@@ -22,6 +28,8 @@ export function BookingReceiptContent({
   const [shareState, setShareState] = useState<"idle" | "shared" | "copied">(
     "idle",
   );
+  const [isRescheduleNavPending, startRescheduleNavTransition] =
+    useTransition();
 
   const hostName =
     booking.host.name ?? booking.host.handle ?? t("fallbackHostName");
@@ -172,7 +180,8 @@ export function BookingReceiptContent({
                       <div className="flex shrink-0 items-center gap-1.5">
                         <Popover.Close
                           aria-label={t("rescheduleConfirmCancel")}
-                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100"
+                          disabled={isRescheduleNavPending}
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) opacity-55 transition-[opacity,background-color] hover:bg-[color:var(--oh-tint-hover)] hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
                         >
                           <XIcon
                             strokeWidth={2.25}
@@ -182,18 +191,33 @@ export function BookingReceiptContent({
                         </Popover.Close>
                         <Popover.Close
                           aria-label={t("rescheduleConfirmCta")}
-                          onClick={() => {
-                            router.push(
-                              `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
-                            );
+                          disabled={isRescheduleNavPending}
+                          onClick={(e) => {
+                            if (isRescheduleNavPending) {
+                              e.preventDefault();
+                              return;
+                            }
+                            startRescheduleNavTransition(() => {
+                              router.push(
+                                `/h/${booking.host.handle}?reschedule=${booking.publicUid}`,
+                              );
+                            });
                           }}
-                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)] transition-opacity hover:opacity-85"
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-(--oh-r-xs) bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)] transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:hover:opacity-100"
                         >
-                          <ArrowRight
-                            strokeWidth={2.25}
-                            aria-hidden
-                            className="size-3.5"
-                          />
+                          {isRescheduleNavPending ? (
+                            <Loader2
+                              strokeWidth={2.25}
+                              aria-hidden
+                              className="size-3.5 animate-spin"
+                            />
+                          ) : (
+                            <ArrowRight
+                              strokeWidth={2.25}
+                              aria-hidden
+                              className="size-3.5"
+                            />
+                          )}
                         </Popover.Close>
                       </div>
                     </Popover.Popup>
