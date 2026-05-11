@@ -1217,6 +1217,11 @@ export default function HostProfile({
                 // affordances in the header stay clickable while the
                 // picker is open.
                 extraShards={[visitorHeaderRef]}
+                // B.PT308 — host's configured rolling window. Day-
+                // strip uses this to render exactly enough cells to
+                // cover the window (was hardcoded 63, clipping
+                // anything > 9 weeks).
+                bookingHorizonDays={user.bookingHorizonDays}
                 onOpenChange={(next) => {
                   // B.PT306b — dismissing the picker (X / Escape /
                   // click-outside / chrome back) while in reschedule

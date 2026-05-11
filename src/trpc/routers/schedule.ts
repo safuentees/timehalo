@@ -124,10 +124,15 @@ export const schedule = router({
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
       // B.PT308 — effective horizon: host's `bookingHorizonDays` if
-      // set, else 7-day legacy default. Visitor's `days` arg (if
-      // present) acts as a `min` clamp — they can ask for fewer
-      // days, never more.
-      const hostHorizon = user.bookingHorizonDays ?? 7;
+      // set, else 91 days (13 weeks, the "unlimited" interpretation
+      // for the visitor surface — long enough that "no cap" feels
+      // genuinely uncapped, short enough that slot generation stays
+      // bounded in memory). Was 7 originally, which was the legacy
+      // pre-feature default; that conflated "unlimited" with "one
+      // week" and broke the visitor surface for hosts who'd never
+      // configured the new field. Visitor's `days` arg (if present)
+      // acts as a clamp — they can ask for fewer days, never more.
+      const hostHorizon = user.bookingHorizonDays ?? 91;
       const requested = input.days ?? hostHorizon;
       const effectiveDays = Math.min(requested, hostHorizon);
 

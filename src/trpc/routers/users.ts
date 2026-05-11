@@ -217,6 +217,12 @@ export const users = router({
           image: true,
           timezone: true,
           bio: true,
+          // B.PT308 — visitor needs the horizon so the day-strip
+          // renders exactly enough cells to cover the host's
+          // configured window. Procedure-side getUpcomingSlots
+          // ALREADY clamps slot generation by this value; exposing
+          // it here gives the client the matching cell count.
+          bookingHorizonDays: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });

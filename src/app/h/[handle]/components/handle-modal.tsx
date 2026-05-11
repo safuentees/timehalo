@@ -126,6 +126,12 @@ type Props = {
    *  out-of-tree chrome (visitor header banner / Back-to-dashboard)
    *  that must remain clickable when the picker is open. */
   extraShards?: ReadonlyArray<RefObject<HTMLElement | null>>;
+  /** B.PT308 — visitor-facing rolling-window cell count for the
+   *  day-strip. Mirrors `User.bookingHorizonDays` (null = unlimited);
+   *  the strip's `spanDays` prop adapts so the cell count matches the
+   *  actual slot horizon. Without this the strip defaulted to 63 cells
+   *  and clipped windows > 63 days. */
+  bookingHorizonDays?: number | null;
 };
 
 export function HandleModal({
@@ -144,6 +150,7 @@ export function HandleModal({
   durationLabel,
   durationMinutes,
   extraShards,
+  bookingHorizonDays,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const tHost = useTranslations("HostProfile");
@@ -837,6 +844,12 @@ export function HandleModal({
               slots={slots}
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
+              // B.PT308 — render exactly `bookingHorizonDays` cells
+              // (plus a buffer to align to the next Monday). Null =
+              // unlimited → 91-day default matches the procedure's
+              // null fallback so the strip and the slot list cover
+              // the same range.
+              spanDays={resolveStripSpan(bookingHorizonDays)}
             />
             {selectedDate ? (
               <DaySlots
@@ -1026,4 +1039,23 @@ function isSameCalendarDay(left: Date, right: Date): boolean {
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
   );
+}
+
+// B.PT308 — convert the host's `bookingHorizonDays` to the day-strip's
+// `spanDays` cell count. The strip anchors to Monday of the current
+// week, so to cover N rolling days from today we need:
+//   weekdayOffset + N cells (round up to the next full week)
+// Conservatively add a one-week buffer so the last day is mid-week
+// instead of at the trailing edge. Null = unlimited → 91 days (13
+// weeks), matching `schedule.getUpcomingSlots`'s null fallback.
+function resolveStripSpan(horizonDays: number | null | undefined): number {
+  const horizon = horizonDays ?? 91;
+  const today = new Date();
+  // JS getDay: 0=Sun..6=Sat. Convert to Monday-week index 0..6.
+  const todayMondayIdx = (today.getDay() + 6) % 7;
+  // Cells needed = (offset to reach today) + (horizon days) +
+  // (round-up to next week). Cap at 365 for memory bounds.
+  const raw = todayMondayIdx + horizon;
+  const roundedToWeek = Math.ceil(raw / 7) * 7;
+  return Math.min(roundedToWeek, 365);
 }
