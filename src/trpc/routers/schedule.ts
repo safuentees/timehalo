@@ -102,7 +102,7 @@ export const schedule = router({
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const hostHorizon = user.bookingHorizonDays ?? 7;
+      const hostHorizon = user.bookingHorizonDays ?? 91;
       const requested = input.days ?? hostHorizon;
       const effectiveDays = Math.min(requested, hostHorizon);
 

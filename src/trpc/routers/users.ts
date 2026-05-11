@@ -139,6 +139,7 @@ export const users = router({
           image: true,
           timezone: true,
           bio: true,
+          bookingHorizonDays: true,
         },
       });
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });

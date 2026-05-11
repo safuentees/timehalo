@@ -617,6 +617,7 @@ export default function HostProfile({
                 slots={slots}
                 open
                 extraShards={[visitorHeaderRef]}
+                bookingHorizonDays={user.bookingHorizonDays}
                 onOpenChange={(next) => {
                   if (!next && rescheduleFromUid) {
                     router.push(

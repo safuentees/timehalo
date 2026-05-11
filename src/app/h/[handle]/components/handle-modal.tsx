@@ -66,6 +66,7 @@ type Props = {
   durationLabel?: string;
   durationMinutes?: number;
   extraShards?: ReadonlyArray<RefObject<HTMLElement | null>>;
+  bookingHorizonDays?: number | null;
 };
 
 export function HandleModal({
@@ -84,6 +85,7 @@ export function HandleModal({
   durationLabel,
   durationMinutes,
   extraShards,
+  bookingHorizonDays,
 }: Props) {
   const t = useTranslations("BookingCalendar");
   const tHost = useTranslations("HostProfile");
@@ -582,6 +584,7 @@ export function HandleModal({
               slots={slots}
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
+              spanDays={resolveStripSpan(bookingHorizonDays)}
             />
             {selectedDate ? (
               <DaySlots
@@ -699,4 +702,13 @@ function isSameCalendarDay(left: Date, right: Date): boolean {
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
   );
+}
+
+function resolveStripSpan(horizonDays: number | null | undefined): number {
+  const horizon = horizonDays ?? 91;
+  const today = new Date();
+  const todayMondayIdx = (today.getDay() + 6) % 7;
+  const raw = todayMondayIdx + horizon;
+  const roundedToWeek = Math.ceil(raw / 7) * 7;
+  return Math.min(roundedToWeek, 365);
 }
