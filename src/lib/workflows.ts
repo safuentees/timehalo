@@ -233,6 +233,7 @@ function buildTemplateProps(
     case "account-deleted":
     case "workspace-invite":
     case "magic-link-signin":
+    case "register-otp":
       return null;
   }
 }
