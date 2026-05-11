@@ -167,10 +167,13 @@ export const bookings = router({
             });
           }
 
-          // Reuse the same generator the public page uses so the
-          // server's definition of "available" is identical to the
-          // client's. Scanning 14 days forward covers any slot the
-          // visitor could plausibly have been shown.
+          // B.PT308 — reuse the same generator the public page uses
+          // so the server's definition of "available" is identical
+          // to the client's. The window mirrors the host's configured
+          // `bookingHorizonDays`; null = unlimited, capped at 365 to
+          // keep the in-memory iteration bounded. Previously
+          // hardcoded `days: 14`, which rejected legitimate picks
+          // made deep into a > 14-day window.
           const ranges = await prisma.availabilityRange.findMany({
             where: { userId: host.id },
             select: { dayOfWeek: true, startTime: true, endTime: true },
@@ -179,7 +182,7 @@ export const bookings = router({
           const upcoming = generateUpcomingSlots({
             ranges,
             from: new Date(),
-            days: 14,
+            days: host.bookingHorizonDays ?? 365,
             stepMinutes: SLOT_MINUTES,
             hostTimezone: host.timezone,
           });
