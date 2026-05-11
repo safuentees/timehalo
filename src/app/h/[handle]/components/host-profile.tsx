@@ -605,13 +605,17 @@ export default function HostProfile({
   return (
     <OhVisitorShell
       className="[--oh-ink:#0a0a0a] [--oh-paper:#eee7d5] dark:[--oh-ink:#ede4cf] dark:[--oh-paper:#1a1a1a]"
-      // B.PT306d — restore the stacked in-header layout from 32ad88
-      // (URL row + reschedule banner row inside the same sticky
-      // chrome region). To keep Cancel clickable while the picker
-      // modal (z-50) is open, raise the header wrapper's z-index to
-      // 60 ONLY when reschedule mode is active. Default header z-10
-      // preserved for the normal flow.
-      headerClassName={rescheduleFromUid ? "z-[60]" : undefined}
+      // B.PT306d / B.PT307e — visitor header always sits at z-60
+      // above the picker modal (z-50). Used to be conditional on
+      // reschedule mode, but the user wanted consistent behavior
+      // across the regular scheduling flow too: the URL row + Back
+      // to dashboard stay interactive while the picker is open,
+      // matching the reschedule-mode UX. Picker's outer wrapper
+      // adds matching top padding so its own chrome stays below
+      // the header — see HandleModal `rescheduleFromUid` branch
+      // for the size split (normal flow uses a shorter padding
+      // since the header has 1 row vs 2 in reschedule).
+      headerClassName="z-[60]"
       // B.PT306e — pass the header ref through to the picker modal
       // via shards so react-focus-on doesn't make the header inert
       // while the modal's focus trap is active.

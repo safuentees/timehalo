@@ -966,25 +966,25 @@ export function HandleModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={currentTitleId}
-        // B.PT307d — in reschedule mode the visitor header sits at
-        // z-60 above this modal (z-50) so its Cancel + back-to-
-        // dashboard affordances stay clickable. Without compensating,
-        // the modal's own top chrome (back chevron / duration title /
-        // X close) is occluded behind the header on mobile — most
-        // visible in month view where the card fills viewport height.
-        // Adding top padding equal to the 2-row visitor header's
-        // nominal height (~96px mobile / ~112px sm+ — see
-        // OhVisitorHeader's `py-4 sm:py-5` + two `oh-eyebrow` rows
-        // separated by `border-t` + `pt-3`) pushes the modal's flex-
-        // centered card down so its chrome row sits below the header,
-        // not behind it. Both layers stay interactive: header above,
-        // card below, no z-fighting, no occlusion. Normal flow (no
-        // reschedule) keeps the original `p-4 sm:p-8` since the
-        // header is at z-10 there and the modal covers it cleanly.
+        // B.PT307d / B.PT307e — visitor header always sits at z-60
+        // above this modal (z-50) so its affordances (URL link,
+        // back-to-dashboard chevron, reschedule banner Cancel) stay
+        // clickable while the picker is open. Without matching top
+        // padding here, the modal's own chrome row (back chevron +
+        // duration title + X close) would sit behind the header on
+        // mobile — most visible in month view where the card fills
+        // viewport height. Two padding sizes:
+        //   - normal flow (1-row header): ~64 px mobile / ~76 px sm+
+        //     to clear `py-4 sm:py-5` + a single `oh-eyebrow` row
+        //   - reschedule mode (2-row header — URL + banner with
+        //     `border-t` + `pt-3` + second `oh-eyebrow` row): ~96 px
+        //     mobile / ~112 px sm+
+        // Both layers stay interactive at no overlap: header above,
+        // modal card below, no z-fighting.
         className={
           rescheduleFromUid
             ? "fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28"
-            : "fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+            : "fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-16 sm:px-8 sm:pb-8 sm:pt-20"
         }
       >
         <AnimatePresence mode="popLayout" initial={false}>

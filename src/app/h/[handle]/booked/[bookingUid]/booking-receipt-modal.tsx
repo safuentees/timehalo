@@ -84,7 +84,11 @@ export function BookingReceiptModal({
       className="contents"
     >
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+        // B.PT307e — match the picker modal's top-padding offset so the
+        // receipt's own chrome row (X close at top-right) doesn't sit
+        // behind the visitor header (z-60) on mobile. Mirrors the
+        // `pt-16 sm:pt-20` used in HandleModal for the normal flow.
+        className="fixed inset-0 z-50 flex items-center justify-center px-4 pb-4 pt-16 sm:px-8 sm:pb-8 sm:pt-20"
         role="dialog"
         aria-modal="true"
         aria-label={t("badgeBooked")}
