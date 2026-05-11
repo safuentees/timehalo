@@ -9,6 +9,7 @@ import {
   type WeekStart,
 } from "@/lib/calendar-grid/month-grid";
 import type { CalendarEvent } from "@/lib/calendar-grid/types";
+import { OhCard } from "@/components/oh/oh-card";
 import { MonthDayCell } from "./month-day-cell";
 
 // Month view — 7-column × 5-or-6-row grid of day cells.
@@ -110,20 +111,29 @@ export function MonthView({
     .toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
-    <div
+    <OhCard
       role="region"
       aria-label={`Month view for ${monthLabel}`}
       // tabIndex=0 makes the scrollable region keyboard-accessible
       // (B.PT149, axe rule scrollable-region-focusable).
       tabIndex={isCapped ? 0 : undefined}
+      // B.PT308 — switched manual `rounded + shadow-resting` string
+      // to <OhCard>, the project's depth-chrome primitive. Same
+      // visual result, single source of truth across workspaces /
+      // event-types / booking-horizon chips / now the month grid.
+      // Inner grid hairlines (the 7-col weekday header, day-cell
+      // borders, week separators) are STRUCTURAL — they communicate
+      // "month grid" not "card edge" — kept verbatim EXCEPT the
+      // ones that touch the wall:
+      //   • Day grid's `border-l` (was redundant with card's left edge)
+      //   • Rightmost column's `border-r` on every 7th cell
+      //   • Bottom row's `border-b` on the last 7 cells
+      // Suppressed via grid-level `[&>:nth-child(7n)]:border-r-0` +
+      // `[&>:nth-last-child(-n+7)]:border-b-0` arbitrary selectors,
+      // so the card's rounded edge owns the outer bounds without
+      // visible hairlines bumping into the corner radius.
       className={cn(
-        // B.PT290 — outer border replaced with drop shadow (canonical
-        // `0 3px 12px rgba(0,0,0,0.22)`); inner grid hairlines (the
-        // 7-col weekday header, day-cell borders, week separators)
-        // are STRUCTURAL — they communicate "month grid" not "card
-        // edge" — kept verbatim.
-        "flex flex-col rounded-(--oh-r-sm) bg-[color:var(--oh-paper)]",
-        "shadow-[var(--oh-shadow-resting)]",
+        "flex flex-col overflow-hidden",
         isCapped && "overflow-y-auto",
         isFitParent && "min-h-0 flex-1",
       )}
@@ -144,9 +154,13 @@ export function MonthView({
         ))}
       </div>
 
-      {/* Day grid — borders on cells (right + bottom). */}
+      {/* Day grid — inner hairlines only. The 4 wall-touching edges
+          (left, right, bottom; top is owned by the weekday-header
+          border-b above) are suppressed via the nth-child + nth-last-
+          child selectors on this grid so the card's rounded outline
+          marks the bounds cleanly. */}
       <div
-        className="grid border-l border-oh-line"
+        className="grid [&>:nth-child(7n)]:border-r-0 [&>:nth-last-child(-n+7)]:border-b-0"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
       >
         {cells.map((cell) => (
@@ -164,6 +178,6 @@ export function MonthView({
           />
         ))}
       </div>
-    </div>
+    </OhCard>
   );
 }
