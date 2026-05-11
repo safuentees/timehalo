@@ -294,7 +294,7 @@ export default function HostProfile({
                   href="/bookings"
                   aria-label="Back to dashboard"
                   title="Back to dashboard"
-                  className="oh-focus-ring relative z-[100] inline-flex size-5 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-content-muted)] opacity-55 transition-[opacity,color] duration-150 ease-oh hover:opacity-100 hover:text-[color:var(--oh-ink)]"
+                  className="oh-focus-ring relative z-[100] inline-flex size-5 shrink-0 items-center justify-center rounded-(--oh-r-xs) text-[color:var(--oh-ink)] opacity-55 transition-opacity duration-150 ease-oh hover:opacity-100"
                 >
                   <ArrowLeft
                     aria-hidden
