@@ -83,17 +83,27 @@ export function BookingsList({
 }: {
   activeTab: Tab;
   activeView: ViewMode;
-  cursorDate: Date;
+  // `YYYY-MM-DD` string — NOT a `Date`. Server-passed `Date` props
+  // cross the RSC boundary as a UTC-anchored timestamp; reading
+  // `getDate()` on the client side of a TZ west of UTC lands on the
+  // previous calendar day, decrementing the cursor on every URL
+  // round-trip. Strings are TZ-free calendar keys.
+  cursorDate: string;
 }) {
   const t = useTranslations("Bookings");
   const isMobile = useIsMobile();
   const effectiveView: ViewMode =
     isMobile && activeView === "month" ? "list" : activeView;
 
+  const cursorDateObj = useMemo(
+    () => parseColumnDate(cursorDate),
+    [cursorDate],
+  );
+
   const [isPending, startTransition] = useTransition();
   const [optimisticView, setOptimisticView] = useOptimistic(effectiveView);
   const [optimisticTab, setOptimisticTab] = useOptimistic(activeTab);
-  const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDate);
+  const [optimisticCursor, setOptimisticCursor] = useOptimistic(cursorDateObj);
   const router = useRouter();
   const { data, isError, error } = trpc.bookings.listForHost.useQuery(
     undefined,
