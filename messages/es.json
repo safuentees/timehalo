@@ -551,6 +551,7 @@
     "submitCreateAccountRedirecting": "Redirigiendo…",
     "submitCreateAccountContinue": "Continuar",
     "submitCreateAccountSending": "Enviando código…",
+    "registerTermsAcceptance": "Al crear una cuenta, aceptas nuestros <terms>Términos del servicio</terms> y la <privacy>Política de privacidad</privacy>.",
     "submitVerifyOtpPending": "Verificando…",
     "verifyOtpHeading": "Verifica tu correo",
     "verifyOtpDescription": "Introduce el código de 6 dígitos enviado a <bold>{email}</bold>",

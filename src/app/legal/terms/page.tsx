@@ -27,11 +27,11 @@ export default function TermsPage() {
       <ul className="oh-description ml-6 list-disc">
         <li>You are responsible for activity under your account.</li>
         <li>
-          Don't use Officehours to send spam, harass, or harvest
+          Don&apos;t use Officehours to send spam, harass, or harvest
           contact information.
         </li>
         <li>
-          Don't attempt to bypass rate limits, the booking idempotency
+          Don&apos;t attempt to bypass rate limits, the booking idempotency
           check, or any access control.
         </li>
       </ul>
@@ -45,7 +45,7 @@ export default function TermsPage() {
 
       <h2 className="mt-8 text-xl font-bold">Liability</h2>
       <p className="oh-description">
-        Officehours is provided "as is" without warranty. We are not
+        Officehours is provided &ldquo;as is&rdquo; without warranty. We are not
         liable for missed bookings, calendar sync delays, or
         third-party service outages (Stripe, Resend, calendar
         providers). Maximum liability for any claim is capped at

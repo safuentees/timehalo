@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         <li>
           <strong>Payments:</strong> Stripe processes paid plan
           subscriptions. We never store card data ourselves; Stripe
-          tokens stay on Stripe's PCI-compliant infrastructure.
+          tokens stay on Stripe&apos;s PCI-compliant infrastructure.
         </li>
         <li>
           <strong>Error monitoring:</strong> Sentry receives stack
@@ -78,12 +78,12 @@ export default function PrivacyPage() {
         <li>
           <strong>Export.</strong> Download a JSON dump of every
           row tied to your account at <code>/settings/danger</code>
-          → "Download as JSON".
+          → &ldquo;Download as JSON&rdquo;.
         </li>
         <li>
           <strong>Deletion.</strong> Permanently delete your
-          account at <code>/settings/danger</code> → "Delete
-          account". The User row + cascading rows are removed
+          account at <code>/settings/danger</code> → &ldquo;Delete
+          account&rdquo;. The User row + cascading rows are removed
           immediately. Audit log entries (operationId only, no
           PII) are retained per our soft-delete + audit-survives
           policy.

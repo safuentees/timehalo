@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   type ComponentProps,
   type ReactElement,
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 
 const MOBILE_QUERY = "(max-width: 767px)";
@@ -149,13 +149,11 @@ export function ResponsiveModalContent({
 }: ContentProps) {
   const { isMobile, setMobilePortalContainer, setDesktopPortalContainer } =
     useResponsiveModal();
-  const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    setModalHost(
-      document.querySelector<HTMLElement>('[data-oh-modal-host="true"]'),
-    );
-  }, []);
+  const mounted = useMounted();
+  const modalHost =
+    mounted && typeof document !== "undefined"
+      ? document.querySelector<HTMLElement>('[data-oh-modal-host="true"]')
+      : null;
 
   if (isMobile) {
     return (

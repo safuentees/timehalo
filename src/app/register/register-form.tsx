@@ -245,6 +245,27 @@ export function RegisterForm() {
             >
               {submitCredentialsLabel}
             </Button>
+
+            <p className="text-center text-[12px] leading-[1.5] opacity-55">
+              {t.rich("registerTermsAcceptance", {
+                terms: (chunks) => (
+                  <Link
+                    href="/legal/terms"
+                    className="oh-focus-ring rounded-(--oh-r-xs) font-medium text-[color:var(--oh-ink)] underline underline-offset-4 decoration-oh-line transition-colors hover:decoration-[color:var(--oh-ink)]"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+                privacy: (chunks) => (
+                  <Link
+                    href="/legal/privacy"
+                    className="oh-focus-ring rounded-(--oh-r-xs) font-medium text-[color:var(--oh-ink)] underline underline-offset-4 decoration-oh-line transition-colors hover:decoration-[color:var(--oh-ink)]"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
           </form>
 
           <div className="mt-6 flex items-center gap-3">

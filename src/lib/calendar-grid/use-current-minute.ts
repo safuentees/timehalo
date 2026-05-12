@@ -1,24 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 
 export function useCurrentMinute(): Date | null {
-  const [now, setNow] = useState<Date | null>(null);
+  const nowRef = useRef<Date | null>(null);
 
-  useEffect(() => {
-    setNow(new Date());
-    const tick = () => setNow(new Date());
-    const msUntilNextMinute = 60_000 - (Date.now() % 60_000);
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    nowRef.current = new Date();
+    onStoreChange();
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    const msUntilNextMinute = 60_000 - (Date.now() % 60_000);
     const timeoutId = setTimeout(() => {
-      tick();
-      intervalId = setInterval(tick, 60_000);
+      nowRef.current = new Date();
+      onStoreChange();
+      intervalId = setInterval(() => {
+        nowRef.current = new Date();
+        onStoreChange();
+      }, 60_000);
     }, msUntilNextMinute);
     return () => {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
+      nowRef.current = null;
     };
   }, []);
 
-  return now;
+  return useSyncExternalStore(
+    subscribe,
+    () => nowRef.current,
+    () => null,
+  );
 }
