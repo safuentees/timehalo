@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { timezoneSchema } from "@/lib/timezone";
 
 export const handleSchema = z
   .string()
@@ -18,6 +19,14 @@ export const registerInputSchema = z.object({
     .string()
     .min(8, "At least 8 characters")
     .max(128, "Password is too long"),
+  // Browser-detected IANA timezone. Client-only — server never has
+  // access to the visitor's TZ, so it travels as part of the signup
+  // payload. Optional so a tampered or `Intl`-less client can still
+  // register; the server defaults to UTC in that case + the OAuth
+  // auto-set fallback (dashboard layout) writes the real value on
+  // first /bookings load. Validated against `timezoneSchema` so a
+  // bad value can't poison the User row.
+  timezone: timezoneSchema.optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;

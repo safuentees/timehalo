@@ -26,10 +26,18 @@ import { registerInputSchema } from "@/lib/register-schema";
 import { OTP_CODE_LENGTH, OTP_RESEND_COOLDOWN_SECONDS } from "@/lib/otp";
 import { useSendRegisterOtp } from "@/lib/mutations/use-send-register-otp";
 import { useVerifyRegisterOtp } from "@/lib/mutations/use-verify-register-otp";
+import { getBrowserTimezone } from "@/lib/timezone";
 
 type CredentialsForm = {
   email: string;
   password: string;
+};
+
+// Payload that travels with both `sendOtp` and `verifyOtp`. Includes
+// the browser-detected IANA timezone so the User row is created with
+// the right TZ from the start — no flash of UTC, no follow-up RPC.
+type PendingRegistration = CredentialsForm & {
+  timezone: string;
 };
 
 type Step = "credentials" | "verify";
@@ -45,7 +53,7 @@ export function RegisterForm() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
-  const [pending, setPending] = useState<CredentialsForm | null>(null);
+  const [pending, setPending] = useState<PendingRegistration | null>(null);
 
   const form = useForm<CredentialsForm>({
     defaultValues: { email: "", password: "" },
@@ -55,7 +63,16 @@ export function RegisterForm() {
 
   const sendOtp = useSendRegisterOtp({
     onSuccess: (_data, variables) => {
-      setPending(variables);
+      // `variables` carries the full input (email + password + timezone)
+      // since the credentials submit + the resend path both pass the
+      // browser-detected timezone. Storing it here keeps the value
+      // alive across the OTP verify step without a second detection
+      // pass.
+      setPending({
+        email: variables.email,
+        password: variables.password,
+        timezone: variables.timezone ?? getBrowserTimezone(),
+      });
       setStep("verify");
       setResendCountdown(OTP_RESEND_COOLDOWN_SECONDS);
       setPhase("idle");
@@ -107,7 +124,16 @@ export function RegisterForm() {
   const submitCredentials = form.handleSubmit(async (values) => {
     setPhase("sending-code");
     try {
-      await sendOtp.mutateAsync(values);
+      // Detect timezone at submit time (browser-only API) and thread
+      // it through `sendOtp` → `verifyOtp` → server User row creation.
+      // Falls back to "UTC" inside `getBrowserTimezone` when `Intl` is
+      // unavailable; the OAuth-fallback effect in the dashboard layout
+      // covers the rare case where the credentials path ends up with a
+      // UTC fallback for a non-UTC user.
+      await sendOtp.mutateAsync({
+        ...values,
+        timezone: getBrowserTimezone(),
+      });
     } catch {
     }
   });

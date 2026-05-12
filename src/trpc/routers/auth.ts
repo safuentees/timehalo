@@ -78,6 +78,13 @@ function emailConflict() {
 async function createHostAccount(input: {
   email: string;
   password: string;
+  // Browser-detected IANA timezone, threaded through from the
+  // register form. Optional — falls through to the schema default
+  // ("UTC") when absent. Validation lives on the input schema
+  // (`registerInputSchema.timezone = timezoneSchema.optional()`),
+  // so by the time we get here we know it's either undefined or a
+  // canonical IANA id.
+  timezone?: string;
 }) {
   let placeholderHandle = derivePlaceholderHandle();
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -107,6 +114,11 @@ async function createHostAccount(input: {
           handle: placeholderHandle,
           passwordHash,
           emailVerified: new Date(),
+          // Only set when the caller passed a real IANA id (the
+          // client default is the browser detection). Omitting it
+          // lets Prisma's schema default ("UTC") apply, which the
+          // OAuth fallback effect upgrades on first dashboard load.
+          ...(input.timezone ? { timezone: input.timezone } : {}),
           availabilityRanges: {
             createMany: { data: [...DEFAULT_AVAILABILITY_ROWS] },
           },
@@ -380,6 +392,7 @@ export const auth = router({
           const user = await createHostAccount({
             email,
             password: input.password,
+            timezone: input.timezone,
           });
 
           await prisma.emailOtpToken.deleteMany({

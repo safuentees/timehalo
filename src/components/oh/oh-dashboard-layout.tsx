@@ -18,6 +18,7 @@ import {
   useDashboardRouteTransition,
 } from "./dashboard-route-transition";
 import { PageTitleProvider } from "./page-title-context";
+import { TimezoneAutoSync } from "./timezone-auto-sync";
 
 const PAGE_FADE_EXIT_TRANSITION = {
   duration: 0.14,
@@ -47,6 +48,11 @@ export function OhDashboardLayout({
           data-density={density}
           data-oh-preview={isPreview ? "true" : undefined}
         >
+          {/* OAuth-fallback timezone capture. Renders nothing; fires
+              once on first dashboard load when the User row is still
+              on the UTC schema default. The register form's inline
+              capture already covers the credentials/OTP path. */}
+          <TimezoneAutoSync />
           <OhDashboardBar />
           <div className="oh-app flex min-h-0 flex-1">
             <OhAppSidebar />
