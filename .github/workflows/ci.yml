@@ -44,6 +44,13 @@ jobs:
     timeout-minutes: 10
     env:
       DATABASE_URL: file:./prisma/dev.db
+      # AUTH_SECRET is required by the t3-env schema (src/env.ts).
+      # Tests don't actually verify tokens, but the parser rejects an
+      # empty value at module load — "Invalid environment variables"
+      # propagates up and every vitest file fails before any test
+      # body runs. Constant placeholder is fine; secret never leaves
+      # the runner. (Mirrors the e2e job's existing config.)
+      AUTH_SECRET: ci-test-secret-not-used-in-prod
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
