@@ -162,6 +162,7 @@ function findViolations(
     if (!/[a-zA-Z]/.test(stripped)) continue;
     if (/^(import|export|const|let|var|return|if|else|function|async)\b/.test(stripped))
       continue;
+    if (/[?:]/.test(stripped) && /[()]/.test(stripped)) continue;
 
     let prev = "";
     for (let j = i - 1; j >= 0; j--) {

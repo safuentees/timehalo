@@ -39,7 +39,10 @@ describe("users.setDurationsList + me.durations", () => {
   it("me.durations exposes the seeded default list ([durationMins]) for new hosts", async () => {
     const caller = callRouter(fakeContext({ userId: host.id }));
     const me = await caller.users.me();
-    expect(me.durations).toEqual({ defaultMinutes: 15, list: [15] });
+    expect(me.durations).toEqual({
+      defaultMinutes: 15,
+      list: [{ minutes: 15, title: null, description: null }],
+    });
   });
 
   it("me.durations.list is empty when the host has explicitly cleared it", async () => {
