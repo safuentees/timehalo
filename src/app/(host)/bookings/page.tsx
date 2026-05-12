@@ -17,19 +17,20 @@ function isView(value: string | undefined): value is ViewMode {
   return VALID_VIEWS.includes(value as ViewMode);
 }
 
-function parseCursorDate(raw: string | undefined): Date {
-  if (raw) {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
-    if (match) {
-      const y = parseInt(match[1], 10);
-      const m = parseInt(match[2], 10);
-      const d = parseInt(match[3], 10);
-      const candidate = new Date(y, m - 1, d);
-      if (!isNaN(candidate.getTime())) return candidate;
-    }
-  }
+// Pass the cursor as `YYYY-MM-DD` STRING, not a `Date`. Reason: server
+// runs in UTC, client in the visitor's local TZ. A `Date` built from
+// `new Date(y, m-1, d)` on the server is UTC midnight; crossed to the
+// client and read via local-TZ `getDate()`, it can land on the
+// previous calendar day (TZs west of UTC) — which produced the
+// "view-switch decrements day by 1" regression. Strings are TZ-free
+// calendar keys; the client builds its own local-anchored Date once.
+function normalizeCursorParam(raw: string | undefined): string {
+  if (raw && /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const y = now.getFullYear();
+  const m = (now.getMonth() + 1).toString().padStart(2, "0");
+  const d = now.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export default async function BookingsPage({
@@ -40,7 +41,7 @@ export default async function BookingsPage({
   const params = await searchParams;
   const activeTab: Tab = isTab(params.tab) ? params.tab : "upcoming";
   const activeView: ViewMode = isView(params.view) ? params.view : "list";
-  const cursorDate = parseCursorDate(params.date);
+  const cursorDate = normalizeCursorParam(params.date);
 
   return (
     <main className="oh-main">
