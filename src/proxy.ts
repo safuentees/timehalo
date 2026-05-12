@@ -75,8 +75,13 @@ export const proxy = auth((req) => {
   const isPlayground =
     pathname === "/playground" || pathname.startsWith("/playground/");
 
+  // `/` is private — server-side `redirect("/bookings")` in
+  // `(host)/page.tsx` handles authed users; unauthed traffic falls
+  // through to the redirect-to-/login branch below. The earlier
+  // marketing landing draft that owned `/` was reverted; if/when a
+  // public marketing page returns, add `"/"` back here.
   const isPublic =
-    ["/", "/login", "/register"].includes(pathname) ||
+    ["/login", "/register"].includes(pathname) ||
     pathname.startsWith("/legal/") ||
     isHostPage ||
     isInvitationLink ||
