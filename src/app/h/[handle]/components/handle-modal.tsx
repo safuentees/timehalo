@@ -20,7 +20,7 @@ import {
 import { slotsOn, startOfToday, type Slot } from "@/lib/availability";
 import { useRescheduleBooking } from "@/lib/mutations/use-reschedule-booking";
 import { getBrowserTimezone } from "@/lib/timezone";
-import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import animSpec from "@/lib/figma/anim-h-handle-redesign.json";
 import {
   oStyle,
   useModalDebug,

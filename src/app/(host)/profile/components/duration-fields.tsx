@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "motion/react";
 import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import animSpec from "@/lib/figma/anim-h-handle-redesign.json";
 import { trpc } from "@/trpc/hooks";
 import { useSetDurations } from "@/lib/mutations/use-set-durations";
 import {

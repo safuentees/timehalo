@@ -1,0 +1,1609 @@
+{
+  "meta": {
+    "feature": "h-handle-redesign",
+    "sourceSpec": "spec-h-handle-redesign.json",
+    "extractedAt": "2026-05-05T10:38:13.298Z",
+    "transitionCount": 3,
+    "stateSwapCount": 17
+  },
+  "transitions": [
+    {
+      "triggerNodeId": "324:15683",
+      "triggerNodeName": "handle",
+      "triggerNodeType": "FRAME",
+      "event": "ON_CLICK",
+      "transitionType": "SMART_ANIMATE",
+      "navigationType": "NAVIGATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15683",
+        "name": "handle"
+      },
+      "to": {
+        "id": "324:16654",
+        "name": "handle-detail",
+        "type": "FRAME"
+      },
+      "duration": 0.6502115726470947,
+      "easingType": "GENTLE_SPRING",
+      "easingFunction": [
+        1,
+        247,
+        23.579999923706055,
+        0
+      ],
+      "spring": {
+        "mass": 1,
+        "stiffness": 247,
+        "damping": 23.579999923706055,
+        "velocity": 0
+      },
+      "sourceFrameId": "324:15683",
+      "matchedLayers": 82,
+      "deltaCount": 21,
+      "deltas": [
+        {
+          "namePath": "",
+          "type": "FRAME",
+          "fromId": "324:15683",
+          "toId": "324:16654",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 100,
+                "y": 100
+              },
+              "to": {
+                "x": 2745,
+                "y": 100
+              },
+              "delta": {
+                "x": 2645,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1",
+          "type": "FRAME",
+          "fromId": "324:15687",
+          "toId": "324:16658",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 1065,
+                "y": 427
+              },
+              "to": {
+                "x": 897.5,
+                "y": 41.5
+              },
+              "delta": {
+                "x": -167.5,
+                "y": -385.5
+              }
+            },
+            "size": {
+              "from": {
+                "x": 385,
+                "y": 387
+              },
+              "to": {
+                "x": 720,
+                "y": 1158
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 15",
+          "type": "FRAME",
+          "fromId": "324:15688",
+          "toId": "324:16659",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 24.5,
+                "y": 15
+              },
+              "to": {
+                "x": 192.5,
+                "y": 21.5
+              },
+              "delta": {
+                "x": 168,
+                "y": 6.5
+              }
+            },
+            "opacity": {
+              "from": 1,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2",
+          "type": "FRAME",
+          "fromId": "324:15698",
+          "toId": "324:16669",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 15,
+                "y": 112
+              },
+              "to": {
+                "x": 0.5,
+                "y": -0.5
+              },
+              "delta": {
+                "x": -14.5,
+                "y": -112.5
+              }
+            },
+            "size": {
+              "from": {
+                "x": 355,
+                "y": 260
+              },
+              "to": {
+                "x": 720,
+                "y": 1158
+              }
+            },
+            "opacity": {
+              "from": 1,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18",
+          "type": "FRAME",
+          "fromId": "344:18472",
+          "toId": "344:18473",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 325,
+                "y": 230
+              },
+              "to": {
+                "x": 690,
+                "y": 1128
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "324:15700",
+          "toId": "324:16671",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 325,
+                "y": 50
+              },
+              "to": {
+                "x": 690,
+                "y": 282
+              }
+            },
+            "cornerRadius": {
+              "from": 14,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "324:15701",
+          "toId": "324:16672",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "324:15702",
+          "toId": "324:16673",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "324:15706",
+          "toId": "324:16677",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 253,
+                "y": 10
+              },
+              "to": {
+                "x": 618,
+                "y": 10
+              },
+              "delta": {
+                "x": 365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "324:15714",
+          "toId": "324:16685",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 60
+              },
+              "to": {
+                "x": 0,
+                "y": 282
+              },
+              "delta": {
+                "x": 0,
+                "y": 222
+              }
+            },
+            "size": {
+              "from": {
+                "x": 325,
+                "y": 50
+              },
+              "to": {
+                "x": 690,
+                "y": 282
+              }
+            },
+            "cornerRadius": {
+              "from": 14,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "324:15715",
+          "toId": "324:16686",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "324:15716",
+          "toId": "324:16687",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "324:15720",
+          "toId": "324:16691",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 249,
+                "y": 10
+              },
+              "to": {
+                "x": 614,
+                "y": 10
+              },
+              "delta": {
+                "x": 365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "324:15728",
+          "toId": "324:16699",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 120
+              },
+              "to": {
+                "x": 0,
+                "y": 564
+              },
+              "delta": {
+                "x": 0,
+                "y": 444
+              }
+            },
+            "size": {
+              "from": {
+                "x": 325,
+                "y": 50
+              },
+              "to": {
+                "x": 690,
+                "y": 282
+              }
+            },
+            "cornerRadius": {
+              "from": 14,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "324:15729",
+          "toId": "324:16700",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "324:15730",
+          "toId": "324:16701",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "324:15734",
+          "toId": "324:16705",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 248,
+                "y": 10
+              },
+              "to": {
+                "x": 613,
+                "y": 10
+              },
+              "delta": {
+                "x": 365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "324:15742",
+          "toId": "324:16713",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 180
+              },
+              "to": {
+                "x": 0,
+                "y": 846
+              },
+              "delta": {
+                "x": 0,
+                "y": 666
+              }
+            },
+            "size": {
+              "from": {
+                "x": 325,
+                "y": 50
+              },
+              "to": {
+                "x": 690,
+                "y": 282
+              }
+            },
+            "cornerRadius": {
+              "from": 14,
+              "to": 0
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "324:15743",
+          "toId": "324:16714",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "324:15744",
+          "toId": "324:16715",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 303,
+                "y": 50
+              },
+              "to": {
+                "x": 668,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "324:15748",
+          "toId": "324:16719",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 261,
+                "y": 10
+              },
+              "to": {
+                "x": 626,
+                "y": 10
+              },
+              "delta": {
+                "x": 365,
+                "y": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "triggerNodeId": "324:16654",
+      "triggerNodeName": "handle-detail",
+      "triggerNodeType": "FRAME",
+      "event": "ON_CLICK",
+      "transitionType": "SMART_ANIMATE",
+      "navigationType": "NAVIGATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:16654",
+        "name": "handle-detail"
+      },
+      "to": {
+        "id": "358:20746",
+        "name": "handle-detail",
+        "type": "FRAME"
+      },
+      "duration": 0.5621960163116455,
+      "easingType": "GENTLE_SPRING",
+      "easingFunction": [
+        1,
+        330.6000061035156,
+        27.270000457763672,
+        0
+      ],
+      "spring": {
+        "mass": 1,
+        "stiffness": 330.6000061035156,
+        "damping": 27.270000457763672,
+        "velocity": 0
+      },
+      "sourceFrameId": "324:16654",
+      "matchedLayers": 322,
+      "deltaCount": 7,
+      "deltas": [
+        {
+          "namePath": "",
+          "type": "FRAME",
+          "fromId": "324:16654",
+          "toId": "358:20746",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 2745,
+                "y": 100
+              },
+              "to": {
+                "x": 5390,
+                "y": 100
+              },
+              "delta": {
+                "x": 2645,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1",
+          "type": "FRAME",
+          "fromId": "324:16658",
+          "toId": "358:20750",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 897.5,
+                "y": 41.5
+              },
+              "to": {
+                "x": 897.5,
+                "y": 64.2950439453125
+              },
+              "delta": {
+                "x": 0,
+                "y": 22.7950439453125
+              }
+            },
+            "size": {
+              "from": {
+                "x": 720,
+                "y": 1158
+              },
+              "to": {
+                "x": 720,
+                "y": 1112.409912109375
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/div#_R_t5et5ritmlb_",
+          "type": "FRAME",
+          "fromId": "324:15770",
+          "toId": "358:20751",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 720,
+                "y": 1158
+              },
+              "to": {
+                "x": 720,
+                "y": 1112.409912109375
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/div#_R_t5et5ritmlb_/div.oh-drawer-body",
+          "type": "FRAME",
+          "fromId": "324:15776",
+          "toId": "358:20757",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 2,
+                "y": 170.58999633789062
+              },
+              "to": {
+                "x": 2,
+                "y": 127
+              },
+              "delta": {
+                "x": 0,
+                "y": -43.589996337890625
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/div#_R_t5et5ritmlb_/div.oh-drawer-body/Slots on Tue May 05 2026",
+          "type": "FRAME",
+          "fromId": "324:15982",
+          "toId": "358:20963",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 20,
+                "y": 141.47999572753906
+              },
+              "to": {
+                "x": 20,
+                "y": 8
+              },
+              "delta": {
+                "x": 0,
+                "y": -133.47999572753906
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/div#_R_t5et5ritmlb_/div.flex",
+          "type": "FRAME",
+          "fromId": "324:16038",
+          "toId": "358:20987",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 2,
+                "y": 58
+              },
+              "to": {
+                "x": 2,
+                "y": 56
+              },
+              "delta": {
+                "x": 0,
+                "y": -2
+              }
+            },
+            "size": {
+              "from": {
+                "x": 716,
+                "y": 52
+              },
+              "to": {
+                "x": 716,
+                "y": 71
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/div#_R_t5et5ritmlb_/Close",
+          "type": "FRAME",
+          "fromId": "324:16041",
+          "toId": "358:20990",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 678,
+                "y": 14
+              },
+              "to": {
+                "x": 680.5,
+                "y": 13.705078125
+              },
+              "delta": {
+                "x": 2.5,
+                "y": -0.294921875
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "triggerNodeId": "358:20746",
+      "triggerNodeName": "handle-detail",
+      "triggerNodeType": "FRAME",
+      "event": "ON_CLICK",
+      "transitionType": "SMART_ANIMATE",
+      "navigationType": "NAVIGATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20746",
+        "name": "handle-detail"
+      },
+      "to": {
+        "id": "324:15683",
+        "name": "handle",
+        "type": "FRAME"
+      },
+      "duration": 0.5621960163116455,
+      "easingType": "GENTLE_SPRING",
+      "easingFunction": [
+        1,
+        330.6000061035156,
+        27.270000457763672,
+        0
+      ],
+      "spring": {
+        "mass": 1,
+        "stiffness": 330.6000061035156,
+        "damping": 27.270000457763672,
+        "velocity": 0
+      },
+      "sourceFrameId": "358:20746",
+      "matchedLayers": 82,
+      "deltaCount": 21,
+      "deltas": [
+        {
+          "namePath": "",
+          "type": "FRAME",
+          "fromId": "358:20746",
+          "toId": "324:15683",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 5390,
+                "y": 100
+              },
+              "to": {
+                "x": 100,
+                "y": 100
+              },
+              "delta": {
+                "x": -5290,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1",
+          "type": "FRAME",
+          "fromId": "358:20750",
+          "toId": "324:15687",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 897.5,
+                "y": 64.2950439453125
+              },
+              "to": {
+                "x": 1065,
+                "y": 427
+              },
+              "delta": {
+                "x": 167.5,
+                "y": 362.7049560546875
+              }
+            },
+            "size": {
+              "from": {
+                "x": 720,
+                "y": 1112.409912109375
+              },
+              "to": {
+                "x": 385,
+                "y": 387
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 15",
+          "type": "FRAME",
+          "fromId": "358:21050",
+          "toId": "324:15688",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 192.5,
+                "y": 21.5
+              },
+              "to": {
+                "x": 24.5,
+                "y": 15
+              },
+              "delta": {
+                "x": -168,
+                "y": -6.5
+              }
+            },
+            "opacity": {
+              "from": 0,
+              "to": 1
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2",
+          "type": "FRAME",
+          "fromId": "358:20992",
+          "toId": "324:15698",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0.5,
+                "y": -0.5
+              },
+              "to": {
+                "x": 15,
+                "y": 112
+              },
+              "delta": {
+                "x": 14.5,
+                "y": 112.5
+              }
+            },
+            "size": {
+              "from": {
+                "x": 720,
+                "y": 1158
+              },
+              "to": {
+                "x": 355,
+                "y": 260
+              }
+            },
+            "opacity": {
+              "from": 0,
+              "to": 1
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18",
+          "type": "FRAME",
+          "fromId": "358:20993",
+          "toId": "344:18472",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 690,
+                "y": 1128
+              },
+              "to": {
+                "x": 325,
+                "y": 230
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "358:20994",
+          "toId": "324:15700",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 690,
+                "y": 282
+              },
+              "to": {
+                "x": 325,
+                "y": 50
+              }
+            },
+            "cornerRadius": {
+              "from": 0,
+              "to": 14
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "358:20995",
+          "toId": "324:15701",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "358:20996",
+          "toId": "324:15702",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "358:21000",
+          "toId": "324:15706",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 618,
+                "y": 10
+              },
+              "to": {
+                "x": 253,
+                "y": 10
+              },
+              "delta": {
+                "x": -365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "358:21008",
+          "toId": "324:15714",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 282
+              },
+              "to": {
+                "x": 0,
+                "y": 60
+              },
+              "delta": {
+                "x": 0,
+                "y": -222
+              }
+            },
+            "size": {
+              "from": {
+                "x": 690,
+                "y": 282
+              },
+              "to": {
+                "x": 325,
+                "y": 50
+              }
+            },
+            "cornerRadius": {
+              "from": 0,
+              "to": 14
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "358:21009",
+          "toId": "324:15715",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "358:21010",
+          "toId": "324:15716",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "358:21014",
+          "toId": "324:15720",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 614,
+                "y": 10
+              },
+              "to": {
+                "x": 249,
+                "y": 10
+              },
+              "delta": {
+                "x": -365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "358:21022",
+          "toId": "324:15728",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 564
+              },
+              "to": {
+                "x": 0,
+                "y": 120
+              },
+              "delta": {
+                "x": 0,
+                "y": -444
+              }
+            },
+            "size": {
+              "from": {
+                "x": 690,
+                "y": 282
+              },
+              "to": {
+                "x": 325,
+                "y": 50
+              }
+            },
+            "cornerRadius": {
+              "from": 0,
+              "to": 14
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "358:21023",
+          "toId": "324:15729",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "358:21024",
+          "toId": "324:15730",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "358:21028",
+          "toId": "324:15734",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 613,
+                "y": 10
+              },
+              "to": {
+                "x": 248,
+                "y": 10
+              },
+              "delta": {
+                "x": -365,
+                "y": 0
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot",
+          "type": "FRAME",
+          "fromId": "358:21036",
+          "toId": "324:15742",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 0,
+                "y": 846
+              },
+              "to": {
+                "x": 0,
+                "y": 180
+              },
+              "delta": {
+                "x": 0,
+                "y": -666
+              }
+            },
+            "size": {
+              "from": {
+                "x": 690,
+                "y": 282
+              },
+              "to": {
+                "x": 325,
+                "y": 50
+              }
+            },
+            "cornerRadius": {
+              "from": 0,
+              "to": 14
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9",
+          "type": "FRAME",
+          "fromId": "358:21037",
+          "toId": "324:15743",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17",
+          "type": "FRAME",
+          "fromId": "358:21038",
+          "toId": "324:15744",
+          "changes": {
+            "size": {
+              "from": {
+                "x": 668,
+                "y": 50
+              },
+              "to": {
+                "x": 303,
+                "y": 50
+              }
+            }
+          }
+        },
+        {
+          "namePath": "div.flex/main.relative/div.oh-host-content/Frame 1/Frame 2/Frame 18/slot/Frame 9/Frame 17/Frame 12",
+          "type": "FRAME",
+          "fromId": "358:21042",
+          "toId": "324:15748",
+          "changes": {
+            "position": {
+              "from": {
+                "x": 626,
+                "y": 10
+              },
+              "to": {
+                "x": 261,
+                "y": 10
+              },
+              "delta": {
+                "x": -365,
+                "y": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "stateSwaps": [
+    {
+      "triggerNodeId": "358:20972",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20972",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20974",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20974",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20976",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20976",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20978",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20978",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20980",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20980",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20982",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20982",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:20984",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:20984",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:21173",
+      "triggerNodeName": "Component 4",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:21173",
+        "name": "Component 4"
+      },
+      "to": {
+        "id": "358:18993",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:15991",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15991",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:15993",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15993",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:15995",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15995",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:15997",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15997",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:15999",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:15999",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:16001",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:16001",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:16003",
+      "triggerNodeName": "Component 3",
+      "triggerNodeType": "INSTANCE",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:16003",
+        "name": "Component 3"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "324:7813",
+      "triggerNodeName": "variant=2,:hover=false",
+      "triggerNodeType": "SYMBOL",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "324:7813",
+        "name": "variant=2,:hover=false"
+      },
+      "to": {
+        "id": "324:7811",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    },
+    {
+      "triggerNodeId": "358:19000",
+      "triggerNodeName": "variant=2,:hover=false",
+      "triggerNodeType": "SYMBOL",
+      "event": "ON_HOVER",
+      "transitionType": "INSTANT_TRANSITION",
+      "navigationType": "SWAP_STATE",
+      "connectionType": "INTERNAL_NODE",
+      "from": {
+        "id": "358:19000",
+        "name": "variant=2,:hover=false"
+      },
+      "to": {
+        "id": "358:18993",
+        "name": null,
+        "type": null
+      },
+      "duration": 0
+    }
+  ]
+}

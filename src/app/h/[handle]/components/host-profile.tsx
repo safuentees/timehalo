@@ -39,7 +39,7 @@ import {
   useModalDebug,
   zStyle,
 } from "../_components/visitor-debug-overlay";
-import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import animSpec from "@/lib/figma/anim-h-handle-redesign.json";
 import { HandleMorphCard } from "./handle-morph-card";
 import {
   FALLBACK_SLOT_OPTIONS,

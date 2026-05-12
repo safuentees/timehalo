@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { folder, Leva, useControls } from "leva";
-import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import animSpec from "@/lib/figma/anim-h-handle-redesign.json";
 
 const SPEC_OPEN = animSpec.transitions[0].spring;
 const SPEC_CONFIRM =

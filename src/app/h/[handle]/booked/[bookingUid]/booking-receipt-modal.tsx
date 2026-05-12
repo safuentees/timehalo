@@ -5,7 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import { FocusOn } from "react-focus-on";
 import { XIcon } from "lucide-react";
-import animSpec from "@/../docs/figma/anim-h-handle-redesign.json";
+import animSpec from "@/lib/figma/anim-h-handle-redesign.json";
 import {
   HANDLE_CARD_RADIUS_STYLE,
   HANDLE_SLOT_LIST_RADIUS_STYLE,
