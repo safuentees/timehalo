@@ -1,5 +1,5 @@
 import "server-only";
-import { Prisma } from "@/generated/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 import { prisma } from "@/lib/prisma";
 import type { TemplateInput, TemplateName } from "@/lib/email";
 import type { WebhookEvent } from "@/trpc/router";
@@ -30,10 +30,7 @@ export async function scheduleWebhookDelivery(opts: ScheduleOpts) {
     });
     return true;
   } catch (cause) {
-    if (
-      cause instanceof Prisma.PrismaClientKnownRequestError &&
-      cause.code === "P2002"
-    ) {
+    if (isUniqueConstraintError(cause)) {
       return false;
     }
     throw cause;
@@ -66,10 +63,7 @@ export async function scheduleEmailSend<T extends TemplateName>(
     });
     return true;
   } catch (cause) {
-    if (
-      cause instanceof Prisma.PrismaClientKnownRequestError &&
-      cause.code === "P2002"
-    ) {
+    if (isUniqueConstraintError(cause)) {
       return false;
     }
     throw cause;
@@ -97,10 +91,7 @@ export async function scheduleCalendarWrite(opts: {
     });
     return true;
   } catch (cause) {
-    if (
-      cause instanceof Prisma.PrismaClientKnownRequestError &&
-      cause.code === "P2002"
-    ) {
+    if (isUniqueConstraintError(cause)) {
       return false;
     }
     throw cause;

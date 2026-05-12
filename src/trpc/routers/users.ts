@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 import { planForUser } from "@/lib/billing";
 import { isAdminHandle } from "@/lib/admin";
 import { getEnabledFeatures } from "@/lib/feature-flags";
@@ -217,10 +217,7 @@ export const users = router({
           }
         });
       } catch (cause) {
-        if (
-          cause instanceof Prisma.PrismaClientKnownRequestError &&
-          cause.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(cause)) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "That handle is taken. Pick another.",

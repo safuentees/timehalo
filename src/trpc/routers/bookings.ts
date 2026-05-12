@@ -1,7 +1,7 @@
 import { TRPCError, tracked } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 import { env } from "@/env";
 import { generateUpcomingSlots } from "@/lib/schedule";
 import { bookingInputSchema } from "@/lib/booking-schema";
@@ -440,10 +440,7 @@ export const bookings = router({
           } catch (cause) {
             if (cause instanceof TRPCError) throw cause;
 
-            if (
-              cause instanceof Prisma.PrismaClientKnownRequestError &&
-              cause.code === "P2002"
-            ) {
+            if (isUniqueConstraintError(cause)) {
               const raced = await prisma.booking.findFirst({
                 where: { idempotencyKey: input.idempotencyKey, deleted: false },
                 select: bookingSelect,
@@ -1225,10 +1222,7 @@ export const bookings = router({
             };
           } catch (cause) {
             if (cause instanceof TRPCError) throw cause;
-            if (
-              cause instanceof Prisma.PrismaClientKnownRequestError &&
-              cause.code === "P2002"
-            ) {
+            if (isUniqueConstraintError(cause)) {
               const raced = await prisma.booking.findFirst({
                 where: {
                   idempotencyKey: input.idempotencyKey,

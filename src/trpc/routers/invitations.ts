@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 import { privateProcedure, publicProcedure, router } from "@/trpc/trpc";
 
 export const invitations = router({
@@ -79,10 +79,7 @@ export const invitations = router({
           }),
         ]);
       } catch (cause) {
-        if (
-          cause instanceof Prisma.PrismaClientKnownRequestError &&
-          cause.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(cause)) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "You're already a member of this workspace",

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { Prisma } from "@/generated/prisma/client";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 import { prisma } from "@/lib/prisma";
 import {
   hasScope,
@@ -125,10 +125,7 @@ export const eventTypes = router({
         });
         return created;
       } catch (cause) {
-        if (
-          cause instanceof Prisma.PrismaClientKnownRequestError &&
-          cause.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(cause)) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "Slug already used in this workspace.",
@@ -175,10 +172,7 @@ export const eventTypes = router({
         });
         return updated;
       } catch (cause) {
-        if (
-          cause instanceof Prisma.PrismaClientKnownRequestError &&
-          cause.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(cause)) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "Slug already used in this workspace.",
@@ -288,10 +282,7 @@ export const eventTypes = router({
         });
         return created;
       } catch (cause) {
-        if (
-          cause instanceof Prisma.PrismaClientKnownRequestError &&
-          cause.code === "P2002"
-        ) {
+        if (isUniqueConstraintError(cause)) {
           throw new TRPCError({
             code: "CONFLICT",
             message: "User is already a host for this event type.",

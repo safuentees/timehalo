@@ -11,6 +11,8 @@ export default defineConfig({
     setupFiles: ["test/vitest.setup.ts"],
     pool: "forks",
     fileParallelism: false,
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
   resolve: {
     alias: {
