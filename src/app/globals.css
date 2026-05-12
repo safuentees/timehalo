@@ -395,6 +395,7 @@
   --oh-modal-w: 720px;
   --oh-modal-vinset: 56px;
   --oh-modal-edge: 24px;
+
 }
 
 .dark {
@@ -2019,6 +2020,7 @@
     text-transform: uppercase;
     opacity: 0.55;
   }
+
   /* Empty placeholder surface — depth-driven inverse of the
      resting/hover chip vocabulary. Replaces the 1.5px dotted border
      pattern that read as a CTA outline against the borderless
