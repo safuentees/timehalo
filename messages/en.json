@@ -873,5 +873,21 @@
     "summaryTitle": "Office hours with {host}",
     "summaryReference": "Reference {ref}",
     "fallbackHostName": "Host"
+  },
+  "Landing": {
+    "brand": "Timehalo",
+    "pageTitle": "Timehalo — a time that works for everyone",
+    "pageDescription": "Explore the full Timehalo app with your own guest account. No signup needed.",
+    "navLabel": "Main navigation",
+    "signIn": "Sign in",
+    "eyebrow": "Simple scheduling",
+    "headline": "A time that works for everyone.",
+    "intro": "Set your hours. Share your link. Let people pick a time that works. Fewer messages, more good meetings.",
+    "tryDemo": "Try as a guest",
+    "demoHint": "No signup. The full app, with your own guest account.",
+    "footerLine": "A little less back-and-forth.",
+    "viewSource": "View source",
+    "startingGuest": "Opening your account…",
+    "guestError": "Could not start a guest account. Please try again shortly."
   }
 }
