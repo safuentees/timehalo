@@ -93,15 +93,35 @@ function createRedisLimiter(
     prefix: "officehours-rl",
     analytics: false,
   });
+  const fallback = createMemoryLimiter(maxRequests, duration);
+  let usingFallback = false;
+
+  function limitedFallback(result: LimiterResult): LimiterResult {
+    if (!usingFallback) {
+      console.warn("[rate-limit] Redis unavailable; enforcing per-process limits.");
+    }
+    usingFallback = true;
+    return result;
+  }
+
   return {
     async limit(key: string) {
-      const r = await ratelimit.limit(key);
-      return {
-        success: r.success,
-        remainingPoints: r.remaining,
-        resetAtMs: r.reset,
-        limit: r.limit,
-      };
+      // Keep the backup window warm so an outage never grants a fresh allowance.
+      const local = await fallback.limit(key);
+      try {
+        const r = await ratelimit.limit(key);
+        // The SDK allows requests on timeout; enforce our cap instead.
+        if (r.reason === "timeout") return limitedFallback(local);
+        usingFallback = false;
+        return {
+          success: r.success,
+          remainingPoints: r.remaining,
+          resetAtMs: r.reset,
+          limit: r.limit,
+        };
+      } catch {
+        return limitedFallback(local);
+      }
     },
     name: "redis",
   };
