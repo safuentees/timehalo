@@ -49,7 +49,6 @@ export function MonthDayCell({
       className={cn(
         "relative flex flex-col gap-1 px-1.5 py-1 min-h-[112px]",
         "border-r border-b border-oh-line",
-        !isInMonth && "opacity-40",
         isToday && "bg-[color:var(--oh-tint)]",
       )}
     >
@@ -58,6 +57,7 @@ export function MonthDayCell({
           aria-current={isToday ? "date" : undefined}
           className={cn(
             "font-mono text-[12px] font-bold leading-none tabular-nums",
+            !isInMonth && !isToday && "text-[color:color-mix(in_srgb,var(--oh-ink)_65%,transparent)]",
             isToday &&
               "inline-flex size-5 items-center justify-center rounded-full bg-[color:var(--oh-ink)] text-[color:var(--oh-paper)]",
           )}

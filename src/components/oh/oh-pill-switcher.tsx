@@ -68,7 +68,7 @@ export function OhPillSwitcher<T extends string>({
                 "data-active:!bg-transparent data-active:!shadow-none after:hidden",
                 isActive
                   ? "font-semibold text-[color:var(--oh-ink)]"
-                  : "font-medium text-[rgba(10,10,10,0.55)] hover:text-[rgba(10,10,10,0.75)]",
+                  : "font-medium text-[color:color-mix(in_srgb,var(--oh-ink)_65%,transparent)] hover:text-[color:color-mix(in_srgb,var(--oh-ink)_75%,transparent)]",
                 responsiveHide,
               )}
               style={{
