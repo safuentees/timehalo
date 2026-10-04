@@ -13,7 +13,14 @@ test("embed loader injects an iframe + emits size postMessage + renders the book
   });
   page.on("pageerror", (err) => consoleErrors.push(err.message));
 
-  const url = `file://${FIXTURE_PATH}?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3001")}`;
+  const loginPage = await page.request.get("/login");
+  expect(loginPage.headers()["x-frame-options"]).toBe("DENY");
+
+  // Use a different HTTP origin, as real embedding sites do. An opaque file
+  // origin cannot satisfy the embed's frame-ancestors policy.
+  const url = `http://127.0.0.1:3001/__e2e/embed-test?handle=${encodeURIComponent(TEST_HANDLE)}&origin=${encodeURIComponent("http://localhost:3001")}`;
+  await page.context().grantPermissions(["local-network-access"], { origin: "http://127.0.0.1:3001" });
+  await page.route(url, (route) => route.fulfill({ path: FIXTURE_PATH, contentType: "text/html" }));
 
   await page.goto(url, { waitUntil: "load" });
 
@@ -39,7 +46,7 @@ test("embed loader injects an iframe + emits size postMessage + renders the book
 
   const frame = page.frameLocator(`iframe[data-oh-handle="${TEST_HANDLE}"]`);
   await expect(
-    frame.getByRole("button", { name: "Pick a date" }),
+    frame.getByRole("button", { name: /15 minutes/ }),
   ).toBeVisible({ timeout: 15_000 });
 
   const realErrors = consoleErrors.filter(

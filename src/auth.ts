@@ -8,14 +8,29 @@ import { sendEmail } from "@/lib/email";
 import { bootstrapUserWorkspace, resolveAuthRedirect } from "@/lib/auth-events";
 import { createLogger } from "@/lib/logger";
 import type { JWT } from "next-auth/jwt";
+import { createGuestAccount } from "@/lib/guest-account";
+import { createRatelimit } from "@/lib/rate-limit";
 
 const log = createLogger("auth");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const APP_NAME = "Officehours";
+const guestSignInLimiter = createRatelimit(5, "1 m");
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
+    CredentialsProvider({
+      id: "guest",
+      name: "Guest",
+      credentials: {},
+      async authorize(_credentials, request) {
+        const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+          || request.headers.get("x-real-ip")?.trim() || "local";
+        const result = await guestSignInLimiter.limit(`auth.guest:${ip}`);
+        if (!result.success) return null;
+        return createGuestAccount();
+      },
+    }),
     GitHub({ allowDangerousEmailAccountLinking: true }),
     {
       id: "magic-link",

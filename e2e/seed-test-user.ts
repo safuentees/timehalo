@@ -72,6 +72,16 @@ async function main() {
         role: "OWNER",
       },
     });
+    await prisma.eventType.create({
+      data: {
+        workspaceId: ws.id,
+        slug: TEST_HANDLE,
+        name: "15 minutes",
+        durationMins: 15,
+        durationMinsList: JSON.stringify([15]),
+        hosts: { create: { userId: created.id, isFixed: true } },
+      },
+    });
     console.log(`[seed] test user created: ${TEST_EMAIL}`);
   } finally {
     await prisma.$disconnect();

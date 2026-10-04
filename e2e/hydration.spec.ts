@@ -4,6 +4,7 @@ import { TEST_HANDLE } from "./test-constants";
 const HYDRATION_RE = /hydrat|did not match|server.+rendered|server\/client/i;
 
 const PUBLIC_ROUTES = [
+  "/",
   "/login",
   "/register",
   `/h/${TEST_HANDLE}`,
@@ -23,9 +24,9 @@ for (const route of PUBLIC_ROUTES) {
       pageErrors.push(err.message + "\n" + err.stack);
     });
 
-    await page.goto(route);
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(500);
+    const response = await page.goto(route, { waitUntil: "load" });
+    expect(response?.status()).toBe(200);
+    await page.waitForTimeout(1500);
 
     const allErrors = [...consoleErrors, ...pageErrors];
     const hydrationErrors = allErrors.filter((e) => HYDRATION_RE.test(e));

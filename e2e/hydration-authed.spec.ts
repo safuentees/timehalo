@@ -25,7 +25,8 @@ for (const route of AUTHED_ROUTES) {
       pageErrors.push(err.message + (err.stack ? "\n" + err.stack : ""));
     });
 
-    await page.goto(route, { waitUntil: "load" });
+    const response = await page.goto(route, { waitUntil: "load" });
+    expect(response?.status()).toBe(200);
     await page.waitForTimeout(1500);
 
     const allErrors = [...consoleErrors, ...pageErrors];

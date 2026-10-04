@@ -38,11 +38,13 @@ for (const route of STRESS_ROUTES) {
       allErrors.push(err.message + (err.stack ? "\n" + err.stack : ""));
     });
 
-    await page.goto(route, { waitUntil: "load" });
+    const response = await page.goto(route, { waitUntil: "load" });
+    expect(response?.status()).toBe(200);
     await page.waitForTimeout(1500);
 
     for (let i = 0; i < RELOADS_PER_ROUTE - 1; i++) {
-      await page.reload({ waitUntil: "load" });
+      const reload = await page.reload({ waitUntil: "load" });
+      expect(reload?.status()).toBe(200);
       await page.waitForTimeout(1500);
     }
 

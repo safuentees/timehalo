@@ -68,6 +68,9 @@ export const proxy = auth((req) => {
   }
 
   const isLoggedIn = !!req.auth;
+  if (pathname === "/guest") {
+    return NextResponse.redirect(new URL("/", req.nextUrl.origin));
+  }
   const isHostPage = pathname.startsWith("/h/");
   const isInvitationLink = pathname.startsWith("/invitations/");
   const isEmbed =
@@ -75,13 +78,9 @@ export const proxy = auth((req) => {
   const isPlayground =
     pathname === "/playground" || pathname.startsWith("/playground/");
 
-  // `/` is private — server-side `redirect("/bookings")` in
-  // `(host)/page.tsx` handles authed users; unauthed traffic falls
-  // through to the redirect-to-/login branch below. The earlier
-  // marketing landing draft that owned `/` was reverted; if/when a
-  // public marketing page returns, add `"/"` back here.
+  // The landing page is public; host management routes remain private.
   const isPublic =
-    ["/login", "/register"].includes(pathname) ||
+    ["/", "/login", "/register"].includes(pathname) ||
     pathname.startsWith("/legal/") ||
     isHostPage ||
     isInvitationLink ||

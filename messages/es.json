@@ -873,5 +873,21 @@
     "summaryTitle": "Office hours con {host}",
     "summaryReference": "Referencia {ref}",
     "fallbackHostName": "Anfitrión"
+  },
+  "Landing": {
+    "brand": "Timehalo",
+    "pageTitle": "Timehalo — una hora que funciona para todos",
+    "pageDescription": "Explora toda la app de Timehalo con tu propia cuenta de invitado. Sin registro.",
+    "navLabel": "Navegación principal",
+    "signIn": "Iniciar sesión",
+    "eyebrow": "Reservas sencillas",
+    "headline": "Una hora que funciona para todos.",
+    "intro": "Define tu horario. Comparte tu enlace. Deja que cada persona elija una hora. Menos mensajes, más buenas reuniones.",
+    "tryDemo": "Probar como invitado",
+    "demoHint": "Sin registro. Toda la app, con tu propia cuenta de invitado.",
+    "footerLine": "Menos mensajes para encontrar una hora.",
+    "viewSource": "Ver el código",
+    "startingGuest": "Abriendo tu cuenta…",
+    "guestError": "No se pudo iniciar una cuenta de invitado. Inténtalo de nuevo en un momento."
   }
 }

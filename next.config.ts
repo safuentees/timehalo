@@ -63,7 +63,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:path*",
+        // The default policy must not override the deliberate embed exception.
+        source: "/((?!embed/|embed\\.js$).*)",
         headers: [
           { key: "Content-Security-Policy", value: cspDefault },
           {
