@@ -12,12 +12,15 @@ test("visitor can book a slot end-to-end", async ({ page }) => {
 
   await page.goto(`/h/${TEST_HANDLE}`, { waitUntil: "load" });
 
-  const trigger = page.getByRole("button", { name: "Pick a date" });
+  const trigger = page.getByRole("button", { name: /15 minutes/ });
   await expect(trigger).toBeVisible();
   await trigger.click();
 
-  const firstOpenDay = page
-    .locator('button[aria-label*="open slots"]')
+  const scheduler = page.getByRole("dialog", { name: "Schedule your meeting" });
+  await scheduler.getByRole("button", { name: "Open month view" }).click();
+
+  const firstOpenDay = scheduler
+    .getByRole("button", { name: /open slots?/ })
     .first();
   await expect(firstOpenDay).toBeVisible({ timeout: 5_000 });
   await firstOpenDay.click();
