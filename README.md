@@ -1,377 +1,157 @@
-<!-- TODO #1 — banner image. Generate a wide hero banner
-     (~1280×320) of the dashboard + a visitor booking page side by
-     side, export as PNG, upload to GitHub via drag-and-drop in any
-     issue/PR (it gets a user-attachments URL), and paste the URL
-     in place of <BANNER_URL> below. -->
-<!--
-<a href="https://timehalo.app">
-  <img alt="TimeHalo — open-source scheduling software for one-on-one
-  meetings, built with a production-oriented TypeScript stack." src="<BANNER_URL>">
-</a>
--->
+# TimeHalo
 
-<h3 align="center">TimeHalo</h3>
+**Set your hours. Share your link. Let people choose a time.**
 
-<p align="center">
-  Open-source scheduling software for one-on-one meetings, built with a production-oriented TypeScript stack.
-  <br />
-  <a href="https://timehalo.app"><strong>Try the hosted app »</strong></a>
-  <br />
-  <br />
-  <a href="#about"><strong>About</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#tech-stack"><strong>Tech stack</strong></a> ·
-  <a href="#quick-start"><strong>Quick start</strong></a> ·
-  <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
-  <a href="#contributing"><strong>Contributing</strong></a>
-</p>
+TimeHalo is a scheduling app for one-on-one meetings. Hosts manage their availability and bookings; visitors pick a meeting length, date, and time from a public booking page. It also supports team workspaces and shared event types.
 
-<p align="center">
-  <a href="https://github.com/safuentees/timehalo/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-BSL%201.1-10b981" alt="License" />
-  </a>
-  <a href="https://github.com/safuentees/timehalo/stargazers">
-    <img src="https://img.shields.io/github/stars/safuentees/timehalo?style=flat&logo=github&color=10b981" alt="GitHub stars" />
-  </a>
-  <a href="https://github.com/safuentees/timehalo/pulse">
-    <img src="https://img.shields.io/github/commit-activity/m/safuentees/timehalo?color=10b981" alt="Commits per month" />
-  </a>
-</p>
+[Try the hosted app](https://timehalo.app) · [Run locally](#run-locally) · [Self-hosting guide](docs/SELF_HOSTING.md) · [Report an issue](https://github.com/safuentees/timehalo/issues)
 
-<br/>
+## See it in action
 
-## About
+![TimeHalo booking demo: open a meeting type, choose a date, and select an available time.](docs/media/booking-demo.gif)
 
-TimeHalo is a single-host scheduling app inspired by Cal.com. Users
-choose a handle, configure availability, share a booking link, and
-receive confirmed meetings on their calendar.
+*A short recording of the real app running locally with fictional sample data. The loop shows meeting selection, the calendar, and the booking form.* [View the still image](docs/media/booking-preview.png).
 
-A typical flow looks like:
+## What you can do
 
-```txt
-timehalo.app/<handle> → choose a date → choose a time → confirm booking
-```
+| For hosts | For visitors |
+| --- | --- |
+| Set weekly availability and a booking horizon | See available times in their own timezone |
+| Share a personal page at `/h/your-handle` | Choose a meeting length, date, and time |
+| Manage upcoming and past bookings | Book, cancel, or reschedule a meeting |
+| Connect Google Calendar or Microsoft Outlook | Add a confirmed meeting to their calendar |
+| Create team workspaces and event types | Book through a personal page or embedded widget |
 
-The product focuses on a streamlined scheduling workflow while
-implementing the backend systems expected in a modern SaaS
-application, including authentication, billing, calendar sync, audit
-logging, webhook delivery, observability, background processing, and
-end-to-end test coverage.
+Other features include email confirmations and reminder workflows, round-robin host assignment, light and dark themes, and English and Spanish translations. Calendar sync, email delivery, and paid plans require the corresponding services to be configured.
 
-> **Hosted plan** lives at [timehalo.app](https://timehalo.app). The
-> code in this repository is what runs it. Self-host the whole thing
-> on Vercel + Turso at little to no monthly cost, or use the hosted
-> plan and skip the ops.
+### The booking flow
 
-<!-- TODO #2 — booking-flow screenshot (a single PNG, ~1200×750
-     wide). Recommended subject: a real /h/<handle> visitor page
-     mid-booking with the slot picker visible. -->
-<!--
-<img width="100%" alt="booking page" src="<SCREENSHOT_URL>">
--->
+1. **Host:** choose a handle, set your hours, and share `https://your-domain/h/your-handle`.
+2. **Visitor:** open the link, choose a duration, and pick an available time.
+3. **Visitor:** enter a name and email address, then confirm the booking.
+4. **Host:** manage the meeting from the bookings dashboard. Visitors can use their confirmation link to cancel or reschedule.
 
-## Features
+## Run locally
 
-### Scheduling and booking
+You can try the app with a local SQLite file. A Turso account, Stripe account, and calendar credentials are optional for this first run.
 
-- Public booking pages at `/h/[handle]`
-- Availability management for hosts
-- One-on-one booking flow with confirmation and rescheduling
-- Google Calendar two-way sync
-- Automated workflow emails
-- Embeddable booking widget
-- Custom branding options
-- Dark mode
-- English and Spanish internationalization
+### 1. Install the project
 
-### SaaS and backend systems
-
-- **Idempotent booking mutations** — repeated booking requests with the
-  same key produce a single booking record.
-- **Race-safe slot collision prevention** — booking conflicts are
-  prevented during concurrent requests.
-- **Audit logging on writes** — mutations record actor, IP address,
-  user agent, and before/after state.
-- **HMAC-signed webhooks** — booking lifecycle events support retries,
-  exponential backoff, and delivery logs.
-- **Rate limiting** — per-IP and per-user sliding-window rate limits
-  powered by Upstash Redis.
-- **Workspaces and round-robin assignment** — event types can include
-  multiple hosts with weighted distribution and double-booking
-  protection.
-- **Soft deletion** — bookings retain an audit trail while remaining
-  excluded from standard reads.
-- **Server-sent events** — live booking-arrival queue without polling.
-- **Attribution capture** — booking links support source tracking
-  through UTM-style cookies.
-- **Feature flags** — gradual rollouts and per-user overrides.
-- **Observability** — structured logging, Sentry tracing, and Vercel
-  Analytics.
-
-<!-- TODO #3 — short demo GIF (~3-5 sec, ~600×400). Record the
-     booking flow: open /h/handle → pick a day → pick a slot →
-     confirm. Compress with `gifski` or upload as MP4. -->
-<!--
-<img width="100%" alt="booking demo" src="<DEMO_URL>">
--->
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Framework | [Next.js 16](https://nextjs.org/) (App Router) |
-| UI | [React 19](https://react.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) + [Base UI](https://base-ui.com/) |
-| Motion | [Motion](https://motion.dev/) (formerly Framer Motion) |
-| API | [tRPC v11](https://trpc.io/) + [TanStack Query v5](https://tanstack.com/query) |
-| ORM | [Prisma 7](https://www.prisma.io/) |
-| Database | [Turso](https://turso.tech/) (libSQL) |
-| Auth | [Auth.js v5](https://authjs.dev/) |
-| Email | [Resend](https://resend.com/) + [React Email](https://react.email/) |
-| Payments | [Stripe](https://stripe.com/) |
-| Rate limiting | [Upstash Redis](https://upstash.com/) |
-| Observability | [Sentry](https://sentry.io/) |
-| Hosting | [Vercel](https://vercel.com/) |
-| Language | [TypeScript](https://www.typescriptlang.org/) (strict mode) |
-
-## Quick start
-
-### Requirements
-
-- Node.js `>= 22`
-- pnpm `>= 9`
-- A Turso database or another libSQL-compatible database URL
-- A configured `.env.local` file
-
-### Install and run
+Use **Node.js 24** (the version in [`.nvmrc`](.nvmrc) and CI) and **pnpm 9.15.9** (pinned in [`package.json`](package.json)).
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/safuentees/timehalo.git
 cd timehalo
+pnpm install --frozen-lockfile
+cp .env.example .env
+```
 
-# 2. Install dependencies
-pnpm install
+### 2. Configure `.env`
 
-# 3. Configure environment variables
-cp .env.example .env.local
-# Fill in the required values in .env.local
+Keep the local database URL and set these values:
 
-# 4. Generate Prisma client and apply migrations
+```dotenv
+DATABASE_URL="file:./dev.db"
+AUTH_SECRET="replace-with-a-generated-secret"
+AUTH_URL="http://localhost:3001"
+NEXT_PUBLIC_APP_URL="http://localhost:3001"
+```
+
+Generate your own `AUTH_SECRET` with `openssl rand -base64 32` and paste the output into `.env`. The `AUTH_URL` makes local sign-in redirects use HTTP on the correct port. `.env` is ignored by Git.
+
+Use **`.env`**, since both Next.js and the Prisma configuration load it. Copying the template only to `.env.local` leaves the Prisma CLI without these values.
+
+### 3. Create the database and start the app
+
+```bash
 pnpm prisma generate
+
+# Ensure the SQLite file exists before applying the migrations.
+node -e "const fs = require('node:fs'); fs.closeSync(fs.openSync('dev.db', 'a'))"
+
 pnpm prisma migrate deploy
-
-# 5. Seed local fixtures (optional)
-pnpm setup
-
-# 6. Start the development server
 pnpm dev
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+Open **[http://localhost:3001](http://localhost:3001)** and choose **Try as a guest**. This creates an individual demo account with default availability and a personal workspace, so you can explore without configuring email or signing up.
 
-For the full local environment, including the cron worker and Stripe
-webhook tunnel, use:
+If your browser upgrades local links to HTTPS and reports `ERR_SSL_PROTOCOL_ERROR`, follow the [local HTTPS instructions](docs/SELF_HOSTING.md#local-https).
 
-```bash
-pnpm dev:full
-```
+To create a regular account, configure Resend first: registration sends an email verification code. Without an email provider, delivery-dependent flows such as verification and magic-link sign-in cannot complete.
 
-### Common scripts
+> `pnpm setup` is an optional bootstrap helper for clones and worktrees; it installs dependencies, generates Prisma, applies migrations, and configures Git hooks. It does not seed example users. The seed script also does not create sample accounts.
 
-| Script | Description |
-|---|---|
-| `pnpm dev` | Start the Next.js development server |
-| `pnpm dev:cron` | Run the local cron worker |
-| `pnpm dev:full` | Run dev server, cron worker, and Stripe tunnel together |
-| `pnpm test` | Run Vitest in watch mode |
-| `pnpm test:run` | Run the Vitest suite once |
-| `pnpm exec playwright test` | Run Playwright end-to-end tests |
+## Configuration
+
+The complete list, with provider setup notes, is in [`.env.example`](.env.example). Only `DATABASE_URL` and `AUTH_SECRET` are required by the app's environment validator; set the local URLs shown above for development.
+
+| Service | Environment variables | Enables |
+| --- | --- | --- |
+| Turso | `DATABASE_URL`, `TURSO_AUTH_TOKEN` | Hosted libSQL database; no token needed for a local `file:` URL |
+| Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Account verification, magic links, and booking emails |
+| Background worker | `CRON_SECRET` | Authenticated processing of queued emails, reminders, and webhook tasks |
+| GitHub OAuth | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | GitHub sign-in |
+| Google Calendar | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `CALENDAR_TOKEN_KEY` | Calendar connection and busy-time checks |
+| Microsoft Outlook | `MICROSOFT_OAUTH_CLIENT_ID`, `MICROSOFT_OAUTH_CLIENT_SECRET`, `CALENDAR_TOKEN_KEY` | Calendar connection and busy-time checks |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_TEAM`, `STRIPE_WEBHOOK_SECRET` | Billing and paid plans |
+| Upstash Redis | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Shared rate limiting; otherwise the app uses an in-memory limiter |
+| Sentry | `NEXT_PUBLIC_SENTRY_DSN` | Error reporting and tracing |
+
+For local task processing, set `CRON_SECRET` and run `pnpm dev:cron` in a second terminal. Configure Resend before processing email tasks: without its API key, those tasks are logged and marked as skipped.
+
+## Built with
+
+| Layer | Technology |
+| --- | --- |
+| App and UI | Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Base UI |
+| Animation | Motion and GSAP |
+| API and server state | tRPC 11 and TanStack Query 5 |
+| Data | Prisma 7, SQLite locally, Turso/libSQL for hosted deployment |
+| Authentication | Auth.js 5 beta |
+| Integrations | Resend + React Email, Google Calendar, Microsoft Outlook, Stripe |
+| Operations | Upstash Redis, Sentry, GitHub Actions, Vercel |
+
+The backend includes idempotent booking requests, conflict checks, audit logs, signed webhooks with retries, API keys, soft deletion, and a live booking queue using server-sent events. API documentation is served at `/api/v1/docs`, with the OpenAPI specification at `/api/openapi.json`.
+
+## Development
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start the app on port 3001 |
+| `pnpm dev:cron` | Process local background tasks |
+| `pnpm email:preview` | Preview React Email templates on port 3002 |
 | `pnpm lint` | Run ESLint |
-| `pnpm tsc --noEmit` | Run TypeScript type checking |
-| `pnpm email:preview` | Start the React Email preview server |
-| `pnpm build` | Create a production build |
+| `pnpm exec tsc --noEmit` | Check TypeScript |
+| `pnpm test:run` | Run the Vitest suite once |
+| `pnpm exec playwright test` | Run browser tests |
+| `pnpm build` | Build for production |
+| `pnpm start` | Serve the production build |
 
-## Environment
+Before the first browser test run, install Chromium with `pnpm exec playwright install chromium`. Playwright starts the app on port 3001 and prepares its test account. Use a separate test database, since the global setup modifies fixtures. CI runs lint, type checking, Vitest, and Playwright; see the [workflow](.github/workflows/ci.yml) and [testing conventions](.claude/rules/testing.md).
 
-Minimum environment variables required to boot the app:
-
-```env
-# Database
-DATABASE_URL=libsql://<your-db>.turso.io
-TURSO_AUTH_TOKEN=<token>
-
-# Auth
-AUTH_SECRET=<openssl rand -base64 32>
-AUTH_URL=http://localhost:3000
+```text
+src/app/               Routes: host dashboard, public booking pages, APIs
+src/components/oh/     Shared application chrome and forms
+src/components/ui/     UI primitives
+src/trpc/              Typed API routers and procedures
+src/lib/               Scheduling, integrations, and background task logic
+prisma/                Database schema and migration history
+e2e/                   Browser tests and fixtures
+test/                  Vitest tests and fixtures
 ```
 
-Optional services for full feature parity:
+For production deployment, migrations, cron configuration, and backups, see the **[self-hosting guide](docs/SELF_HOSTING.md)**. The `dev:full` script uses the maintainer's Stripe and Cloudflare tunnel defaults; that guide explains what to configure before using it.
 
-```env
-# Email
-RESEND_API_KEY=<key>
+## Contributing and support
 
-# Observability
-SENTRY_DSN=<dsn>
+Read [`AGENTS.md`](AGENTS.md) and any instructions scoped to the files you change. Run the relevant checks above, and update [`BACKLOG.md`](BACKLOG.md) when shipping or deferring a tracked item. The backlog is the source of truth for shipped features and planned work.
 
-# Rate limiting and idempotency
-UPSTASH_REDIS_REST_URL=<url>
-UPSTASH_REDIS_REST_TOKEN=<token>
-
-# Payments
-STRIPE_SECRET_KEY=<key>
-
-# GitHub OAuth
-GITHUB_ID=<oauth-client-id>
-GITHUB_SECRET=<oauth-secret>
-```
-
-See `.env.example` for the full environment variable list.
-
-## Self-hosting
-
-The hosted and self-hosted versions use the same codebase.
-
-### Deployment outline
-
-1. Fork this repository
-2. Create a Turso database — `turso db create timehalo-prod`
-3. Create a database token — `turso db tokens create timehalo-prod`
-4. Deploy the fork to Vercel
-5. Add the required environment variables
-6. Apply the database migrations manually:
-
-```bash
-turso db shell timehalo-prod < prisma/migrations/<latest>/migration.sql
-```
-
-The Vercel build command is:
-
-```bash
-pnpm prisma generate && pnpm build
-```
-
-`prisma migrate deploy` is not used against Turso remote URLs in this
-deployment flow. Migrations are applied through the Turso CLI from a
-local machine.
-
-### Cron jobs
-
-Sub-daily cron processing for `/api/cron/process-tasks` runs through
-GitHub Actions because Vercel Hobby limits scheduled crons to once
-per day. The workflow lives at
-`.github/workflows/cron-process-tasks.yml`.
-
-### Backup and restore
-
-A full database runbook is available at
-`.claude/rules/database-runbook.md` — it documents Turso point-in-time
-recovery and weekly logical dump procedures.
-
-## Project structure
-
-```
-src/
-  app/
-    (host)/         — authenticated application routes
-    h/[handle]/     — public booking pages
-    api/            — cron, webhook, and OAuth routes
-  trpc/             — domain-specific tRPC routers
-  components/
-    oh/             — project chrome (OhPageShell, OhCard, OhPillSwitcher, …)
-    ui/             — shared UI primitives
-  lib/
-    mutations/      — TanStack Query mutation hooks
-    schedule.ts     — shared slot-generation logic
-prisma/
-  schema.prisma
-  migrations/
-e2e/                — Playwright specs
-test/               — Vitest fixtures and contract tests
-.claude/rules/      — engineering conventions and runbooks
-```
-
-See `AGENTS.md` in the repository root for project-wide engineering
-rules. Some directories also contain scoped `AGENTS.md` files with
-conventions specific to that part of the codebase.
-
-## Testing
-
-TimeHalo includes both server-side contract coverage and
-browser-level end-to-end coverage.
-
-### Vitest
-
-- Around 300 server-side contract tests
-- Coverage across tRPC routers, booking logic, and shared libraries
-- Run with `pnpm test:run`
-
-### Playwright
-
-End-to-end browser coverage for:
-
-- Authentication flows
-- Public booking flow
-- Core smoke tests
-
-Run with `pnpm exec playwright test`.
-
-### Continuous integration
-
-Pull requests run lint + tsc + Vitest + Playwright before merge. The
-project gates all four; merging is blocked on any failure.
-
-Test conventions live in `.claude/rules/testing.md` — fixture
-inventory, auth caching, environment stubbing.
-
-## Roadmap
-
-Active work tracked in [`BACKLOG.md`](./BACKLOG.md) at the repo root.
-The file is the single source of truth — shipped items keep their row
-with the commit SHA in the *Closed by* column; deferrals get a new ID
-in the same diff that introduces them. A pre-commit hook enforces
-this.
-
-## Contributing
-
-PRs welcome. Before opening one:
-
-1. Read `AGENTS.md` (root) — the design rules every contributor follows
-2. Run `pnpm test:run && pnpm lint && pnpm tsc --noEmit` locally
-3. Add or update entries in `BACKLOG.md` if you're shipping or
-   deferring a tracked item (the `commit-msg` hook will reject the
-   commit otherwise)
-
-For local development setup see [Quick start](#quick-start) above. The
-worktree workflow (per-branch sandbox in `.claude/worktrees/`) is
-documented in `AGENTS.md`.
-
-### Recommended versions
-
-| Package | Version |
-|---|---|
-| node | ≥ 22 |
-| pnpm | ≥ 9 |
-| turso | latest |
+Use [GitHub Issues](https://github.com/safuentees/timehalo/issues) for bugs and feature requests. Include steps to reproduce and the relevant error message; keep credentials and personal booking data out of reports. Maintained by [safuentees](https://github.com/safuentees).
 
 ## License
 
-[Business Source License 1.1](./LICENSE) — source-available with a
-non-commercial use grant. You may self-host and run TimeHalo for
-personal, internal evaluation, development, and testing purposes.
-Commercial use, including providing TimeHalo as a hosted or managed
-service to third parties, requires a separate commercial license
-from the Licensor.
-
-The license auto-converts to the Apache License 2.0 on 2030-05-12
-(four years from initial release).
-
-The hosted plan at [timehalo.app](https://timehalo.app) is the same
-code, with managed infra + email + payments wired up.
+TimeHalo is **source-available** under the [Business Source License 1.1](LICENSE), with an additional grant for non-commercial use, including personal use, internal evaluation, development, and testing. Commercial use requires a separate license from the licensor. The license specifies **2030-05-12** as its change date and **Apache 2.0** as its change license. See [LICENSE](LICENSE) for the full terms.
 
 ## Acknowledgments
 
-Heavily inspired by [Cal.com](https://github.com/calcom/cal.com)'s
-product surface and [dub.co](https://github.com/dubinc/dub)'s
-engineering style. The dashboard chrome borrows pacing from ChatGPT's
-settings panel.
+Inspired by [Cal.com](https://github.com/calcom/cal.com) and [Dub](https://github.com/dubinc/dub). This README follows [GitHub's official README guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes), with structure informed by the community [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
